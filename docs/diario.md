@@ -73,9 +73,22 @@ Portati dal backup, nessuna dipendenza interna (solo stdlib + backend TTS).
   gira con `pythonw` → stderr scartato → invisibili. Codice voce lasciato
   invariato (collaudato).
 
+**Cervello (`engineer/brain.py`) — port dell'INTERO cervello collaudato.**
+Scelta: invece di reinventare i pezzi, portato tutto `engineer.py` (v3) +
+dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cosa
+*completa* (l'utente ha poco tempo).
+- Dipendenze portate in `core/`: `classes.py` (class_tag), `muretto.py`
+  (piano, autonomo), `paths.py`, `engineer_learn.py` (profili appresi),
+  `config.py`, `utils.py`.
+- Staccato dal vecchio overlay: nuovo `core/engineer_cfg.py` (opzioni muretto
+  da `settings/engineer_cfg.json`) al posto di `engineer_overlay._load_cfg`.
+- `Engineer(lang)` importa e si istanzia: 283 messaggi caricati, metodi
+  strategia presenti (race_plan, box_call, strategy_check, countdown,
+  status_update). I metodi sono difensivi (try/except, `[]` se manca il dato)
+  → coerente con "tace se manca".
+
 **Da fare (mattoni, in ordine).**
-1. Radio a 2 vie: STT online + wake word + intent deterministico.
-2. Cervello: moduli decisionali, priorità 1 = settori "dove perdo"
-   (`sector_panel_data`). NB: per il valore "strategia ai team" conviene un
-   minimo di cervello strategico (piano/box/consumo vs target) che parli usando
-   `lmu_live` — da valutare come prossimo passo con l'utente.
+1. Loop muretto (`engineer/run_engineer.py`): glue reader+shared_memory+
+   StrategyFeed → `raw` → metodi Engineer → voce. Prima i metodi strategia.
+2. Radio a 2 vie: STT online + wake word + intent deterministico.
+3. Resto del cervello / settori "dove perdo".
