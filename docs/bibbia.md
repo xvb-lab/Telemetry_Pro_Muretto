@@ -254,6 +254,10 @@ Moduli-voce principali (dal catalogo v3): `flags_call`, `damage_call`,
 
 ## 12. Riferimenti
 
+- **Dati di dominio LMU** (autorevoli, calibrare il codice su questi):
+  `docs/dati_lmu.md` (VE/benzina per classe, finestre gomme/freni/motore),
+  `docs/logica_strategia.md` (dry/wet/crossover, risparmio stint, loop 3 flussi),
+  `docs/consigli_muretto.md` (coaching live/setup da trasformare in frasi).
 - Backup completo vecchia app: `..\Telemetry_Pro_BACKUP_2026-07-20_203351\`
 - Vecchia bibbia muretto: `<backup>\docs_official\dev\muretto_bibbia.md`
 - Censimento dati: `<backup>\...\data_library.md`
