@@ -590,17 +590,21 @@ class Engineer:
 
     # ── ADVISOR: sicurezza e informazione ────────────────────────────
     def rain_live(self, raw, laps_done):
-        """PIOGGIA IN DIRETTA — la chiamata SACRA. Tre stati sulla MEDIA
-        bagnato (conservativa): dry <0.10, damp 0.10-0.25, wet >0.25.
-        dry->wet con slick montate = ORDINE box wet. Isteresi 2 letture."""
+        """PIOGGIA IN DIRETTA — la chiamata SACRA. Stati sulla TRAIETTORIA IDEALE
+        (`wetness_min` = la linea che guidi; l'acqua fuori-linea la gestisce
+        wet_patches). Soglie del crossover REALE S397: asciutto <0.15, umido
+        0.15-0.20 (zona grigia), **bagnato >0.20** -> con slick = ORDINE box wet.
+        Isteresi 2 letture. (Prima era 0.25 sulla media = mia interpretazione;
+        ora la soglia vera S397.)"""
         raw = raw or {}
         try:
-            w = float(raw.get("wetness") or 0.0)
+            _wl = raw.get("wetness_min")     # traiettoria ideale (la linea)
+            w = float(_wl if _wl is not None else (raw.get("wetness") or 0.0))
             rn = float(raw.get("raining") or 0.0)
         except (TypeError, ValueError):
             return []
-        state = "wet" if (w > 0.25 or rn >= 0.4) else \
-            ("damp" if w > 0.10 or rn >= 0.15 else "dry")
+        state = "wet" if (w > 0.20 or rn >= 0.4) else \
+            ("damp" if (w > 0.15 or rn >= 0.15) else "dry")
         pend = self._st.get("rain_pend")
         if state != self._st.get("rain_state"):
             if pend == state:

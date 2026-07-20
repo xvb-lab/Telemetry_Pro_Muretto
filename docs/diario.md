@@ -233,6 +233,13 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
   cadenza 2 giri. Agganciato in `_collect` (spotter) + `raw["lap_time"]` nel glue.
   Testato: "perdi 5 decimi nel settore 2", muto sul bagnato.
 
+**Bandiera wet sulle soglie VERE S397 (regola: soglia vera > interpretazione).**
+- `rain_live` ora legge la **traiettoria ideale** (`wetness_min`, non la media) e
+  usa il crossover reale S397: asciutto <0.15, zona grigia 0.15-0.20 (avviso
+  "arriva pioggia"), **bagnato >0.20** con slick = ordine `rain_box_now`.
+  Prima era 0.25 sulla media (mia interpretazione). Testato: 0.17→avviso,
+  0.22→box wet. Regola fissa salvata in memoria (collaudato + soglie vere).
+
 **Da fare (mattoni, in ordine).**
 0. Portare le altre funzioni v2 (conditions/box_last/box_timing/pit_exit_traffic/
    wet_sector_map/fast_class), una alla volta come sector_delta.
