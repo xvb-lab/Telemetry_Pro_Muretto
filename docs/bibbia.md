@@ -258,6 +258,11 @@ Moduli-voce principali (dal catalogo v3): `flags_call`, `damage_call`,
   `docs/dati_lmu.md` (VE/benzina per classe, finestre gomme/freni/motore),
   `docs/logica_strategia.md` (dry/wet/crossover, risparmio stint, loop 3 flussi),
   `docs/consigli_muretto.md` (coaching live/setup da trasformare in frasi).
+- **Fonti dati LMU** (verifica/analisi): shared memory via `pyLMUSharedMemory`
+  (LIVE, quella che usa il muretto); export telemetria **DuckDB** via
+  `config.json` in `UserData/Telemetry` (core temp/wear per frame, per analisi
+  post-sessione); tool community (SimHub TKLMUPlugin, Strat Calculator,
+  mylmu.app) per riscontro.
 - Backup completo vecchia app: `..\Telemetry_Pro_BACKUP_2026-07-20_203351\`
 - Vecchia bibbia muretto: `<backup>\docs_official\dev\muretto_bibbia.md`
 - Censimento dati: `<backup>\...\data_library.md`
