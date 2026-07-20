@@ -55,3 +55,27 @@ Carreggiata 1720 mm ant / 1680 mm post.
 
 *Stato: riferimento. Non collegato al muretto live. Utile per un futuro modulo
 di analisi setup basato sull'export DuckDB.*
+
+---
+
+## Note engine S397 (background — solo l'essenziale)
+
+La fisica LMU (pMBI, eredita rF2) è **data-driven a 400 Hz** (.TGM gomme "bristle",
+.ENG motore LUT, .HDV aero a griglie 2D su ride height); file criptati (.MAS).
+Trascritto solo ciò che ci serve:
+
+- ✅ **BoP DINAMICO** (MassBase/zavorra, Restrictor, **MaxStintEnergy**, dimensione
+  serbatoio) → sovrascrive i parametri per-server. NON deducibile dalla fisica base:
+  **si legge LIVE dallo Shared Memory** (ScoringInfo/VehicleInfo). Conferma l'approccio
+  di `lmu_live` (VE/benzina dal dato vivo, non costanti).
+- 🟢 **Power Clip** (HY): se `throttle=100%` ma l'erogazione MJ si **appiattisce** →
+  hai colpito il limite di curva potenza FIA. Segnale live intercettabile.
+- **Cliff gomme (meccanismo)**: drop-off quando il battistrada scende sotto il **15%**
+  (espone la carcassa, `StaticBaseFriction` molto più basso). HY: coeff. abrasione
+  abbassato per Michelin da 2-3 stint.
+- **Mappe motore** = moltiplicatore (Map1 1.0, Map2 ~0.95): meno potenza **ma più
+  freno motore** (cambia il bilanciamento in ingresso).
+- **Freni**: BrakeFadeHalf = temp a cui la coppia frenante si dimezza; GT3 con prese
+  tappate >700°C → fade esponenziale (pedale uguale, G di decelerazione scende → lungo).
+- **Aero**: diffusore stalla se RHR < ~25 mm (moltiplicatore carico 1.2→0.4 in ~3 mm);
+  tocco bumpstop → stallo aero → snap oversteer. (setup)
