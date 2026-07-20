@@ -115,7 +115,22 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
   Catena reader→brain→ruolo→voce OK dal vivo. Piano/consumo non uditi solo
   perché la sessione di test stava finendo (serve una gara più lunga).
 
+**Base di conoscenza di dominio (docs/) + calcolatore strategico.**
+- Documenti autorevoli catturati (dall'utente, via ricerca): `dati_lmu.md`
+  (VE/benzina per classe, finestre gomme/freni/motore, tempi box),
+  `logica_strategia.md` (dry/wet/crossover, risparmio stint, loop 3 flussi,
+  profilo per classe), `consigli_muretto.md` (coaching), `messaggi_radio.md`
+  (vocabolario IT/EN), `numeri_strategia.md` (costanti: pit delta, wear+cliff,
+  consumi, L&C, meteo, FCY, mescole).
+- `core/pit_math.py`: calcolatore PURO deterministico dai numeri — `pit_delta`,
+  `fcy_pit_saving`, `tyre_wear_per_lap`, `laps_to_cliff`, `double_stint_verdict`,
+  `undercut_gain`, `consumption_per_lap`, `compound_for_asphalt`. Testato tutto.
+  Sta sopra `lmu_live`, non tocca il cervello. Costanti = riferimento/fallback;
+  in gara vince il dato vivo di LMU.
+
 **Da fare (mattoni, in ordine).**
-1. Provare piano gara + consumo vs target in una gara LIVE più lunga.
-2. Radio a 2 vie: STT online + wake word + intent deterministico.
-3. Resto del cervello: settori "dove perdo", ecc.
+1. Collegare `pit_math` al cervello/loop: double-stint sul wear reale, undercut,
+   FCY, scelta mescola, "elimina una sosta" — come voci del muretto.
+2. Provare piano gara + consumo vs target in una gara LIVE più lunga.
+3. Radio a 2 vie: STT online + wake word + intent deterministico.
+4. Resto del cervello: settori "dove perdo", traffico per classe, ecc.
