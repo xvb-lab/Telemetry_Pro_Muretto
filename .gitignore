@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Ambienti virtuali
+.venv/
+venv/
+env/
+
+# Build / packaging
+build/
+dist/
+*.spec
+
+# Log e dati di sessione locali
+*.log
+*.lmtel
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+
+# Tooling locale Claude Code (config di macchina, non parte dell'app)
+.claude/
