@@ -984,6 +984,53 @@ class Engineer:
         return [self.msg("grip_up" if g > prev else "grip_down",
                          stato=names[g])]
 
+    def sector_delta(self, raw, laps_done):
+        """DOVE PERDI: a fine giro confronta i 3 settori col tuo MIGLIORE e, se
+        perdi in modo netto (>=0.18s), te lo dice. Solo all'asciutto (sul bagnato
+        il passo e' grip-limited). Cadenza min ~2 giri, niente martellamento.
+        Portato dalla v2 (seeding dai settori appresi omesso in 0.3b: parte dai
+        settori reali)."""
+        raw = raw or {}
+        if not laps_done:
+            return []
+        rn = float(raw.get("raining") or 0.0)
+        if rn >= 0.15 or self._wet_mounted(raw):     # bagnato: niente, azzera
+            self._sec_best = [None, None, None]
+            return []
+        try:
+            s1 = float(raw.get("last_s1"))
+            s2c = float(raw.get("last_s2"))
+            lt = float(raw.get("lap_time"))
+        except (TypeError, ValueError):
+            return []
+        if s1 <= 0 or s2c <= s1 or lt <= s2c:         # giro/settori non validi
+            return []
+        if laps_done == getattr(self, "_sec_last_lap", None):
+            return []
+        self._sec_last_lap = laps_done
+        secs = [s1, s2c - s1, lt - s2c]
+        best = getattr(self, "_sec_best", None)
+        if not isinstance(best, list):
+            best = self._sec_best = [None, None, None]
+        deltas = []
+        for i in range(3):
+            if best[i] is None or secs[i] < best[i]:
+                best[i] = secs[i]
+                deltas.append(0.0)
+            else:
+                deltas.append(secs[i] - best[i])
+        worst = max(range(3), key=lambda i: deltas[i])
+        loss = deltas[worst]
+        if loss < 0.18:                               # perdita non significativa
+            return []
+        if getattr(self, "_sec_rep_lap", None) is not None \
+                and (laps_done - self._sec_rep_lap) < 2:
+            return []
+        self._sec_rep_lap = laps_done
+        d = int(round(loss * 10))
+        perdita = ("%d decimi" % d) if d < 10 else ("%d e %d" % (d // 10, d % 10))
+        return [self.msg("sector_loss", settore=worst + 1, perdita=perdita)]
+
     def _learned_corners(self, raw):
         """Curve apprese per questa pista/classe (dal profilo learn):
         [{d: metri, n: numero}]. Cache di sessione, [] se non c'e'."""

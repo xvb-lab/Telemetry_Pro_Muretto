@@ -220,7 +220,22 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
   `radio.push()` → `radio.tick(vox)`. Non più _speak diretto (niente FIFO cieco).
 - Testato: priorità (BOX prima del gap), preemption gialla (interrupt + riaccodo).
 
+**Confronto v2↔v3 + port funzioni v2 mancanti.**
+- Analisi: v3 (brain) 47 metodi, v2 59. Novità v3 (già presenti): autofuel_call,
+  pace_notes_call, tlimits_call, curve apprese. Coperte in v3: strat_plan→race_plan,
+  tyre_advice→wet_tyre/rain_live, best_lap_call→lap_feedback, yellow_call (no SC),
+  update_situation (stato letto inline nel sanity_filter).
+- DA PORTARE dalla v2 (mancanti): **sector_delta** (dove perdo, P1) ✅ FATTO,
+  poi conditions_call, box_last_call, box_timing_call, pit_exit_traffic,
+  wet_sector_map, fast_class_call.
+- `sector_delta` portato (adattato: no seeding da settori appresi): a fine giro
+  confronta i 3 settori col migliore, se perdi ≥0.18s dice dove; solo asciutto;
+  cadenza 2 giri. Agganciato in `_collect` (spotter) + `raw["lap_time"]` nel glue.
+  Testato: "perdi 5 decimi nel settore 2", muto sul bagnato.
+
 **Da fare (mattoni, in ordine).**
+0. Portare le altre funzioni v2 (conditions/box_last/box_timing/pit_exit_traffic/
+   wet_sector_map/fast_class), una alla volta come sector_delta.
 1. Mappare `tyre_temp`/`brake_temp` (dal reader: carcass/inner/brk) → attiva
    `temp_call`; aggiungere `session_rules` se serve.
 2. Collegare `pit_math` come voci nuove (undercut, FCY, mescola) senza toccare

@@ -91,6 +91,7 @@ def _collect(brain, raw, ld, pace):
         # 🟢 PERFORMANCE / spotter
         (brain.lap_time_call, (raw,)),
         (brain.lap_feedback, (raw, ld)),
+        (brain.sector_delta, (raw, ld)),          # dove perdi nei settori (v2)
         (brain.tyre_life, (raw, ld)),
         (brain.grip_call, (raw, ld)),
         (brain.temp_call, (raw, ld)),
@@ -160,6 +161,7 @@ def run():
             raw = dict(d)
             raw["ts"] = time.monotonic()
             raw["on_track"] = True
+            raw["lap_time"] = d.get("last_lap")       # per sector_delta / feedback
             raw["lmu_live"] = live
             if live:
                 raw["lmu_per_lap"] = live.get("per_lap")
