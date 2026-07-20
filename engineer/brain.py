@@ -89,6 +89,16 @@ def _fmt_lap_round(s):
     return "%d e %02d %s" % (m, sec, qual)
 
 
+# nome classe pronunciabile (dal tag) — per traffico/blu (portato da v2)
+_CLASS_READABLE = {"HY": "Hypercar", "LMH": "Hypercar", "LMDH": "Hypercar",
+                   "GT3": "GT3", "LMGT3": "GT3", "GTE": "GTE",
+                   "LMP2": "LMP2", "LMP3": "LMP3"}
+
+
+def _class_readable(tag):
+    return _CLASS_READABLE.get((tag or "").upper(), tag)
+
+
 class Engineer:
     """Il cervello. Stato in self._st (dict namespaced): niente foresta di
     attributi, reset di sessione = un clear."""
@@ -1034,6 +1044,125 @@ class Engineer:
         d = int(round(loss * 10))
         perdita = ("%d decimi" % d) if d < 10 else ("%d e %d" % (d // 10, d % 10))
         return [self.msg("sector_loss", settore=worst + 1, perdita=perdita)]
+
+    def _fmt_gap(self, g):
+        return ("%.1f" % g).replace(".", ",")
+
+    def fast_class_call(self, raw):
+        """PRE-BLU: classe piu' veloce in ARRIVO (gap in secondi) PRIMA che il
+        gioco sventoli la blu — qualche secondo in piu' per decidere dove farla
+        passare. Una per vettura, solo se sta CHIUDENDO; riarmo a >8s. (v2)"""
+        raw = raw or {}
+        riv = raw.get("rivals") or {}
+        traffic = riv.get("traffic_behind") or []
+        _RK = {"HY": 4, "LMH": 4, "LMDH": 4, "P2": 3, "LMP2": 3,
+               "P3": 2, "LMP3": 2, "GT3": 1, "LMGT3": 1, "GTE": 1}
+        my_rank = _RK.get(class_tag(raw.get("car_class") or "").upper(), 0)
+        if my_rank >= 4:
+            return []                    # la classe veloce sei tu
+        now = _time.monotonic()
+        prev = getattr(self, "_fc_prev", {}) or {}
+        said = getattr(self, "_fc_said", None)
+        if said is None:
+            said = self._fc_said = set()
+        cur, out = {}, []
+        for t in traffic:
+            cls = class_tag(t.get("cls") or "").upper()
+            if _RK.get(cls, 0) <= my_rank:
+                continue
+            try:
+                g = float(t.get("gap") or 0.0)
+            except (TypeError, ValueError):
+                continue
+            nm = t.get("name") or cls
+            cur[nm] = g
+            if nm in said:
+                if g > 8.0:
+                    said.discard(nm)     # si e' staccata: riarma
+                continue
+            pg = prev.get(nm)
+            closing = (pg is not None and (pg - g) >= 0.2)
+            if (g <= 4.5 and closing and not out
+                    and now - getattr(self, "_fc_t", 0.0) >= 12.0):
+                said.add(nm)
+                self._fc_t = now
+                out.append(self.msg("fast_class_close",
+                                    classe=_class_readable(cls),
+                                    s=max(1, int(round(g)))))
+        for nm in list(said):
+            if nm not in cur:
+                said.discard(nm)
+        self._fc_prev = cur
+        return out
+
+    def pit_exit_traffic(self, raw):
+        """SIMULAZIONE RIENTRO: proietta il traffico (tutte le classi) alla tua
+        uscita dai box. Chi ti sta dietro entro ~pit_loss+3s ti sara' attorno al
+        rientro. Dice quante auto, quante di classe piu' veloce, se c'e' un buco. (v2)"""
+        riv = (raw or {}).get("rivals") or {}
+        traffic = riv.get("traffic_behind") or []
+        pit_loss = self._pit_stop_seconds(raw)
+        if not pit_loss:
+            return []
+        window = pit_loss + 3.0
+        _RANK = {"HY": 4, "LMH": 4, "LMDH": 4, "P2": 3, "LMP2": 3,
+                 "P3": 2, "LMP3": 2, "GT3": 1, "LMGT3": 1, "GTE": 1}
+        my_rank = _RANK.get(class_tag((raw or {}).get("car_class") or "").upper(), 0)
+        try:
+            inside = [t for t in traffic if float(t.get("gap") or 0) <= window]
+        except (TypeError, ValueError):
+            return []
+        if not inside:
+            return [self.msg("pit_exit_clean", pit=self._fmt_gap(pit_loss))]
+        faster = sum(1 for t in inside
+                     if _RANK.get(class_tag(t.get("cls") or "").upper(), 0) > my_rank)
+        after = [float(t["gap"]) for t in traffic if float(t.get("gap") or 0) > window]
+        hole = (after[0] - window) if after else 99.0
+        n = len(inside)
+        if faster > 0:
+            return [self.msg("pit_exit_fast", n=n, fast=faster,
+                             pit=self._fmt_gap(pit_loss))]
+        if hole >= 5.0:
+            return [self.msg("pit_exit_hole", n=n, hole=self._fmt_gap(hole))]
+        return [self.msg("pit_exit_traffic", n=n)]
+
+    def wet_sector_map(self, raw, laps_done):
+        """MAPPA BAGNATO PER SETTORE: accumula asciutto/bagnato (surface_type)
+        per settore mentre giri; a fine giro, se un settore e' nettamente piu'
+        bagnato degli altri, te lo dice. (v2)"""
+        raw = raw or {}
+        sw = getattr(self, "_sec_wet", None)
+        if not isinstance(sw, list):
+            sw = self._sec_wet = [[0, 0], [0, 0], [0, 0]]
+        st = raw.get("surface_type") or []
+        valid = [s for s in st if s in (0, 1)]
+        try:
+            sec = int(raw.get("sector"))
+        except (TypeError, ValueError):
+            sec = None
+        if valid and sec in (0, 1, 2):
+            sw[sec][0] += sum(1 for s in valid if s == 1)
+            sw[sec][1] += len(valid)
+        if laps_done == getattr(self, "_secmap_lap", None):
+            return []
+        prev = getattr(self, "_secmap_lap", None)
+        self._secmap_lap = laps_done
+        if prev is None:
+            return []
+        fr = [(w / n) if n > 0 else None for w, n in sw]
+        self._sec_wet = [[0, 0], [0, 0], [0, 0]]      # azzera per il giro nuovo
+        known = [(i, f) for i, f in enumerate(fr) if f is not None]
+        if len(known) < 2:
+            return []
+        wettest = max(known, key=lambda x: x[1])
+        driest = min(known, key=lambda x: x[1])
+        if wettest[1] >= 0.30 and (wettest[1] - driest[1]) >= 0.35:
+            if getattr(self, "_secmap_rep", None) != wettest[0]:
+                self._secmap_rep = wettest[0]
+                return [self.msg("wet_sector", settore=wettest[0] + 1)]
+        elif wettest[1] < 0.15:
+            self._secmap_rep = None                   # tutto asciutto: riarma
+        return []
 
     def _learned_corners(self, raw):
         """Curve apprese per questa pista/classe (dal profilo learn):

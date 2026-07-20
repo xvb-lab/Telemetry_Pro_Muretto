@@ -83,6 +83,7 @@ def _collect(brain, raw, ld, pace):
         (brain.strategy_check, (raw, pace, ld)),
         (brain.weather_check, (raw, ld)),
         (brain.strat_extra_stop, (raw, ld)),
+        (brain.pit_exit_traffic, (raw,)),         # traffico al rientro box (v2)
         (brain.status_update, (raw, ld)),
         (brain.autofuel_call, (raw, ld)),
         (brain.position_strategy, (raw, ld)),
@@ -97,11 +98,13 @@ def _collect(brain, raw, ld, pace):
         (brain.temp_call, (raw, ld)),
         (brain.gap_call, (raw, ld)),
         (brain.traffic_ahead_call, (raw,)),
+        (brain.fast_class_call, (raw,)),          # pre-blu classe veloce (v2)
         (brain.lock_pattern_call, (raw, ld)),
         (brain.pace_notes_call, (raw, ld)),
         (brain.tlimits_call, (raw, ld)),
         (brain.rain_live, (raw, ld)),
         (brain.wet_patches, (raw,)),
+        (brain.wet_sector_map, (raw, ld)),        # settore piu' bagnato (v2)
     )
     # OGNI output passa dal MURO DI SANITÀ (come la v2): warm-up 5s, leggi di
     # stato (muta in corsia / pit chiamato), anti-ripetizione 25s, budget info.

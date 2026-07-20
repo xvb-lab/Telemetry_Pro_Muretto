@@ -240,9 +240,16 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
   Prima era 0.25 sulla media (mia interpretazione). Testato: 0.17→avviso,
   0.22→box wet. Regola fissa salvata in memoria (collaudato + soglie vere).
 
+**Portate altre 3 funzioni v2** (con helper `_class_readable`/`_CLASS_READABLE`,
+`_fmt_gap`): `fast_class_call` (pre-blu, classe veloce in arrivo), `pit_exit_traffic`
+(traffico proiettato al rientro box), `wet_sector_map` (settore più bagnato).
+Agganciate in `_collect`, testate. Con sector_delta = **4 di 6** funzioni v2 fatte.
+
 **Da fare (mattoni, in ordine).**
-0. Portare le altre funzioni v2 (conditions/box_last/box_timing/pit_exit_traffic/
-   wet_sector_map/fast_class), una alla volta come sector_delta.
+0. Restano 2 funzioni v2, più delicate (accoppiate a box_call): `box_last_call`
+   (rinforzo box all'ingresso corsia) e `box_timing_call` (anticipa/ritarda sosta
+   per traffico) → servono: allineare lo stato box_call v3 (`_box_reason`) +
+   creare i msg `box_timing_*`. Più `conditions_call` (verificare il suo msg).
 1. Mappare `tyre_temp`/`brake_temp` (dal reader: carcass/inner/brk) → attiva
    `temp_call`; aggiungere `session_rules` se serve.
 2. Collegare `pit_math` come voci nuove (undercut, FCY, mescola) senza toccare
