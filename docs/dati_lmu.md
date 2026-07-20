@@ -66,5 +66,36 @@ Il vincolo che LEGA lo stint dipende dalla classe.
 
 ---
 
+## 4. Tempi ai box (costo sosta — base della matematica strategica)
+
+### Hypercar / LMGT3 (gestione Virtual Energy)
+**Rifornimento energia (VE/NRG)**
+- Base (innesto bocchettone): ~**7.5-8 s**
+- Velocità di carica: in base alla VE mancante
+- Pieno completo 0%→100% VE: ~**30-32 s** totali
+- Regola: il tempo dipende **solo dalla % di VE** caricata, non dai litri reali.
+
+**Cambio 4 gomme**: **12 s** netti (sequenziale: 5 s sx + 2 s spostamento + 5 s dx).
+Parziale (solo ant. o solo post.): **5.5 s**.
+
+**Sosta piena (VE 100% + 4 gomme): ~42-44 s.**
+
+### LMP2 / LMGTE / LMP3 (litri di benzina reali)
+**Rifornimento benzina**
+- Base (innesto): ~**7 s**
+- Imbarco: ~**2.1-2.5 L/s** (0.43-0.47 s per litro)
+- Es. LMP2 +60 L: ~26-28 s di sola benzina · LMGTE +75 L: ~31-33 s
+
+**Cambio 4 gomme**: **12 s** netti (stessa meccanica, niente simultaneo).
+
+**Sosta piena (serbatoio vuoto + 4 gomme): ~38-45 s.**
+
+> Nota: LMU espone anche una **stima sosta live** del gioco
+> (`/rest/strategy/pitstop-estimate`) col pit-menu attuale — da preferire quando
+> disponibile; questi valori sono il riferimento/fallback.
+
+---
+
 *Da usare per calibrare `_thermal_windows` / allarmi motore / strategia energia
-del cervello. Verificare che i valori nel codice coincidano con questi.*
+e per il COSTO SOSTA nella matematica di `docs/logica_strategia.md`. Verificare
+che i valori nel codice coincidano con questi.*
