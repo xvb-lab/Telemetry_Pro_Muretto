@@ -96,6 +96,38 @@ Parziale (solo ant. o solo post.): **5.5 s**.
 
 ---
 
+## 5. Modello degrado & consumi (pMBI — implementazione Studio 397)
+
+Il degrado NON è lineare sui giri: è **multifattoriale**, calcolato in tempo reale.
+
+**A. Usura meccanica (abrasione)** — dipende da Load (carico verticale) × Slip
+velocity (scorrimento). HY: mescole rigide per reggere ~11500 N di downforce →
+usura lenta. LMP2: sensibile agli angoli di deriva prolungati. GT3: peso 1300+ kg
++ camber del setup.
+
+**B. Degrado chimico/termico (glazing / blistering)** — se la superficie supera
+la soglia critica a lungo (es. **>105°C HY**), la mescola "cuoce": `Mu_peak` cala
+in modo **permanente** (fino a **15-20%**) anche col battistrada intatto. Sintomo:
+le **temperature crollano** (la gomma vetrificata scivola) → sottosterzo cronico.
+→ **Glazing Index** = integrate(IF superficie>105,1,0): se sale, **anticipa il pit**.
+
+**C. Deformazione plastica (flatspot)** — il bloccaggio in frenata crea un piatto:
+vibrazioni + oscillazione del carico dinamico. Nelle **GT3 mitigato dall'ABS**.
+
+**Consumi HY (Virtual Energy):** MJ, ~900/stint (BoP). Somma ICE + MGU-K, misurata
+da sensori di coppia FIA sui semiassi. **Wheel spin (Slip Ratio >0.15) in uscita =
+MJ CONTEGGIATI COME SPESI** anche senza accelerazione → **il sovrasterzo di potenza
+taglia lo stint di 1-2 giri.** (Voce muretto live se abbiamo lo slip.)
+
+**Consumi LMP2:** litri (~75 L), legati a RPM + Throttle. L&C + mappa magra → -5/8%.
+**Consumi GT3:** litri + **restrittore di flusso BoP** → **rifornimento più lento** →
+risparmiare benzina in pista = **meno secondi fermi ai box** (pesa sulla scelta sosta).
+
+*(La formula "giri rimanenti" (Energy/burn o Fuel/used) è GIÀ in `lmu_live`:
+`autonomy_laps`. Non si riscrive.)*
+
+---
+
 *Da usare per calibrare `_thermal_windows` / allarmi motore / strategia energia
 e per il COSTO SOSTA nella matematica di `docs/logica_strategia.md`. Verificare
 che i valori nel codice coincidano con questi.*
