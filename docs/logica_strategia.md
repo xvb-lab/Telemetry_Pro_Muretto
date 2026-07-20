@@ -81,6 +81,52 @@ da **30 s**, il guadagno netto a fine gara è **~15-20 s**.
 
 ---
 
+## 4. Profilo strategico per classe
+
+### Hypercar (HY) — efficienza ibrida
+~1030 kg, ibrido 4WD/RWD, VE in **MJ** dai sensori di coppia. La mappa motore
+influenza direttamente il consumo VE. Se la VE finisce prima della benzina →
+**Lift & Coast**. **Doppio stint gomme = standard sull'asciutto** (risparmia i
+12 s del cambio). Usura: 4WD (Toyota/Ferrari/Peugeot) anteriori più omogenee;
+LMDh RWD (Porsche/Cadillac/BMW) tendono a distruggere le **posteriori**. In sim
+il consumo è lineare/matematico (stile di guida + TC). **Rischio: Stop&Go 100 s
+per sforamento VE.**
+
+### LMGT3 — gomme + bloccaggio freni
+~1300+ kg, no ibrido, VE per BoP. Usura **asimmetrica** (motore ant./centrale/
+post. secondo l'auto): sui stop-and-go (Imola/Fuji) fuori le posteriori (trazione)
+o le anteriori (inserimento). **Doppio stint più rischioso** della HY → spesso si
+cambiano solo le **2 gomme più sollecitate** (~6 s). **ABS**: troppo alto =
+surriscaldi la superficie in frenata; troppo basso = **spiattellamento**. Il
+muretto monitora i **picchi di temp gomma dopo le staccate**. Autonomia energia
+~53-55 min. Focus: **conservazione gomma posteriore**. Critico: **temp core /
+canale ABS**. Rischio: spiattellamento + surriscaldamento.
+
+### LMP2 — classica "old school"
+Oreca 07 / Gibson V8, **niente VE né ibrido**. Calcolo sui **litri reali** (75 L),
+consumo costante. Nessun sensore di coppia: finire la benzina = **auto si spegne**,
+**niente Stop&Go 100 s**. Usura molto **lineare** (~930 kg); **triplo stint**
+possibile su piste a basso degrado (Le Mans). Focus: **soste minime** (multi-stint
+gomme). Critico: **litri**. Rischio: **restare a secco in pista**.
+
+### LMP3 — classe d'ingresso (ELMS)
+Come LMP2 ma meno potenza, gomme più strette. **No ABS**, freni in **acciaio**
+(non carbonio). Focus termico: **non far raffreddare troppo i freni** sui
+rettilinei lunghi (parzializza i condotti) o non frena alla curva dopo. Serbatoi
+100 L → stint lunghi, ma le gomme calano di più nella **2ª metà** dello stint
+rispetto alle LMP2. Critico: **finestra d'esercizio gomma / temp freni**.
+Rischio: **bloccaggio anteriore + usura precoce**.
+
+### Tabella comparativa
+| Classe | Focus muretto | Variabile critica | Rifornimento su | Rischio principale |
+|---|---|---|---|---|
+| **Hypercar** | efficienza / recupero | MJ residui | finestra VE | Stop&Go 100 s (sforamento VE) |
+| **LMGT3** | conservazione gomma post. | temp core / canale ABS | finestra VE | spiattellamento + surriscaldo |
+| **LMP2** | soste minime (multi-stint) | litri benzina | litri reali | restare a secco |
+| **LMP3** | temp freni acciaio | finestra gomma | litri reali | bloccaggio ant. + usura precoce |
+
+---
+
 ## Mappa ai dati che GIÀ abbiamo (core)
 
 - Autonomia / per_lap / laps_needed / target_pct / constraint → `lmu_live`
