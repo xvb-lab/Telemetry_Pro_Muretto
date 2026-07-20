@@ -87,8 +87,23 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
   status_update). I metodi sono difensivi (try/except, `[]` se manca il dato)
   → coerente con "tace se manca".
 
+**Loop muretto + ruoli/voci — IL MURETTO PARLA LA STRATEGIA.**
+- `engineer/roles.py`: mappa codice-messaggio → ruolo (RACE/STRATEGY/
+  PERFORMANCE) + tabella 12 voci edge-tts (3 ruoli × 4 lingue), portate fedeli
+  dal vecchio `engineer_overlay.py`.
+- `core/voice.py`: aggiunto `speak(text, voice=...)` in modo additivo (la voce
+  viaggia in coda con la frase) così i 3 ruoli non si accavallano. Stringa
+  semplice e sentinella `None` restano identiche (retro-compat).
+- `engineer/run_engineer.py`: loop live (reader + StrategyFeed + brain + voce,
+  con glue `raw` = fisica + `lmu_live` + `lmu_strat`) e modalità `--demo`.
+- **Demo eseguita e verificata**: il muretto (voce STRATEGY, Diego) dice il
+  piano gara ("93 giri, col pieno 68 giri, 2 stint 1 sosta"), l'arco meteo
+  ("asciutto fino al 58, poi bagnato"), le soste pianificate, e il coaching
+  consumo vs target (over/ok/push). Catena completa cervello→ruolo→voce OK nel
+  processo separato.
+- Sbavatura nota: "1 soste" → "1 sosta" (plurale), cosmetica, da limare.
+
 **Da fare (mattoni, in ordine).**
-1. Loop muretto (`engineer/run_engineer.py`): glue reader+shared_memory+
-   StrategyFeed → `raw` → metodi Engineer → voce. Prima i metodi strategia.
+1. Provare il loop LIVE in una sessione LMU vera (finora solo demo sintetica).
 2. Radio a 2 vie: STT online + wake word + intent deterministico.
-3. Resto del cervello / settori "dove perdo".
+3. Resto del cervello: settori "dove perdo", ecc.

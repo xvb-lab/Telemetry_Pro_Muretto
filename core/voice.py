@@ -166,11 +166,14 @@ class Voice:
         self._t.start()
 
     # ── API pubblica ──
-    def speak(self, text):
-        """Accoda una frase intera. No-op se voce disattivata o nessun backend."""
+    def speak(self, text, voice=None):
+        """Accoda una frase intera. `voice` (opzionale) = voce Edge per QUESTA
+        frase: viaggia in coda insieme al testo, così ruoli diversi (RACE /
+        STRATEGY / PERFORMANCE) non si accavallano con la voce sbagliata.
+        No-op se voce disattivata o nessun backend."""
         if not text or not self.enabled:
             return
-        self._q.put(str(text))
+        self._q.put((str(text), voice))
 
     def set_enabled(self, on):
         self.enabled = bool(on)
@@ -277,9 +280,18 @@ class Voice:
 
         while not self._stop:
             try:
-                text = self._q.get()
+                item = self._q.get()
             except Exception:
                 break
+            if item is None:
+                break
+            if isinstance(item, tuple):
+                text, _pv = item
+                if _pv:                       # voce per QUESTA frase
+                    self._edge_voice = _pv
+                    self._edge_failed = False
+            else:
+                text = item                   # retro-compat: stringa semplice
             if text is None:
                 break
             if not self.enabled:

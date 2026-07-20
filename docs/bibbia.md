@@ -238,10 +238,17 @@ Moduli-voce principali (dal catalogo v3): `flags_call`, `damage_call`,
   edge-tts online OK (IT+EN sintetizzati). SAPI/pyttsx3 non installati: non
   servono (tutto online). Il rumore asyncio a teardown si vede solo con console
   (`python`); con `pythonw` è invisibile → non si tocca il codice collaudato.
+  Aggiunto `speak(text, voice=...)` (additivo) per la voce-per-frase.
+- **cervello**: `engineer/brain.py` = intero `Engineer` v3 portato + dipendenze
+  core. `engineer/roles.py` = mappa codice→ruolo + tabella 12 voci (3 ruoli × 4
+  lingue). `engineer/run_engineer.py` = loop live (reader+StrategyFeed+brain+
+  voce) e `--demo`. **Demo verificata**: parla piano gara, arco meteo, soste,
+  consumo vs target (over/ok/push) con la voce STRATEGY. Da rifinire in pista.
 
 **Da fare** (mattoni, in ordine):
-1. Radio a 2 vie: STT + wake word + intent deterministico
-2. Cervello: moduli sez. 9, priorità 1 = settori "dove perdo"
+1. Provare il loop LIVE in una sessione LMU vera (finora demo sintetica)
+2. Radio a 2 vie: STT + wake word + intent deterministico
+3. Resto del cervello: settori "dove perdo", ecc.
 
 ---
 
