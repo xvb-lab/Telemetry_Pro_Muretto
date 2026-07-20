@@ -158,9 +158,11 @@ class Voice:
         self._volume = int(volume)
         self._edge_voice = edge_voice
         self._edge_failed = False
-        self._beep_path = None        # tono radio (courtesy beep)
+        self._beep_path = None        # tono radio prima della voce (open)
         self._beep_on = True
         self._tone_delay = 2.0        # ritardo tono -> voce (s)
+        self._end_path = None         # tono di FINE messaggio (over)
+        self._end_on = True
         self._speaking = False        # True mentre suona un messaggio
         self._abort_evt = threading.Event()   # taglio del messaggio in corso
         self._q = queue.Queue()
@@ -192,6 +194,12 @@ class Voice:
             self._tone_delay = max(0.0, min(5.0, float(seconds)))
         except (TypeError, ValueError):
             pass
+
+    def set_end(self, path=None, enabled=True):
+        """Tono di FINE messaggio (l'"over" della radio), suonato DOPO la voce."""
+        if path is not None:
+            self._end_path = str(path)
+        self._end_on = bool(enabled)
 
     def busy(self):
         """True se sta parlando o ha ancora messaggi in coda."""
@@ -367,6 +375,12 @@ class Voice:
                     eng.runAndWait()
                 elif backend == "powershell":
                     self._say_powershell(text)
+                # tono di FINE messaggio (over), dopo la voce; saltato se tagliato
+                if not self._abort_evt.is_set() and self._end_on and self._end_path:
+                    try:
+                        self._play_mci(str(self._end_path))
+                    except Exception:
+                        pass
             except Exception:
                 pass
             finally:

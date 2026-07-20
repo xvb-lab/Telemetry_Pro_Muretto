@@ -23,9 +23,17 @@ from engineer.roles import voice_for, role_for, ROLE_LABEL
 from engineer.radio import RadioManager
 
 _AUDIO = Path(__file__).resolve().parent.parent / "assets" / "audio"
-# tono radio: preferisci la versione WAV amplificata (piu' forte); fallback mp3
-_BEEP = (_AUDIO / "radio.wav") if (_AUDIO / "radio.wav").exists() \
-    else (_AUDIO / "radio.mp3")
+
+
+def _pick(name):
+    """Percorso del tono: preferisce la versione WAV amplificata, fallback mp3."""
+    w = _AUDIO / (name + ".wav")
+    return w if w.exists() else (_AUDIO / (name + ".mp3"))
+
+
+_BEEP = _pick("radio")      # tono OPEN (prima della voce)
+_END = _pick("end")         # tono OVER (fine messaggio)
+_PTT = _pick("radio2")      # tono push-to-talk (riservato: radio a 2 vie da fare)
 
 
 def _apply_cfg(vox, cfg):
@@ -39,6 +47,11 @@ def _apply_cfg(vox, cfg):
     try:
         vox.set_beep(str(_BEEP) if _BEEP.exists() else None,
                      bool(cfg.get("beep_on", True)))
+    except Exception:
+        pass
+    try:
+        vox.set_end(str(_END) if _END.exists() else None,
+                    bool(cfg.get("beep_on", True)))
     except Exception:
         pass
     try:

@@ -245,6 +245,14 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
 (traffico proiettato al rientro box), `wet_sector_map` (settore più bagnato).
 Agganciate in `_collect`, testate. Con sector_delta = **4 di 6** funzioni v2 fatte.
 
+**Toni radio: OPEN + OVER + PTT (richiesta utente).**
+- Schema toni: `radio` = tono OPEN prima della voce; **`end` = tono OVER a FINE
+  messaggio** (nuovo); `radio2` = tono **push-to-talk** (riservato, la radio a
+  2 vie è da fare). Tutti amplificati come `radio` (erano bassi) → .wav.
+- `Voice.set_end(path, on)` + il worker suona `end.wav` DOPO la voce (saltato se
+  il messaggio è tagliato dalla gialla). `run_engineer._END`/`_PTT` + `_apply_cfg`
+  lega open+over allo stesso toggle "Beep radio". Testato: open→voce→over.
+
 **Beep radio più forte (richiesta utente).**
 - `radio.mp3` era basso (picco 0.386 = 38%). Amplificato con soundfile+numpy:
   normalizzato a picco 0.97 (×2.51) + spinta soft-clip tanh ×1.5 → **RMS ×3**,
