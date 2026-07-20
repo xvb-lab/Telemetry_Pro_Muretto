@@ -154,10 +154,18 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
   `mRideHeight`, `mBatteryCharge` (=MJ VE). Alcuni "setup-only" sono in realtà live.
 - APERTO ancora: conflitto finestre CORE gomme (`target_pitwall` vs `dati_lmu §2`).
 
+**Scoring glue — bandiere/gap/traffico VIVI.**
+- `run_engineer`: agganciato lo SCORING al `raw` da `SharedMemory.instance()`:
+  `raw["flags"]=mem.flags()` (+ checkered/penalties), `raw["rivals"]=mem.rivals()`.
+- Chiavi verificate sul cervello (rivals letto 5×, flags 2×) prima di agganciare.
+- **Provato LIVE (LMU in sessione)**: flags/rivals tornano dati veri e i moduli
+  parlano — "Gialla avanti, 400" (`flags_call`) e "Richard Lietz sta a 0,3"
+  (`gap_call`, rivale per nome). Nessun crash. Sbloccati flags/gap/traffico/pos.
+
 **Da fare (mattoni, in ordine).**
-1. Arricchire il glue `raw` con lo SCORING dalla shared memory (rivali, flags,
-   settori, tyre_temp, brake_temp) → attiva bandiere/gap/traffico/temp/spotter.
+1. Mappare `tyre_temp`/`brake_temp` (dal reader: carcass/inner/brk) → attiva
+   `temp_call`; aggiungere `session_rules` se serve.
 2. Collegare `pit_math` come voci nuove (undercut, FCY, mescola) senza toccare
-   il collaudato; allineare soglie coi docs dove concordato con l'utente.
-3. Provare LIVE in una gara più lunga (piano + consumo + moduli).
+   il collaudato; allineare soglie coi docs dove concordato.
+3. Provare LIVE in una gara più lunga (piano + consumo + tutti i moduli).
 4. Radio a 2 vie: STT online + wake word + intent deterministico.

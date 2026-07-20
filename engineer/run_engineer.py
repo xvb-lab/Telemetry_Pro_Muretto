@@ -14,6 +14,7 @@ import time
 
 from core.reader import TelemetryReader
 from core.strategy import StrategyFeed
+from core.shared_memory import SharedMemory
 from core.voice import Voice
 from core import engineer_cfg
 from engineer.brain import Engineer
@@ -97,6 +98,7 @@ def run():
     reader = TelemetryReader()
     feed = StrategyFeed()
     feed.start()
+    mem = SharedMemory.instance()
     vox = Voice(lang=lang)
     brain = Engineer(lang=lang)
     brain.new_session()
@@ -134,6 +136,18 @@ def run():
                     "pit_target": live.get("pit_target"),
                     "autonomy": live.get("autonomy_laps"),
                 }
+            # SCORING dalla shared memory -> attiva bandiere/gap/traffico/posizioni
+            try:
+                _fl = mem.flags()
+                if _fl:
+                    raw["flags"] = _fl
+                    raw["checkered"] = _fl.get("checkered")
+                    raw["penalties"] = _fl.get("num_penalties")
+                _rv = mem.rivals()
+                if _rv:
+                    raw["rivals"] = _rv
+            except Exception:
+                pass
             # tick strappato (dato incoerente) -> salta
             try:
                 if brain.glitch(raw):
