@@ -206,6 +206,20 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
   soli (rivale ai box / gomme ≤82% + gap che copre). Se restano frasi fuori
   contesto, aggiungere il gate al modolo specifico su feedback in pista.
 
+**Gestore radio v2 portato (priorità + preemption gialla + riaccodo).**
+- `engineer/radio.py` `RadioManager`: coda a **tier** (0 sicurezza … 4 coaching),
+  scadenza **TTL** per tier, **mutua esclusione per gruppo** (consumi/gomme/
+  pioggia/temp), cadenza minima 5s, no-repeat 20s. **Una alla volta.**
+  **PREEMPTION GIALLA**: se parla qualcosa e arriva `local_yellow`/`yellow_flag`
+  (e il corrente non è già sicurezza) → `vox.interrupt()` taglia, il messaggio
+  interrotto viene **RIACCODATO**, e la gialla parla subito. Costanti tier/gruppi
+  portate fedeli da `engineer_overlay` v2.
+- `core/voice.py`: aggiunti `busy()` e `interrupt()` (taglia il playback MCI +
+  svuota coda) + `_speaking`/`_abort_evt` (ritardo tono interrompibile).
+- `run_engineer`: i moduli → `sanity_filter` → `_collect()` (lista candidati) →
+  `radio.push()` → `radio.tick(vox)`. Non più _speak diretto (niente FIFO cieco).
+- Testato: priorità (BOX prima del gap), preemption gialla (interrupt + riaccodo).
+
 **Da fare (mattoni, in ordine).**
 1. Mappare `tyre_temp`/`brake_temp` (dal reader: carcass/inner/brk) → attiva
    `temp_call`; aggiungere `session_rules` se serve.

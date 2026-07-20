@@ -20,6 +20,7 @@ from core.voice import Voice
 from core import engineer_cfg
 from engineer.brain import Engineer
 from engineer.roles import voice_for, role_for, ROLE_LABEL
+from engineer.radio import RadioManager
 
 _BEEP = Path(__file__).resolve().parent.parent / "assets" / "audio" / "radio.mp3"
 
@@ -61,11 +62,11 @@ def _speak(vox, msgs, lang, seen):
         vox.speak(text, voice=voice_for(code, lang), beep=bool(m.get("beep")))
 
 
-def _emit_all(vox, brain, raw, ld, pace, lang, seen):
-    """Chiama i moduli-voce collaudati del cervello e manda a voce ciò che
-    producono. Ognuno è difensivo (torna [] se manca il dato) e protetto da
-    try/except: un modulo che sbaglia NON ferma il muretto. I moduli senza il
-    dato necessario restano muti finché il glue non fornisce quel dato."""
+def _collect(brain, raw, ld, pace):
+    """Chiama TUTTI i moduli-voce del cervello, passa ogni output dal
+    sanity_filter (warm-up, leggi di stato, budget) e RITORNA la lista dei
+    messaggi validi. NON parla: la scelta di cosa/quando dire è del
+    RadioManager. Ogni modulo è difensivo (torna [] se manca il dato)."""
     mods = (
         # 🟠 RACE ENGINEER — sicurezza / auto
         (brain.flags_call, (raw,)),
@@ -102,13 +103,16 @@ def _emit_all(vox, brain, raw, ld, pace, lang, seen):
         (brain.wet_patches, (raw,)),
     )
     # OGNI output passa dal MURO DI SANITÀ (come la v2): warm-up 5s, leggi di
-    # stato (muta in corsia / pit chiamato), anti-ripetizione 25s, budget 3
-    # info/20s. È questo che evita la "mitragliata" di frasi tutte insieme.
+    # stato (muta in corsia / pit chiamato), anti-ripetizione 25s, budget info.
+    out = []
     for fn, args in mods:
         try:
-            _speak(vox, brain.sanity_filter(fn(*args), raw), lang, seen)
+            ms = brain.sanity_filter(fn(*args), raw)
+            if ms:
+                out.extend(m for m in ms if m)
         except Exception:
             pass
+    return out
 
 
 def _lang():
@@ -128,7 +132,7 @@ def run():
     _apply_cfg(vox, engineer_cfg.load())      # volume/beep/ritardo dalle Opzioni
     brain = Engineer(lang=lang)
     brain.new_session()
-    seen = {}
+    radio = RadioManager()
     print("[muretto] loop live avviato (lang=%s). In attesa di una sessione LMU..."
           % lang)
     _last_class = None
@@ -194,7 +198,8 @@ def run():
                 brain.update_situation(raw)
             except Exception:
                 pass
-            _emit_all(vox, brain, raw, ld, est or None, lang, seen)
+            radio.push(_collect(brain, raw, ld, est or None))
+            radio.tick(vox, lang)
             time.sleep(0.2)
     except KeyboardInterrupt:
         pass

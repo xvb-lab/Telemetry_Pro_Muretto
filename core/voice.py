@@ -158,6 +158,11 @@ class Voice:
         self._volume = int(volume)
         self._edge_voice = edge_voice
         self._edge_failed = False
+        self._beep_path = None        # tono radio (courtesy beep)
+        self._beep_on = True
+        self._tone_delay = 2.0        # ritardo tono -> voce (s)
+        self._speaking = False        # True mentre suona un messaggio
+        self._abort_evt = threading.Event()   # taglio del messaggio in corso
         self._q = queue.Queue()
         self._backend = None          # impostato dal thread worker
         self._ready = threading.Event()
@@ -186,6 +191,29 @@ class Voice:
         try:
             self._tone_delay = max(0.0, min(5.0, float(seconds)))
         except (TypeError, ValueError):
+            pass
+
+    def busy(self):
+        """True se sta parlando o ha ancora messaggi in coda."""
+        return self._speaking or not self._q.empty()
+
+    def interrupt(self):
+        """Taglia SUBITO il messaggio in corso e svuota la coda (preemption
+        della gialla). Chi chiama riaccoda ciò che serve ripetere."""
+        try:
+            while True:
+                self._q.get_nowait()
+        except queue.Empty:
+            pass
+        self._abort_evt.set()
+        self._mci_stop()
+
+    def _mci_stop(self):
+        """Ferma la riproduzione MCI in corso (sblocca il 'play wait')."""
+        try:
+            import ctypes
+            ctypes.windll.winmm.mciSendStringW("stop lmuvoce_mci", None, 0, 0)
+        except Exception:
             pass
 
     def set_enabled(self, on):
@@ -312,17 +340,20 @@ class Voice:
                 break
             if not self.enabled:
                 continue
-            # tono radio (courtesy beep) + ritardo PRIMA della voce
-            if _beep and getattr(self, "_beep_on", True):
-                _bp = getattr(self, "_beep_path", None)
-                if _bp:
-                    try:
-                        self._play_mci(str(_bp))
-                    except Exception:
-                        pass
-                threading.Event().wait(getattr(self, "_tone_delay", 2.0))
-            text = _expand_voice(text)
+            self._speaking = True
+            self._abort_evt.clear()
             try:
+                # tono radio (courtesy beep) + ritardo PRIMA della voce
+                if _beep and self._beep_on:
+                    if self._beep_path:
+                        try:
+                            self._play_mci(str(self._beep_path))
+                        except Exception:
+                            pass
+                    self._abort_evt.wait(self._tone_delay)   # ritardo interrompibile
+                if self._abort_evt.is_set():
+                    continue                    # tagliato durante beep/ritardo
+                text = _expand_voice(text)
                 if backend == "edge":
                     if not self._edge_failed and self._say_edge(text):
                         pass
@@ -338,6 +369,8 @@ class Voice:
                     self._say_powershell(text)
             except Exception:
                 pass
+            finally:
+                self._speaking = False
 
     def _say_edge(self, text):
         """Edge TTS: sintetizza la frase intera in mp3 e la riproduce (MCI).
