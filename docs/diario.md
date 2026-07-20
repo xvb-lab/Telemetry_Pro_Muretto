@@ -171,6 +171,21 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
   generico senza nome. Nuovi msg `contact_who`/`contact_ok_who` (it/en/es/fr),
   ruolo spotter. Testato: pulito/danno/muro OK; nearest_car live dà rivale reale.
 
+**Pagina Opzioni + beep radio + impostazioni (richiesta utente).**
+- `main.py` ora è una **pagina Opzioni**, non auto-start: interruttore
+  **Ingegnere ON/OFF** (avvia/ferma il processo muretto, ricorda lo stato) +
+  lingua, volume voce, beep on/off, **ritardo tono radio** (0-5 s, def 2),
+  chiama-tempi-ogni-giro, tempi-con-decimi. Scrive `settings/engineer_cfg.json`
+  (gitignorato: stato per-macchina). L'app È il launcher.
+- **Beep radio** dal vecchio: `assets/audio/radio.mp3` (+ pagebeep.wav). `Voice`
+  esteso: `speak(text, voice, beep)` → suona il tono + attende il ritardo PRIMA
+  della voce (nel thread worker, non blocca il loop). `set_beep`/`set_tone_delay`.
+- `run_engineer`: legge le opzioni e le applica alla voce (volume/beep/ritardo),
+  **ri-lette live ogni ~2 s** (cambi dalle Opzioni senza riavviare); passa il
+  `beep` del messaggio a `speak`.
+- Provato: sintassi OK, beep suona (radio.mp3+ritardo+voce), e **l'app avvia da
+  sé il muretto** all'apertura (app PID + muretto PID, una sola istanza).
+
 **Da fare (mattoni, in ordine).**
 1. Mappare `tyre_temp`/`brake_temp` (dal reader: carcass/inner/brk) → attiva
    `temp_call`; aggiungere `session_rules` se serve.

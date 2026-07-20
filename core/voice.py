@@ -166,14 +166,27 @@ class Voice:
         self._t.start()
 
     # ── API pubblica ──
-    def speak(self, text, voice=None):
+    def speak(self, text, voice=None, beep=False):
         """Accoda una frase intera. `voice` (opzionale) = voce Edge per QUESTA
-        frase: viaggia in coda insieme al testo, così ruoli diversi (RACE /
-        STRATEGY / PERFORMANCE) non si accavallano con la voce sbagliata.
-        No-op se voce disattivata o nessun backend."""
+        frase (ruoli diversi non si accavallano). `beep` = suona il tono radio
+        + attende il ritardo PRIMA di parlare. No-op se voce off o nessun backend."""
         if not text or not self.enabled:
             return
-        self._q.put((str(text), voice))
+        self._q.put((str(text), voice, bool(beep)))
+
+    # ── tono radio (beep) + ritardo ───────────────────────────────────────
+    def set_beep(self, path=None, enabled=True):
+        """Percorso del file tono radio (mp3/wav) e on/off del beep."""
+        if path is not None:
+            self._beep_path = str(path)
+        self._beep_on = bool(enabled)
+
+    def set_tone_delay(self, seconds):
+        """Ritardo (s) tra il tono radio e la voce."""
+        try:
+            self._tone_delay = max(0.0, min(5.0, float(seconds)))
+        except (TypeError, ValueError):
+            pass
 
     def set_enabled(self, on):
         self.enabled = bool(on)
@@ -285,8 +298,11 @@ class Voice:
                 break
             if item is None:
                 break
+            _beep = False
             if isinstance(item, tuple):
-                text, _pv = item
+                text = item[0]
+                _pv = item[1] if len(item) > 1 else None
+                _beep = bool(item[2]) if len(item) > 2 else False
                 if _pv:                       # voce per QUESTA frase
                     self._edge_voice = _pv
                     self._edge_failed = False
@@ -296,6 +312,15 @@ class Voice:
                 break
             if not self.enabled:
                 continue
+            # tono radio (courtesy beep) + ritardo PRIMA della voce
+            if _beep and getattr(self, "_beep_on", True):
+                _bp = getattr(self, "_beep_path", None)
+                if _bp:
+                    try:
+                        self._play_mci(str(_bp))
+                    except Exception:
+                        pass
+                threading.Event().wait(getattr(self, "_tone_delay", 2.0))
             text = _expand_voice(text)
             try:
                 if backend == "edge":

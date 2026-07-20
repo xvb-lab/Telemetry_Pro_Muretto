@@ -11,6 +11,7 @@ Uso:
 """
 import sys
 import time
+from pathlib import Path
 
 from core.reader import TelemetryReader
 from core.strategy import StrategyFeed
@@ -19,6 +20,27 @@ from core.voice import Voice
 from core import engineer_cfg
 from engineer.brain import Engineer
 from engineer.roles import voice_for, role_for, ROLE_LABEL
+
+_BEEP = Path(__file__).resolve().parent.parent / "assets" / "audio" / "radio.mp3"
+
+
+def _apply_cfg(vox, cfg):
+    """Applica le opzioni (volume voce, beep on/off, ritardo tono) alla voce.
+    Chiamata all'avvio e periodicamente, così i cambi dalle Opzioni si sentono
+    senza riavviare l'ingegnere."""
+    try:
+        vox.set_volume(int(cfg.get("voice_vol", 100)))
+    except Exception:
+        pass
+    try:
+        vox.set_beep(str(_BEEP) if _BEEP.exists() else None,
+                     bool(cfg.get("beep_on", True)))
+    except Exception:
+        pass
+    try:
+        vox.set_tone_delay(float(cfg.get("beep_delay_s", 2.0)))
+    except Exception:
+        pass
 
 
 def _speak(vox, msgs, lang, seen):
@@ -36,7 +58,7 @@ def _speak(vox, msgs, lang, seen):
         seen["last"] = (code, text)
         role = role_for(code)
         print("[%s] %s" % (ROLE_LABEL.get(role, role), text))
-        vox.speak(text, voice=voice_for(code, lang))
+        vox.speak(text, voice=voice_for(code, lang), beep=bool(m.get("beep")))
 
 
 def _emit_all(vox, brain, raw, ld, pace, lang, seen):
@@ -100,14 +122,20 @@ def run():
     feed.start()
     mem = SharedMemory.instance()
     vox = Voice(lang=lang)
+    _apply_cfg(vox, engineer_cfg.load())      # volume/beep/ritardo dalle Opzioni
     brain = Engineer(lang=lang)
     brain.new_session()
     seen = {}
     print("[muretto] loop live avviato (lang=%s). In attesa di una sessione LMU..."
           % lang)
     _last_class = None
+    _cfg_ts = 0.0
     try:
         while True:
+            _now = time.monotonic()
+            if _now - _cfg_ts > 2.0:         # opzioni live (volume/beep/ritardo)
+                _apply_cfg(vox, engineer_cfg.load())
+                _cfg_ts = _now
             d = reader.read()
             if not d:
                 time.sleep(0.5)              # LMU nei menu / fuori sessione

@@ -18,6 +18,9 @@ dist/
 *.log
 *.lmtel
 
+# Config utente runtime (creata dall'app, per-macchina)
+settings/engineer_cfg.json
+
 # Sistema / editor
 .DS_Store
 Thumbs.db
