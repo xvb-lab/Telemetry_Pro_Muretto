@@ -161,6 +161,34 @@ loss relativo crolla); fuori finestra → mappa risparmio estremo.
 
 ---
 
+## 6. Moduli avanzati (RealRoad, traffico, affidabilità 24h, coaching)
+
+**RealRoad / crossover** — `Track_Rubber_Level` (0→1, più gomma = meno slip =
+meno usura); **wetness on-path vs off-path** (l'off-path serve per i sorpassi in
+wet; forse già in `wetness_min/max`). Crossover affinato: Wet quando **on-path
+>18%** OPPURE **temp slick <65°C** sostenuta (water cooling). Aquaplaning ~
+speed×wetness/tread (oltre soglia il carico anteriore crolla).
+
+**Traffico multi-classe** 🟢 — `Traffic_Time_Lost = sector_actual - sector_ideal`.
+Undercut strategico: se `laps_to_pit<3` E si prevede un gruppo GT3 in un settore
+→ **box in anticipo** per uscire in **aria pulita** (perdere ~4 s nel traffico >
+fermarsi 2 giri prima del target). *Serve lo scoring glue (settori + rivali).*
+
+**Affidabilità endurance (6/8/24h)** 🟢 NUOVO —
+- Motore: `Engine_Stress = integrate((RPM/maxRPM)*(temp/115))`; **overrev/money-shift
+  = danno permanente**. Azione: se acqua >105°C sostenuta nel traffico →
+  **short-shift** (cambia 500 rpm prima) o esci dalla scia. *(RPM+temp li abbiamo.)*
+- Freni: HY carbonio ~0 usura a ~600°C, **catastrofica <200°C** (abrasione a
+  freddo) o **>900°C** (ossidazione). *(temp freni live.)*
+
+**Coaching / consistenza** 🟢 —
+- `Stint_Consistency = std_dev(ultimi 5 giri puliti)`; target Gold/Plat **<0.350 s**
+  a Le Mans. *(costruibile dai lap time.)*
+- Brake release smoothness (deriv. pedale freno), coasting per raffreddare le
+  posteriori a metà stint. *(serve il canale pedali.)*
+
+---
+
 ## Mappa ai dati che GIÀ abbiamo (core)
 
 - Autonomia / per_lap / laps_needed / target_pct / constraint → `lmu_live`
