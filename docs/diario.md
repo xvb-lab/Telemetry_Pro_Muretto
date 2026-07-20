@@ -103,7 +103,19 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
   processo separato.
 - Sbavatura nota: "1 soste" → "1 sosta" (plurale), cosmetica, da limare.
 
+**PROVA LIVE — il muretto parla coi dati veri di LMU.**
+- Bug trovato: `reader.py`/`shared_memory.py` dipendono da **`pyLMUSharedMemory`**
+  (mappatura shared memory di LMU, solo ctypes+mmap) che NON avevo portato →
+  `reader.read()` tornava vuoto anche in pista. Portata `pyLMUSharedMemory/`
+  (__init__ + lmu_data.py) nella root.
+- Dopo il fix, `reader.read()` in sessione dà **99 campi reali** (driver, GT3,
+  session_type 10, race_remaining, fuel 93/120, est_lap 54.9s...).
+- Loop live provato in pista: ha detto (voce RACE ENGINEER) "Manca un minuto
+  alla fine / Siamo all'ultimo minuto" (`countdown`, sessione a fine tempo).
+  Catena reader→brain→ruolo→voce OK dal vivo. Piano/consumo non uditi solo
+  perché la sessione di test stava finendo (serve una gara più lunga).
+
 **Da fare (mattoni, in ordine).**
-1. Provare il loop LIVE in una sessione LMU vera (finora solo demo sintetica).
+1. Provare piano gara + consumo vs target in una gara LIVE più lunga.
 2. Radio a 2 vie: STT online + wake word + intent deterministico.
 3. Resto del cervello: settori "dove perdo", ecc.
