@@ -245,6 +245,11 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
 (traffico proiettato al rientro box), `wet_sector_map` (settore più bagnato).
 Agganciate in `_collect`, testate. Con sector_delta = **4 di 6** funzioni v2 fatte.
 
+**3 pulsanti "prova toni" nelle Opzioni (richiesta utente).**
+- `main.py`: riga "Prova toni" con 3 pulsanti (▶ Radio / ▶ Fine / ▶ Push-to-talk)
+  che suonano il rispettivo tono (via MCI, in thread, al volume voce impostato)
+  per ascoltarli e decidere se cambiarli. `_tone_path` (wav→mp3), `_play_tone`.
+
 **Toni radio: OPEN + OVER + PTT (richiesta utente).**
 - Schema toni: `radio` = tono OPEN prima della voce; **`end` = tono OVER a FINE
   messaggio** (nuovo); `radio2` = tono **push-to-talk** (riservato, la radio a

@@ -16,7 +16,7 @@ from pathlib import Path
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QApplication, QMainWindow, QLabel, QVBoxLayout,
                                QWidget, QFormLayout, QCheckBox, QComboBox,
-                               QSlider, QDoubleSpinBox, QHBoxLayout)
+                               QSlider, QDoubleSpinBox, QHBoxLayout, QPushButton)
 from PySide6.QtCore import Qt
 
 from core import engineer_cfg
@@ -26,6 +26,7 @@ APP_VERSION = "0.3b"
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
 ICONS = ASSETS / "icons"
+AUDIO = ASSETS / "audio"
 
 _LANGS = [("Italiano", "it"), ("English", "en"),
           ("Español", "es"), ("Français", "fr")]
@@ -112,6 +113,17 @@ class MainWindow(QMainWindow):
         self.spn_delay.valueChanged.connect(self._save)
         form.addRow("Ritardo tono radio", self.spn_delay)
 
+        # prova toni (ascolta i tre suoni al volume impostato)
+        _tonerow = QHBoxLayout()
+        for _lbl, _name in (("▶ Radio", "radio"), ("▶ Fine", "end"),
+                            ("▶ Push-to-talk", "radio2")):
+            _b = QPushButton(_lbl)
+            _b.clicked.connect(lambda _=False, n=_name: self._play_tone(n))
+            _tonerow.addWidget(_b)
+        _tonew = QWidget()
+        _tonew.setLayout(_tonerow)
+        form.addRow("Prova toni", _tonew)
+
         # opzioni tempi
         self.chk_lt = QCheckBox("Chiama i tempi ogni giro")
         self.chk_lt.setChecked(bool(cfg.get("lap_time_always", True)))
@@ -181,6 +193,37 @@ class MainWindow(QMainWindow):
     def start_overlays(self):
         """Avvia gli OVERLAY, ognuno nel suo processo (da fare)."""
         pass
+
+    # ── prova toni radio ──────────────────────────────────────────────────
+    def _tone_path(self, name):
+        w = AUDIO / (name + ".wav")
+        return w if w.exists() else (AUDIO / (name + ".mp3"))
+
+    def _play_tone(self, name):
+        """Suona un tono in un thread (UI non si blocca) al volume voce impostato."""
+        import threading
+        path = self._tone_path(name)
+        if not path.exists():
+            self._status.setText("Tono '%s' non trovato" % name)
+            return
+        vol = max(0, min(1000, int(self.sld_vol.value()) * 10))
+
+        def _go():
+            try:
+                import ctypes
+                mci = ctypes.windll.winmm.mciSendStringW
+                alias = "lmutonetest"
+                mci("close %s" % alias, None, 0, 0)
+                if mci('open "%s" type mpegvideo alias %s' % (path, alias),
+                       None, 0, 0) != 0:
+                    mci('open "%s" alias %s' % (path, alias), None, 0, 0)
+                mci("setaudio %s volume to %d" % (alias, vol), None, 0, 0)
+                mci("play %s wait" % alias, None, 0, 0)
+                mci("close %s" % alias, None, 0, 0)
+            except Exception:
+                pass
+
+        threading.Thread(target=_go, daemon=True).start()
 
     def closeEvent(self, ev):
         self.stop_muretto()
