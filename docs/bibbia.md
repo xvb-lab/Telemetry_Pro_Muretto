@@ -268,5 +268,9 @@ Moduli-voce principali (dal catalogo v3): `flags_call`, `damage_call`,
 - Censimento dati: `<backup>\...\data_library.md`
 - TinyPedal (GPL, solo riferimento concettuale — processi separati, REST
   async): `C:\Users\jonal\Downloads\TinyPedal-master`
+- **SDK ufficiale S397** (verifica struct all'osso): `rFactor2SharedMemory.h` +
+  `PluginTemplate.cpp` (repo GitHub rF2/S397 / Modding SDK), wiki modding S397
+  (spec .HDV/.TGM/.ENG). Il nostro `pyLMUSharedMemory` deriva da quell'header.
+  Se serve verificare un campo/offset, la fonte autorevole è l'header ufficiale.
 
 *Aggiornare questo file a ogni modulo portato o regola cambiata.*
