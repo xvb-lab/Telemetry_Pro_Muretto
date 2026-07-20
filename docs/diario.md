@@ -62,8 +62,20 @@ Estratto `lmu_live` dal vecchio `recorder.py` monolitico, **logica invariata**
   FUEL in litri, conversione misurata, arco usage — tutti OK. Senza rete non
   inventa (constraint/per_lap None) e non crasha.
 
+**Voce + lingue (`core/voice.py` + `settings/engineer_msgs.json`).**
+Portati dal backup, nessuna dipendenza interna (solo stdlib + backend TTS).
+- Backend **edge-tts** (neurale, online) installato e funzionante: frase IT
+  ("Muretto pronto…") e EN ("Engineer online…") sintetizzate ed eseguite senza
+  errori funzionali. Multilingua confermato cambiando `voice_name` + `lang`.
+- SAPI/pyttsx3 non installati: non servono (tutto online).
+- Nota: i warning "Event loop is closed" (asyncio ProactorEventLoop + edge_tts)
+  compaiono solo su stderr a chiusura, e SOLO se avvii con `python.exe`. L'app
+  gira con `pythonw` → stderr scartato → invisibili. Codice voce lasciato
+  invariato (collaudato).
+
 **Da fare (mattoni, in ordine).**
-1. Voce + lingue: portare `core/voice.py` + `settings/engineer_msgs.json`.
-2. Radio a 2 vie: STT online + wake word + intent deterministico.
-3. Cervello: moduli decisionali, priorità 1 = settori "dove perdo"
-   (`sector_panel_data`).
+1. Radio a 2 vie: STT online + wake word + intent deterministico.
+2. Cervello: moduli decisionali, priorità 1 = settori "dove perdo"
+   (`sector_panel_data`). NB: per il valore "strategia ai team" conviene un
+   minimo di cervello strategico (piano/box/consumo vs target) che parli usando
+   `lmu_live` — da valutare come prossimo passo con l'utente.

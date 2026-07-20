@@ -234,11 +234,14 @@ Moduli-voce principali (dal catalogo v3): `flags_call`, `damage_call`,
 - **strategia**: `core/strategy.py` — `lmu_live` estratto (fetch pit menu/usage/
   refuel, `usage_per_lap`, `measured_per_lap`, `build_lmu_live`, `StrategyFeed`),
   testato deterministicamente (ENERGY/FUEL, fallback tabella, arco usage)
+- **voce**: `core/voice.py` + `settings/engineer_msgs.json` portati. Backend
+  edge-tts online OK (IT+EN sintetizzati). SAPI/pyttsx3 non installati: non
+  servono (tutto online). Il rumore asyncio a teardown si vede solo con console
+  (`python`); con `pythonw` è invisibile → non si tocca il codice collaudato.
 
 **Da fare** (mattoni, in ordine):
-1. Voce + lingue: `core/voice.py` + `settings/engineer_msgs.json`
-2. Radio a 2 vie: STT + wake word + intent deterministico
-3. Cervello: moduli sez. 9, priorità 1 = settori "dove perdo"
+1. Radio a 2 vie: STT + wake word + intent deterministico
+2. Cervello: moduli sez. 9, priorità 1 = settori "dove perdo"
 
 ---
 
