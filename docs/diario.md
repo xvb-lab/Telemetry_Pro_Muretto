@@ -178,3 +178,10 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
    il collaudato; allineare soglie coi docs dove concordato.
 3. Provare LIVE in una gara più lunga (piano + consumo + tutti i moduli).
 4. Radio a 2 vie: STT online + wake word + intent deterministico.
+
+**A FINE PROGETTO (release per i team) — da NON dimenticare:**
+- **Docs BILINGUE** (IT + EN): tradurre bibbia/guida per i team internazionali.
+- **Guida configurazione LMU**: come abilitare il plugin/shared memory + REST
+  (porta 6397) perché il muretto legga i dati. Prerequisiti passo-passo.
+- **Carrellata/overview**: una panoramica leggibile delle varie sezioni (cosa fa
+  ogni parte, come si usa) — README esteso / guida utente.
