@@ -64,7 +64,7 @@ main.py                 APP / UI (processo 1)
 core/                   codice CONDIVISO
   shared_memory.py      stream scoring (rivali, settori, bandiere, meteo, gomme)
   reader.py             stream fisica  (TelemetryReader: VE, fuel, RPM, gear, temp)
-  (lmu_live)            derivazione strategica 0% — DA ESTRARRE dal vecchio recorder
+  strategy.py           lmu_live: motore strategia 0% (per_lap/autonomia/target)
   voice.py              TTS multilingua (da portare)
   config.py             impostazioni (da portare)
 ui/                     interfaccia app
@@ -94,9 +94,11 @@ memory di LMU:
 - **`shared_memory.py`** (stream **scoring**): rivali, settori, bandiere,
   meteo, mescole, usura gomme, posizioni, track limits, pit, yellow phases.
 
-Sopra i due lettori vive **`lmu_live`** (da estrarre dal vecchio
-`recorder.py` monolitico): la derivazione strategica DIRETTA di LMU, unita a
-`/rest/strategy/usage` + tabella `_ve_table` del pit menu. Campi:
+Sopra i due lettori vive **`lmu_live`**, in **`core/strategy.py`** (estratto
+dal vecchio `recorder.py`, logica invariata, testato): la derivazione
+strategica DIRETTA di LMU, unita a `/rest/strategy/usage` + tabella
+`_ve_table` del pit menu. `StrategyFeed` fa le fetch REST su thread dedicato
+(non-bloccante) e produce `lmu_live` su richiesta. Campi:
 
 - `constraint` ENERGY/FUEL · `ve_pct` · `fuel_l` · `fuel_max`
 - `per_lap` (consumo/giro, sempre conto DEL GIOCO) · `autonomy_laps`
@@ -229,12 +231,14 @@ Moduli-voce principali (dal catalogo v3): `flags_call`, `damage_call`,
 - struttura cartelle: core/ ui/ engineer/ overlays/ settings/ docs/
 - `assets/{icons,audio,img}/` (icona app importata)
 - dati: `core/shared_memory.py` + `core/reader.py` portati e testati (import + `read()`)
+- **strategia**: `core/strategy.py` — `lmu_live` estratto (fetch pit menu/usage/
+  refuel, `usage_per_lap`, `measured_per_lap`, `build_lmu_live`, `StrategyFeed`),
+  testato deterministicamente (ENERGY/FUEL, fallback tabella, arco usage)
 
 **Da fare** (mattoni, in ordine):
-1. Estrarre `lmu_live` dal vecchio `recorder.py` → `core/`
-2. Voce + lingue: `core/voice.py` + `settings/engineer_msgs.json`
-3. Radio a 2 vie: STT + wake word + intent deterministico
-4. Cervello: moduli sez. 9, priorità 1 = settori "dove perdo"
+1. Voce + lingue: `core/voice.py` + `settings/engineer_msgs.json`
+2. Radio a 2 vie: STT + wake word + intent deterministico
+3. Cervello: moduli sez. 9, priorità 1 = settori "dove perdo"
 
 ---
 

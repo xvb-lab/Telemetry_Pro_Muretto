@@ -42,11 +42,28 @@ salvato in `..\Telemetry_Pro_BACKUP_2026-07-20_203351\` (521 MB, con `.git`).
   `shared_memory.py` (stream scoring) e `reader.py` (`TelemetryReader`, stream
   fisica: VE/fuel/RPM/gear/temp). Import + `read()` testati OK.
 - Documentazione: scritta `docs/bibbia.md` (riferimento unico) e questo diario.
+- Repo git: `git init` pulito, `.gitignore` + `README.md` bilingue (IT/EN),
+  primo commit 0.3b su `main`. Remote `origin` =
+  github.com/xvb-lab/Telemetry_Pro_Muretto (**pubblica**), push ok. Prima del
+  push: scan segreti pulito, nessun file >1MB, `__pycache__`/`.claude` esclusi.
+
+**Strategia — il cuore (`core/strategy.py`).**
+Estratto `lmu_live` dal vecchio `recorder.py` monolitico, **logica invariata**
+(regola 0%), in un modulo pulito e autonomo per il processo muretto:
+- fetch REST: `fetch_pit_menu` (tabella VE %→giri), `fetch_strategy_usage`
+  (storia giro-per-giro), `fetch_refuel_strategy` (vincolo ENERGY/FUEL +
+  obiettivo sosta).
+- puro/deterministico: `usage_per_lap` (consumo reale sull'arco più lungo,
+  immune alla quantizzazione a byte), `measured_per_lap` (frazione → %/litri),
+  `build_lmu_live` (constraint/per_lap/autonomia/laps_needed/target_pct).
+- `StrategyFeed`: thread dedicato **non-bloccante** (menu+vincolo ogni ~3s,
+  usage al cambio giro), produce `lmu_live` su richiesta con la fisica fresca.
+- Testato deterministicamente: ENERGY misurato, fallback tabella pit menu,
+  FUEL in litri, conversione misurata, arco usage — tutti OK. Senza rete non
+  inventa (constraint/per_lap None) e non crasha.
 
 **Da fare (mattoni, in ordine).**
-1. Estrarre `lmu_live` (derivazione strategica 0%) dal vecchio `recorder.py`
-   monolitico → `core/`.
-2. Voce + lingue: portare `core/voice.py` + `settings/engineer_msgs.json`.
-3. Radio a 2 vie: STT online + wake word + intent deterministico.
-4. Cervello: moduli decisionali, priorità 1 = settori "dove perdo"
+1. Voce + lingue: portare `core/voice.py` + `settings/engineer_msgs.json`.
+2. Radio a 2 vie: STT online + wake word + intent deterministico.
+3. Cervello: moduli decisionali, priorità 1 = settori "dove perdo"
    (`sector_panel_data`).
