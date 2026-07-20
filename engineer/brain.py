@@ -1099,7 +1099,15 @@ class Engineer:
         """SIMULAZIONE RIENTRO: proietta il traffico (tutte le classi) alla tua
         uscita dai box. Chi ti sta dietro entro ~pit_loss+3s ti sara' attorno al
         rientro. Dice quante auto, quante di classe piu' veloce, se c'e' un buco. (v2)"""
-        riv = (raw or {}).get("rivals") or {}
+        raw = raw or {}
+        # SOLO quando stai davvero per fermarti (pit chiamato / in corsia / box):
+        # non ha senso "proiettare il rientro" a ogni giro in pista normale.
+        try:
+            if int(raw.get("pit_state") or 0) == 0:
+                return []
+        except (TypeError, ValueError):
+            return []
+        riv = raw.get("rivals") or {}
         traffic = riv.get("traffic_behind") or []
         pit_loss = self._pit_stop_seconds(raw)
         if not pit_loss:

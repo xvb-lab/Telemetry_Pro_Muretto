@@ -149,7 +149,12 @@ def run():
                 _cfg_ts = _now
             d = reader.read()
             if not d:
-                time.sleep(0.5)              # LMU nei menu / fuori sessione
+                time.sleep(0.5)              # LMU chiuso / shared memory vuota
+                continue
+            # SOLO in pista viva: nei menu / pausa / replay / fuori sessione la
+            # shared memory resta piena di dati STANTII -> il muretto DEVE tacere.
+            if not mem.is_on_track():
+                time.sleep(0.25)
                 continue
             drv = d.get("driver") or ""
             ld = int(d.get("laps_completed") or 0)

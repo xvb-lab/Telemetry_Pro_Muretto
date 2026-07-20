@@ -245,6 +245,13 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
 (traffico proiettato al rientro box), `wet_sector_map` (settore più bagnato).
 Agganciate in `_collect`, testate. Con sector_delta = **4 di 6** funzioni v2 fatte.
 
+**FIX bug: muretto parlava fuori sessione + pit_exit a raffica.**
+- Il muretto parlava anche nei menu/browser (shared memory piena di dati
+  STANTII). Ora il loop parla **solo se `mem.is_on_track()`** (collaudato: True
+  solo in pista realtime, False menu/pausa/replay). Fuori sessione = silenzio.
+- `pit_exit_traffic` sparava "14 auto in arrivo" a ogni giro: aggiunto gate
+  **pit_state != 0** (parla solo se un pit è chiamato/in corso). Testato.
+
 **Da fare (mattoni, in ordine).**
 0. Restano 2 funzioni v2, più delicate (accoppiate a box_call): `box_last_call`
    (rinforzo box all'ingresso corsia) e `box_timing_call` (anticipa/ritarda sosta
