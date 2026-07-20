@@ -142,6 +142,18 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
 - NB: soglie collaudate NON toccate (es. tyre "dead" ~70% residuo); resta aperto
   il flag scala usura / core-temp vs docs (`target_pitwall.md`).
 
+**Conferme dalla struct Shared Memory S397 (2026-07-20).**
+- La spec C# di S397 conferma che il nostro reader (`pyLMUSharedMemory`) legge i
+  buffer/campi giusti (`$rFactor2SMMP_Scoring/Telemetry/Extended$`). Non
+  ri-trascritta (ridondante col reader che gira).
+- ✅ **RISOLTO flag usura gomme**: `mWear` 1.0=nuovo→0.0=distrutto, *"drop-off
+  serio sotto 0.70"* → la soglia collaudata del cervello (dead ~70%) è GIUSTA per
+  S397. Bene NON averla sovrascritta. (Il "45% usato" dei docs era altra convenzione.)
+- Canali disponibili confermati oltre le attese: `mUnfilteredThrottle/Brake`
+  (pedali → coaching), `mRotation` (wheelspin/slip → voce VE sprecata),
+  `mRideHeight`, `mBatteryCharge` (=MJ VE). Alcuni "setup-only" sono in realtà live.
+- APERTO ancora: conflitto finestre CORE gomme (`target_pitwall` vs `dati_lmu §2`).
+
 **Da fare (mattoni, in ordine).**
 1. Arricchire il glue `raw` con lo SCORING dalla shared memory (rivali, flags,
    settori, tyre_temp, brake_temp) → attiva bandiere/gap/traffico/temp/spotter.
