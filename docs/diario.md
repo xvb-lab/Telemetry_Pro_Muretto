@@ -186,6 +186,26 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
 - Provato: sintassi OK, beep suona (radio.mp3+ritardo+voce), e **l'app avvia da
   sé il muretto** all'apertura (app PID + muretto PID, una sola istanza).
 
+**Fix posizioni: solo al traguardo (richiesta utente).**
+- `brain.pos_call`: prima annunciava al primo cambio di `class_place` a metà giro
+  (solo cooldown 8s). Ora **gate sul traguardo**: valuta la posizione una volta
+  per giro, al cambio di `laps_completed`, confrontando con quella del giro
+  precedente. Mid-lap tace. Testato: mid-lap muto, al traguardo annuncia
+  guadagno/perdita, invariata muta.
+
+**FIX mitragliata: ricollegato il `sanity_filter` (come la v2).**
+- Errore mio: in `_emit_all` chiamavo i moduli e parlavo l'output GREZZO, saltando
+  il muro di sanità → il muretto mitragliava frasi tutte insieme (feedback utente:
+  "parla a mitragliatrice, informazioni inutili tutte insieme").
+- Fix: ogni output di modulo ora passa da `brain.sanity_filter(out, raw)` (come
+  faceva `engineer_tab._emit` in v2). Riattiva: **warm-up 5s** (niente raffica
+  d'apertura sullo stato ereditato), **leggi di stato** (muta gap/pos/traffico in
+  corsia o con pit chiamato), e l'**`_arbiter`**: stesso codice muto entro 25s,
+  **max 3 info/20s** (warn/critical passano). Testato: warm-up/budget/legge OK.
+- Nota gate contesto: `gap_call` (undercut) e `strat_extra_stop` si gate già da
+  soli (rivale ai box / gomme ≤82% + gap che copre). Se restano frasi fuori
+  contesto, aggiungere il gate al modolo specifico su feedback in pista.
+
 **Da fare (mattoni, in ordine).**
 1. Mappare `tyre_temp`/`brake_temp` (dal reader: carcass/inner/brk) → attiva
    `temp_call`; aggiungere `session_rules` se serve.

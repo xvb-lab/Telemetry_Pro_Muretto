@@ -1688,7 +1688,10 @@ class Engineer:
         return [m for m in out if m]
 
     def pos_call(self, raw):
-        """Posizione di classe: guadagno/perdita, una per cambio."""
+        """Posizione di classe, valutata SOLO al traguardo (una volta per giro):
+        la posizione e' ufficiale al passaggio sulla linea, non a meta' giro
+        mentre i gap ballano. Confronta la posizione di QUESTO giro con quella
+        del giro precedente e annuncia guadagno/perdita/comando."""
         raw = raw or {}
         riv = raw.get("rivals") or {}
         try:
@@ -1697,14 +1700,18 @@ class Engineer:
             return []
         if pos <= 0:
             return []
+        try:
+            lap = int(raw.get("laps_completed") or 0)
+        except (TypeError, ValueError):
+            return []
+        # gate sul TRAGUARDO: si valuta solo quando scatta il giro nuovo
+        if lap == self._st.get("pos_lap"):
+            return []
+        self._st["pos_lap"] = lap
         prev = self._st.get("pos_prev")
         self._st["pos_prev"] = pos
         if prev is None or pos == prev:
             return []
-        now = _time.monotonic()
-        if now - self._st.get("pos_t", 0.0) < 8.0:
-            return []
-        self._st["pos_t"] = now
         _q = session_kind(raw.get("session_type")) == "qualy"
         if pos == 1:
             code = "pos_pole" if _q else "pos_lead"

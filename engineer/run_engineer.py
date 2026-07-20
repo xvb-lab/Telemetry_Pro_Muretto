@@ -101,9 +101,12 @@ def _emit_all(vox, brain, raw, ld, pace, lang, seen):
         (brain.rain_live, (raw, ld)),
         (brain.wet_patches, (raw,)),
     )
+    # OGNI output passa dal MURO DI SANITÀ (come la v2): warm-up 5s, leggi di
+    # stato (muta in corsia / pit chiamato), anti-ripetizione 25s, budget 3
+    # info/20s. È questo che evita la "mitragliata" di frasi tutte insieme.
     for fn, args in mods:
         try:
-            _speak(vox, fn(*args), lang, seen)
+            _speak(vox, brain.sanity_filter(fn(*args), raw), lang, seen)
         except Exception:
             pass
 
