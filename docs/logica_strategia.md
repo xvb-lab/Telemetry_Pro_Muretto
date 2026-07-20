@@ -127,6 +127,40 @@ Rischio: **bloccaggio anteriore + usura precoce**.
 
 ---
 
+## 5. Architettura calcolo (Studio 397) + conflitto pit-time
+
+**Lo stint finisce al LIMITE MINORE tra tre:**
+1. **Energia/carburante**: `floor(capacità / consumo_giro)` (HY in MJ, es. 900/80 = 11 giri).
+2. **Gomme**: `floor(100% / usura_giro_ruota_peggiore)`; anticipa se glazing/usura oltre soglia (il drop-off costa più del cambio).
+3. **Tempo di guida** (endurance): limite regolamentare pilota.
+Il muretto prende il **minimo**. Buona parte è già in `lmu_live` (`autonomy_laps`,
+`laps_needed`).
+
+**Decisione cambio vs double-stint** (formula S397):
+`IF(drop_off_giro * giri_rimanenti_stint > ~15 s) → CAMBIA, altrimenti DOUBLE STINT`.
+Double-stint quasi obbligato se asfalto <25°C e usura meccanica <40% a fine stint.
+
+**FCY/Slow Zone (80 km/h):** giro +35-45% di tempo, consumo -50/60%; un giro FCY
+allunga lo stint energetico HY di ~0.7 giri. In finestra → **entra subito** (pit
+loss relativo crolla); fuori finestra → mappa risparmio estremo.
+
+**Extreme fuel saving vs Splash&Dash:** in LMU conviene SEMPRE risparmiare (L&C
++0.4 s/giro) piuttosto che una sosta extra a fine gara (~33 s persi). Target:
+`MJ_target_giro = VE_attuale / giri_rimanenti`.
+
+**⚠️ CONFLITTO pit-time (da NON risolvere a mano):**
+- Studio 397: **rifornimento e gomme SIMULTANEI** (`Simultaneous_Pit_Work=TRUE`),
+  i tempi **non si sommano** → sosta ≈ max(refuel, gomme), non somma.
+- Ma `dati_lmu.md §4` sommava (VE 30-32 + gomme 12 = ~42-44 s). E i numeri
+  divergono (Le Mans 28 vs 34.5 s; cambio gomme 14-16 vs 12 s; refuel LMP2 3.5
+  vs 2.1-2.5 L/s; refuel GT3 ~2.8 L/s con restrittore; ricarica HY ~25 MJ/s).
+- **Risoluzione:** per il tempo sosta il muretto usa la **stima LIVE del gioco**
+  `/rest/strategy/pitstop-estimate` (tiene conto del simultaneo) → autorevole; le
+  costanti sono solo fallback. Il conflitto diventa irrilevante live.
+- Serbatoi GT3 variabili: Ferrari 296 ~105 L, Porsche ~100 L (da dato LMU, non fisso).
+
+---
+
 ## Mappa ai dati che GIÀ abbiamo (core)
 
 - Autonomia / per_lap / laps_needed / target_pct / constraint → `lmu_live`
