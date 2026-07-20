@@ -245,6 +245,12 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
 (traffico proiettato al rientro box), `wet_sector_map` (settore più bagnato).
 Agganciate in `_collect`, testate. Con sector_delta = **4 di 6** funzioni v2 fatte.
 
+**Beep radio più forte (richiesta utente).**
+- `radio.mp3` era basso (picco 0.386 = 38%). Amplificato con soundfile+numpy:
+  normalizzato a picco 0.97 (×2.51) + spinta soft-clip tanh ×1.5 → **RMS ×3**,
+  senza distorsione dura. Salvato `assets/audio/radio.wav`. `run_engineer._BEEP`
+  ora preferisce il WAV (fallback mp3). L'MCI lo suona uguale.
+
 **FIX bug: muretto parlava fuori sessione + pit_exit a raffica.**
 - Il muretto parlava anche nei menu/browser (shared memory piena di dati
   STANTII). Ora il loop parla **solo se `mem.is_on_track()`** (collaudato: True

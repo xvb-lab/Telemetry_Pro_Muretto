@@ -22,7 +22,10 @@ from engineer.brain import Engineer
 from engineer.roles import voice_for, role_for, ROLE_LABEL
 from engineer.radio import RadioManager
 
-_BEEP = Path(__file__).resolve().parent.parent / "assets" / "audio" / "radio.mp3"
+_AUDIO = Path(__file__).resolve().parent.parent / "assets" / "audio"
+# tono radio: preferisci la versione WAV amplificata (piu' forte); fallback mp3
+_BEEP = (_AUDIO / "radio.wav") if (_AUDIO / "radio.wav").exists() \
+    else (_AUDIO / "radio.mp3")
 
 
 def _apply_cfg(vox, cfg):
