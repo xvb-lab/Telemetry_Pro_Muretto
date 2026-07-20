@@ -162,6 +162,15 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
   parlano — "Gialla avanti, 400" (`flags_call`) e "Richard Lietz sta a 0,3"
   (`gap_call`, rivale per nome). Nessun crash. Sbloccati flags/gap/traffico/pos.
 
+**Contatti: "con chi mi sono toccato" (richiesta utente).**
+- `core/shared_memory.nearest_car()`: auto più vicina lungo la pista di QUALSIASI
+  classe (nome/classe/gap_m con segno). Glue: `raw["nearest_car"]`.
+- `brain.contact_call`: all'urto cattura il più vicino, ma solo se **≤20 m** (un
+  pilota, non un muro). Dopo 3 s: pulito → "Toccato con {name}, nessun danno";
+  con danno → "Ti sei toccato con {name}" (l'entità la dice damage/aero). Muro →
+  generico senza nome. Nuovi msg `contact_who`/`contact_ok_who` (it/en/es/fr),
+  ruolo spotter. Testato: pulito/danno/muro OK; nearest_car live dà rivale reale.
+
 **Da fare (mattoni, in ordine).**
 1. Mappare `tyre_temp`/`brake_temp` (dal reader: carcass/inner/brk) → attiva
    `temp_call`; aggiungere `session_rules` se serve.

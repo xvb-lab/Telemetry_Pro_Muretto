@@ -712,9 +712,17 @@ class Engineer:
         now = _time.monotonic()
         pend = self._st.get("imp_pend")
         if prev is not None and et > prev and mag >= 200.0:
+            # CHI: l'auto piu' vicina all'istante dell'urto, solo se davvero
+            # accanto (<=20 m) -> un pilota, non un muro/cordolo.
+            _nc = raw.get("nearest_car") or {}
+            try:
+                _near = abs(float(_nc.get("gap_m"))) <= 20.0
+            except (TypeError, ValueError):
+                _near = False
             self._st["imp_pend"] = {
                 "t": now, "aero": float(raw.get("aero") or 0.0),
-                "dent": sum(int(x or 0) for x in (raw.get("dent_sev") or []))}
+                "dent": sum(int(x or 0) for x in (raw.get("dent_sev") or [])),
+                "who": (_nc.get("name") or None) if _near else None}
             return []
         if pend and now - pend["t"] >= 3.0:
             self._st.pop("imp_pend", None)
@@ -726,9 +734,16 @@ class Engineer:
                      and not any(bool(x) for x in (raw.get("wheel_off") or []))
                      and not any(bool(x) for x in (raw.get("wheel_flat") or []))
                      and not raw.get("parts_off"))
+            who = pend.get("who")
             if clean:
                 self._st["imp_said_t"] = now
-                return [self.msg("contact_ok")]
+                return [self.msg("contact_ok_who", name=who) if who
+                        else self.msg("contact_ok")]
+            if who:
+                # danno vero: il RACE ENGINEER dira' l'entita' (damage/aero);
+                # qui lo spotter dice ALMENO con chi ti sei toccato.
+                self._st["imp_said_t"] = now
+                return [self.msg("contact_who", name=who)]
         return []
 
     def flags_call(self, raw):

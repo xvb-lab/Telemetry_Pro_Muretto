@@ -22,6 +22,7 @@ _role(["gap_ahead", "gap_behind", "gap_both", "gap_undercut", "blue_flag",
 _role(["brief_strat_data", "brief_strat_new"], "strategist")
 _role(["brief_spot", "pit_exit_clean", "pit_exit_fast", "pit_exit_hole",
        "pit_exit_traffic"], "spotter")
+_role(["contact_ok", "contact_who", "contact_ok_who"], "spotter")
 _role(["lap_fast", "lap_fast_clean", "lap_slow", "sector_loss",
        "perf_report", "ref_pace", "under_pace", "on_pace", "pace_margin",
        "lap_time_call"], "spotter")

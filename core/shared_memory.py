@@ -242,6 +242,58 @@ class SharedMemory:
             self._sim = None
             return {}
 
+    def nearest_car(self):
+        """Auto (di QUALSIASI classe) piu' vicina al player lungo la pista, per
+        identificare un contatto/doppiaggio. Ritorna {name, cls, gap_m (con
+        segno: + davanti / - dietro), ahead}. None se sola in pista. Esclude box/
+        garage."""
+        try:
+            sim = self._get_sim()
+            if not sim:
+                return None
+            si = sim.scoring.scoringInfo
+            num = int(si.mNumVehicles)
+            track_len = float(si.mLapDist) or 1.0
+            pl = None
+            for i in range(min(num, _MAX_VEH)):
+                if int(sim.scoring.vehScoringInfo[i].mIsPlayer) == 1:
+                    pl = sim.scoring.vehScoringInfo[i]
+                    break
+            if pl is None:
+                return None
+            pd = float(pl.mLapDist)
+            best = None
+            for i in range(min(num, _MAX_VEH)):
+                v = sim.scoring.vehScoringInfo[i]
+                if int(v.mIsPlayer) == 1 or bool(v.mInPits):
+                    continue
+                try:
+                    if bool(v.mInGarageStall):
+                        continue
+                except Exception:
+                    pass
+                d = float(v.mLapDist) - pd
+                if d > track_len / 2:
+                    d -= track_len
+                elif d < -track_len / 2:
+                    d += track_len
+                if best is None or abs(d) < abs(best[0]):
+                    try:
+                        nm = v.mDriverName.decode("utf-8", "ignore").strip("\x00 ").strip()
+                    except Exception:
+                        nm = ""
+                    try:
+                        cl = v.mVehicleClass.decode("utf-8", "ignore").strip("\x00 ").strip()
+                    except Exception:
+                        cl = ""
+                    best = (d, nm, cl)
+            if best is None:
+                return None
+            return {"name": best[1], "cls": best[2],
+                    "gap_m": round(best[0], 1), "ahead": best[0] > 0}
+        except Exception:
+            return None
+
     def rivals(self):
         """Dati rivali IN CLASSE, robusti in multiclass: posizione di classe e
         davanti/dietro dall'ORDINE DI MARCIA reale (giri completati + distanza

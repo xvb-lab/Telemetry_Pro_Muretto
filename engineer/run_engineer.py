@@ -146,6 +146,9 @@ def run():
                 _rv = mem.rivals()
                 if _rv:
                     raw["rivals"] = _rv
+                _nc = mem.nearest_car()
+                if _nc:
+                    raw["nearest_car"] = _nc
             except Exception:
                 pass
             # tick strappato (dato incoerente) -> salta

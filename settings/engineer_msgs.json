@@ -1903,38 +1903,34 @@
    "fr": "Tu es en tete, {pos}. Gere."
   },
   "pos_gain": {
-   "cat": "strategy",
-   "level": "info",
    "beep": true,
-   "it": "Guadagni una posizione, ora {pos}.",
+   "level": "green",
+   "it": "Sorpasso fatto, ora sei {pos}.",
    "variants_it": [
-    "Guadagni una posizione, ora {pos}.",
-    "Bravo, sei salito in {pos}.",
-    "Passato, ora sei {pos}.",
-    "Sorpasso fatto, adesso {pos}.",
-    "Su di una, sei {pos} ora.",
-    "Guadagnata, {pos}. Continua a spingere."
+    "Sorpasso fatto, ora sei {pos}.",
+    "Guadagnata una posizione, {pos}.",
+    "Passato! Ora {pos}.",
+    "Una posizione in più, sei {pos}.",
+    "Avanti di una posizione, {pos}."
    ],
-   "en": "Up one place, now {pos}.",
-   "es": "Ganas una posicion, ahora {pos}.",
-   "fr": "Une place gagnee, maintenant {pos}."
+   "en": "Move done, you're {pos} now.",
+   "es": "Adelantamiento hecho, ahora eres {pos}.",
+   "fr": "Dépassement fait, tu es {pos} maintenant."
   },
   "pos_loss": {
-   "cat": "strategy",
-   "level": "info",
-   "beep": true,
-   "it": "Ti passano, ora sei {pos}.",
+   "beep": false,
+   "level": "warn",
+   "it": "Ti hanno passato, ora sei {pos}.",
    "variants_it": [
-    "Ti passano, ora sei {pos}.",
-    "Persa una posizione, adesso {pos}.",
-    "Scali in {pos}, reagisci.",
-    "Ti hanno passato, ora {pos}.",
-    "Giu' di una, sei {pos}.",
-    "Perdi una piazza, {pos}. Testa a posto."
+    "Ti hanno passato, ora sei {pos}.",
+    "Persa una posizione, {pos}.",
+    "Ti ha scavalcato, ora {pos}.",
+    "Una posizione persa, sei {pos}.",
+    "Indietro di una posizione, {pos}."
    ],
-   "en": "They pass you, now {pos}.",
-   "es": "Te pasan, ahora {pos}.",
-   "fr": "Ils te passent, maintenant {pos}."
+   "en": "You've been passed, you're {pos} now.",
+   "es": "Te han pasado, ahora eres {pos}.",
+   "fr": "Tu t'es fait passer, tu es {pos} maintenant."
   },
   "autofuel_set": {
    "cat": "strategy",
@@ -3161,36 +3157,6 @@
    "en": "Track picture: sector {settore} is the wettest, take care there.",
    "es": "Situación de pista: el sector {settore} es el más mojado, cuidado ahí.",
    "fr": "État de la piste : le secteur {settore} est le plus mouillé, prudence là."
-  },
-  "pos_gain": {
-   "beep": true,
-   "level": "green",
-   "it": "Sorpasso fatto, ora sei {pos}.",
-   "variants_it": [
-    "Sorpasso fatto, ora sei {pos}.",
-    "Guadagnata una posizione, {pos}.",
-    "Passato! Ora {pos}.",
-    "Una posizione in più, sei {pos}.",
-    "Avanti di una posizione, {pos}."
-   ],
-   "en": "Move done, you're {pos} now.",
-   "es": "Adelantamiento hecho, ahora eres {pos}.",
-   "fr": "Dépassement fait, tu es {pos} maintenant."
-  },
-  "pos_loss": {
-   "beep": false,
-   "level": "warn",
-   "it": "Ti hanno passato, ora sei {pos}.",
-   "variants_it": [
-    "Ti hanno passato, ora sei {pos}.",
-    "Persa una posizione, {pos}.",
-    "Ti ha scavalcato, ora {pos}.",
-    "Una posizione persa, sei {pos}.",
-    "Indietro di una posizione, {pos}."
-   ],
-   "en": "You've been passed, you're {pos} now.",
-   "es": "Te han pasado, ahora eres {pos}.",
-   "fr": "Tu t'es fait passer, tu es {pos} maintenant."
   },
   "fuel_practice": {
    "beep": false,
@@ -4736,6 +4702,42 @@
    "en": "The rubber is washing away: now {stato}, expect less grip.",
    "es": "La goma se está lavando: ahora {stato}, espera menos agarre.",
    "fr": "La gomme se fait laver : maintenant {stato}, attends-toi à moins de grip."
+  },
+  "contact_who": {
+   "cat": "damage",
+   "level": "info",
+   "beep": true,
+   "it": "Contatto con {name}.",
+   "variants_it": [
+    "Contatto con {name}.",
+    "Ti sei toccato con {name}.",
+    "Sportellata con {name}."
+   ],
+   "en": "Contact with {name}.",
+   "variants_en": [
+    "Contact with {name}.",
+    "You touched {name}.",
+    "Rubbing with {name}."
+   ],
+   "es": "Contacto con {name}.",
+   "fr": "Contact avec {name}."
+  },
+  "contact_ok_who": {
+   "cat": "damage",
+   "level": "info",
+   "beep": true,
+   "it": "Toccato con {name}, nessun danno, si continua.",
+   "variants_it": [
+    "Toccato con {name}, nessun danno, si continua.",
+    "Contatto con {name}: macchina pulita, avanti."
+   ],
+   "en": "Contact with {name}, no damage, carry on.",
+   "variants_en": [
+    "Contact with {name}, no damage, carry on.",
+    "Touched {name}, car is clean."
+   ],
+   "es": "Contacto con {name}, sin daños, seguimos.",
+   "fr": "Contact avec {name}, aucun dégât, on continue."
   }
  }
 }
