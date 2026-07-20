@@ -38,6 +38,53 @@ def _speak(vox, msgs, lang, seen):
         vox.speak(text, voice=voice_for(code, lang))
 
 
+def _emit_all(vox, brain, raw, ld, pace, lang, seen):
+    """Chiama i moduli-voce collaudati del cervello e manda a voce ciò che
+    producono. Ognuno è difensivo (torna [] se manca il dato) e protetto da
+    try/except: un modulo che sbaglia NON ferma il muretto. I moduli senza il
+    dato necessario restano muti finché il glue non fornisce quel dato."""
+    mods = (
+        # 🟠 RACE ENGINEER — sicurezza / auto
+        (brain.flags_call, (raw,)),
+        (brain.damage_call, (raw,)),
+        (brain.aero_call, (raw,)),
+        (brain.contact_call, (raw,)),
+        (brain.engine_check, (raw,)),
+        (brain.battery_check, (raw, ld)),
+        (brain.wet_tyre, (raw,)),
+        (brain.pit_ack, (raw, ld)),
+        # 🔵 STRATEGY
+        (brain.race_plan, (raw,)),
+        (brain.box_call, (raw, ld)),
+        (brain.strategy_check, (raw, pace, ld)),
+        (brain.weather_check, (raw, ld)),
+        (brain.strat_extra_stop, (raw, ld)),
+        (brain.status_update, (raw, ld)),
+        (brain.autofuel_call, (raw, ld)),
+        (brain.position_strategy, (raw, ld)),
+        (brain.pos_call, (raw,)),
+        (brain.countdown, (raw, ld)),
+        # 🟢 PERFORMANCE / spotter
+        (brain.lap_time_call, (raw,)),
+        (brain.lap_feedback, (raw, ld)),
+        (brain.tyre_life, (raw, ld)),
+        (brain.grip_call, (raw, ld)),
+        (brain.temp_call, (raw, ld)),
+        (brain.gap_call, (raw, ld)),
+        (brain.traffic_ahead_call, (raw,)),
+        (brain.lock_pattern_call, (raw, ld)),
+        (brain.pace_notes_call, (raw, ld)),
+        (brain.tlimits_call, (raw, ld)),
+        (brain.rain_live, (raw, ld)),
+        (brain.wet_patches, (raw,)),
+    )
+    for fn, args in mods:
+        try:
+            _speak(vox, fn(*args), lang, seen)
+        except Exception:
+            pass
+
+
 def _lang():
     return (engineer_cfg.load().get("lang") or "it")
 
@@ -87,15 +134,19 @@ def run():
                     "pit_target": live.get("pit_target"),
                     "autonomy": live.get("autonomy_laps"),
                 }
-            # cervello: fotografia stato, poi moduli strategia
+            # tick strappato (dato incoerente) -> salta
+            try:
+                if brain.glitch(raw):
+                    time.sleep(0.2)
+                    continue
+            except Exception:
+                pass
+            # fotografia stato PRIMA di tutto (state-aware), poi tutti i moduli
             try:
                 brain.update_situation(raw)
             except Exception:
                 pass
-            _speak(vox, brain.race_plan(raw), lang, seen)
-            _speak(vox, brain.strategy_check(raw, est or None, ld), lang, seen)
-            _speak(vox, brain.box_call(raw, ld), lang, seen)
-            _speak(vox, brain.countdown(raw, ld), lang, seen)
+            _emit_all(vox, brain, raw, ld, est or None, lang, seen)
             time.sleep(0.2)
     except KeyboardInterrupt:
         pass

@@ -128,9 +128,24 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
   Sta sopra `lmu_live`, non tocca il cervello. Costanti = riferimento/fallback;
   in gara vince il dato vivo di LMU.
 
+**Loop muretto AMPLIATO — parla tutti i moduli collaudati.**
+- `run_engineer._emit_all`: dispatcher che chiama l'intero set di moduli-voce
+  del cervello (RACE: flags/damage/aero/contact/engine/battery/wet_tyre/pit_ack ·
+  STRATEGY: race_plan/box/strategy_check/weather/extra_stop/status/autofuel/
+  position/pos/countdown · PERFORMANCE: lap_time/lap_feedback/tyre_life/grip/
+  temp/gap/traffic/lock/pace/tlimits/rain/wet_patches). Ognuno difensivo +
+  try/except: un modulo che sbaglia non ferma il muretto. Aggiunto `glitch`
+  guard (salta i tick strappati) e `update_situation` prima di tutto.
+- Testato su raw di gara sintetico: parlano piano/soste/box/status/countdown coi
+  ruoli e voci giusti, nessun crash. I moduli muti (flags/gap/traffico/temp/
+  tlimits) aspettano il glue con lo SCORING (rivali/flags/tyre_temp/brake_temp).
+- NB: soglie collaudate NON toccate (es. tyre "dead" ~70% residuo); resta aperto
+  il flag scala usura / core-temp vs docs (`target_pitwall.md`).
+
 **Da fare (mattoni, in ordine).**
-1. Collegare `pit_math` al cervello/loop: double-stint sul wear reale, undercut,
-   FCY, scelta mescola, "elimina una sosta" — come voci del muretto.
-2. Provare piano gara + consumo vs target in una gara LIVE più lunga.
-3. Radio a 2 vie: STT online + wake word + intent deterministico.
-4. Resto del cervello: settori "dove perdo", traffico per classe, ecc.
+1. Arricchire il glue `raw` con lo SCORING dalla shared memory (rivali, flags,
+   settori, tyre_temp, brake_temp) → attiva bandiere/gap/traffico/temp/spotter.
+2. Collegare `pit_math` come voci nuove (undercut, FCY, mescola) senza toccare
+   il collaudato; allineare soglie coi docs dove concordato con l'utente.
+3. Provare LIVE in una gara più lunga (piano + consumo + moduli).
+4. Radio a 2 vie: STT online + wake word + intent deterministico.
