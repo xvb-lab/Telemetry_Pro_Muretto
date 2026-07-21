@@ -263,7 +263,7 @@ class Wec26BattleOverlay(QWidget):
                 m = re.search(r"#\s*(\d{1,3})",
                               str(row.get("veh_name") or ""))
                 num = m.group(1) if m else tag
-            f_num = QFont("Druk Wide", 42)
+            f_num = QFont("Druk Wide Cy TT", 42)
             f_num.setWeight(QFont.Black)
             f_num.setItalic(True)
             p.setFont(f_num)
@@ -271,7 +271,7 @@ class Wec26BattleOverlay(QWidget):
             p.setPen(txc)                     # scuro su basi chiare
             p.drawText(QPointF(140, 76), str(num))
             zx = 162 + fn.horizontalAdvance(str(num))
-            f_dr = QFont("Druk Wide", 19)
+            f_dr = QFont("Druk Wide Cy TT", 19)
             f_dr.setWeight(QFont.Black)
             f_dr.setItalic(True)
             p.setFont(f_dr)
@@ -280,7 +280,7 @@ class Wec26BattleOverlay(QWidget):
             while name and fd.horizontalAdvance(name) > _CW - zx - 40:
                 name = name[:-1]
             p.drawText(QPointF(zx, 48), name)
-            f_pg = QFont("Druk Wide", 20)
+            f_pg = QFont("Druk Wide Cy TT", 20)
             f_pg.setWeight(QFont.Black)
             f_pg.setItalic(True)
             p.setFont(f_pg)
@@ -305,7 +305,7 @@ class Wec26BattleOverlay(QWidget):
             # PERCENTUALE ENERGIA a destra (dato vero di quest'auto)
             _ve = row.get("v_energy")
             if _ve is not None:
-                f_ve = QFont("Druk Wide", 15)
+                f_ve = QFont("Druk Wide Cy TT", 15)
                 f_ve.setWeight(QFont.Black)
                 f_ve.setItalic(True)
                 p.setFont(f_ve)
@@ -366,21 +366,21 @@ class Wec26BattleOverlay(QWidget):
                                 else QColor(255, 255, 255, 45)
                             p.setBrush(c)
                             p.drawRect(QRectF(zx + i * 7.6, 44, 5.0, 14))
-                        f_pc = QFont("Druk Wide", 13)
+                        f_pc = QFont("Druk Wide Cy TT", 13)
                         f_pc.setWeight(QFont.Black)
                         f_pc.setItalic(True)
                         p.setFont(f_pc)
                         p.setPen(QColor(255, 255, 255, 250))
                         p.drawText(QPointF(zx + 14 * 7.6 + 8, 58),
                                    "%d%%" % round(float(ve)))
-                        f_lb = QFont("Druk Wide", 7)
+                        f_lb = QFont("Druk Wide Cy TT", 7)
                         f_lb.setWeight(QFont.Bold)
                         p.setFont(f_lb)
                         p.setPen(QColor(255, 255, 255, 200))
                         p.drawText(QPointF(zx, 74),
                                    "VIRTUAL ENERGY TANK")
                     if spd:
-                        f_sp = QFont("Druk Wide", 24)
+                        f_sp = QFont("Druk Wide Cy TT", 24)
                         f_sp.setWeight(QFont.Black)
                         f_sp.setItalic(True)
                         p.setFont(f_sp)
@@ -389,14 +389,14 @@ class Wec26BattleOverlay(QWidget):
                         sx = _CW - 185.0
                         p.setPen(QColor(255, 255, 255, 250))
                         p.drawText(QPointF(sx, 56), kmh)
-                        f_su = QFont("Druk Wide", 10)
+                        f_su = QFont("Druk Wide Cy TT", 10)
                         f_su.setWeight(QFont.ExtraBold)
                         f_su.setItalic(True)
                         p.setFont(f_su)
                         p.drawText(QPointF(
                             sx + fsp.horizontalAdvance(kmh) + 5, 56),
                             "KMH")
-                        f_sm = QFont("Druk Wide", 11)
+                        f_sm = QFont("Druk Wide Cy TT", 11)
                         f_sm.setWeight(QFont.DemiBold)
                         f_sm.setItalic(True)
                         p.setFont(f_sm)

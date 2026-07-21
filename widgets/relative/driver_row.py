@@ -186,7 +186,7 @@ class RelDriverRow(QWidget):
             self.lbl_class.setFixedWidth(0)
         # posizione stile onboard: P18 in Archivo corsivo
         self.lbl_pos.setStyleSheet(
-            "font-family:'Druk Wide', 'Archivo SemiExpanded';font-style:italic;"
+            "font-family:'Druk Wide Cy TT', 'Archivo SemiExpanded';font-style:italic;"
             "font-weight:900;background:transparent;")
         if not cfg.get("show_pos_delta", True):
             self.lbl_pdelta.hide()
@@ -309,7 +309,7 @@ class RelDriverRow(QWidget):
             # numero gara PRIMA del nome, font onboard (Archivo italic)
             self.lbl_name.setTextFormat(Qt.RichText)
             self.lbl_name.setText(
-                "<span style=\"font-family:'Druk Wide', 'Archivo SemiExpanded';"
+                "<span style=\"font-family:'Druk Wide Cy TT', 'Archivo SemiExpanded';"
                 "font-style:italic;font-weight:900;\">%s</span>"
                 "&nbsp; %s" % (_num, _nm))
         else:

@@ -725,7 +725,7 @@ class StandingsOverlay(QWidget):
         self.lbl_line_sess.setTextFormat(Qt.RichText)
         self.lbl_line_sess.setText(_re_sl.sub(
             r"(\d+)",
-            "<span style=\"font-family:'Druk Wide', 'Archivo SemiExpanded';"
+            "<span style=\"font-family:'Druk Wide Cy TT', 'Archivo SemiExpanded';"
             "font-style:italic;font-weight:900;\">\\1</span>",
             self.lbl_sess_name.text()))
         self.lbl_line_time.setText(self.lbl_sess_time.text())

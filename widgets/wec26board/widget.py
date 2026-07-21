@@ -61,7 +61,7 @@ def draw_card_base(p, brand, tag, model, logo, right_label=None,
     p.setBrush(QColor(right_color) if right_color
                else QColor(24, 18, 70, 252))
     p.drawRect(QRectF(_W - 150, strip_y, 150, _H - strip_y))
-    f = QFont("Druk Wide", 12)
+    f = QFont("Druk Wide Cy TT", 12)
     f.setWeight(QFont.ExtraBold)
     f.setItalic(True)
     p.setFont(f)
@@ -75,7 +75,7 @@ def draw_card_base(p, brand, tag, model, logo, right_label=None,
     if chip:      # chip classe in alto: SOLO Onboard (in Battle la
                   # classe sta gia' nella striscia bassa colorata)
         lab, cc = _CHIP.get(tag, ("HYPERCAR", "#C3122A"))
-        f2 = QFont("Druk Wide", 10)
+        f2 = QFont("Druk Wide Cy TT", 10)
         f2.setWeight(QFont.Black)
         f2.setItalic(True)
         fm2 = QFontMetricsF(f2)
@@ -223,7 +223,7 @@ class Wec26OnboardOverlay(WecOnboardOverlay):
             f = max(0.0, min(1.0, (time.monotonic() - t0 - dl) / 0.5))
 
         # numero auto: sempre, grande corsivo dopo la barra bianca
-        f_num = QFont("Druk Wide", 42)
+        f_num = QFont("Druk Wide Cy TT", 42)
         f_num.setWeight(QFont.Black)
         f_num.setItalic(True)
         p.setFont(f_num)
@@ -245,7 +245,7 @@ class Wec26OnboardOverlay(WecOnboardOverlay):
         #    VERO mostrato (niente vuoto morto a sinistra del nome) ──
         if f < 1.0:
             zx_txt = 140 + fn.horizontalAdvance(num or "") + 18
-            f_dr = QFont("Druk Wide", 19)
+            f_dr = QFont("Druk Wide Cy TT", 19)
             f_dr.setWeight(QFont.Black)
             f_dr.setItalic(True)
             p.setFont(f_dr)
@@ -256,7 +256,7 @@ class Wec26OnboardOverlay(WecOnboardOverlay):
                 name = name[:-1]
             p.setPen(QColor(text_on(self._brand)))
             p.drawText(QPointF(zx_txt, 48), name)
-            f_pg = QFont("Druk Wide", 16)
+            f_pg = QFont("Druk Wide Cy TT", 16)
             f_pg.setWeight(QFont.ExtraBold)
             f_pg.setItalic(True)
             p.setFont(f_pg)
@@ -302,26 +302,26 @@ class Wec26OnboardOverlay(WecOnboardOverlay):
                     p.setBrush(c)
                     p.drawRect(QRectF(bx + i * (segw + gap), 46,
                                       segw, 15))
-                f_pct = QFont("Druk Wide", 14)
+                f_pct = QFont("Druk Wide Cy TT", 14)
                 f_pct.setWeight(QFont.Black)
                 f_pct.setItalic(True)
                 p.setFont(f_pct)
                 p.setPen(QColor(255, 255, 255, 250))
                 p.drawText(QPointF(bx + nseg * (segw + gap) + 8, 60),
                            "%d%%" % int(round(self._nrg * 100)))
-                f_lab = QFont("Druk Wide", 7)
+                f_lab = QFont("Druk Wide Cy TT", 7)
                 f_lab.setWeight(QFont.Bold)
                 p.setFont(f_lab)
                 p.setPen(QColor(255, 255, 255, 210))
                 p.drawText(QPointF(bx, 76), self._nrg_kind)
             # velocita' a destra della zona dati
-            f_spd = QFont("Druk Wide", 27)
+            f_spd = QFont("Druk Wide Cy TT", 27)
             f_spd.setWeight(QFont.Black)
             f_spd.setItalic(True)
             p.setFont(f_spd)
             fs = QFontMetricsF(f_spd)
             kmh = "%d" % int(round(self._speed))
-            f_u = QFont("Druk Wide", 11)
+            f_u = QFont("Druk Wide Cy TT", 11)
             f_u.setWeight(QFont.ExtraBold)
             f_u.setItalic(True)
             fu = QFontMetricsF(f_u)
@@ -336,7 +336,7 @@ class Wec26OnboardOverlay(WecOnboardOverlay):
             p.setFont(f_u)
             p.drawText(QPointF(sx + fs.horizontalAdvance(kmh) + 5, 50),
                        "KMH")
-            f_mph = QFont("Druk Wide", 12)
+            f_mph = QFont("Druk Wide Cy TT", 12)
             f_mph.setWeight(QFont.DemiBold)
             f_mph.setItalic(True)
             p.setFont(f_mph)

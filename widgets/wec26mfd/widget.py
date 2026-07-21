@@ -2196,7 +2196,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         p.drawLine(QPointF(x + 13.0, 11.0), QPointF(x + 8.0, 32.0))
         x += 21.0
         # posizione, in linea con lo slash e attaccata (scala 0.8)
-        f_ps = QFont("Druk Wide", 22)
+        f_ps = QFont("Druk Wide Cy TT", 22)
         f_ps.setWeight(QFont.Black)
         f_ps.setItalic(True)
         p.setFont(f_ps)
