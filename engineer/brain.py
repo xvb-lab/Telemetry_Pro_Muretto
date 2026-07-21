@@ -1512,6 +1512,71 @@ class Engineer:
                          gap=("%.3f" % gap).replace(".", ","),
                          name=self._rival_name(pole_nm))]
 
+    def stint_debrief(self, raw, laps_done):
+        """DEBRIEF di stint (a voce, in garage a fine stint): giri, miglior giro,
+        gomme a fine stint, consumo a giro, e dove migliorare. Accumula mentre
+        giri; quando ti fermi in box con >=2 giri fatti, lo dice. Poi ri-arma."""
+        raw = raw or {}
+        in_box = bool(raw.get("garage") or raw.get("in_pits")
+                      or raw.get("in_pitlane"))
+        try:
+            spd = float(raw.get("speed") or 0.0)
+        except (TypeError, ValueError):
+            spd = 0.0
+        d = self._st.setdefault("dbr", {})
+        # ── ACCUMULA in pista (non in box) ──
+        if not in_box:
+            d["active"] = True
+            if d.get("lap_start") is None:
+                d["lap_start"] = laps_done
+            d["laps"] = max(0, laps_done - d["lap_start"])
+            try:
+                ll = float(raw.get("last_lap") or 0.0)
+            except (TypeError, ValueError):
+                ll = 0.0
+            if ll > 0 and (d.get("best") is None or ll < d["best"]):
+                d["best"] = ll
+            tw = raw.get("tyre_wear")
+            if isinstance(tw, (list, tuple)) and tw:
+                try:
+                    d["wear"] = min(float(x) for x in tw if x is not None)
+                except (TypeError, ValueError):
+                    pass
+            live = raw.get("lmu_live") or {}
+            if live.get("per_lap"):
+                d["per_lap"] = live.get("per_lap")
+                d["constraint"] = live.get("constraint")
+            return []
+        # ── IN BOX: debrief se avevi uno stint vero (>=2 giri) e sei fermo ──
+        if not d.get("active") or d.get("laps", 0) < 2 or spd > 5.0:
+            if d.get("laps", 0) < 2:
+                d["active"] = False
+            return []
+        d["active"] = False
+        out = []
+        if d.get("best"):
+            out.append(self.msg("debrief_stint", laps=int(d["laps"]),
+                                best=_fmt_lap_round(d["best"])))
+        if d.get("wear") is not None:
+            cons = ""
+            if d.get("per_lap"):
+                unit = (self._L("per cento", "percent", "por ciento", "pour cent")
+                        if str(d.get("constraint")).upper() == "ENERGY"
+                        else self._L("litri", "liters", "litros", "litres"))
+                val = ("%.1f " % float(d["per_lap"])).replace(".", ",") + unit
+                cons = self._L("Consumo %s a giro." % val,
+                               "Used %s per lap." % val,
+                               "Consumo %s por vuelta." % val,
+                               "Conso %s au tour." % val)
+            out.append(self.msg("debrief_tyre",
+                                wear=int(round(d["wear"])), cons=cons))
+        cn = self._st.get("dbr_corner")
+        if cn:
+            out.append(self.msg("debrief_improve", turn=cn))
+        self._st["dbr"] = {}                    # ri-arma per il prossimo stint
+        self._st.pop("dbr_corner", None)
+        return [m for m in out if m]
+
     def tyre_stock(self, raw):
         """INVENTARIO GOMME (una volta): treni slick nuovi/usati rimasti. Detto
         in box (garage/corsia), utile prima di uscire. Dato REST dotazione."""
@@ -2463,6 +2528,7 @@ class Engineer:
             self._st["cl_trk"] = {}           # reset per il prossimo giro
             if worst_n is not None and worst_def >= 6.0:   # >= 6 km/h piu' lento
                 said[worst_n] = laps_done
+                self._st["dbr_corner"] = worst_n      # per il debrief di stint
                 out = [self.msg("turn_slow", turn=worst_n)]
         return out
 

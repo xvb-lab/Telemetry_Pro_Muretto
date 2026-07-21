@@ -238,6 +238,7 @@ def _collect(brain, raw, ld, pace):
         (brain.pit_light, (raw,)),                # semaforo pit chiusa/aperta (prova/quali)
         (brain.tyre_stock, (raw,)),               # inventario gomme (treni nuovi/usati)
         (brain.quali_pole, (raw, ld)),            # quali: gap dalla pola di classe
+        (brain.stint_debrief, (raw, ld)),         # debrief a voce a fine stint (garage)
         # 🔵 STRATEGY
         (brain.race_briefing, (raw,)),           # briefing meteo al rolling start
         (brain.race_plan, (raw,)),

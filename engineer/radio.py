@@ -69,7 +69,8 @@ _mk(["tyres_cold", "tyres_warm", "brakes_cold", "tyres_hot", "brakes_hot",
      "tyre_flat", "engine_hot", "status_dry", "status_wet", "status_fuel",
      "status_tyre", "sector_loss", "wet_sector", "fuel_practice",
      "tyre_worn_info", "contact_who", "contact_ok_who", "contact_ok",
-     "quali_pole_gap", "quali_pole_lead"], 2)
+     "quali_pole_gap", "quali_pole_lead",
+     "debrief_stint", "debrief_tyre", "debrief_improve"], 2)
 # P3 info gara
 _mk(["leader", "pole_pos", "pos_race", "pos_qualy", "pos_lead", "pos_pole",
      "near_ahead", "near_behind", "opp_best", "time_left", "time_hours",

@@ -6706,6 +6706,105 @@
         "Voiture morte, quali stoppee.",
         "Fin de quali pour nous, la voiture est morte."
       ]
+    },
+    "debrief_stint": {
+      "cat": "strategia",
+      "level": "info",
+      "beep": true,
+      "it": "Stint chiuso: {laps} giri, miglior giro {best}.",
+      "variants_it": [
+        "Stint chiuso: {laps} giri, miglior giro {best}.",
+        "Fine stint, {laps} giri fatti, meglio {best}.",
+        "{laps} giri nello stint, tuo miglior giro {best}.",
+        "Debrief: {laps} giri, best {best}."
+      ],
+      "en": "Stint done: {laps} laps, best lap {best}.",
+      "variants_en": [
+        "Stint done: {laps} laps, best lap {best}.",
+        "End of stint, {laps} laps, best {best}.",
+        "{laps} laps this stint, your best {best}.",
+        "Debrief: {laps} laps, best {best}."
+      ],
+      "es": "Stint cerrado: {laps} vueltas, mejor vuelta {best}.",
+      "variants_es": [
+        "Stint cerrado: {laps} vueltas, mejor vuelta {best}.",
+        "Fin de stint, {laps} vueltas, mejor {best}.",
+        "{laps} vueltas en el stint, tu mejor {best}.",
+        "Debrief: {laps} vueltas, best {best}."
+      ],
+      "fr": "Relais fini : {laps} tours, meilleur tour {best}.",
+      "variants_fr": [
+        "Relais fini : {laps} tours, meilleur tour {best}.",
+        "Fin de relais, {laps} tours, meilleur {best}.",
+        "{laps} tours ce relais, ton meilleur {best}.",
+        "Debrief : {laps} tours, best {best}."
+      ]
+    },
+    "debrief_tyre": {
+      "cat": "strategia",
+      "level": "info",
+      "beep": true,
+      "it": "Gomme all'{wear} percento a fine stint. {cons}",
+      "variants_it": [
+        "Gomme all'{wear} percento a fine stint. {cons}",
+        "Coperture al {wear} percento a fine giro. {cons}",
+        "Fine stint con gomma al {wear} percento. {cons}",
+        "Gomma finita al {wear} percento. {cons}"
+      ],
+      "en": "Tyres at {wear} percent at stint end. {cons}",
+      "variants_en": [
+        "Tyres at {wear} percent at stint end. {cons}",
+        "Rubber at {wear} percent at the end. {cons}",
+        "Ended the stint with tyres at {wear} percent. {cons}",
+        "Tyres down to {wear} percent. {cons}"
+      ],
+      "es": "Gomas al {wear} por ciento al final del stint. {cons}",
+      "variants_es": [
+        "Gomas al {wear} por ciento al final del stint. {cons}",
+        "Neumaticos al {wear} por ciento al final. {cons}",
+        "Fin de stint con goma al {wear} por ciento. {cons}",
+        "Goma al {wear} por ciento. {cons}"
+      ],
+      "fr": "Pneus a {wear} pour cent en fin de relais. {cons}",
+      "variants_fr": [
+        "Pneus a {wear} pour cent en fin de relais. {cons}",
+        "Gomme a {wear} pour cent a la fin. {cons}",
+        "Fin de relais avec pneus a {wear} pour cent. {cons}",
+        "Pneus a {wear} pour cent. {cons}"
+      ]
+    },
+    "debrief_improve": {
+      "cat": "strategia",
+      "level": "info",
+      "beep": true,
+      "it": "Dove migliorare: lavora la curva {turn}.",
+      "variants_it": [
+        "Dove migliorare: lavora la curva {turn}.",
+        "Puoi guadagnare nella {turn}.",
+        "Il punto debole era la {turn}, lavorala.",
+        "Sulla {turn} lasci tempo, tienila a mente."
+      ],
+      "en": "Where to improve: work turn {turn}.",
+      "variants_en": [
+        "Where to improve: work turn {turn}.",
+        "You can gain in turn {turn}.",
+        "Weak point was turn {turn}, work on it.",
+        "You leave time in turn {turn}, keep it in mind."
+      ],
+      "es": "Donde mejorar: trabaja la curva {turn}.",
+      "variants_es": [
+        "Donde mejorar: trabaja la curva {turn}.",
+        "Puedes ganar en la {turn}.",
+        "El punto debil era la {turn}, trabajala.",
+        "En la {turn} pierdes tiempo, tenlo en cuenta."
+      ],
+      "fr": "Ou progresser : travaille le virage {turn}.",
+      "variants_fr": [
+        "Ou progresser : travaille le virage {turn}.",
+        "Tu peux gagner au virage {turn}.",
+        "Le point faible etait le {turn}, travaille-le.",
+        "Tu perds du temps au {turn}, garde-le en tete."
+      ]
     }
   }
 }
