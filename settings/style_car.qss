@@ -1,0 +1,7 @@
+/* LMU Car Widget */
+#overlay   { background: transparent; }
+#container {
+    background: rgba(8, 11, 16, 1.0);
+    border-radius: 6px;
+
+}

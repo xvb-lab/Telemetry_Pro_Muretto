@@ -1,0 +1,24 @@
+/* LMU Flag Widget */
+* { font-family: "Google Sans", "Consolas", monospace; }
+
+#overlay   { background: transparent; }
+#container {
+    background: rgba(8, 11, 16, 0.5);
+    border-radius: 6px;
+
+}
+
+#flagRow { background: transparent; }
+
+QLabel#flagYellow, QLabel#flagBlue, QLabel#flagPen, QLabel#flagFin, QLabel#flagWet {
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 3px;
+    padding: 2px 10px;
+    margin: 0 2px;
+}
+#flagYellow { background: #ffd400; color: #000; }
+#flagBlue   { background: #2f6df0; color: #fff; }
+#flagPen    { background: #ff3b30; color: #fff; }
+#flagFin    { background: #ffffff; color: #000; }
+#flagWet    { background: #ffffff; color: #0a2a6b; }

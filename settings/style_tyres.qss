@@ -1,0 +1,14 @@
+/* LMU Tyres Widget */
+* { font-family: "Google Sans", "Consolas", monospace; }
+
+#overlay   { background: transparent; }
+#container {
+    background: rgba(8, 11, 16, 0.5);
+    border-radius: 6px;
+
+}
+#tyresGrid { background: transparent; }
+#compoundTemp {
+    font-size: 11px;
+    font-weight: bold;
+}

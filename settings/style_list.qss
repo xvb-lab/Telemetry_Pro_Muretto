@@ -1,0 +1,67 @@
+/* LMU List Widget (colonna dati) */
+* { font-family: "Google Sans", "Consolas", monospace; }
+
+#overlay { background: transparent; }
+#container {
+    background: rgba(8, 11, 16, 1.0);
+    border-radius: 6px;
+
+}
+#dataRow {
+    background: transparent;
+    border-bottom: 1px solid rgba(58, 71, 87, 0.25);
+}
+#dataDot {
+    color: #333b45;
+    font-size: 9px;
+    min-width: 10px;
+    max-width: 10px;
+}
+#dataLabel {
+    color: #8a97a6;
+    font-size: 11px;
+    letter-spacing: 0.6px;
+}
+#dataValue {
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+}
+#dataValue[level="ok"]     { color: #00e676; }
+#dataValue[level="warn"]   { color: #ffcc00; }
+#dataValue[level="crit"]   { color: #ff3b30; }
+#dataValue[level="normal"] { color: #e8eef5; }
+#wheelTable {
+    background: rgba(255,255,255,0.02);
+    border-top: 1px solid rgba(58,71,87,0.25);
+    border-bottom: 1px solid rgba(58,71,87,0.25);
+}
+#wtCorner { background: transparent; }
+#wtHeader {
+    color: #6b7785;
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+#wtRowLabel {
+    color: #8a97a6;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+#wtCell {
+    color: #e8eef5;
+    font-size: 12px;
+    font-weight: bold;
+}
+#carHeader {
+    background: rgba(20,24,30,0.55);
+    border-bottom: 1px solid rgba(58,71,87,0.4);
+    max-height: 40px;
+}
+#carName {
+    color: #e8eef5;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+}

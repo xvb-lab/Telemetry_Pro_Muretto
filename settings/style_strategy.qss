@@ -1,0 +1,26 @@
+/* LMU Strategy / Pit Window Widget */
+* { font-family: "Google Sans", "Consolas", monospace; }
+
+#overlay   { background: transparent; }
+#container {
+    background: rgba(8, 11, 16, 0.5);
+    border-radius: 6px;
+}
+#stratCell { background: transparent; }
+#stratLabel {
+    color: #8a97a6;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+#stratValue {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: bold;
+}
+#stratSep { color: #2a3340; font-size: 22px; }
+
+#onTarget[state="ok"]   { color: #00e676; }
+#onTarget[state="warn"] { color: #ffe24d; }
+#onTarget[state="over"] { color: #ff3b30; }
+#onTarget[state="wait"] { color: #6b7785; }

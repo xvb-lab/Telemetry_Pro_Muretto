@@ -1,0 +1,384 @@
+/* TEMA DEFAULT — riga player BIANCA trasparente classica (flat).
+   Derivato dal tema base (wec): tutto il resto identico. */
+/* ═══════════════════════════════════════════════════
+   LMU Relative — style_relative.qss  (ricarica a caldo)
+   
+   ID disponibili:
+   #overlay         — finestra principale
+   #container       — contenitore interno
+   #titlebar        — barra superiore con bottoni
+   #btnClose        — bottone chiudi
+   #btnMinimize     — bottone minimizza
+   #headerLogo      — logo WEC in titlebar
+   #header          — riga intestazione colonne
+   #headerLabel     — testo intestazione colonne
+   #separator       — linea separatrice
+   #sessionLabel    — label sessione/timer
+   #status          — messaggio attesa LMU
+   #driverRow                    — riga pilota
+   #driverRow[player="true"]     — riga del player
+   #status_col                   — colonna PIT/GAR/S1/S2/S3/DNF/DQ/FIN
+   #status_col[status="PIT"]
+   #status_col[status="GAR"]
+   #status_col[status="DNF"]
+   #status_col[status="DQ"]
+   #status_col[status="FIN"]
+   #status_col[status="S1"]
+   #status_col[status="S2"]
+   #status_col[status="S3"]
+   #pos             — posizione in classe
+   #logo            — logo costruttore
+   #name            — nome pilota
+   #name[penalty="true"]         — nome con penalità
+   #gap             — gap dal leader
+   #gap[leader="true"]           — gap leader (—)
+   #best_lap        — best lap
+   #best_lap[overall="true"]     — best lap assoluto (viola)
+   #lap             — ultimo giro
+   #energy                              — energia EV%
+   #energy[energy_level="high"]         — alta
+   #energy[energy_level="low"]          — bassa
+   #energy[energy_level="critical"]     — critica
+   #energy[energy_level="na"]           — non disponibile
+   #tyre            — compound gomma
+   #tyre[tyre="S"]  — Soft
+   #tyre[tyre="M"]  — Medium
+   #tyre[tyre="H"]  — Hard
+   #tyre[tyre="W"]  — Wet
+   #tyre[tyre="X"]  — Mixed/altro
+   ═══════════════════════════════════════════════════ */
+
+
+
+/* ═══════════════════════════════════════════════════
+   LMU Standings — Google Sans Minimalist Clean Style
+   ═══════════════════════════════════════════════════ */
+
+/* ── Font ed Estetica Globale ── */
+* {
+    color: #e8eef5;
+    font-family: "Google Sans", "Consolas", monospace;
+    font-size: 14px;
+   font-weight: bold; 
+   text-align: center;                     
+
+}
+
+/* ── Finestra Principale ── */
+#overlay { 
+    background: transparent; 
+}
+
+/* Contenitore minimale, scuro ed opaco al punto giusto background: #0a0032;*/
+#container {
+    background: rgba(8, 14, 50, 0.5);
+    border-radius: 6px;
+
+}
+
+/* ── Barra Superiore (Titlebar & Session) ── */
+#titlebar { 
+    background: rgba(10, 12, 16, 255); 
+    border-radius: 6px 6px 0 0;
+}
+
+#sessionLabel {
+    color: #ffffff;
+    background:#006039;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 2px 6px;
+}
+
+#status { 
+    color: #4a90e2; 
+    font-size: 11px; 
+}
+
+/* ── Bottoni di Controllo Stile Linux Classico (GNOME/XFCE) ── */
+#btnClose { 
+    background: #2a2a35;        /* Grigio scuro integrato con lo sfondo 24242f */
+    border: 1px solid #3f3f52;  /* Bordino sottile leggermente più chiaro */
+    border-radius: 3px;         /* Angoli quasi netti, tipici di Linux */
+    color: #8f939d;             /* Icona grigia discreta di default */
+    font-size: 10px;            /* Font leggibile per la 'X' */
+    font-weight: bold;
+    font-family: "Consolas", monospace;
+}
+#btnClose:hover { 
+    background: #c0392b;        /* Rosso scuro classico Linux solo al passaggio */
+    border-color: #e74c3c;
+    color: #ffffff;             /* La X diventa bianca brillante */
+}
+
+#btnMinimize { 
+    background: #2a2a35; 
+    border: 1px solid #3f3f52;
+    border-radius: 3px;
+    color: #8f939d;             /* Icona grigia di default */
+    font-size: 10px;            /* Font leggibile per il trattino '_' */
+    font-weight: bold;
+    font-family: "Consolas", monospace;
+}
+#btnMinimize:hover { 
+    background: #34495e;        /* Grigio-blu tipico delle transizioni Linux */
+    border-color: #5d6d7e;
+    color: #ffffff;             /* Il trattino diventa bianco brillante */
+}
+
+/* ── Intestazione Colonne ── */
+#header { 
+    background: rgba(22, 28, 36, 200); 
+}
+#headerLabel {
+    color: #7f8c8d;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+#separator { 
+    color: transparent; 
+    max-height: 0px; 
+}
+
+/* ── Righe Piloti ── */
+#driverRow { 
+    background: transparent;
+    border-bottom: 1px solid rgba(127, 131, 139, 0.4); /* Separatore quasi invisibile */
+
+}
+
+/* Evidenziazione del PLAYER: Sfondo leggermente più chiaro con bordo azzurro Google */
+#driverRow[player="true"] {
+    background: transparent;
+    border-bottom: 1px solid rgba(255,255,255,0.35);
+}
+#driverRow[player="true"] #name,
+#driverRow[player="true"] #gap,
+#driverRow[player="true"] #lap,
+#driverRow[player="true"] #best,
+#driverRow[player="true"] #speed,
+#driverRow[player="true"] #laps,
+#driverRow[player="true"] #pos,
+#driverRow[player="true"] #status { color: #ffffff; }
+
+/* ── Posizione e Status ── */
+#pos { 
+    color: #ffffff; 
+    font-weight: bold; 
+     font-size: 16px;
+     
+}
+
+#status_col { 
+    font-size: 11px; 
+    font-weight: bold; 
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+
+
+
+
+
+
+#gap { 
+    color:#fff; 
+    
+    background:;
+}
+
+#name   { background:; padding-right: 16px; }
+
+#gap[leader="true"] { 
+    color: #c8d1ec; 
+}
+
+#lap { 
+    color: #bdc3c7; 
+    qproperty-alignment: 'AlignCenter'; /* Centra la posizione */
+}
+
+/* Best Lap Tempi */
+#best_lap { 
+    color: #7f8c8d; 
+}
+#best_lap[overall="true"] { 
+    color: #ff2bd6;
+    font-weight: bold;
+}
+
+/* ── Energia Ibrida (EV%) ── */
+#energy { 
+    font-size: 13px;
+}
+#energy[energy_level="high"]     { color: #fff; }
+#energy[energy_level="low"]      { color: #FFC966; }
+#energy[energy_level="critical"] { color: #e74c3c; }
+#energy[energy_level="na"]       { color: #34495e; }
+
+/* ── Mescole Gomme (Colori Piatti e Solidi) ── */
+#tyre { 
+    font-weight: bold;
+}
+
+
+/* ── Mescole Gomme (Colori Ufficiali Goodyear WEC LMGT3) ── */
+#tyre[tyre="S"] { 
+    color: #ffffff; /* Soft -> Bianco */
+} 
+#tyre[tyre="M"] { 
+    color: #ffcc00; /* Medium -> Giallo WEC */
+} 
+#tyre[tyre="H"] { 
+    color: #ff1212; /* Hard -> Rosso */
+} 
+#tyre[tyre="W"] { 
+    color: #00cdff; /* Wet -> Azzurro */
+} 
+#tyre[tyre="X"] { 
+    color: #00ff88; /* Altro/Intermediate -> Verde fluo */
+}
+/* ── Session bar ── */
+#sessionBar     { background: transparent; }
+#sessionLogo    { background: transparent; }
+#sessionLaps    { color: #555555; font-size: 9px; font-weight: bold; }
+
+
+
+
+#pos[car_class="Hyper"] { border: 1px solid #bd1016; color: white; margin: 2px; border-radius: 3px; }
+#pos[car_class="GT3"] { border: 1px solid #01824d; color: white; margin: 2px; border-radius: 3px; }
+#pos[car_class="LMP2_ELMS"]  { border: 1px solid #1e3163; color: white; margin: 2px; border-radius: 3px; }
+#pos[car_class="LMP3"]  { border: 1px solid #411c52; color: white; margin: 2px; border-radius: 3px; }
+#pos[car_class="GTE"]   { border: 1px solid #ff9100; color: white; margin: 2px; border-radius: 3px; }
+
+
+
+#lap[fastest="true"] { color: #ff2bd6; font-weight: bold; }
+#lap[laptime="invalid"]   { color: #ffe24d; font-weight: bold; }
+#lap[laptime="outlap"]    { color: #00aaff; font-weight: bold; }
+#lap[laptime="fastclass"] { color: #ff2bd6; font-weight: bold; }
+#lap[laptime="improved"]  { color: #00e676; font-weight: bold; }
+#lap[laptime="slower"]    { color: #e8eef5; font-weight: bold; }
+
+#pen_badge {
+    color: white;
+    background: #bd1016;
+    border-radius: 2px;
+    margin: 4px 0;
+    padding: 0 4px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+
+
+/*rgba(250,250,0,200),*/
+
+#driverRow[player="true"] {
+    background: transparent;
+    border-bottom: 1px solid rgba(255,255,255,0.35);
+}
+#driverRow[player="true"] #name,
+#driverRow[player="true"] #gap,
+#driverRow[player="true"] #lap,
+#driverRow[player="true"] #best,
+#driverRow[player="true"] #speed,
+#driverRow[player="true"] #laps,
+#driverRow[player="true"] #pos,
+#driverRow[player="true"] #status { color: #ffffff; }
+
+
+#driverRow {
+    background: transparent;
+    border-bottom: 1px solid rgba(127,131,139,0.25);
+}
+
+
+
+/* Piccoli "badge" colorati, piatti e puliti (solo testo) */
+#status_col[status="PIT"] { color: #ffffff; font-size: 14px; } /* bianco: in pit */
+#status_col[status="BOX!"] { color: #00e676; font-size: 14px; } /* verde: chiamata pit */
+#status_col[status="GAR"] { color: #ffffff; font-size: 14px;} /* Grigio */
+#status_col[status="DNF"] { color: #ffffff; font-size: 14px;} /* Grigio */
+#status_col[status="DQ"]  { color: #e74c3c; font-size: 14px;} /* Rosso */
+#status_col[status="FIN"] { color: #ffffff; font-size: 14px;} /* Bianco */
+
+
+
+
+#status_col[status="S1"]  { color: #111111; background: #f2ff00; font-size: 14px; margin: 4px; border-radius: 3px; padding: 0 4px; }
+#status_col[status="S2"]  { color: #111111; background: #f2ff00; font-size: 14px; margin: 4px; border-radius: 3px; padding: 0 4px; }
+#status_col[status="S3"]  { color: #111111; background: #f2ff00; font-size: 14px; margin: 4px; border-radius: 3px; padding: 0 4px; }
+#status_col[status="DNF"] { color: #ffffff; background: #000000; font-size: 14px; margin: 4px; border-radius: 3px; padding: 0 4px; font-weight: bold; }
+#status_col[status="DQ"] { color: #ffffff; background: #000000; font-size: 14px; margin: 4px; border-radius: 3px; padding: 0 4px; font-weight: bold; }
+#status_col[status="PEN"] { color: #ffffff; background: #bd1016; font-size: 14px; margin: 4px; border-radius: 3px; padding: 0 4px; font-weight: bold; }
+#status_col[status="DT"] { color: #ffffff; background: #bd1016; font-size: 14px; margin: 4px; border-radius: 3px; padding: 0 4px; font-weight: bold; }
+#status_col[status="SG"] { color: #ffffff; background: #bd1016; font-size: 14px; margin: 4px; border-radius: 3px; padding: 0 4px; font-weight: bold; }
+#status_col[status="5+"] { color: #ffffff; background: #bd1016; font-size: 14px; margin: 4px; border-radius: 3px; padding: 0 4px; font-weight: bold; }
+#status_col[status="10+"] { color: #ffffff; background: #bd1016; font-size: 14px; margin: 4px; border-radius: 3px; padding: 0 4px; font-weight: bold; }
+#status_col[status="20+"] { color: #ffffff; background: #bd1016; font-size: 14px; margin: 4px; border-radius: 3px; padding: 0 4px; font-weight: bold; }
+#status_col[status="30+"] { color: #ffffff; background: #bd1016; font-size: 14px; margin: 4px; border-radius: 3px; padding: 0 4px; font-weight: bold; }
+
+/* ── Velocità (solo relative) ── */
+#speed { color: #7f8c8d; font-size: 13px; font-weight: bold; }
+#speed[topspeed="true"] { color: #ff2bd6; font-weight: bold; }
+
+#btnSavePos {
+    background: #b8860b; border: none; border-radius: 6px;
+    color: transparent; font-size: 6px;
+}
+#btnSavePos:hover { background: #ffd700; color: #000; }
+
+/* ── Badge CLASSE (sigla con bordo colore, stile LMU) ── */
+#class_col {
+    font-size: 12px; font-weight: bold; color: #fff;
+    border: none; border-radius: 3px; margin: 2px; padding: 1px 2px;
+}
+#class_col[cls="HY"]  { background: #bd1016; color: #fff; }
+#class_col[cls="P2"]  { background: #1e3163; color: #fff; }
+#class_col[cls="P3"]  { background: #411c52; color: #fff; }
+#class_col[cls="GT3"] { background: #01824d; color: #fff; }
+#class_col[cls="GTE"] { background: #ff9100; color: #fff; }
+
+/* ── Bordo posizione: varianti nome classe API ── */
+#pos[car_class="LMP2"] { border: 1px solid #1e3163; color: white; margin: 2px; border-radius: 3px; }
+#pos[car_class="P2"]   { border: 1px solid #1e3163; color: white; margin: 2px; border-radius: 3px; }
+#pos[car_class="LMP3"] { border: 1px solid #411c52; color: white; margin: 2px; border-radius: 3px; }
+#pos[car_class="P3"]   { border: 1px solid #411c52; color: white; margin: 2px; border-radius: 3px; }
+#pos[car_class="GTE"]  { border: 1px solid #ff9100; color: white; margin: 2px; border-radius: 3px; }
+
+/* ── Track Limits ── */
+#tl { color: #8a97a6; font-size: 12px; font-weight: bold; }
+#tl[tl_level="low"]     { color: #8a97a6; }
+#tl[tl_level="mid"]     { color: #ffe24d; }
+#tl[tl_level="high"]    { color: #ff9a30; }
+#tl[tl_level="penalty"] { color: #ff3b30; }
+#tl[tl_level="none"]    { color: #8a97a6; }
+
+/* ── Pit count ── */
+#pit { color: #8a97a6; font-size: 12px; font-weight: bold; }
+
+/* ── Settori (quadratini) ── */
+#secBox { border-radius: 2px; background: transparent; }
+#secBox[secstate="fastest"]  { background: #ff2bd6; }
+#secBox[secstate="improved"] { background: #00e676; }
+#secBox[secstate="normal"]   { background: #ffe24d; }
+#secBox[secstate="none"]     { background: transparent; }
+#secBox[secstate="current"]  { background: rgba(127,131,139,0.25); }
+
+/* ── Usura gomme (WEAR) ── */
+#wear { font-size: 12px; font-weight: bold; }
+#wear[wear_level="fresh"] { color: #00e676; }
+#wear[wear_level="mid"]   { color: #ffe24d; }
+#wear[wear_level="low"]   { color: #ff9a30; }
+#wear[wear_level="worn"]  { color: #ff3b30; }
+#wear[wear_level="na"]    { color: #7f8c8d; }
+
+/* doppiaggio (stessa classe): blu=l'ho doppiato, rosa=mi ha doppiato */
+#name[lapstatus="lapped"]  { color: #4fc3f7; }
+#name[lapstatus="lapping"] { color: #ff8ad8; }
+
+/* vicino entro 1s (davanti o dietro): stesso gradiente del player ma arancione */
+#gap[near1s="true"] { color: #ff7a00; font-weight: bold; }

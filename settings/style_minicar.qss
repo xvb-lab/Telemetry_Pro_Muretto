@@ -1,0 +1,6 @@
+/* MiniCar — la macchinina (gomme/freni/danni) presa dall'HUD */
+#overlay   { background: transparent; }
+#container {
+    background: rgba(8,11,16,1.0);
+    border-radius: 6px;
+}

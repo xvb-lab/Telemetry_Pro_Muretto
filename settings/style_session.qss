@@ -1,0 +1,50 @@
+/* LMU Session Widget — BBC Weather Style */
+* { font-family: "Google Sans", "Consolas", monospace; }
+
+#overlay   { background: transparent; }
+#container { background: rgba(8, 11, 16, 250); border-radius: 6px; }
+#titlebar  { background: rgba(10, 12, 18, 255); border-radius: 2px 2px 0 0; }
+
+#btnClose {
+    background: #2a2a35; border: 1px solid #3f3f52; border-radius: 3px;
+    color: #8f939d; font-size: 10px; font-weight: bold;
+}
+#btnClose:hover { background: #c0392b; border-color: #e74c3c; color: #ffffff; }
+#btnMinimize {
+    background: #2a2a35; border: 1px solid #3f3f52; border-radius: 3px;
+    color: #8f939d; font-size: 10px; font-weight: bold;
+}
+#btnMinimize:hover { background: #34495e; border-color: #5d6d7e; color: #ffffff; }
+
+/* ── Sessione e Timer ── */
+#sessionType  { color: #ffffff; font-size: 17px; font-weight: bold; }
+#sessionTimer { color: #ffffff; font-size: 20px; font-weight: bold;  }
+#sessionTimer[low="true"] { color: #ff4444; }
+
+/* ── Info riga 2 ── */
+#circuitName { color: #cccccc; font-size: 12px; font-weight: bold; }
+#trackTime   { color: #aaaaaa; font-size: 11px; font-weight: bold; }
+#tempAir     { color: #cccccc; font-size: 11px; }
+#tempTrack   { color: #ff9f1c; font-size: 11px; font-weight: bold; }
+
+/* ── Meteo corrente ── */
+#weatherText                     { color: #cccccc; font-size: 12px; font-weight: bold; }
+#weatherText[condition="sun"]    { color: #f9c74f; }
+#weatherText[condition="moon"]   { color: #b0c4de; }
+#weatherText[condition="rain"]   { color: #74b9ff; }
+#weatherText[condition="cloudy"] { color: #a0a8b0; }
+
+#separator { background: rgba(255,255,255,15); max-height: 1px; border: none; }
+
+/* ── Forecast row ── */
+#forecastRow      { background: rgba(10, 14, 22, 255); border-radius: 0 0 4px 4px; }
+#forecastSlot     { background: transparent; border-right: 1px solid rgba(255,255,255,10); }
+#forecastSlotName { color: #74b9ff; font-size: 13px; font-weight: bold; }
+#forecastRain     { color: #ffffff; font-size: 15px; font-weight: bold; }
+#forecastSky      { color: #aaaaaa; font-size: 10px; }
+
+#btnSavePos {
+    background: #b8860b; border: none; border-radius: 6px;
+    color: transparent; font-size: 6px;
+}
+#btnSavePos:hover { background: #ffd700; color: #000; }

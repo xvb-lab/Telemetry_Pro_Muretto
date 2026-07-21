@@ -1,0 +1,68 @@
+/* ═══════════════════════════════════════════════════
+   LMU Tower — stile broadcast minimale
+   ═══════════════════════════════════════════════════ */
+
+* {
+    font-family: "Google Sans", "Consolas", monospace;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#container {
+    background: rgba(8, 11, 16, 1.0);
+    border-radius: 6px;
+}
+
+#towerRow {
+    background: transparent;
+    border-bottom: 1px solid rgba(127,131,139,0.25);
+}
+
+#pos {
+    color: #e8eef5;
+    font-size: 13px;
+}
+#pos[car_class="HY"]   { border: 1px solid #bd1016; color: white; border-radius: 3px; }
+#pos[car_class="LMP2"] { border: 1px solid #1e3163; color: white; border-radius: 3px; }
+#pos[car_class="P2"]   { border: 1px solid #1e3163; color: white; border-radius: 3px; }
+#pos[car_class="LMP3"] { border: 1px solid #411c52; color: white; border-radius: 3px; }
+#pos[car_class="P3"]   { border: 1px solid #411c52; color: white; border-radius: 3px; }
+#pos[car_class="GT3"]  { border: 1px solid #01824d; color: white; border-radius: 3px; }
+#pos[car_class="GTE"]  { border: 1px solid #ff9100; color: white; border-radius: 3px; }
+
+#class_col {
+    color: #fff;
+    font-size: 11px;
+    border-radius: 3px;
+}
+#class_col[cls="HY"]  { background: #bd1016; }
+#class_col[cls="P2"]  { background: #1e3163; }
+#class_col[cls="P3"]  { background: #411c52; }
+#class_col[cls="GT3"] { background: #01824d; }
+#class_col[cls="GTE"] { background: #ff9100; }
+
+#name {
+    color: #e8eef5;
+    font-size: 13px;
+    padding-right: 8px;
+}
+
+/* ── Cella dinamica (gap / evento) ── */
+#towerCell {
+    color: #b8c2cc;
+    font-size: 13px;
+    border-radius: 3px;
+}
+#towerCell[evt="gap"]     { color: #b8c2cc; }
+#towerCell[evt="lap"]     { color: #e8eef5; }
+#towerCell[evt="fastest"] { color: #ff2bd6; }
+#towerCell[evt="invalid"] { color: #ffe24d; }
+#towerCell[evt="speed"]   { color: #1ab6a8; }
+#towerCell[evt="tl"]      { color: #ff9a30; }
+#towerCell[evt="pit"]     { color: #ffffff; background: #2a6cc7; padding: 1px 4px; }
+#towerCell[evt="yellow"]  { color: #1a1a1a; background: #ffe24d; padding: 1px 4px; }
+
+#status {
+    color: #4a90e2;
+    font-size: 11px;
+}

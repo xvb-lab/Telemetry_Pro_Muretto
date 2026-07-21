@@ -254,9 +254,12 @@ Agganciate in `_collect`, testate. Con sector_delta = **4 di 6** funzioni v2 fat
   (PID a sé), zero errori, legge shared memory. Pattern overlay confermato.
 - `main.py::start_overlays(keys)` implementato: lancia gli overlay come processi
   separati col watchdog (LMU_PARENT_PID). Da chiamare con la lista abilitata.
-- DA FARE: portare gli altri overlay del set WEC (wec26board/battle/battleb/flag/
-  mfd/mini, wecrevs, wecbars + supporto standings/weconboard/relative/flag/list),
-  registrarli, e la UI per abilitarli (arriva con FASE 2).
+- FATTO: portato TUTTO il set WEC (map, wecrevs, wecbars, wec26board/battle/
+  battleb[in wec26battle]/flag/mfd/mini + supporto standings/weconboard/relative/
+  flag/list) + i loro QSS + i moduli core mancanti (brands, tyre_cell, online,
+  race_model, soundtrack, ecc.). `overlays/registry.py` con tutti e 9.
+  **Test: 9/9 overlay costruiscono senza errori.** Restano da agganciare alla UI
+  (abilitazione) in FASE 2. NB: engineer.py NON ricopiato in core (è brain.py).
 
 **3 pulsanti "prova toni" nelle Opzioni (richiesta utente).**
 - `main.py`: riga "Prova toni" con 3 pulsanti (▶ Radio / ▶ Fine / ▶ Push-to-talk)
