@@ -10309,6 +10309,34 @@ class _OptionsPage(_TrackPage):
             pass
 
 
+class _DriverPage(_OptionsPage):
+    """Pagina DRIVER: nome/team + risultati (editabili a mano)."""
+
+    def __init__(self, on_back=None, parent=None):
+        super().__init__(on_back=on_back, parent=parent)
+        try:
+            self._title.setText("DRIVER")
+        except Exception:
+            pass
+
+    def mount_rows(self, rows):
+        """Mette le righe (team, results) nel corpo della pagina."""
+        try:
+            self._rank_scroll.setVisible(False)
+            box = QWidget()
+            box.setStyleSheet("background:transparent;")
+            v = QVBoxLayout(box)
+            v.setContentsMargins(24, 18, 24, 18)
+            v.setSpacing(10)
+            for r in rows:
+                if r is not None:
+                    v.addWidget(r)
+            v.addStretch(1)
+            self._rv.addWidget(box, 1)
+        except Exception:
+            pass
+
+
 class TelemetryWindow(QMainWindow):
     _BTN_IDLE = ("QPushButton{background:#ececed;color:#15151a;font-family:'Heebo Medium','Heebo';"
                  "font-weight:500;font-size:12px;letter-spacing:1px;border:none;"
@@ -10361,6 +10389,9 @@ class TelemetryWindow(QMainWindow):
         # pagina OPTIONS (ingranaggio del menu)
         self._options_page = _OptionsPage(on_back=self._back_to_menu)
         self._stack.addWidget(self._options_page)
+        # pagina DRIVER (icona nel footer accanto a settings): nome/team/risultati
+        self._driver_page = _DriverPage(on_back=self._back_to_menu)
+        self._stack.addWidget(self._driver_page)
         # pagina TELEMETRY nuova (dal tasto TELEMETRY della pagina stint)
         self._telemetry_page = _TelemetryPage(on_back=self._back_to_stint)
         self._stack.addWidget(self._telemetry_page)
@@ -10727,6 +10758,15 @@ class TelemetryWindow(QMainWindow):
             a.setEndValue(lb.sizeHint().width() + 6 if on else 0)
             a.start()
         self._ft_gear._hover_cb = _ft_gear_hover
+        # icona DRIVER accanto a settings (apre la pagina Driver)
+        self._driver_btn = QPushButton("DRIVER", self._footer)
+        self._driver_btn.setCursor(Qt.PointingHandCursor)
+        self._driver_btn.setStyleSheet(
+            "QPushButton{background:transparent;color:#aeb6c4;font-size:12px;"
+            "font-weight:700;border:none;letter-spacing:1px;}"
+            "QPushButton:hover{color:#ff1d43;}")
+        self._driver_btn.clicked.connect(self._open_driver)
+        fl.addWidget(self._driver_btn, 0, Qt.AlignVCenter)
         fl.addSpacing(12); fl.addWidget(_fgw, 0, Qt.AlignVCenter)
         # START rimosso dal footer (registrazione automatica); oggetto tenuto
         # nascosto così gli aggiornamenti di stato non causano errori
@@ -10738,11 +10778,11 @@ class TelemetryWindow(QMainWindow):
         self.setCentralWidget(central)
         # righe Video intro + Music nella 3a colonna della pagina OPTIONS
         try:
-            self._app._legacy._overlaytab._extra_col.insertWidget(0, self._teamrow)
-            self._app._legacy._overlaytab._extra_col.insertWidget(1, self._resultsrow)
-            self._app._legacy._overlaytab._extra_col.insertWidget(2, self._introrow)
-            self._app._legacy._overlaytab._extra_col.insertWidget(3, self._musicrow)
-            self._app._legacy._overlaytab._extra_col.insertWidget(4, self._lockrow)
+            # team + results -> pagina DRIVER (non piu' in Options)
+            self._driver_page.mount_rows([self._teamrow, self._resultsrow])
+            self._app._legacy._overlaytab._extra_col.insertWidget(0, self._introrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(1, self._musicrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(2, self._lockrow)
             # Team dev NASCOSTO (pulizia 20/07): la galleria brand resta
             # nel codice, riga non inserita — per riaverla basta questa:
             # self._app._legacy._overlaytab._extra_col.insertWidget(3, self._teamdevrow)
@@ -10937,6 +10977,10 @@ class TelemetryWindow(QMainWindow):
         except Exception:
             pass
         self._stack.setCurrentWidget(self._options_page)
+
+    def _open_driver(self):
+        """Icona DRIVER del footer -> pagina Driver (nome/team/risultati)."""
+        self._stack.setCurrentWidget(self._driver_page)
 
     def _back_to_stint(self):
         """Back dalla pagina Telemetry -> torna alla pagina stint."""
