@@ -3924,7 +3924,7 @@ class _IntroPage(QWidget):
             self._music.setAudioOutput(self._music_out)
             try:
                 from core.profile import _load_profile as _lp
-                _mv = max(0.0, min(1.0, float(_lp().get("music_vol", 70)) / 100.0))
+                _mv = max(0.0, min(1.0, float(_lp().get("music_vol", 40)) / 100.0))
             except Exception:
                 _mv = 0.70
             self._music_out.setVolume(_mv)
@@ -7347,7 +7347,7 @@ class _IntroPage(QWidget):
             self._music.setAudioOutput(self._music_out)
             try:
                 from core.profile import _load_profile as _lp
-                _mv = max(0.0, min(1.0, float(_lp().get("music_vol", 70)) / 100.0))
+                _mv = max(0.0, min(1.0, float(_lp().get("music_vol", 40)) / 100.0))
             except Exception:
                 _mv = 0.70
             self._music_out.setVolume(_mv)
@@ -10368,9 +10368,9 @@ class TelemetryWindow(QMainWindow):
         # cursore VOLUME musica app (0..100): salva su profilo + applica live
         from PySide6.QtWidgets import QSlider
         try:
-            _mv0 = int(_load_profile().get("music_vol", 70))
+            _mv0 = int(_load_profile().get("music_vol", 40))
         except Exception:
-            _mv0 = 70
+            _mv0 = 40
         self._music_vol = QSlider(Qt.Horizontal)
         self._music_vol.setRange(0, 100)
         self._music_vol.setValue(max(0, min(100, _mv0)))
@@ -10857,6 +10857,7 @@ class TelemetryWindow(QMainWindow):
             pass
         self._app_return_stint = True         # back -> pagina stint
         self._stack.setCurrentWidget(self._app)
+        self._music_sync()                    # forza la traccia setups (stato ora completo)
 
     def _restore_board(self):
         """Rimette il board nell'Overview (se era stato prestato alla pagina stint)."""
@@ -11054,6 +11055,7 @@ class TelemetryWindow(QMainWindow):
             self._app._menu_mode(True)                   # nasconde le tab sessione
         except Exception:
             pass
+        self._music_sync()                    # traccia della tab aperta (es. setups)
 
     def _open_setups(self):
         self._open_tab(2)      # ex tab Settings

@@ -46,9 +46,9 @@ _FADE_REF = 1.0      # riferimento per la velocita' di fade (indip. dal volume)
 def _load_vol():
     try:
         from core.profile import _load_profile
-        v = float(_load_profile().get("music_vol", 70))
+        v = float(_load_profile().get("music_vol", 40))
     except Exception:
-        v = 70.0
+        v = 40.0
     return max(0.0, min(1.0, v / 100.0))
 
 
