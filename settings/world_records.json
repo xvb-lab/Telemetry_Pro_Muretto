@@ -1,0 +1,1062 @@
+{
+  "Spa": {
+    "HYPERCAR": {
+      "practice": {
+        "time": "2:01.816",
+        "driver": "J. Gounon",
+        "car": "Alpine A424",
+        "brand": "Alpine",
+        "secs": [
+          34.178,
+          56.761,
+          30.877
+        ],
+        "where": "FP2 · WEC Spa",
+        "date": "2026-05-07",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "2:00.653",
+        "driver": "M. Jakobsen",
+        "car": "Peugeot 9X8",
+        "brand": "Peugeot",
+        "secs": [
+          33.986,
+          56.229,
+          30.438
+        ],
+        "where": "Hyperpole · WEC Spa",
+        "date": "2026-05-08",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "2:04.177",
+        "driver": "S. Vandoorne",
+        "car": "Peugeot 9X8",
+        "brand": "Peugeot",
+        "secs": [
+          34.288,
+          58.342,
+          31.347
+        ],
+        "where": "Race · WEC Spa",
+        "date": "2026-05-09",
+        "series": "WEC"
+      }
+    },
+    "GT3": {
+      "practice": {
+        "time": "2:17.068",
+        "driver": "F. Gehrsitz",
+        "car": "McLaren 720S GT3",
+        "brand": "Mclaren",
+        "secs": [
+          39.261,
+          62.606,
+          35.183
+        ],
+        "where": "FP3 · WEC Spa",
+        "date": "2026-05-08",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "2:16.612",
+        "driver": "H. David",
+        "car": "Lexus RC F GT3",
+        "brand": "Lexus",
+        "secs": [
+          39.194,
+          62.156,
+          35.082
+        ],
+        "where": "Hyperpole · WEC Spa",
+        "date": "2026-05-08",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "2:18.281",
+        "driver": "A. Rovera",
+        "car": "Ferrari 296 GT3",
+        "brand": "Ferrari",
+        "secs": [
+          39.626,
+          63.018,
+          35.521
+        ],
+        "where": "Race · WEC Spa",
+        "date": "2026-05-09",
+        "series": "WEC"
+      }
+    },
+    "LMP2": {
+      "race": {
+        "time": "2:02.466",
+        "driver": "N. Yelloly",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Race · 4h Spa (ELMS)",
+        "date": "2025-08-24",
+        "series": "ELMS"
+      }
+    }
+  },
+  "Imola": {
+    "HYPERCAR": {
+      "practice": {
+        "time": "1:30.370",
+        "driver": "A. Fuoco",
+        "car": "Ferrari 499P",
+        "brand": "Ferrari",
+        "secs": [
+          18.505,
+          29.659,
+          42.178
+        ],
+        "where": "FP3 · WEC Imola",
+        "date": "2026-04-18",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:30.127",
+        "driver": "A. Giovinazzi",
+        "car": "Ferrari 499P",
+        "brand": "Ferrari",
+        "secs": [
+          18.486,
+          29.591,
+          41.963
+        ],
+        "where": "Hyperpole · WEC Imola",
+        "date": "2026-04-18",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:32.066",
+        "driver": "N. Nielsen",
+        "car": "Ferrari 499P",
+        "brand": "Ferrari",
+        "secs": [
+          18.842,
+          30.358,
+          42.75
+        ],
+        "where": "Race · WEC Imola",
+        "date": "2026-04-19",
+        "series": "WEC"
+      }
+    },
+    "GT3": {
+      "practice": {
+        "time": "1:41.973",
+        "driver": "M. Drudi",
+        "car": "Aston Martin Vantage",
+        "brand": "Aston Martin",
+        "secs": [
+          21.305,
+          33.438,
+          47.166
+        ],
+        "where": "FP3 · WEC Imola",
+        "date": "2026-04-18",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:41.181",
+        "driver": "T. Fleming",
+        "car": "McLaren 720S GT3",
+        "brand": "Mclaren",
+        "secs": [
+          21.087,
+          33.17,
+          46.924
+        ],
+        "where": "Hyperpole · WEC Imola",
+        "date": "2026-04-18",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:42.305",
+        "driver": "J. Edgar",
+        "car": "Corvette Z06 GT3.R",
+        "brand": "Corvette",
+        "secs": [
+          21.269,
+          33.646,
+          47.33
+        ],
+        "where": "Race · WEC Imola",
+        "date": "2026-04-19",
+        "series": "WEC"
+      }
+    },
+    "LMP2": {
+      "race": {
+        "time": "1:31.813",
+        "driver": "N. Yelloly",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Race · 4h Imola (ELMS)",
+        "date": "2025-07-06",
+        "series": "ELMS"
+      }
+    }
+  },
+  "LeMans": {
+    "HYPERCAR": {
+      "practice": {
+        "time": "3:23.302",
+        "driver": "D. Vanthoor",
+        "car": "BMW M Hybrid V8",
+        "brand": "BMW",
+        "secs": [
+          32.397,
+          78.268,
+          92.379
+        ],
+        "where": "FP3 · 24h Le Mans",
+        "date": "2026-06-11",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "3:22.564",
+        "driver": "D. Vanthoor",
+        "car": "BMW M Hybrid V8",
+        "brand": "BMW",
+        "secs": [
+          32.056,
+          78.01,
+          92.409
+        ],
+        "where": "Hyperpole · 24h Le Mans",
+        "date": "2026-06-11",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "3:25.041",
+        "driver": "R. Hirakawa",
+        "car": "Toyota GR010",
+        "brand": "Toyota",
+        "secs": [
+          32.23,
+          78.55,
+          94.027
+        ],
+        "where": "Race · 24h Le Mans",
+        "date": "2026-06-14",
+        "series": "WEC"
+      }
+    },
+    "LMP2": {
+      "practice": {
+        "time": "3:33.645",
+        "driver": "E. Masson",
+        "car": "Oreca 07",
+        "brand": "Oreca",
+        "secs": [
+          33.673,
+          82.2,
+          97.435
+        ],
+        "where": "FP2 · 24h Le Mans",
+        "date": "2026-06-11",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "3:32.855",
+        "driver": "E. Masson",
+        "car": "Oreca 07",
+        "brand": "Oreca",
+        "secs": [
+          33.484,
+          82.283,
+          97.088
+        ],
+        "where": "Hyperpole · 24h Le Mans",
+        "date": "2026-06-11",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "3:35.910",
+        "driver": "E. Masson",
+        "car": "Oreca 07",
+        "brand": "Oreca",
+        "secs": [
+          33.829,
+          83.31,
+          98.445
+        ],
+        "where": "Race · 24h Le Mans",
+        "date": "2026-06-14",
+        "series": "WEC"
+      }
+    },
+    "GT3": {
+      "practice": {
+        "time": "3:53.728",
+        "driver": "E. Barrichello",
+        "car": "Aston Martin Vantage",
+        "brand": "Aston Martin",
+        "secs": [
+          36.294,
+          90.186,
+          107.059
+        ],
+        "where": "FP3 · 24h Le Mans",
+        "date": "2026-06-11",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "3:52.433",
+        "driver": "M. Drudi",
+        "car": "Aston Martin Vantage",
+        "brand": "Aston Martin",
+        "secs": [
+          36.101,
+          89.793,
+          106.211
+        ],
+        "where": "Hyperpole · 24h Le Mans",
+        "date": "2026-06-11",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "3:53.802",
+        "driver": "H. David",
+        "car": "Lexus RC F GT3",
+        "brand": "Lexus",
+        "secs": [
+          36.404,
+          90.096,
+          107.206
+        ],
+        "where": "Race · 24h Le Mans",
+        "date": "2026-06-14",
+        "series": "WEC"
+      }
+    }
+  },
+  "Lusail": {
+    "HYPERCAR": {
+      "practice": {
+        "time": "1:39.484",
+        "driver": "A. Fuoco",
+        "car": "Ferrari 499P",
+        "brand": "Ferrari",
+        "secs": [
+          36.001,
+          33.412,
+          29.902
+        ],
+        "where": "FP3 · WEC Qatar",
+        "date": "2025-02-27",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:38.359",
+        "driver": "A. Giovinazzi",
+        "car": "Ferrari 499P",
+        "brand": "Ferrari",
+        "secs": [
+          35.705,
+          33.082,
+          29.572
+        ],
+        "where": "Hyperpole · WEC Qatar",
+        "date": "2025-02-27",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:41.259",
+        "driver": "A. Pier Guidi",
+        "car": "Ferrari 499P",
+        "brand": "Ferrari",
+        "secs": [
+          36.597,
+          33.853,
+          30.809
+        ],
+        "where": "Race · WEC Qatar",
+        "date": "2025-03-01",
+        "series": "WEC"
+      }
+    },
+    "GT3": {
+      "practice": {
+        "time": "1:54.557",
+        "driver": "S. Gelael",
+        "car": "McLaren 720S GT3",
+        "brand": "Mclaren",
+        "secs": [
+          41.524,
+          37.74,
+          35.233
+        ],
+        "where": "FP2 · WEC Qatar",
+        "date": "2025-02-26",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:54.239",
+        "driver": "S. Gelael",
+        "car": "McLaren 720S GT3",
+        "brand": "Mclaren",
+        "secs": [
+          41.531,
+          37.647,
+          35.024
+        ],
+        "where": "Hyperpole · WEC Qatar",
+        "date": "2025-02-27",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:54.048",
+        "driver": "G. Saucy",
+        "car": "McLaren 720S GT3",
+        "brand": "Mclaren",
+        "secs": [
+          41.358,
+          37.588,
+          34.905
+        ],
+        "where": "Race · WEC Qatar",
+        "date": "2025-03-01",
+        "series": "WEC"
+      }
+    }
+  },
+  "COTA": {
+    "HYPERCAR": {
+      "practice": {
+        "time": "1:51.946",
+        "driver": "S. van der Linde",
+        "car": "BMW M Hybrid V8",
+        "brand": "BMW",
+        "secs": [
+          23.709,
+          43.305,
+          44.932
+        ],
+        "where": "FP2 · WEC Lone Star Le Mans",
+        "date": "2025-09-05",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:57.655",
+        "driver": "R. Kubica",
+        "car": "Ferrari 499P",
+        "brand": "Ferrari",
+        "secs": [
+          24.67,
+          44.542,
+          48.28
+        ],
+        "where": "Hyperpole · WEC Lone Star Le Mans",
+        "date": "2025-09-06",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "2:03.443",
+        "driver": "K. Estre",
+        "car": "Porsche 963",
+        "brand": "Porsche",
+        "secs": [
+          25.418,
+          47.138,
+          50.634
+        ],
+        "where": "Race · WEC Lone Star Le Mans",
+        "date": "2025-09-07",
+        "series": "WEC"
+      }
+    },
+    "GT3": {
+      "practice": {
+        "time": "2:05.947",
+        "driver": "B. Barker",
+        "car": "Ford Mustang GT3",
+        "brand": "Ford",
+        "secs": [
+          27.006,
+          48.752,
+          50.147
+        ],
+        "where": "FP3 · WEC Lone Star Le Mans",
+        "date": "2025-09-06",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "2:07.645",
+        "driver": "G. Levorato",
+        "car": "Ford Mustang GT3",
+        "brand": "Ford",
+        "secs": [
+          27.175,
+          49.432,
+          50.861
+        ],
+        "where": "Hyperpole · WEC Lone Star Le Mans",
+        "date": "2025-09-06",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "2:09.490",
+        "driver": "G. Saucy",
+        "car": "McLaren 720S GT3",
+        "brand": "Mclaren",
+        "secs": [
+          28.069,
+          49.681,
+          51.294
+        ],
+        "where": "Race · WEC Lone Star Le Mans",
+        "date": "2025-09-07",
+        "series": "WEC"
+      }
+    }
+  },
+  "Fuji": {
+    "HYPERCAR": {
+      "practice": {
+        "time": "1:29.492",
+        "driver": "H. Tincknell",
+        "car": "Aston Martin Valkyrie",
+        "brand": "Aston Martin",
+        "secs": [
+          21.831,
+          27.945,
+          39.575
+        ],
+        "where": "FP3 · 6h Fuji",
+        "date": "2025-09-27",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:28.236",
+        "driver": "A. Lynn",
+        "car": "Cadillac V-Series.R",
+        "brand": "Cadillac",
+        "secs": [
+          21.68,
+          27.428,
+          39.128
+        ],
+        "where": "Hyperpole · 6h Fuji",
+        "date": "2025-09-27",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:30.507",
+        "driver": "W. Stevens",
+        "car": "Cadillac V-Series.R",
+        "brand": "Cadillac",
+        "secs": [
+          22.047,
+          28.326,
+          39.727
+        ],
+        "where": "Race · 6h Fuji",
+        "date": "2025-09-28",
+        "series": "WEC"
+      }
+    },
+    "GT3": {
+      "practice": {
+        "time": "1:40.800",
+        "driver": "Z. Robichon",
+        "car": "Aston Martin Vantage",
+        "brand": "Aston Martin",
+        "secs": [
+          24.799,
+          31.623,
+          44.152
+        ],
+        "where": "FP3 · 6h Fuji",
+        "date": "2025-09-27",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:39.981",
+        "driver": "E. Barrichello",
+        "car": "Aston Martin Vantage",
+        "brand": "Aston Martin",
+        "secs": [
+          24.681,
+          31.363,
+          43.766
+        ],
+        "where": "Hyperpole · 6h Fuji",
+        "date": "2025-09-27",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:41.118",
+        "driver": "L. Hanafin",
+        "car": "Mercedes-AMG GT3",
+        "brand": "Mercedes-Amg",
+        "secs": [
+          24.937,
+          31.809,
+          44.307
+        ],
+        "where": "Race · 6h Fuji",
+        "date": "2025-09-28",
+        "series": "WEC"
+      }
+    }
+  },
+  "Bahrain": {
+    "HYPERCAR": {
+      "practice": {
+        "time": "1:49.042",
+        "driver": "M. Sørensen",
+        "car": "Aston Martin Valkyrie",
+        "brand": "Aston Martin",
+        "secs": [
+          34.559,
+          40.567,
+          33.916
+        ],
+        "where": "FP2 · 8h Bahrain",
+        "date": "2025-11-06",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:46.826",
+        "driver": "K. Kobayashi",
+        "car": "Toyota GR010 Hybrid",
+        "brand": "Toyota",
+        "secs": [
+          33.983,
+          39.371,
+          33.472
+        ],
+        "where": "Hyperpole · 8h Bahrain",
+        "date": "2025-11-07",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:50.410",
+        "driver": "N. de Vries",
+        "car": "Toyota GR010 Hybrid",
+        "brand": "Toyota",
+        "secs": [
+          34.985,
+          40.901,
+          34.524
+        ],
+        "where": "Race · 8h Bahrain",
+        "date": "2025-11-08",
+        "series": "WEC"
+      }
+    },
+    "GT3": {
+      "practice": {
+        "time": "2:02.613",
+        "driver": "F. Gehrsitz",
+        "car": "Lexus RC F GT3",
+        "brand": "Lexus",
+        "secs": [
+          38.807,
+          44.668,
+          38.876
+        ],
+        "where": "FP2 · 8h Bahrain",
+        "date": "2025-11-06",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "2:01.661",
+        "driver": "F. Gehrsitz",
+        "car": "Lexus RC F GT3",
+        "brand": "Lexus",
+        "secs": [
+          38.558,
+          44.49,
+          38.609
+        ],
+        "where": "Hyperpole · 8h Bahrain",
+        "date": "2025-11-07",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "2:02.489",
+        "driver": "M. Drudi",
+        "car": "Aston Martin Vantage",
+        "brand": "Aston Martin",
+        "secs": [
+          38.919,
+          44.661,
+          38.909
+        ],
+        "where": "Race · 8h Bahrain",
+        "date": "2025-11-08",
+        "series": "WEC"
+      }
+    }
+  },
+  "Interlagos": {
+    "HYPERCAR": {
+      "practice": {
+        "time": "1:24.023",
+        "driver": "K. Kobayashi",
+        "car": "Toyota GR010 Hybrid",
+        "brand": "Toyota",
+        "secs": null,
+        "where": "FP2 · 6h São Paulo",
+        "date": "2025-07-11",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:22.570",
+        "driver": "A. Lynn",
+        "car": "Cadillac V-Series.R",
+        "brand": "Cadillac",
+        "secs": null,
+        "where": "Hyperpole · 6h São Paulo",
+        "date": "2025-07-12",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:24.498",
+        "driver": "W. Stevens",
+        "car": "Cadillac V-Series.R",
+        "brand": "Cadillac",
+        "secs": null,
+        "where": "Race · 6h São Paulo",
+        "date": "2025-07-13",
+        "series": "WEC"
+      }
+    },
+    "GT3": {
+      "practice": {
+        "time": "1:34.560",
+        "driver": "Y. Nakayama",
+        "car": "Lexus RC F GT3",
+        "brand": "Lexus",
+        "secs": null,
+        "where": "FP2 · 6h São Paulo",
+        "date": "2025-07-11",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:33.849",
+        "driver": "E. Barrichello",
+        "car": "Aston Martin Vantage",
+        "brand": "Aston Martin",
+        "secs": null,
+        "where": "Hyperpole · 6h São Paulo",
+        "date": "2025-07-12",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:34.463",
+        "driver": "E. Barrichello",
+        "car": "Aston Martin Vantage",
+        "brand": "Aston Martin",
+        "secs": null,
+        "where": "Race · 6h São Paulo",
+        "date": "2025-07-13",
+        "series": "WEC"
+      }
+    }
+  },
+  "Monza": {
+    "HYPERCAR": {
+      "qualifying": {
+        "time": "1:35.358",
+        "driver": "K. Kobayashi",
+        "car": "Toyota GR010 Hybrid",
+        "brand": "Toyota",
+        "secs": null,
+        "where": "Qualifying · 6h Monza",
+        "date": "2023-07-08",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:36.869",
+        "driver": "J.M. López",
+        "car": "Toyota GR010 Hybrid",
+        "brand": "Toyota",
+        "secs": null,
+        "where": "Race · 6h Monza",
+        "date": "2023-07-09",
+        "series": "WEC"
+      }
+    },
+    "LMP2": {
+      "practice": {
+        "time": "1:39.621",
+        "driver": "P. Fittipaldi",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "FP3 · 6h Monza",
+        "date": "2023-07-08",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:39.354",
+        "driver": "R. Kubica",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Qualifying · 6h Monza",
+        "date": "2023-07-08",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:40.688",
+        "driver": "B. Viscaal",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Race · 6h Monza",
+        "date": "2023-07-09",
+        "series": "WEC"
+      }
+    }
+  },
+  "Sebring": {
+    "HYPERCAR": {
+      "practice": {
+        "time": "1:47.437",
+        "driver": "M. Conway",
+        "car": "Toyota GR010 Hybrid",
+        "brand": "Toyota",
+        "secs": null,
+        "where": "FP3 · 1000mi Sebring",
+        "date": "2023-03-16",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:45.067",
+        "driver": "A. Fuoco",
+        "car": "Ferrari 499P",
+        "brand": "Ferrari",
+        "secs": null,
+        "where": "Qualifying · 1000mi Sebring",
+        "date": "2023-03-16",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:47.885",
+        "driver": "S. Buemi",
+        "car": "Toyota GR010 Hybrid",
+        "brand": "Toyota",
+        "secs": null,
+        "where": "Race · 1000mi Sebring",
+        "date": "2023-03-17",
+        "series": "WEC"
+      }
+    },
+    "LMP2": {
+      "practice": {
+        "time": "1:50.074",
+        "driver": "M. Bortolotti",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "FP1 · 1000mi Sebring",
+        "date": "2023-03-15",
+        "series": "WEC"
+      },
+      "qualifying": {
+        "time": "1:49.974",
+        "driver": "O. Jarvis",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Qualifying · 1000mi Sebring",
+        "date": "2023-03-16",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:51.406",
+        "driver": "C. Milesi",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Race · 1000mi Sebring",
+        "date": "2023-03-17",
+        "series": "WEC"
+      }
+    }
+  },
+  "Portimao": {
+    "HYPERCAR": {
+      "qualifying": {
+        "time": "1:30.171",
+        "driver": "B. Hartley",
+        "car": "Toyota GR010 Hybrid",
+        "brand": "Toyota",
+        "secs": null,
+        "where": "Qualifying · 6h Portimão",
+        "date": "2023-04-15",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:32.135",
+        "driver": "M. Conway",
+        "car": "Toyota GR010 Hybrid",
+        "brand": "Toyota",
+        "secs": null,
+        "where": "Race · 6h Portimão",
+        "date": "2023-04-16",
+        "series": "WEC"
+      }
+    },
+    "LMP2": {
+      "qualifying": {
+        "time": "1:34.303",
+        "driver": "M. Bortolotti",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Qualifying · 6h Portimão",
+        "date": "2023-04-15",
+        "series": "WEC"
+      },
+      "race": {
+        "time": "1:35.246",
+        "driver": "O. Jarvis",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Race · 6h Portimão",
+        "date": "2023-04-16",
+        "series": "WEC"
+      }
+    }
+  },
+  "Barcelona": {
+    "LMP2": {
+      "qualifying": {
+        "time": "1:28.368",
+        "driver": "R. de Gérus",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Qualifying · 4h Barcelona",
+        "date": "2026-04-11",
+        "series": "ELMS"
+      },
+      "race": {
+        "time": "1:30.634",
+        "driver": "T. Dillmann",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Race · 4h Barcelona",
+        "date": "2026-04-12",
+        "series": "ELMS"
+      }
+    },
+    "GT3": {
+      "qualifying": {
+        "time": "1:42.289",
+        "driver": "A. Christodoulou",
+        "car": "Mercedes-AMG LMGT3",
+        "brand": "Mercedes-Amg",
+        "secs": null,
+        "where": "Qualifying · 4h Barcelona",
+        "date": "2026-04-11",
+        "series": "ELMS"
+      },
+      "race": {
+        "time": "1:42.297",
+        "driver": "H. King",
+        "car": "Porsche 911 GT3 R",
+        "brand": "Porsche",
+        "secs": null,
+        "where": "Race · 4h Barcelona",
+        "date": "2026-04-12",
+        "series": "ELMS"
+      }
+    }
+  },
+  "PaulRicard": {
+    "LMP2": {
+      "qualifying": {
+        "time": "1:48.374",
+        "driver": "E. Masson",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Qualifying · 4h Paul Ricard",
+        "date": "2026-05-02",
+        "series": "ELMS"
+      },
+      "race": {
+        "time": "1:50.468",
+        "driver": "G. Peebles",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Race · 4h Paul Ricard",
+        "date": "2026-05-03",
+        "series": "ELMS"
+      }
+    },
+    "GT3": {
+      "qualifying": {
+        "time": "2:02.986",
+        "driver": "M. Jaubert",
+        "car": "Ferrari 296 LMGT3",
+        "brand": "Ferrari",
+        "secs": null,
+        "where": "Qualifying · 4h Paul Ricard",
+        "date": "2026-05-02",
+        "series": "ELMS"
+      },
+      "race": {
+        "time": "2:03.741",
+        "driver": "V. Hasse Clot",
+        "car": "Aston Martin Vantage",
+        "brand": "Aston Martin",
+        "secs": null,
+        "where": "Race · 4h Paul Ricard",
+        "date": "2026-05-03",
+        "series": "ELMS"
+      }
+    }
+  },
+  "Silverstone": {
+    "LMP2": {
+      "qualifying": {
+        "time": "1:42.497",
+        "driver": "E. Masson",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Qualifying · 4h Silverstone",
+        "date": "2025-09-13",
+        "series": "ELMS"
+      },
+      "race": {
+        "time": "1:43.116",
+        "driver": "O. Gray",
+        "car": "Oreca 07 Gibson",
+        "brand": "Oreca",
+        "secs": null,
+        "where": "Race · 4h Silverstone",
+        "date": "2025-09-14",
+        "series": "ELMS"
+      }
+    },
+    "GT3": {
+      "race": {
+        "time": "1:59.467",
+        "driver": "G. Patterson",
+        "car": "McLaren 720S LMGT3 Evo",
+        "brand": "Mclaren",
+        "secs": null,
+        "where": "Race · 4h Silverstone",
+        "date": "2025-09-14",
+        "series": "ELMS"
+      }
+    }
+  }
+}

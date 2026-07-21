@@ -1,0 +1,524 @@
+{
+  "standings": {
+    "enabled": false,
+    "scale": 1.0,
+    "max_drivers": 10,
+    "update_ms": 100,
+    "font_family": "Google Sans",
+    "font_fallback": "Consolas",
+    "base": {
+      "overlay_width": 700,
+      "titlebar_height": 20,
+      "row_height": 30,
+      "row_spacing": 0,
+      "row_padding_h": 4,
+      "row_col_spacing": 5,
+      "header_height": 22,
+      "logo_width": 36,
+      "logo_height": 20,
+      "col_status": 50,
+      "col_pos": 48,
+      "col_name": 190,
+      "col_name_short": 96,
+      "short_names": false,
+      "col_gap": 80,
+      "col_lap": 82,
+      "col_energy": 50,
+      "col_tyre": 34,
+      "col_best": 82,
+      "font_row": 10,
+      "font_status": 8,
+      "font_gap": 9,
+      "font_lap": 9,
+      "font_energy": 9,
+      "font_tyre": 9,
+      "font_pos": 10,
+      "font_header": 8,
+      "col_class": 34,
+      "col_speed": 55,
+      "col_tl": 38,
+      "col_pit": 30,
+      "col_sectors": 42,
+      "col_laps": 34,
+      "col_stint": 48,
+      "col_wear": 42
+    },
+    "show_best_lap": true,
+    "column_order": [
+      "class",
+      "pos",
+      "pdelta",
+      "logo",
+      "name",
+      "gap",
+      "lap",
+      "best",
+      "speed",
+      "tl",
+      "pit",
+      "sectors",
+      "laps",
+      "stint",
+      "wear",
+      "tyre",
+      "energy",
+      "status"
+    ],
+    "bg_alpha": 230,
+    "colors": {
+      "bg_container": "rgba(20, 29, 40, 230)",
+      "bg_titlebar": "rgba(10, 15, 20, 200)",
+      "bg_header": "rgba(10, 15, 20, 220)",
+      "bg_row": "transparent",
+      "bg_row_player": "rgba(255, 255, 255, 50)",
+      "bg_separator": "#1a1a1a",
+      "player_border": "#00e676",
+      "player_border_w": 3,
+      "name_normal": "white",
+      "name_penalty": "#ff5252",
+      "pos": "#bbbbbb",
+      "header_text": "#444444",
+      "session_text": "#555555",
+      "wait_text": "#333333",
+      "gap": "#00c853",
+      "gap_leader": "#888888",
+      "lap": "#888888",
+      "best_overall": "#c77dff",
+      "best_normal": "#555555",
+      "fastest_lap": "#c77dff",
+      "energy_high_text": "#D3D3D3",
+      "energy_low_text": "#FFE682",
+      "energy_critical_text": "#FF7B6F",
+      "energy_na_text": "#18222B",
+      "tyre_s": "#ff4444",
+      "tyre_m": "#ffcc00",
+      "tyre_h": "#ffffff",
+      "tyre_w": "#00aaff",
+      "tyre_x": "#00ff88",
+      "tyre_default": "#888888",
+      "status_pit": "#ffb300",
+      "status_gar": "#666666",
+      "status_dnf": "#ff5252",
+      "status_dq": "#ff5252",
+      "status_fin": "#00e676",
+      "status_s1": "#ffeb3b",
+      "status_s2": "#ffeb3b",
+      "status_s3": "#ffeb3b",
+      "btn_close": "#c0392b",
+      "btn_close_hover": "#e74c3c",
+      "btn_min": "#2d7d46",
+      "btn_min_hover": "#00e676"
+    },
+    "energy_thresholds": {
+      "low": 25,
+      "critical": 10
+    },
+    "logo_sizes": {
+      "BMW": [
+        18,
+        18
+      ],
+      "Mercedes-AMG": [
+        18,
+        18
+      ],
+      "Porsche": [
+        14,
+        18
+      ],
+      "Ferrari": [
+        14,
+        18
+      ],
+      "Lexus": [
+        19,
+        19
+      ],
+      "McLaren": [
+        18,
+        18
+      ],
+      "Alpine": [
+        22,
+        11
+      ],
+      "Duqueine": [
+        20,
+        20
+      ],
+      "Ginetta": [
+        20,
+        13
+      ],
+      "Oreca": [
+        19,
+        18
+      ],
+      "Ligier": [
+        19,
+        18
+      ],
+      "ADESS": [
+        20,
+        20
+      ],
+      "Ford": [
+        26,
+        13
+      ],
+      "Aston Martin": [
+        30,
+        12
+      ]
+    },
+    "view_mode": "class",
+    "bg_opacity": 100,
+    "show_speed": true,
+    "show_track_limits": true,
+    "show_pit": true,
+    "show_sectors": true,
+    "show_laps": true,
+    "show_stint": true,
+    "show_wear": true,
+    "show_session_row": true,
+    "col_laps": 44,
+    "show_pos_delta": true,
+    "show_class": false,
+    "show_header": true,
+    "show_lap": false
+  },
+  "relative": {
+    "enabled": false,
+    "scale": 1.0,
+    "update_ms": 100,
+    "rows_each_side": 2,
+    "base": {
+      "overlay_width": 480,
+      "row_height": 30,
+      "row_spacing": 0,
+      "row_padding_h": 4,
+      "row_col_spacing": 5,
+      "logo_width": 36,
+      "logo_height": 20,
+      "col_pos": 48,
+      "col_name": 200,
+      "col_gap": 65,
+      "col_lap": 82,
+      "col_tyre": 34,
+      "col_energy": 50,
+      "col_speed": 55,
+      "col_status": 50,
+      "col_class": 34,
+      "col_best": 82,
+      "header_height": 22,
+      "col_tl": 38,
+      "col_pit": 30,
+      "col_sectors": 42,
+      "col_laps": 34,
+      "col_stint": 48,
+      "col_wear": 42
+    },
+    "column_order": [
+      "class",
+      "pos",
+      "pdelta",
+      "logo",
+      "name",
+      "gap",
+      "lap",
+      "best",
+      "speed",
+      "tl",
+      "pit",
+      "sectors",
+      "laps",
+      "stint",
+      "wear",
+      "tyre",
+      "energy",
+      "status"
+    ],
+    "energy_thresholds": {
+      "low": 25,
+      "critical": 10
+    },
+    "logo_sizes": {
+      "BMW": [
+        18,
+        18
+      ],
+      "Mercedes-AMG": [
+        18,
+        18
+      ],
+      "Porsche": [
+        14,
+        18
+      ],
+      "Ferrari": [
+        14,
+        18
+      ],
+      "Lexus": [
+        19,
+        19
+      ],
+      "McLaren": [
+        18,
+        18
+      ],
+      "Alpine": [
+        22,
+        11
+      ],
+      "Duqueine": [
+        20,
+        20
+      ],
+      "Ginetta": [
+        20,
+        13
+      ],
+      "Oreca": [
+        19,
+        18
+      ],
+      "Ligier": [
+        19,
+        18
+      ],
+      "ADESS": [
+        20,
+        20
+      ],
+      "Ford": [
+        26,
+        13
+      ],
+      "Aston Martin": [
+        30,
+        12
+      ]
+    },
+    "bg_opacity": 100,
+    "show_speed": true,
+    "show_best_lap": true,
+    "show_track_limits": true,
+    "show_pit": true,
+    "show_sectors": true,
+    "show_laps": true,
+    "show_stint": true,
+    "show_wear": true,
+    "hide_garage": true,
+    "class_only": false,
+    "col_laps": 44,
+    "show_pos_delta": true,
+    "no_lapped": false,
+    "show_class": false,
+    "show_header": true
+  },
+  "radar": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 50,
+    "radar_range": 30.0,
+    "idle_opacity": 0.35
+  },
+  "deltabest": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 50,
+    "delta_range": 2.0
+  },
+  "wecrevs": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 33
+  },
+  "wecbars": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 33
+  },
+  "wec26board": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 50,
+    "open_delay_s": 5.0
+  },
+  "wec26battle": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 50,
+    "battle_gap_s": 2.0,
+    "hold_s": 3.0,
+    "class_only": false,
+    "pos_only": false,
+    "preview": false
+  },
+  "wec26battleb": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 50,
+    "battle_gap_s": 2.0,
+    "hold_s": 3.0,
+    "class_only": false,
+    "pos_only": false,
+    "preview": false
+  },
+  "wec26flag": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 300,
+    "preview": false
+  },
+  "wec26radio": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 150,
+    "preview": false
+  },
+  "wec26mfd": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 100,
+    "mods": [1, 2, 0, 0, 0, 0, 0, 0]
+  },
+  "sessionbar": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 500,
+    "forecast": true,
+    "theme": "wec",
+    "base": {
+      "width": 640
+    }
+  },
+  "wec26mini": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 50
+  },
+  "session": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 500,
+    "base": {
+      "widget_width": 500,
+      "weather_icon_size": 48
+    },
+    "show_forecast": true
+  },
+  "flag": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 200,
+    "base": {
+      "widget_width": 320,
+      "row_height": 40
+    }
+  },
+  "hud": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 100,
+    "base": {
+      "widget_width": 560
+    },
+    "show_light": true,
+    "show_wiper": true,
+    "show_rain": true,
+    "show_pit": true,
+    "show_engine": true,
+    "show_oil": true,
+    "show_water": true,
+    "show_fuel": true,
+    "show_tc": true,
+    "show_abs": true,
+    "show_battery": true,
+    "show_rpm_leds": true
+  },
+  "car": {
+    "enabled": false,
+    "scale": 1.2,
+    "bg_opacity": 100,
+    "update_ms": 100,
+    "base": {}
+  },
+  "list": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 100,
+    "base": {},
+    "show_fuel": true,
+    "show_energy": true,
+    "show_battery": true,
+    "show_emotor": true,
+    "show_erpm": true,
+    "show_etrqeng": true,
+    "show_oil": true,
+    "show_water": true,
+    "show_engine": true
+  },
+  "gear": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 100,
+    "base": {}
+  },
+  "tyres": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 100,
+    "base": {}
+  },
+  "strategy": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 500,
+    "moving_window": 3,
+    "base": {},
+    "save_margin": 2,
+    "record": true
+  },
+  "minicar": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 100,
+    "base": {}
+  },
+  "map": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 75,
+    "update_ms": 33,
+    "base": {}
+  },
+  "telemetry": {
+    "enabled": false,
+    "scale": 1.0,
+    "bg_opacity": 100,
+    "update_ms": 500,
+    "base": {}
+  }
+}
