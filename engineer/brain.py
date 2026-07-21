@@ -2032,6 +2032,59 @@ class Engineer:
         self._st["wx_case"] = code
         return [self.msg(code, **kw)]
 
+    def corner_loss(self, raw, laps_done):
+        """CURVE DOVE PERDO TEMPO: traccia la Vmin per curva sul giro e la
+        confronta con la tua Vmin di RIFERIMENTO appresa; a fine giro segnala
+        la curva dove sei piu' lento (perdi). Asciutto, pista appresa.
+        Cooldown 3 giri per curva (niente martellamento)."""
+        raw = raw or {}
+        try:
+            if float(raw.get("raining") or 0.0) >= 0.15 or self._wet_mounted(raw):
+                self._st["cl_trk"] = {}
+                return []
+            d = float(raw.get("lapdist") or -1.0)
+            spd = float(raw.get("speed") or 0.0)
+        except (TypeError, ValueError):
+            return []
+        corners = self._learned_corners(raw)
+        if not corners or d < 0 or spd <= 0:
+            return []
+        trk = self._st.setdefault("cl_trk", {})
+        near, nd = None, 1e9
+        for c in corners:
+            try:
+                cd = float(c.get("d"))
+            except (TypeError, ValueError):
+                continue
+            if c.get("n") is None:
+                continue
+            gap = abs(cd - d)
+            if gap < 50.0 and gap < nd:
+                near, nd = c, gap
+        if near is not None:
+            n = near.get("n")
+            cur = trk.get(n)
+            if cur is None or spd < cur:
+                trk[n] = spd                  # Vmin del giro per questa curva
+        out = []
+        prev = self._st.get("cl_lap")
+        self._st["cl_lap"] = laps_done
+        if prev is not None and laps_done > prev and trk:
+            said = self._st.setdefault("cl_said", {})
+            ref = {c.get("n"): float(c.get("vmin")) for c in corners
+                   if c.get("n") is not None and c.get("vmin")}
+            worst_n, worst_def = None, 0.0
+            for n, myv in trk.items():
+                rv = ref.get(n)
+                if rv and (rv - myv) > worst_def \
+                        and (laps_done - said.get(n, -99)) >= 3:
+                    worst_def, worst_n = rv - myv, n
+            self._st["cl_trk"] = {}           # reset per il prossimo giro
+            if worst_n is not None and worst_def >= 6.0:   # >= 6 km/h piu' lento
+                said[worst_n] = laps_done
+                out = [self.msg("turn_slow", turn=worst_n)]
+        return out
+
     def _rival_name(self, name):
         """Nome rivale per la voce (cognome abbreviato)."""
         from core.utils import short_name as _sn

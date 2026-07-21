@@ -223,6 +223,7 @@ def _collect(brain, raw, ld, pace):
         (brain.lap_time_call, (raw,)),
         (brain.lap_feedback, (raw, ld)),
         (brain.sector_delta, (raw, ld)),          # dove perdi nei settori (v2)
+        (brain.corner_loss, (raw, ld)),           # curve dove perdi tempo
         (brain.tyre_life, (raw, ld)),
         (brain.grip_call, (raw, ld)),
         (brain.temp_call, (raw, ld)),
