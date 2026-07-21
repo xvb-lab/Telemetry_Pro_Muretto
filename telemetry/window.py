@@ -10419,18 +10419,18 @@ class TelemetryWindow(QMainWindow):
         fl = QHBoxLayout(self._footer)
         fl.setContentsMargins(24, 11, 26, 11)   # simmetrici: tutto su UNA riga
         # nome app + versione: a SINISTRA, prima del check intro
-        _flab = QLabel("LMU Telemetry Pro  %s" % _APP_VERSION)
-        _flab.setStyleSheet("color:#aeb6c4;font-size:14px;font-weight:700;"
-                            "background:transparent;")
-        fl.addWidget(_flab, 0, Qt.AlignVCenter)
-        # logo "MURETTO" (stile intro: Archivo corsivo, rosso LMU)
+        # logo "MURETTO" per PRIMO a sinistra (stile intro: Archivo corsivo, rosso LMU)
         _mlab = QLabel("MURETTO")
         _mlab.setStyleSheet(
             "QLabel{font-family:'Archivo SemiExpanded','Archivo';"
             "font-style:italic;font-weight:800;color:#ff1d43;font-size:15px;"
             "letter-spacing:1px;background:transparent;}")
-        fl.addSpacing(10)
         fl.addWidget(_mlab, 0, Qt.AlignVCenter)
+        fl.addSpacing(10)
+        _flab = QLabel("LMU Telemetry Pro  %s" % _APP_VERSION)
+        _flab.setStyleSheet("color:#aeb6c4;font-size:14px;font-weight:700;"
+                            "background:transparent;")
+        fl.addWidget(_flab, 0, Qt.AlignVCenter)
         fl.addSpacing(18)
         # riga "Video intro" (check tondo): vive nella 3a colonna di OPTIONS
         from ui.widgets import _CircleCheck
