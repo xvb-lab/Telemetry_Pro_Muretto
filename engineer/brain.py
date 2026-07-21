@@ -112,6 +112,11 @@ class Engineer:
     _LAW_QUALI_MUTE = ("blue_", "yellow", "local_yellow", "traffic_",
                        "fast_class", "gap_", "opp_", "pit_exit",
                        "pit_release")
+    # PROVA (privata): niente riferimenti agli ALTRI (passo/penalita' rivali,
+    # gap, traffico). Restano i TUOI tempi/settori/gomme e il miglior tempo.
+    # Bandiere/safe-release NON mutate (se la prova fosse condivisa = sicurezza;
+    # se e' privata non scattano comunque).
+    _LAW_PRACTICE_MUTE = ("opp_", "fast_class", "gap_", "traffic_")
 
     def __init__(self, lang="it"):
         self.lang = lang if lang in self._LANGS else "it"
@@ -2703,6 +2708,8 @@ class Engineer:
         _kind = session_kind(raw.get("session_type"))
         if _kind == "qualy" and code.startswith(self._LAW_QUALI_MUTE):
             return False, "quali: niente bandiere/traffico (sei solo)"
+        if _kind == "practice" and code.startswith(self._LAW_PRACTICE_MUTE):
+            return False, "prova privata: niente riferimenti agli altri"
         if _kind != "race" and code.startswith(("pit_exit",)):
             return False, "pit-exit traffic: solo in gara"
         riv = raw.get("rivals") or {}
