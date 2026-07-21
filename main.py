@@ -64,6 +64,27 @@ def main():
     _set_win_taskbar_id()
     app = QApplication(sys.argv)
     app.setApplicationName("LMU Telemetry Pro")
+    # PALETTE SCURA DI DEFAULT: testo chiaro come fallback per QUALSIASI widget
+    # senza colore esplicito. Evita il bug storico "testo nero" quando uno
+    # stylesheet non definiva il color. I colori espliciti del QSS vincono.
+    try:
+        from PySide6.QtGui import QPalette, QColor
+        _pal = app.palette()
+        _light = QColor("#e8ebf2")
+        _dim = QColor("#8a90a0")
+        _dark = QColor("#0e1014")
+        _panel = QColor("#1b1d20")
+        for _r in (QPalette.WindowText, QPalette.Text, QPalette.ButtonText,
+                   QPalette.ToolTipText, QPalette.BrightText):
+            _pal.setColor(_r, _light)
+        _pal.setColor(QPalette.PlaceholderText, _dim)
+        _pal.setColor(QPalette.Window, _dark)
+        _pal.setColor(QPalette.Base, _panel)
+        _pal.setColor(QPalette.Button, _panel)
+        _pal.setColor(QPalette.ToolTipBase, _panel)
+        app.setPalette(_pal)
+    except Exception:
+        pass
     try:
         from core.utils import load_custom_fonts
         load_custom_fonts()
