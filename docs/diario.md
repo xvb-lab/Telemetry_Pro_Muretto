@@ -5,6 +5,65 @@ perché. Si aggiorna a ogni intervento, insieme alla bibbia (`docs/bibbia.md`).
 
 ---
 
+## 2026-07-21 — Safe release, briefing box, regole sessione, fix
+
+**FIX pill "Garage · waiting for stint 1" incollata nel menu.**
+- `recorder._tick`: l'auto-sgancio (ramo realtime) era protetto da `_ever_active`
+  → se eri in garage in attesa dello stint 1 e tornavi al menu, non sganciava mai
+  (dato shared memory stantìo `garage=True`). Guardia cambiata da `_ever_active`
+  a **`not _wait_green`**: sgancia anche prima del 1° stint. Online intatto (in
+  attesa del verde `_wait_green=True` → non sgancia; garage vivo → ET avanza).
+
+**FIX sfarfallio overlay all'avvio.**
+- `shared_memory.is_on_track()`: il debounce di 0.7s (anti-flicker in pista su
+  lettura strappata `mInRealtime=0`) faceva **apparire gli overlay ~0.7s** all'avvio
+  nel menu prima di sparire. Ora, a freddo (mai stati in realtime: `_rt_true_seen`
+  None), torna subito False → niente flash. Debounce in pista invariato.
+
+**Casco base di default (community).**
+- `tab_community`: se il record non ha `helmet` valido (versioni vecchie), casco
+  **grigio neutro** invece di riga spoglia.
+
+**Muretto: briefing motore acceso + safe release uscita box.**
+- `shared_memory.pit_scan()`: modello-dati della mappa per il muretto (ogni auto
+  con `lapdist` + `x/z` + `in_pits` + `garage` + `speed` + `track_len`).
+- `garage_briefing`: a motore acceso in box, UNA volta → grip pista, temp asfalto,
+  gomme (nuove/usate + mescola). Se piove e hai le slick → avviso **critico**
+  "non uscire, monta le wet".
+- `pit_lane_release`: safe release **solo in USCITA** dal box (mai al rientro).
+  (A) traffico NELLA corsia da distanza reale X/Z in avvicinamento (auto dai box
+  accanto); (B) merge in pista via lapdist. "aspetta" → "vai". Trick mappa: in
+  piazzola `garage=True` finché il musino non è fuori, poi `in_pits`; il rientro
+  è `pit_state==2` (entering), mai da garage → `leaving = (garage o garage<25s)
+  and pit_state!=2`. Raggio corsia 200m, cap velocità player 70 km/h.
+- Fix "aria pulita" (pit_exit_traffic): detta **una volta per richiesta**, non a
+  raffica ogni 25s stando fermi.
+
+**Muretto: regole per tipo sessione + "pronti al pit".**
+- `_LAW_QUALI_MUTE` in `_sane_one`: in **quali** (sei solo) lo spotter non dà
+  **bandiere né traffico** (blue/yellow/traffic/fast_class/gap/opp/pit_exit/
+  pit_release); restano tempi/settori/passo/gomme. In **pratica/non-gara** niente
+  proiezione pit-exit "aria pulita" (solo gara).
+- `pit_ready`: ~3s dopo la TUA chiamata pit → "pronti per il pit stop" (tutte le
+  sessioni, una volta per richiesta).
+- 3 nuovi eventi (garage_brief, garage_wrong_tyre, pit_release_wait/clear,
+  pit_ready) × 4 lingue × 5 varianti; ruoli/voci assegnati.
+
+**Da fare — backlog concordato (vedi memoria `v03b-backlog-muretto`).**
+- **Modalità quali (info)**: chi in pole/miglior tempo e di quanto, delta per
+  batterlo, dove perdo, out-lap "lavora la gomma" (quali_prep/quali_sector_live
+  già ci sono).
+- **Ritiro per danno terminale**: contatto + motore morto + non riparte entro 10s
+  → silenzia i messaggi inutili e di': gara=ritiro, prova=esci sicuro/aspettiamo,
+  quali=finita. 10 frasi ×3 casi ×4 lingue.
+- **Debrief di stint in garage** (voce, non overlay): giri, miglior giro, migliori
+  settori, passo, gomma, consumi, dove migliorare (settori/curve, bloccaggi).
+- **Contatti più precisi**: leggere `mLastImpactPos` (posizione urto) + `dent_sev`
+  (8 zone) → "botta dietro a sinistra / fiancata destra / davanti". Serve tarare
+  una volta dal vivo il segno sinistra/destra.
+
+---
+
 ## 2026-07-20 — Avvio ricostruzione 0.3b
 
 **Contesto / perché la ricostruzione.**
