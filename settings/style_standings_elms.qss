@@ -49,13 +49,13 @@
 
 
 /* ═══════════════════════════════════════════════════
-   LMU Standings — Google Sans Minimalist Clean Style
+   LMU Standings — Heebo Minimalist Clean Style
    ═══════════════════════════════════════════════════ */
 
 /* ── Font ed Estetica Globale ── */
 * {
     color: #e8eef5;
-    font-family: "Google Sans", "Consolas", monospace;
+    font-family: "Heebo", "Consolas", monospace;
     font-size: 14px;
    font-weight: bold; 
    text-align: center;                     

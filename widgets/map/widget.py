@@ -265,7 +265,7 @@ class MapCanvas(QWidget):
 
         if not self._path:
             p.setPen(QPen(QColor("#8a8a90")))
-            f = QFont("Google Sans"); f.setPixelSize(int(11 * sc)); f.setBold(True)
+            f = QFont("Heebo"); f.setPixelSize(int(11 * sc)); f.setBold(True)
             p.setFont(f)
             p.drawText(self.rect(), Qt.AlignCenter,
                        "Recording lap…" if self._recording else "No track data")
@@ -455,7 +455,7 @@ class MapCanvas(QWidget):
             p.drawEllipse(QPointF(cx, cy), rr, rr)
             numtxt = c.get("num", "")
             if numtxt:
-                f = QFont("Google Sans"); f.setBold(True)
+                f = QFont("Heebo"); f.setBold(True)
                 ratio = 1.3 if len(numtxt) <= 2 else 0.78
                 f.setPixelSize(max(7, int(rr * ratio)))
                 p.setFont(f)
@@ -485,7 +485,7 @@ class MapCanvas(QWidget):
                 draw_dot(gx, gy, c, gr)                     # stesso stile della pista
                 gy -= step
             # label "GAR" sotto la prima icona dal basso
-            f = QFont("Google Sans"); f.setBold(True)
+            f = QFont("Heebo"); f.setBold(True)
             f.setPixelSize(max(8, int(gr * 1.0)))
             p.setFont(f)
             rect = QRectF(gx - gr * 1.8, first_gy + gr + 5 * sc, gr * 3.6, lbl_h)

@@ -276,7 +276,7 @@ class WecBarsOverlay(QWidget):
                        segmented=True, stoplight=True)
 
         # etichette inclinate in basso (lungo la tangente dell'arco)
-        f = QFont("Google Sans", 15)
+        f = QFont("Heebo", 15)
         f.setWeight(QFont.Bold)
         p.setFont(f)
         fm = QFontMetricsF(f)

@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════════════ */
 
 * {
-    font-family: "Google Sans", "Consolas", monospace;
+    font-family: "Heebo", "Consolas", monospace;
     font-weight: bold;
 }
 

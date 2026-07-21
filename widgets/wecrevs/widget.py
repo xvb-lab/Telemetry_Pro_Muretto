@@ -210,7 +210,7 @@ class WecRevsOverlay(QWidget):
         p.drawArc(QRectF(cx - r_line, cy - r_line, r_line * 2, r_line * 2),
                   int((_A_BOT - _SWEEP) * 16), int(_SWEEP * 16))
         n_k = int(math.ceil(mx / 1000.0))
-        f_lab = QFont("Google Sans", 20)
+        f_lab = QFont("Heebo", 20)
         f_lab.setWeight(QFont.DemiBold)
         p.setFont(f_lab)
         fm = QFontMetricsF(f_lab)
@@ -234,7 +234,7 @@ class WecRevsOverlay(QWidget):
         w = fs.horizontalAdvance(spd)
         p.setPen(QColor(255, 255, 255, 245))
         p.drawText(QPointF(232 - w / 2.0, cy + 12), spd)
-        f_kmh = QFont("Google Sans", 19)
+        f_kmh = QFont("Heebo", 19)
         p.setFont(f_kmh)
         fk = QFontMetricsF(f_kmh)
         p.setPen(QColor(219, 216, 214, 235))
@@ -299,7 +299,7 @@ class WecRevsOverlay(QWidget):
             gear = _gsym(self._gear)
             p.drawText(QPointF(gx - fg.horizontalAdvance(gear) / 2.0,
                                gy + fg.ascent() / 2.0 - 4), gear)
-        f_gl = QFont("Google Sans", 13)
+        f_gl = QFont("Heebo", 13)
         f_gl.setWeight(QFont.DemiBold)
         f_gl.setLetterSpacing(QFont.AbsoluteSpacing, 1.5)
         p.setFont(f_gl)

@@ -1560,7 +1560,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             gear = _gsym(g)
             p.drawText(QPointF(gx - fg.horizontalAdvance(gear) / 2.0,
                                gy + fg.ascent() / 2.0 - 4), gear)
-        f_gl = QFont("Google Sans", 13)
+        f_gl = QFont("Heebo", 13)
         f_gl.setWeight(QFont.DemiBold)
         f_gl.setLetterSpacing(QFont.AbsoluteSpacing, 1.5)
         p.setFont(f_gl)
