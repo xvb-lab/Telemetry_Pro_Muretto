@@ -575,6 +575,7 @@ class SharedMemory:
                     "id": int(v.mID),
                     "cls": class_tag(cls),
                     "lapdist": float(v.mLapDist),
+                    "x": float(v.mPos.x), "z": float(v.mPos.z),   # posizione top-down
                     "in_pits": bool(v.mInPits),
                     "garage": bool(getattr(v, "mInGarageStall", False)),
                     "pit": int(getattr(v, "mPitState", 0) or 0),

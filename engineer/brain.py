@@ -1255,47 +1255,83 @@ class Engineer:
         return ("%s %s" % (comp, used)).strip() if comp else used
 
     def pit_lane_release(self, raw):
-        """SAFE RELEASE: mentre esci dalla corsia box, se sul tracciato sta
-        arrivando un'auto verso il punto di immissione ti dice di aspettare /
-        stare attento; quando la via e' libera, 'vai'. Usa il modello-dati
-        della mappa (tutte le auto con lapdist+velocita'). Solo in corsia box."""
+        """SAFE RELEASE all'uscita dai box. Due pericoli, entrambi dal
+        modello-mappa (pit_scan: ogni auto con posizione X/Z + lapdist + vel):
+          (A) sei fermo/lento nel box e stai per immetterti, ma un'auto percorre
+              la CORSIA e ti arriva vicino (distanza reale, in avvicinamento)
+              -> aspetta. E' il caso vero: auto che escono dai box accanto.
+          (B) rulli verso l'uscita e un'auto in PISTA arriva al merge (lapdist)
+              -> aspetta.
+        Via libera dopo un 'aspetta' -> 'vai'."""
         raw = raw or {}
         tm = raw.get("traffic_map") or {}
         pl = tm.get("player") or {}
         tl = float(tm.get("track_len") or 0.0)
-        in_lane = bool(raw.get("in_pitlane") or raw.get("in_pits"))
+        in_area = bool(raw.get("in_pitlane") or raw.get("in_pits")
+                       or raw.get("garage"))
+        if not in_area:
+            self._st.pop("pl_state", None)
+            self._st.pop("pl_dist", None)
+            return []
         try:
-            spd = float(raw.get("speed") or 0.0)
+            spd = float(raw.get("speed") or 0.0)      # km/h
         except (TypeError, ValueError):
             spd = 0.0
-        # solo mentre PERCORRI la corsia verso l'uscita (non fermo al box,
-        # non gia' a velocita' pista): finestra 15..110 km/h.
-        if (not in_lane) or raw.get("garage") or tl <= 0 \
-                or not (15.0 <= spd <= 110.0):
-            self._st.pop("pl_state", None)
-            return []
-        try:
-            my = float(pl.get("lapdist"))
-        except (TypeError, ValueError):
-            return []
-        soon = None
-        for c in (tm.get("cars") or []):
-            if c.get("is_player") or c.get("in_pits") or c.get("garage"):
-                continue
-            cs = float(c.get("speed") or 0.0)
-            if cs < 12.0:                       # ferma/lentissima: non un rischio
-                continue
-            back = (my - float(c.get("lapdist") or 0.0)) % tl
-            if back <= 3.0 or back > 220.0:     # o gia' passata, o troppo lontana
-                continue
-            dt = back / cs                      # secondi all'immissione
-            if 0.3 < dt <= 3.5 and (soon is None or dt < soon):
-                soon = dt
+        cars = tm.get("cars") or []
+        threat = False
+
+        # ── (A) traffico NELLA CORSIA (auto dai box accanto) — distanza X/Z ──
+        px, pz = pl.get("x"), pl.get("z")
+        prevd = self._st.get("pl_dist") or {}
+        curd = {}
+        if px is not None and pz is not None and spd <= 35.0:
+            for c in cars:
+                if c.get("is_player") or c.get("garage"):
+                    continue
+                if not (c.get("in_pits") or c.get("in_pitlane")):
+                    continue                          # solo auto DENTRO la corsia
+                if float(c.get("speed") or 0.0) < 4.0:
+                    continue                          # ferma nel suo box: non conta
+                cx, cz = c.get("x"), c.get("z")
+                if cx is None or cz is None:
+                    continue
+                d = ((float(cx) - float(px)) ** 2
+                     + (float(cz) - float(pz)) ** 2) ** 0.5
+                cid = c.get("id")
+                curd[cid] = d
+                if d > 45.0:                          # troppo lontana
+                    continue
+                pd = prevd.get(cid)
+                if pd is not None and d < pd - 0.15:  # in avvicinamento (conferma)
+                    threat = True
+        self._st["pl_dist"] = curd
+
+        # ── (B) auto in PISTA al merge, mentre rulli verso l'uscita ──
+        if (not threat) and tl > 0 and (15.0 <= spd <= 110.0) \
+                and not raw.get("garage"):
+            try:
+                my = float(pl.get("lapdist"))
+            except (TypeError, ValueError):
+                my = None
+            if my is not None:
+                for c in cars:
+                    if c.get("is_player") or c.get("in_pits") or c.get("garage"):
+                        continue
+                    cs = float(c.get("speed") or 0.0)
+                    if cs < 12.0:
+                        continue
+                    back = (my - float(c.get("lapdist") or 0.0)) % tl
+                    if back <= 3.0 or back > 220.0:
+                        continue
+                    if 0.3 < (back / cs) <= 3.5:
+                        threat = True
+                        break
+
         prev = self._st.get("pl_state")
-        if soon is not None:
+        if threat:
             if prev != "wait":
                 self._st["pl_state"] = "wait"
-                return [self.msg("pit_release_wait", s=int(round(soon)))]
+                return [self.msg("pit_release_wait")]
             return []
         if prev == "wait":
             self._st["pl_state"] = "clear"

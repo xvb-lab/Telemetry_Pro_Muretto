@@ -6244,37 +6244,37 @@
       "cat": "pista",
       "level": "warn",
       "beep": true,
-      "it": "Aspetta, arriva una macchina, {s} secondi.",
+      "it": "Aspetta, arriva una macchina in corsia.",
       "variants_it": [
-        "Aspetta, arriva una macchina, {s} secondi.",
-        "Attento in uscita: traffico in arrivo, {s} secondi.",
-        "Non uscire ora, uno sta arrivando tra {s}.",
-        "Dai strada, macchina in arrivo tra {s} secondi.",
-        "Occhio, uno in arrivo tra {s}, aspetta."
+        "Aspetta, arriva una macchina in corsia.",
+        "Attento in uscita: traffico in arrivo.",
+        "Non uscire ora, uno sta arrivando.",
+        "Dai strada, macchina in arrivo.",
+        "Occhio, uno in arrivo, aspetta."
       ],
-      "en": "Wait, car coming, {s} seconds.",
+      "en": "Wait, car coming in the lane.",
       "variants_en": [
-        "Wait, car coming, {s} seconds.",
-        "Careful on exit: traffic incoming, {s} seconds.",
-        "Don't go yet, one's arriving in {s}.",
-        "Give way, car coming in {s} seconds.",
-        "Heads up, one incoming in {s}, hold."
+        "Wait, car coming in the lane.",
+        "Careful on exit: traffic incoming.",
+        "Don't go yet, one's coming.",
+        "Give way, car coming.",
+        "Heads up, one incoming, hold."
       ],
-      "es": "Espera, viene un coche, {s} segundos.",
+      "es": "Espera, viene un coche por el pit lane.",
       "variants_es": [
-        "Espera, viene un coche, {s} segundos.",
-        "Cuidado al salir: trafico llegando, {s} segundos.",
-        "No salgas aun, uno llega en {s}.",
-        "Cede el paso, coche llegando en {s} segundos.",
-        "Ojo, uno llegando en {s}, espera."
+        "Espera, viene un coche por el pit lane.",
+        "Cuidado al salir: trafico llegando.",
+        "No salgas aun, uno esta llegando.",
+        "Cede el paso, coche llegando.",
+        "Ojo, uno llegando, espera."
       ],
-      "fr": "Attends, une voiture arrive, {s} secondes.",
+      "fr": "Attends, une voiture arrive dans la voie.",
       "variants_fr": [
-        "Attends, une voiture arrive, {s} secondes.",
-        "Attention a la sortie : trafic qui arrive, {s} secondes.",
-        "Ne sors pas encore, une arrive dans {s}.",
-        "Laisse passer, voiture dans {s} secondes.",
-        "Attention, une arrive dans {s}, attends."
+        "Attends, une voiture arrive dans la voie.",
+        "Attention a la sortie : trafic qui arrive.",
+        "Ne sors pas encore, une arrive.",
+        "Laisse passer, voiture qui arrive.",
+        "Attention, une arrive, attends."
       ]
     },
     "pit_release_clear": {
