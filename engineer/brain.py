@@ -150,17 +150,33 @@ class Engineer:
     def _L(self, it, en, es=None, fr=None):
         return {"en": en, "es": es or en, "fr": fr or en}.get(self.lang, it)
 
+    def _pick_variant(self, code, variants):
+        """Scelta CASUALE della frase, evitando di ripetere l'ultima usata per
+        QUESTO annuncio (cosi' non esce due volte di fila la stessa)."""
+        if not variants:
+            return ""
+        if len(variants) == 1:
+            return variants[0]
+        lv = getattr(self, "_last_variant", None)
+        if lv is None:
+            lv = self._last_variant = {}
+        last = lv.get(code)
+        pool = [v for v in variants if v != last] or variants
+        ch = _rnd.choice(pool)
+        lv[code] = ch
+        return ch
+
     def msg(self, code, **kw):
         m = self._msgs.get(code)
         if not m:
             return None
         if self.lang != "it":
             variants = m.get("variants_%s" % self.lang)
-            text = _rnd.choice(variants) if variants else \
+            text = self._pick_variant(code, variants) if variants else \
                 (m.get(self.lang) or m.get("en") or m.get("it") or code)
         else:
             variants = m.get("variants_it")
-            text = _rnd.choice(variants) if variants else \
+            text = self._pick_variant(code, variants) if variants else \
                 (m.get("it") or m.get("en") or code)
         for k, v in kw.items():
             text = text.replace("{%s}" % k, str(v))
