@@ -57,6 +57,9 @@ _mk(["ready", "briefing_strat", "briefing_laps", "briefing_save", "plan",
      "gap_undercut", "gap_pit_called", "pit_ack", "pit_ack_fuel",
      "wet_manage_choice", "advise_slick", "advise_wet", "session_end",
      "chk_over", "chk_push", "chk_ok"], 1)
+# BLU: urgenti, quasi come una gialla (auto veloce che ti sta per doppiare:
+# vanno dette subito, non scartate come semplice info gara). Richiesta utente.
+_mk(["blue_flag", "blue_flag_multi", "blue_flag_simple"], 1)
 # P2 stato vettura + check consumi
 _mk(["tyres_cold", "tyres_warm", "brakes_cold", "tyres_hot", "brakes_hot",
      "aero_light", "aero_bad", "susp_light", "susp_bad", "damage_body",
@@ -66,8 +69,8 @@ _mk(["tyres_cold", "tyres_warm", "brakes_cold", "tyres_hot", "brakes_hot",
 # P3 info gara
 _mk(["leader", "pole_pos", "pos_race", "pos_qualy", "pos_lead", "pos_pole",
      "near_ahead", "near_behind", "opp_best", "time_left", "time_hours",
-     "laps_left", "last_lap", "last_min", "blue_flag", "blue_flag_multi",
-     "blue_flag_simple", "traffic_ahead", "ahead_pit", "gap_both", "gap_ahead",
+     "laps_left", "last_lap", "last_min",
+     "traffic_ahead", "ahead_pit", "gap_both", "gap_ahead",
      "gap_behind", "gap_closing", "pos_gain", "pos_loss", "best_lap_new",
      "batt_info", "lap_fast", "lap_fast_clean", "lap_slow", "perf_report",
      "lap_time_call", "grip_status", "grip_up", "grip_down"], 3)
