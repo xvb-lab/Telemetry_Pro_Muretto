@@ -6461,6 +6461,80 @@
         "Trains slick : {new} neufs et {used} usages.",
         "Il reste {new} trains neufs et {used} usages."
       ]
+    },
+    "quali_pole_gap": {
+      "cat": "performance",
+      "level": "info",
+      "beep": true,
+      "it": "Sei a {gap} dalla pola di {name}.",
+      "variants_it": [
+        "Sei a {gap} dalla pola di {name}.",
+        "{gap} da {name}, che e' in pola.",
+        "Ti mancano {gap} sul tempo di {name}.",
+        "Pola di {name}: sei a {gap}.",
+        "Gap dalla pola: {gap}, davanti c'e' {name}."
+      ],
+      "en": "You're {gap} off {name}'s pole.",
+      "variants_en": [
+        "You're {gap} off {name}'s pole.",
+        "{gap} to {name}, who's on pole.",
+        "You need {gap} to match {name}.",
+        "{name} on pole: you're {gap} back.",
+        "Gap to pole: {gap}, {name} ahead."
+      ],
+      "es": "Estas a {gap} de la pole de {name}.",
+      "variants_es": [
+        "Estas a {gap} de la pole de {name}.",
+        "{gap} de {name}, que esta en pole.",
+        "Te faltan {gap} sobre el tiempo de {name}.",
+        "Pole de {name}: estas a {gap}.",
+        "Gap a la pole: {gap}, delante esta {name}."
+      ],
+      "fr": "Tu es a {gap} de la pole de {name}.",
+      "variants_fr": [
+        "Tu es a {gap} de la pole de {name}.",
+        "{gap} de {name}, qui est en pole.",
+        "Il te manque {gap} sur le temps de {name}.",
+        "Pole de {name} : tu es a {gap}.",
+        "Ecart a la pole : {gap}, devant c'est {name}."
+      ]
+    },
+    "quali_pole_lead": {
+      "cat": "performance",
+      "level": "info",
+      "beep": true,
+      "it": "Sei in pola nella tua classe.",
+      "variants_it": [
+        "Sei in pola nella tua classe.",
+        "Miglior tempo di classe, sei davanti.",
+        "Provvisoria pola, ottimo.",
+        "Comandi la classe, sei tu il piu' veloce.",
+        "Pola tua per ora, tienila."
+      ],
+      "en": "You're on pole in your class.",
+      "variants_en": [
+        "You're on pole in your class.",
+        "Best in class, you're ahead.",
+        "Provisional pole, great.",
+        "You lead the class, fastest so far.",
+        "Pole is yours for now, keep it."
+      ],
+      "es": "Estas en pole en tu clase.",
+      "variants_es": [
+        "Estas en pole en tu clase.",
+        "Mejor tiempo de clase, vas delante.",
+        "Pole provisional, excelente.",
+        "Lideras la clase, el mas rapido.",
+        "La pole es tuya por ahora."
+      ],
+      "fr": "Tu es en pole dans ta classe.",
+      "variants_fr": [
+        "Tu es en pole dans ta classe.",
+        "Meilleur temps de classe, devant.",
+        "Pole provisoire, excellent.",
+        "Tu mene la classe, le plus rapide.",
+        "La pole est a toi pour l'instant."
+      ]
     }
   }
 }

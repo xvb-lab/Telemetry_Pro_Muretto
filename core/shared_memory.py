@@ -540,6 +540,7 @@ class SharedMemory:
                     "name": nm, "cls": cls,
                     "pen": int(getattr(v, "mNumPenalties", 0) or 0),
                     "last": float(getattr(v, "mLastLapTime", -1) or -1),
+                    "best": float(getattr(v, "mBestLapTime", -1) or -1),
                     "place": int(getattr(v, "mPlace", 0) or 0),
                 }
             return out

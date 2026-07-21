@@ -1418,6 +1418,49 @@ class Engineer:
         self._st["pl_light"] = "open"     # gia' aperta all'arrivo: muto
         return []
 
+    def quali_pole(self, raw, laps_done):
+        """QUALI (solo info): a fine giro dice il gap dalla POLA della tua classe
+        (best degli altri) o 'sei in pola'. Anti-spam: solo se cambia stato/gap."""
+        if session_kind(raw.get("session_type")) != "qualy":
+            return []
+        if laps_done == self._st.get("qp_lap"):
+            return []
+        self._st["qp_lap"] = laps_done
+        try:
+            mine = float(raw.get("best_lap") or 0.0)
+        except (TypeError, ValueError):
+            return []
+        if mine <= 0:
+            return []
+        my_cls = (class_tag(raw.get("car_class") or "") or self._cat or "").upper()
+        pole_t = None
+        pole_nm = None
+        for c in (raw.get("cars") or {}).values():
+            if (class_tag(str(c.get("cls") or "")) or "").upper() != my_cls:
+                continue
+            try:
+                b = float(c.get("best") or -1)
+            except (TypeError, ValueError):
+                continue
+            if b > 0 and (pole_t is None or b < pole_t):
+                pole_t = b
+                pole_nm = c.get("name")
+        if pole_t is None:
+            return []                     # nessun rivale di classe col best
+        lead = mine <= pole_t
+        state = ("lead", 0) if lead else ("gap", round(mine - pole_t, 1))
+        if state == self._st.get("qp_state"):
+            return []
+        self._st["qp_state"] = state
+        if lead:
+            return [self.msg("quali_pole_lead")]
+        gap = mine - pole_t
+        if gap < 0.03:
+            return []
+        return [self.msg("quali_pole_gap",
+                         gap=("%.3f" % gap).replace(".", ","),
+                         name=self._rival_name(pole_nm))]
+
     def tyre_stock(self, raw):
         """INVENTARIO GOMME (una volta): treni slick nuovi/usati rimasti. Detto
         in box (garage/corsia), utile prima di uscire. Dato REST dotazione."""
