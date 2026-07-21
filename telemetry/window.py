@@ -10320,19 +10320,32 @@ class _DriverPage(_OptionsPage):
             pass
 
     def mount_rows(self, rows):
-        """Mette le righe (team, results) nel corpo della pagina."""
+        """Mette le righe (team, results) in una colonna di larghezza sana,
+        in alto a sinistra: niente campi sparati in fondo a destra."""
         try:
             self._rank_scroll.setVisible(False)
             box = QWidget()
+            box.setObjectName("driverCol")
             box.setStyleSheet("background:transparent;")
+            box.setFixedWidth(560)
             v = QVBoxLayout(box)
-            v.setContentsMargins(24, 18, 24, 18)
+            v.setContentsMargins(0, 0, 0, 0)
             v.setSpacing(10)
             for r in rows:
                 if r is not None:
+                    try:
+                        r.setFixedHeight(52)
+                    except Exception:
+                        pass
                     v.addWidget(r)
             v.addStretch(1)
-            self._rv.addWidget(box, 1)
+            wrap = QWidget()
+            wrap.setStyleSheet("background:transparent;")
+            wl = QHBoxLayout(wrap)
+            wl.setContentsMargins(40, 26, 40, 26)
+            wl.addWidget(box, 0, Qt.AlignTop | Qt.AlignLeft)
+            wl.addStretch(1)
+            self._rv.addWidget(wrap, 1)
         except Exception:
             pass
 
@@ -10563,6 +10576,24 @@ class TelemetryWindow(QMainWindow):
         self._lock_chk = _CircleCheck(_lock_get(), "#ff1d43",
                                       _lock_click)
         _lrl.addWidget(self._lock_chk, 0, Qt.AlignVCenter)
+        # riga "Driver": opzione in Options con rotellina -> apre la pagina Driver
+        self._driverrow = QWidget()
+        self._driverrow.setObjectName("widgetRow")
+        self._driverrow.setFixedHeight(46)
+        _dvl = QHBoxLayout(self._driverrow)
+        _dvl.setContentsMargins(14, 0, 12, 0)
+        _dvnm = QLabel("Driver"); _dvnm.setObjectName("widgetName")
+        _dvl.addWidget(_dvnm, 0, Qt.AlignVCenter)
+        _dvl.addStretch(1)
+        self._driver_gear = QPushButton("⚙")
+        self._driver_gear.setCursor(Qt.PointingHandCursor)
+        self._driver_gear.setFixedSize(28, 28)
+        self._driver_gear.setStyleSheet(
+            "QPushButton{background:rgba(255,255,255,0.08);color:#cfd6e2;"
+            "border:none;border-radius:14px;font-size:15px;}"
+            "QPushButton:hover{color:#ff1d43;background:rgba(255,255,255,0.16);}")
+        self._driver_gear.clicked.connect(self._open_driver)
+        _dvl.addWidget(self._driver_gear, 0, Qt.AlignVCenter)
         # riga "Team dev": galleria con le CARD di tutti i brand
         # (colori/loghi/angoli dalla libreria, per revisione visiva)
         def _open_teamdev(*_a):
@@ -10758,15 +10789,6 @@ class TelemetryWindow(QMainWindow):
             a.setEndValue(lb.sizeHint().width() + 6 if on else 0)
             a.start()
         self._ft_gear._hover_cb = _ft_gear_hover
-        # icona DRIVER accanto a settings (apre la pagina Driver)
-        self._driver_btn = QPushButton("DRIVER", self._footer)
-        self._driver_btn.setCursor(Qt.PointingHandCursor)
-        self._driver_btn.setStyleSheet(
-            "QPushButton{background:transparent;color:#aeb6c4;font-size:12px;"
-            "font-weight:700;border:none;letter-spacing:1px;}"
-            "QPushButton:hover{color:#ff1d43;}")
-        self._driver_btn.clicked.connect(self._open_driver)
-        fl.addWidget(self._driver_btn, 0, Qt.AlignVCenter)
         fl.addSpacing(12); fl.addWidget(_fgw, 0, Qt.AlignVCenter)
         # START rimosso dal footer (registrazione automatica); oggetto tenuto
         # nascosto così gli aggiornamenti di stato non causano errori
@@ -10778,11 +10800,12 @@ class TelemetryWindow(QMainWindow):
         self.setCentralWidget(central)
         # righe Video intro + Music nella 3a colonna della pagina OPTIONS
         try:
-            # team + results -> pagina DRIVER (non piu' in Options)
+            # team + results -> pagina DRIVER (aperta dalla rotellina della riga)
             self._driver_page.mount_rows([self._teamrow, self._resultsrow])
-            self._app._legacy._overlaytab._extra_col.insertWidget(0, self._introrow)
-            self._app._legacy._overlaytab._extra_col.insertWidget(1, self._musicrow)
-            self._app._legacy._overlaytab._extra_col.insertWidget(2, self._lockrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(0, self._driverrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(1, self._introrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(2, self._musicrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(3, self._lockrow)
             # Team dev NASCOSTO (pulizia 20/07): la galleria brand resta
             # nel codice, riga non inserita — per riaverla basta questa:
             # self._app._legacy._overlaytab._extra_col.insertWidget(3, self._teamdevrow)
