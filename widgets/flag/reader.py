@@ -47,11 +47,16 @@ class FlagReader:
             my_tag = class_tag(my_cls_raw)
             my_rank = _SPEED_RANK.get(my_tag, 0)
 
+            # PIT CLOSED: prova/quali (non gara) con game_phase == 0 (come
+            # TinyPedal: pit_open = mGamePhase > 0). Rosso al semaforo uscita box.
+            _sess = int(getattr(si, "mSession", 0) or 0)
+            _phase = int(getattr(si, "mGamePhase", 0) or 0)
             out = {
                 "num_penalties": int(vp.mNumPenalties),
                 "checkered": (int(getattr(vp, "mFinishStatus", 0) or 0) == 1),
                 "yellow_dist": None,
                 "blue_class": None,
+                "pit_closed": (_sess < 10 and _phase == 0),
             }
 
             # yellow attiva = qualsiasi settore == 1

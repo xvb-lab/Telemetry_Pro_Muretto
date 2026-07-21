@@ -10,7 +10,7 @@
 
 #flagRow { background: transparent; }
 
-QLabel#flagYellow, QLabel#flagBlue, QLabel#flagPen, QLabel#flagFin, QLabel#flagWet {
+QLabel#flagYellow, QLabel#flagBlue, QLabel#flagPen, QLabel#flagFin, QLabel#flagWet, QLabel#flagPit {
     font-weight: bold;
     font-size: 16px;
     border-radius: 3px;
@@ -22,3 +22,4 @@ QLabel#flagYellow, QLabel#flagBlue, QLabel#flagPen, QLabel#flagFin, QLabel#flagW
 #flagPen    { background: #ff3b30; color: #fff; }
 #flagFin    { background: #ffffff; color: #000; }
 #flagWet    { background: #ffffff; color: #0a2a6b; }
+#flagPit    { background: #d0021b; color: #fff; }

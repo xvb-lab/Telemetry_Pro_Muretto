@@ -80,8 +80,9 @@ class FlagOverlay(QWidget):
         self.flag_pen = QLabel(""); self.flag_pen.setObjectName("flagPen"); self.flag_pen.setAlignment(Qt.AlignCenter)
         self.flag_fin = QLabel(""); self.flag_fin.setObjectName("flagFin"); self.flag_fin.setAlignment(Qt.AlignCenter)
         self.flag_wet = QLabel("WET"); self.flag_wet.setObjectName("flagWet"); self.flag_wet.setAlignment(Qt.AlignCenter)
+        self.flag_pit = QLabel("PIT CLOSED"); self.flag_pit.setObjectName("flagPit"); self.flag_pit.setAlignment(Qt.AlignCenter)
 
-        self._flags = (self.flag_yellow, self.flag_blue, self.flag_pen, self.flag_fin, self.flag_wet)
+        self._flags = (self.flag_yellow, self.flag_blue, self.flag_pen, self.flag_fin, self.flag_wet, self.flag_pit)
         self._fx = {}
         self._anim = {}
         self._shown = {}
@@ -100,6 +101,7 @@ class FlagOverlay(QWidget):
             self._conn[fl] = False
 
         rl.addStretch()
+        rl.addWidget(self.flag_pit)
         rl.addWidget(self.flag_wet)
         rl.addWidget(self.flag_yellow)
         rl.addWidget(self.flag_blue)
@@ -249,6 +251,12 @@ class FlagOverlay(QWidget):
             self._fade(self.flag_wet, True)
         else:
             self._fade(self.flag_wet, False)
+
+        if d.get("pit_closed"):
+            self.flag_pit.setText("PIT CLOSED")
+            self._fade(self.flag_pit, True)
+        else:
+            self._fade(self.flag_pit, False)
 
         self.adjustSize()
 
