@@ -170,20 +170,6 @@ class _RankRow(QFrame):
             h.setSpacing(0)
         pcol = "#ffffff"
         pb = QLabel(str(pos)); pb.setFixedWidth(44); pb.setAlignment(Qt.AlignCenter)
-        # PODIO di classe: trofeo (oro/argento/bronzo) al posto del numero
-        # per i primi 3. assets/img/tr_1.png / tr_2.png / tr_3.png
-        if pos in (1, 2, 3):
-            try:
-                from PySide6.QtGui import QPixmap
-                _tp = (Path(__file__).resolve().parent.parent
-                       / "assets" / "img" / ("tr_%d.png" % pos))
-                if _tp.exists():
-                    _pm = QPixmap(str(_tp))
-                    if not _pm.isNull():
-                        pb.setPixmap(_pm.scaledToHeight(
-                            34, Qt.SmoothTransformation))
-            except Exception:
-                pass
         if self._card_bg is not None:
             # numero grande corsivo, stesso stile delle card onboard
             pb.setStyleSheet(
@@ -395,6 +381,11 @@ class _RankRow(QFrame):
             h.addWidget(_tw, 0, Qt.AlignVCenter)
             h.addSpacing(6)
             h.addWidget(_fw, 0, Qt.AlignVCenter)
+            # PODIO di classe: trofeo DOPO la benzina, per i primi 3
+            _tro = self._trophy_widget(pos)
+            if _tro is not None:
+                h.addSpacing(16)
+                h.addWidget(_tro, 0, Qt.AlignVCenter)
             h.addSpacing(14)
             h.addStretch(1)
             # card corta: il navy finisce qui, non a tutta pagina
@@ -418,6 +409,32 @@ class _RankRow(QFrame):
                                   "font-size:14px;font-weight:700;"
                                   "background:transparent;" % _seccol)
                 h.addWidget(_sl); h.addSpacing(6)
+
+    def _trophy_widget(self, pos):
+        """Trofeo di classe (oro/argento/bronzo) per i primi 3. Render a 2x e
+        devicePixelRatio=2 -> nitido (niente sgranatura). None se pos>3."""
+        if pos not in (1, 2, 3):
+            return None
+        try:
+            from PySide6.QtGui import QPixmap
+            _tp = (Path(__file__).resolve().parent.parent
+                   / "assets" / "img" / ("tr_%d.png" % pos))
+            if not _tp.exists():
+                return None
+            pm = QPixmap(str(_tp))
+            if pm.isNull():
+                return None
+            dpr = 2.0
+            pm = pm.scaledToHeight(int(52 * dpr), Qt.SmoothTransformation)
+            pm.setDevicePixelRatio(dpr)
+            lb = QLabel()
+            lb.setPixmap(pm)
+            lb.setFixedWidth(58)
+            lb.setAlignment(Qt.AlignCenter)
+            lb.setStyleSheet("background:transparent;")
+            return lb
+        except Exception:
+            return None
 
     def paintEvent(self, e):
         # sfondo card: TINTA BRAND con gradiente + barra bianca diagonale
