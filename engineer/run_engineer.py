@@ -182,22 +182,33 @@ def _auto_fuel_tick(feed, live, cfg, brain, laps_done):
         pass
 
 
+_TYRE_PFX = ("TIRES", "FL TIRE", "FR TIRE", "RL TIRE", "RR TIRE")
+
+
 def _set_wet_tyres(menu_raw):
-    """Imposta le gomme WET nel pit menu (master TIRES + le 4 ruote). Ritorna
+    """Imposta le WET nel pit menu (master TIRES + le 4 ruote). Riconosce i nomi
+    VERI di LMU come la dash, ANCHE in italiano ('Bagnata') — prima cercava solo
+    'WET'/'RAIN' e in gioco italiano non le trovava mai. Preferisce la wet NUOVA.
     True se ha cambiato qualcosa."""
     changed = False
     for it in menu_raw or []:
         nm = str((it or {}).get("name") or "").upper()
-        if not (nm.startswith("TIRES") or nm[:2] in ("FL", "FR", "RL", "RR")):
+        if not nm.startswith(_TYRE_PFX):
             continue
         opts = it.get("settings") or []
+        wet_new = wet_any = None
         for ix, op in enumerate(opts):
             t = str((op or {}).get("text") or "").upper()
-            if "WET" in t or "RAIN" in t:
-                if int(it.get("currentSetting") or 0) != ix:
-                    it["currentSetting"] = ix
-                    changed = True
-                break
+            if "BAGNAT" in t or "WET" in t or "RAIN" in t or "PLUIE" in t \
+                    or "LLUVIA" in t:
+                if wet_any is None:
+                    wet_any = ix
+                if wet_new is None and not ("USAT" in t or "USED" in t):
+                    wet_new = ix
+        pick = wet_new if wet_new is not None else wet_any
+        if pick is not None and int(it.get("currentSetting") or 0) != pick:
+            it["currentSetting"] = pick
+            changed = True
     return changed
 
 
