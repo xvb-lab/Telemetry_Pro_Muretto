@@ -10490,11 +10490,26 @@ class TelemetryWindow(QMainWindow):
                               "background:transparent;")
             _line.addWidget(_cl, 0, Qt.AlignVCenter)
             _line.addStretch(1)
-            _sp = _QSpin(); _sp.setRange(0, 9999); _sp.setFixedWidth(84)
+            _sp = _QSpin(); _sp.setRange(0, 9999); _sp.setFixedWidth(92)
             _sp.setValue(int(_pf0.get("stat_" + _k, _auto.get(_k, 0))))
             _sp.setStyleSheet(
                 "QSpinBox{color:#fff;background:rgba(255,255,255,0.08);"
-                "border:none;border-radius:6px;padding:3px 6px;font-size:13px;}")
+                "border:none;border-radius:6px;padding:3px 24px 3px 8px;"
+                "font-size:13px;}"
+                "QSpinBox::up-button{subcontrol-origin:border;"
+                "subcontrol-position:top right;width:20px;border:none;"
+                "border-top-right-radius:6px;background:rgba(255,255,255,0.12);}"
+                "QSpinBox::down-button{subcontrol-origin:border;"
+                "subcontrol-position:bottom right;width:20px;border:none;"
+                "border-bottom-right-radius:6px;background:rgba(255,255,255,0.12);}"
+                "QSpinBox::up-button:hover,QSpinBox::down-button:hover{"
+                "background:#ff1d43;}"
+                "QSpinBox::up-arrow{width:0;height:0;image:none;"
+                "border-left:4px solid transparent;border-right:4px solid transparent;"
+                "border-bottom:5px solid #eef1f6;}"
+                "QSpinBox::down-arrow{width:0;height:0;image:none;"
+                "border-left:4px solid transparent;border-right:4px solid transparent;"
+                "border-top:5px solid #eef1f6;}")
             _sp.valueChanged.connect(lambda v, k=_k: self._save_stat_opt(k, v))
             self._stat_spins[_k] = _sp
             _line.addWidget(_sp, 0, Qt.AlignVCenter)
