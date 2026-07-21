@@ -10333,10 +10333,6 @@ class _DriverPage(_OptionsPage):
             v.setSpacing(10)
             for r in rows:
                 if r is not None:
-                    try:
-                        r.setFixedHeight(52)
-                    except Exception:
-                        pass
                     v.addWidget(r)
             v.addStretch(1)
             wrap = QWidget()
@@ -10470,12 +10466,10 @@ class TelemetryWindow(QMainWindow):
         from PySide6.QtWidgets import QSpinBox as _QSpin
         self._resultsrow = QWidget()
         self._resultsrow.setObjectName("widgetRow")
-        self._resultsrow.setFixedHeight(46)
-        _rrl = QHBoxLayout(self._resultsrow)
-        _rrl.setContentsMargins(14, 0, 12, 0); _rrl.setSpacing(6)
+        _rrl = QVBoxLayout(self._resultsrow)
+        _rrl.setContentsMargins(14, 10, 12, 10); _rrl.setSpacing(7)
         _rnm = QLabel("Results"); _rnm.setObjectName("widgetName")
-        _rrl.addWidget(_rnm, 0, Qt.AlignVCenter)
-        _rrl.addStretch(1)
+        _rrl.addWidget(_rnm)
         try:
             from core.results import race_stats as _rstat
             _auto = _rstat()
@@ -10486,20 +10480,25 @@ class TelemetryWindow(QMainWindow):
         except Exception:
             _pf0 = {}
         self._stat_spins = {}
-        for _k, _cap in (("races", "R"), ("wins", "W"), ("podiums", "P"),
-                         ("top5", "T5"), ("dnf", "DNF")):
+        for _k, _cap in (("races", "Races"), ("wins", "Wins"),
+                         ("podiums", "Podiums"), ("top5", "Top 5"),
+                         ("dnf", "DNF")):
+            _line = QHBoxLayout()
+            _line.setContentsMargins(8, 0, 0, 0); _line.setSpacing(6)
             _cl = QLabel(_cap)
-            _cl.setStyleSheet("color:#9fb0c8;font-size:11px;font-weight:700;"
+            _cl.setStyleSheet("color:#9fb0c8;font-size:13px;font-weight:600;"
                               "background:transparent;")
-            _rrl.addWidget(_cl, 0, Qt.AlignVCenter)
-            _sp = _QSpin(); _sp.setRange(0, 9999); _sp.setFixedWidth(52)
+            _line.addWidget(_cl, 0, Qt.AlignVCenter)
+            _line.addStretch(1)
+            _sp = _QSpin(); _sp.setRange(0, 9999); _sp.setFixedWidth(84)
             _sp.setValue(int(_pf0.get("stat_" + _k, _auto.get(_k, 0))))
             _sp.setStyleSheet(
                 "QSpinBox{color:#fff;background:rgba(255,255,255,0.08);"
-                "border:none;border-radius:6px;padding:2px 4px;font-size:12px;}")
+                "border:none;border-radius:6px;padding:3px 6px;font-size:13px;}")
             _sp.valueChanged.connect(lambda v, k=_k: self._save_stat_opt(k, v))
             self._stat_spins[_k] = _sp
-            _rrl.addWidget(_sp, 0, Qt.AlignVCenter)
+            _line.addWidget(_sp, 0, Qt.AlignVCenter)
+            _rrl.addLayout(_line)
         # riga "Music" (check tondo): stessa fattura della riga intro
         try:
             _mus0 = bool(_load_profile().get("music_on", True))
