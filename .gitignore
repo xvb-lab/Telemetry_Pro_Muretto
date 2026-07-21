@@ -27,6 +27,9 @@ settings/online.json
 # Mappe imparate a runtime dal map widget (per-macchina, si rigenerano guidando)
 settings/maps/
 
+# Tracce musicali (copyright + file grossi): restano in locale e nell'exe, fuori dal git
+assets/audio/music/
+
 # Sistema / editor
 .DS_Store
 Thumbs.db

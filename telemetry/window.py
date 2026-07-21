@@ -3882,7 +3882,8 @@ class _IntroPage(QWidget):
     Chiama on_done() a fine video o al click. Solleva eccezione in __init__ se la
     multimedia non c'è (il chiamante fa fallback al menu)."""
     _VIDEO = Path(__file__).resolve().parent.parent / "assets" / "intro.mp4"
-    _MUSIC = Path(__file__).resolve().parent.parent / "assets" / "intro.mp3"
+    _MUSIC = (Path(__file__).resolve().parent.parent
+              / "assets" / "audio" / "music" / "1.mp3")
 
     def __init__(self, on_done, parent=None):
         super().__init__(parent)
@@ -3913,8 +3914,16 @@ class _IntroPage(QWidget):
         self._player = QMediaPlayer(self)
         self._audio = QAudioOutput(self)
         self._player.setAudioOutput(self._audio)
-        self._audio.setMuted(True)            # parte muto: l'utente clicca per il volume
+        self._audio.setMuted(True)            # audio del VIDEO muto: lo sostituisce la musica
+        # colonna sonora dell'intro (1.mp3): parte a volume 70%, NON muta
         self._music = None
+        self._music_out = None
+        if self._MUSIC.exists():
+            self._music = QMediaPlayer(self)
+            self._music_out = QAudioOutput(self)
+            self._music.setAudioOutput(self._music_out)
+            self._music_out.setVolume(0.70)
+            self._music.setSource(QUrl.fromLocalFile(str(self._MUSIC)))
         self._player.setVideoOutput(self._item)
         self._player.mediaStatusChanged.connect(self._on_status)
         self._player.setSource(QUrl.fromLocalFile(str(self._VIDEO)))
@@ -3939,7 +3948,7 @@ class _IntroPage(QWidget):
         self._proxy.setVisible(False)
 
         # tasto volume/mute (Material Icons via ligatura), visibile da subito
-        self._mute = QPushButton("volume_off")
+        self._mute = QPushButton("volume_up")
         self._mute.setCursor(Qt.PointingHandCursor)
         self._mute.setStyleSheet(
             "QPushButton { font-family:'Material Icons'; font-size:26px;"
@@ -4168,8 +4177,9 @@ class _IntroPage(QWidget):
                                  vp.height() * 0.42 - sh.height() / 2.0)
 
     def _toggle_mute(self):
-        m = not self._audio.isMuted()
-        self._audio.setMuted(m)
+        out = self._music_out or self._audio   # ora l'audio udibile e' la musica
+        m = not out.isMuted()
+        out.setMuted(m)
         self._mute.setText("volume_off" if m else "volume_up")
 
     def _place_mute(self):
@@ -7227,7 +7237,8 @@ class _IntroPage(QWidget):
     Chiama on_done() a fine video o al click. Solleva eccezione in __init__ se la
     multimedia non c'è (il chiamante fa fallback al menu)."""
     _VIDEO = Path(__file__).resolve().parent.parent / "assets" / "intro.mp4"
-    _MUSIC = Path(__file__).resolve().parent.parent / "assets" / "intro.mp3"
+    _MUSIC = (Path(__file__).resolve().parent.parent
+              / "assets" / "audio" / "music" / "1.mp3")
 
     def __init__(self, on_done, parent=None):
         super().__init__(parent)
@@ -7258,8 +7269,16 @@ class _IntroPage(QWidget):
         self._player = QMediaPlayer(self)
         self._audio = QAudioOutput(self)
         self._player.setAudioOutput(self._audio)
-        self._audio.setMuted(True)            # parte muto: l'utente clicca per il volume
+        self._audio.setMuted(True)            # audio del VIDEO muto: lo sostituisce la musica
+        # colonna sonora dell'intro (1.mp3): parte a volume 70%, NON muta
         self._music = None
+        self._music_out = None
+        if self._MUSIC.exists():
+            self._music = QMediaPlayer(self)
+            self._music_out = QAudioOutput(self)
+            self._music.setAudioOutput(self._music_out)
+            self._music_out.setVolume(0.70)
+            self._music.setSource(QUrl.fromLocalFile(str(self._MUSIC)))
         self._player.setVideoOutput(self._item)
         self._player.mediaStatusChanged.connect(self._on_status)
         self._player.setSource(QUrl.fromLocalFile(str(self._VIDEO)))
@@ -7284,7 +7303,7 @@ class _IntroPage(QWidget):
         self._proxy.setVisible(False)
 
         # tasto volume/mute (Material Icons via ligatura), visibile da subito
-        self._mute = QPushButton("volume_off")
+        self._mute = QPushButton("volume_up")
         self._mute.setCursor(Qt.PointingHandCursor)
         self._mute.setStyleSheet(
             "QPushButton { font-family:'Material Icons'; font-size:26px;"
@@ -7513,8 +7532,9 @@ class _IntroPage(QWidget):
                                  vp.height() * 0.42 - sh.height() / 2.0)
 
     def _toggle_mute(self):
-        m = not self._audio.isMuted()
-        self._audio.setMuted(m)
+        out = self._music_out or self._audio   # ora l'audio udibile e' la musica
+        m = not out.isMuted()
+        out.setMuted(m)
         self._mute.setText("volume_off" if m else "volume_up")
 
     def _place_mute(self):
