@@ -200,6 +200,7 @@ def _collect(brain, raw, ld, pace):
         (brain.pace_notes_call, (raw, ld)),
         (brain.tlimits_call, (raw, ld)),
         (brain.rain_live, (raw, ld)),
+        (brain.rain_pace_loss, (raw, ld)),        # crollo passo su slick bagnato -> wet
         (brain.wet_patches, (raw,)),
         (brain.wet_sector_map, (raw, ld)),        # settore piu' bagnato (v2)
     )

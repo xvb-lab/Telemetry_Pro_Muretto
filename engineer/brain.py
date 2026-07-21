@@ -64,8 +64,8 @@ def session_kind(m_session):
 
 
 def _fmt_lap_round(s):
-    """Tempo giro PARLATO col DECIMALE sempre: '1 e 52 e 3' (sotto il minuto
-    '54 e 8'). Si puo' spegnere con l'opzione radio 'lap_time_tenths'=false."""
+    """Tempo giro PARLATO con TUTTI i decimali (millesimi): '1 e 52 e 323',
+    sotto il minuto '54 e 823'."""
     try:
         s = float(s)
     except (TypeError, ValueError):
@@ -73,20 +73,13 @@ def _fmt_lap_round(s):
     m = int(s // 60)
     sec_f = s - m * 60
     sec = int(sec_f)
+    ms = int(round((sec_f - sec) * 1000))
+    if ms >= 1000:
+        sec += 1
+        ms = 0
     if m == 0:
-        dec = int(round((sec_f - sec) * 10))
-        if dec >= 10:
-            sec += 1
-            dec = 0
-        return "%d e %d" % (sec, dec)
-    try:
-        from core.engineer_cfg import load as _plc
-        if _plc().get("lap_time_tenths", True):    # decimale SEMPRE (default on)
-            return "%d e %02d e %d" % (m, sec, int((sec_f - sec) * 10))
-    except Exception:
-        pass
-    qual = "alto" if (sec_f - sec) >= 0.5 else "basso"
-    return "%d e %02d %s" % (m, sec, qual)
+        return "%d e %03d" % (sec, ms)
+    return "%d e %02d e %03d" % (m, sec, ms)
 
 
 # nome classe pronunciabile (dal tag) — per traffico/blu (portato da v2)
@@ -2036,6 +2029,39 @@ class Engineer:
             return []
         self._st["wx_case"] = code
         return [self.msg(code, **kw)]
+
+    def rain_pace_loss(self, raw, laps_done):
+        """SU SLICK COL BAGNATO: tiene il tuo passo ASCIUTTO come riferimento;
+        se ora il giro crolla oltre soglia (stai scivolando) suggerisce le wet.
+        Non e' un ordine: consiglio. Una volta (riarma a gomma cambiata)."""
+        raw = raw or {}
+        if self._wet_mounted(raw):
+            self._st.pop("rpl_said", None)        # gia' su wet: riarma, muto
+            return []
+        try:
+            wet = float(raw.get("wetness") or 0.0)
+            rn = float(raw.get("raining") or 0.0)
+            lt = float(raw.get("lap_time") or 0.0)
+        except (TypeError, ValueError):
+            return []
+        if lt <= 20.0:
+            return []
+        # ASCIUTTO -> aggiorna il riferimento (giro valido)
+        if wet < 0.10 and rn < 0.10:
+            if not raw.get("invalid"):
+                b = self._st.get("dry_ref")
+                if b is None or lt < b:
+                    self._st["dry_ref"] = lt
+            return []
+        # BAGNATO su slick: confronto col riferimento asciutto
+        dry = self._st.get("dry_ref")
+        if not dry:
+            return []
+        loss = lt - float(dry)
+        if loss >= 3.0 and not self._st.get("rpl_said"):
+            self._st["rpl_said"] = True
+            return [self.msg("rain_box_pace", perdita=int(round(loss)))]
+        return []
 
     def race_briefing(self, raw):
         """BRIEFING METEO al rolling start (PRE-VERDE): quadro pioggia della
