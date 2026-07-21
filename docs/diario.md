@@ -245,6 +245,14 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
 (traffico proiettato al rientro box), `wet_sector_map` (settore più bagnato).
 Agganciate in `_collect`, testate. Con sector_delta = **4 di 6** funzioni v2 fatte.
 
+**Assets reimportati TUTTI ("come prima", richiesta utente).**
+- Portati dal backup: `assets/` completo (103M: bg/cars/catcards/class/flags/mfd/
+  racecontrol/teamradio/tracklogos/trackcards/trackmaps_svg/weather/svg/video…),
+  `fonts/` (34M: CP Mono/Bebas/Heebo/Titillium), `brandlogo/` (1.9M), `cardlogo/`.
+  Merge non distruttivo: tenute le sotto-cartelle 0.3b `assets/icons` e
+  `assets/audio` (toni). Nessun file oltre il limite GitHub. Servono a overlay
+  (font/mappe/loghi) e UI per renderizzare giusti.
+
 **FASE 1 reintegrazione — pipeline overlay PROVATO (map).**
 - Portato `run_overlay` (dal backup: watchdog che chiude l'overlay se muore
   l'app, font, set_enabled) adattato a `overlays/registry.py` (chiave→classe).

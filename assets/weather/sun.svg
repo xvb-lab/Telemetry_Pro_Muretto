@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <g transform="translate(32,32)">
+    <line stroke="#f9c74f" stroke-linecap="round" stroke-width="2.5" x1="0" y1="-14" x2="0" y2="-10"/>
+    <line stroke="#f9c74f" stroke-linecap="round" stroke-width="2.5" transform="rotate(45)" x1="0" y1="-14" x2="0" y2="-10"/>
+    <line stroke="#f9c74f" stroke-linecap="round" stroke-width="2.5" transform="rotate(90)" x1="0" y1="-14" x2="0" y2="-10"/>
+    <line stroke="#f9c74f" stroke-linecap="round" stroke-width="2.5" transform="rotate(135)" x1="0" y1="-14" x2="0" y2="-10"/>
+    <line stroke="#f9c74f" stroke-linecap="round" stroke-width="2.5" transform="rotate(180)" x1="0" y1="-14" x2="0" y2="-10"/>
+    <line stroke="#f9c74f" stroke-linecap="round" stroke-width="2.5" transform="rotate(225)" x1="0" y1="-14" x2="0" y2="-10"/>
+    <line stroke="#f9c74f" stroke-linecap="round" stroke-width="2.5" transform="rotate(270)" x1="0" y1="-14" x2="0" y2="-10"/>
+    <line stroke="#f9c74f" stroke-linecap="round" stroke-width="2.5" transform="rotate(315)" x1="0" y1="-14" x2="0" y2="-10"/>
+    <circle cx="0" cy="0" r="8" fill="#f9c74f"/>
+  </g>
+</svg>
