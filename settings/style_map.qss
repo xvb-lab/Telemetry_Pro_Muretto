@@ -1,0 +1,6 @@
+/* Map — tracciato + auto per categoria */
+#overlay   { background: transparent; }
+#container {
+    background: rgba(8,11,16,0.75);
+    border-radius: 8px;
+}

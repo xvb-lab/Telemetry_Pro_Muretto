@@ -245,6 +245,19 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
 (traffico proiettato al rientro box), `wet_sector_map` (settore più bagnato).
 Agganciate in `_collect`, testate. Con sector_delta = **4 di 6** funzioni v2 fatte.
 
+**FASE 1 reintegrazione — pipeline overlay PROVATO (map).**
+- Portato `run_overlay` (dal backup: watchdog che chiude l'overlay se muore
+  l'app, font, set_enabled) adattato a `overlays/registry.py` (chiave→classe).
+- Portato overlay `map` (widget/reader/style) + `settings/style_map.qss` +
+  dipendenza `core/rest_client.py`. Import OK.
+- Provato: `python -m overlays.run_overlay map` gira come **processo SEPARATO**
+  (PID a sé), zero errori, legge shared memory. Pattern overlay confermato.
+- `main.py::start_overlays(keys)` implementato: lancia gli overlay come processi
+  separati col watchdog (LMU_PARENT_PID). Da chiamare con la lista abilitata.
+- DA FARE: portare gli altri overlay del set WEC (wec26board/battle/battleb/flag/
+  mfd/mini, wecrevs, wecbars + supporto standings/weconboard/relative/flag/list),
+  registrarli, e la UI per abilitarli (arriva con FASE 2).
+
 **3 pulsanti "prova toni" nelle Opzioni (richiesta utente).**
 - `main.py`: riga "Prova toni" con 3 pulsanti (▶ Radio / ▶ Fine / ▶ Push-to-talk)
   che suonano il rispettivo tono (via MCI, in thread, al volume voce impostato)

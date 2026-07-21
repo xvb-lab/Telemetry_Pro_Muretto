@@ -190,9 +190,26 @@ class MainWindow(QMainWindow):
                 pass
         self._muretto_proc = None
 
-    def start_overlays(self):
-        """Avvia gli OVERLAY, ognuno nel suo processo (da fare)."""
-        pass
+    def start_overlays(self, keys=None):
+        """Avvia gli overlay indicati come processi separati. Ognuno ha il suo
+        interprete/GIL (niente scatti tra loro né con UI/muretto) e un watchdog
+        che lo chiude se l'app muore (LMU_PARENT_PID)."""
+        import os
+        try:
+            from overlays.registry import WIDGETS
+            valid = {k for k, _, _ in WIDGETS}
+        except Exception:
+            return
+        env = dict(os.environ, LMU_PARENT_PID=str(os.getpid()))
+        for k in [x for x in (keys or []) if x in valid]:
+            try:
+                kw = {"cwd": str(ROOT), "env": env}
+                if sys.platform == "win32":
+                    kw["creationflags"] = 0x08000000     # niente console
+                subprocess.Popen([sys.executable, "-m", "overlays.run_overlay", k],
+                                 **kw)
+            except Exception:
+                pass
 
     # ── prova toni radio ──────────────────────────────────────────────────
     def _tone_path(self, name):
