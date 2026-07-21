@@ -2155,6 +2155,28 @@ class Engineer:
                 return [self.msg("tlimits_warn", left=left)]
         return []
 
+    def fuel_save_option(self, raw, laps_done):
+        """MARGINE PER UNA SOSTA IN MENO: se allungando ogni stint di pochi
+        giri (risparmiando VE/benzina) copri la gara con una sosta in meno,
+        lo segnala. Consiglio, una volta per piano."""
+        md = self._race_model or {}
+        plan = self._plan or {}
+        try:
+            stops = int(plan.get("stops") or 0)
+            autonomy = float(plan.get("stint_laps") or 0.0)
+            race_laps = float(md.get("race_laps") or 0.0)
+        except (TypeError, ValueError):
+            return []
+        if stops < 1 or autonomy <= 0 or race_laps <= 0:
+            return []
+        # con UNA sosta in meno: `stops` stint invece di stops+1
+        need_per_stint = race_laps / float(stops)
+        extra = need_per_stint - autonomy          # giri extra da coprire/stint
+        if 0.4 < extra <= 3.0 and not self._st.get("save_said"):
+            self._st["save_said"] = True
+            return [self.msg("briefing_save")]
+        return []
+
     def strat_extra_stop(self, raw, laps_done):
         """SOSTA GRATIS: se il gap dal rivale dietro copre la perdita
         sosta, una fermata extra (gomme fresche) non costa posizione."""
