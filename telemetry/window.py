@@ -4017,7 +4017,7 @@ class _IntroPage(QWidget):
         self._subtitle = QLabel("MURETTO")
         self._subtitle.setAlignment(Qt.AlignCenter)
         self._subtitle.setStyleSheet(
-            "QLabel { font-family:'Archivo SemiExpanded'; font-style:italic;"
+            "QLabel { font-family:'Druk Wide', 'Archivo SemiExpanded'; font-style:italic;"
             " font-weight:900; font-size:58px; letter-spacing:4px;"
             " color:#FF1D43; background:transparent; }"
         )
@@ -4659,7 +4659,7 @@ class _AppPage(QWidget):
         self._title = QLabel("")
         # titoli pagina in ARCHIVO (font WEC originale), corsivo 900
         self._title.setStyleSheet(
-            "color:#ffffff; font-family:'Archivo SemiExpanded';"
+            "color:#ffffff; font-family:'Druk Wide', 'Archivo SemiExpanded';"
             " font-style:italic; font-weight:900;"
             " font-size:26px; background:transparent;")
         head.addWidget(self._back, 0, Qt.AlignVCenter)
@@ -7467,7 +7467,7 @@ class _IntroPage(QWidget):
         self._subtitle = QLabel("MURETTO")
         self._subtitle.setAlignment(Qt.AlignCenter)
         self._subtitle.setStyleSheet(
-            "QLabel { font-family:'Archivo SemiExpanded'; font-style:italic;"
+            "QLabel { font-family:'Druk Wide', 'Archivo SemiExpanded'; font-style:italic;"
             " font-weight:900; font-size:58px; letter-spacing:4px;"
             " color:#FF1D43; background:transparent; }"
         )
@@ -8109,7 +8109,7 @@ class _AppPage(QWidget):
         self._title = QLabel("")
         # titoli pagina in ARCHIVO (font WEC originale), corsivo 900
         self._title.setStyleSheet(
-            "color:#ffffff; font-family:'Archivo SemiExpanded';"
+            "color:#ffffff; font-family:'Druk Wide', 'Archivo SemiExpanded';"
             " font-style:italic; font-weight:900;"
             " font-size:26px; background:transparent;")
         head.addWidget(self._back, 0, Qt.AlignVCenter)
@@ -10422,7 +10422,7 @@ class TelemetryWindow(QMainWindow):
         # logo "MURETTO" per PRIMO a sinistra (stile intro: Archivo corsivo, rosso LMU)
         _mlab = QLabel("MURETTO")
         _mlab.setStyleSheet(
-            "QLabel{font-family:'Archivo SemiExpanded','Archivo';"
+            "QLabel{font-family:'Druk Wide', 'Archivo SemiExpanded','Archivo';"
             "font-style:italic;font-weight:800;color:#ff1d43;font-size:15px;"
             "letter-spacing:1px;background:transparent;}")
         fl.addWidget(_mlab, 0, Qt.AlignVCenter)

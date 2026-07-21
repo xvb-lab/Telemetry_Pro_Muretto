@@ -173,7 +173,7 @@ class _RankRow(QFrame):
         if self._card_bg is not None:
             # numero grande corsivo, stesso stile delle card onboard
             pb.setStyleSheet(
-                "color:%s;font-family:'Archivo SemiExpanded';"
+                "color:%s;font-family:'Druk Wide', 'Archivo SemiExpanded';"
                 "font-size:30px;font-weight:900;font-style:italic;"
                 "background:transparent;"
                 % getattr(self, "_card_txc", "#ffffff"))
@@ -218,7 +218,7 @@ class _RankRow(QFrame):
         dl = QLabel(_pn.upper())
         if self._card_bg is not None:
             dl.setStyleSheet(
-                "color:%s;font-family:'Archivo SemiExpanded';"
+                "color:%s;font-family:'Druk Wide', 'Archivo SemiExpanded';"
                 "font-size:15px;font-weight:900;font-style:italic;"
                 "background:transparent;"
                 % getattr(self, "_card_txc", "#ffffff"))

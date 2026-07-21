@@ -38,7 +38,8 @@ def load_custom_fonts():
     if _fonts_loaded:
         return
     if FONT_DIR.exists():
-        for f in FONT_DIR.glob("*.[ot]tf"):
+        # ricorsivo: carica anche le sottocartelle (es. fonts/wec/)
+        for f in FONT_DIR.rglob("*.[ot]tf"):
             QFontDatabase.addApplicationFont(str(f))
     _fonts_loaded = True
 
