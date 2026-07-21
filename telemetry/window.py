@@ -10431,6 +10431,34 @@ class TelemetryWindow(QMainWindow):
         _flab.setStyleSheet("color:#aeb6c4;font-size:14px;font-weight:400;"
                             "background:transparent;")
         fl.addWidget(_flab, 0, Qt.AlignVCenter)
+        # DOCS: pill blu SUBITO DOPO la versione (richiesta utente). Icona globo
+        # spostata un po' a destra e in basso via offset di render.
+        def _globe_icon(dx, dy):
+            from PySide6.QtGui import QIcon
+            from PySide6.QtCore import QRectF
+            from ui.icons import GLOBE_SVG as _G
+            r = QSvgRenderer(QByteArray(_G.encode("utf-8")))
+            pm = QPixmap(32, 32); pm.fill(Qt.transparent)
+            pp = QPainter(pm); pp.setRenderHint(QPainter.Antialiasing, True)
+            r.render(pp, QRectF(dx, dy, 26.0, 26.0))
+            pp.end()
+            return QIcon(pm)
+        _dc = QPushButton("Docs")
+        _dc.setObjectName("ftDocs")
+        _dc.setCursor(Qt.PointingHandCursor)
+        _dc.setStyleSheet(
+            "QPushButton#ftDocs{color:#ffffff;font-size:14px;font-weight:700;"
+            "background:#0a66c2;border:none;border-radius:12px;padding:4px 14px;}"
+            "QPushButton#ftDocs:hover{background:#1478d8;}")
+        try:
+            _dc.setIcon(_globe_icon(7, 7))       # 7px a destra e in basso
+            _dc.setIconSize(QSize(16, 16))
+            _dc.setLayoutDirection(Qt.RightToLeft)
+        except Exception:
+            pass
+        _dc.clicked.connect(
+            lambda: QDesktopServices.openUrl(QUrl(_GITHUB_URL + "#readme")))
+        fl.addSpacing(12); fl.addWidget(_dc, 0, Qt.AlignVCenter)
         fl.addSpacing(18)
         # riga "Video intro" (check tondo): vive nella 3a colonna di OPTIONS
         from ui.widgets import _CircleCheck
@@ -10773,23 +10801,6 @@ class TelemetryWindow(QMainWindow):
         except Exception:
             pass
         fl.addSpacing(8); fl.addWidget(_gh, 0, Qt.AlignVCenter)
-        _dc = QPushButton("Docs")
-        _dc.setObjectName("ftDocs")
-        _dc.setCursor(Qt.PointingHandCursor)
-        _dc.setStyleSheet(
-            "QPushButton#ftDocs{color:#ffffff;font-size:14px;font-weight:700;"
-            "background:#0a66c2;border:none;border-radius:12px;padding:4px 14px;}"
-            "QPushButton#ftDocs:hover{background:#1478d8;}")
-        try:
-            _dc.setIcon(_svg_icon(GLOBE_SVG))
-            _dc.setIconSize(QSize(15, 15))
-            _dc.setLayoutDirection(Qt.RightToLeft)
-        except Exception:
-            pass
-        # link provvisorio al README: puntera' alla pagina Docs quando ci sara'
-        _dc.clicked.connect(
-            lambda: QDesktopServices.openUrl(QUrl(_GITHUB_URL + "#readme")))
-        fl.addSpacing(8); fl.addWidget(_dc, 0, Qt.AlignVCenter)
         # rotella OPTIONS in fondo a DESTRA (spostata dall'header):
         # la scritta esce a SINISTRA della rotella in hover
         _fgw = QWidget(); _fgw.setStyleSheet("background:transparent;")
