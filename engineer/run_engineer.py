@@ -214,6 +214,8 @@ def _collect(brain, raw, ld, pace):
         (brain.fuel_save_option, (raw, ld)),      # margine per una sosta in meno
         (brain.manage_briefing, (raw,)),          # gestisci / spingi nel briefing
         (brain.pit_exit_traffic, (raw,)),         # traffico al rientro box (v2)
+        (brain.garage_briefing, (raw,)),          # motore acceso: grip/temp/gomme + no-slick-in-pioggia
+        (brain.pit_lane_release, (raw,)),         # safe release: uscita corsia box
         (brain.status_update, (raw, ld)),
         (brain.autofuel_call, (raw, ld)),
         (brain.position_strategy, (raw, ld)),
@@ -345,6 +347,10 @@ def run():
                 if _nc:
                     raw["nearest_car"] = _nc
                 raw["cars"] = mem.car_states()    # penalità / passo rivali
+                # SAFE RELEASE / briefing box: la mappa-traffico (tutte le auto
+                # con lapdist+velocità) serve SOLO in corsia/box -> economico.
+                if raw.get("in_pits") or raw.get("in_pitlane") or raw.get("garage"):
+                    raw["traffic_map"] = mem.pit_scan()
             except Exception:
                 pass
             # tick strappato (dato incoerente) -> salta

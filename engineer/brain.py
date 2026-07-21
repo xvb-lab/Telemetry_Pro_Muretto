@@ -1120,8 +1120,13 @@ class Engineer:
         # non ha senso "proiettare il rientro" a ogni giro in pista normale.
         try:
             if int(raw.get("pit_state") or 0) == 0:
+                self._st.pop("pex_said", None)     # riarma alla prossima richiesta
                 return []
         except (TypeError, ValueError):
+            return []
+        # UNA VOLTA per richiesta pit: senno' "aria pulita" si ripeteva in loop
+        # (ogni 25s) restando fermo in corsia/box.
+        if self._st.get("pex_said"):
             return []
         riv = raw.get("rivals") or {}
         traffic = riv.get("traffic_behind") or []
@@ -1136,6 +1141,7 @@ class Engineer:
             inside = [t for t in traffic if float(t.get("gap") or 0) <= window]
         except (TypeError, ValueError):
             return []
+        self._st["pex_said"] = True            # detto: non ripetere fino a nuova richiesta
         if not inside:
             return [self.msg("pit_exit_clean", pit=self._fmt_gap(pit_loss))]
         faster = sum(1 for t in inside
@@ -1149,6 +1155,153 @@ class Engineer:
         if hole >= 5.0:
             return [self.msg("pit_exit_hole", n=n, hole=self._fmt_gap(hole))]
         return [self.msg("pit_exit_traffic", n=n)]
+
+    def garage_briefing(self, raw):
+        """MOTORE ACCESO / prima di uscire dal box: briefing UNA volta —
+        gommatura pista, temp asfalto, gomme montate (nuove o usate + mescola).
+        Se piove e hai le slick: AVVISO forte 'non uscire, treno sbagliato'.
+        Riarma solo dopo un vero giro in pista (torni al garage -> nuovo brief)."""
+        raw = raw or {}
+        in_box = bool(raw.get("garage") or raw.get("in_pits")
+                      or raw.get("in_pitlane"))
+        try:
+            rpm = float(raw.get("rpm") or 0.0)
+            spd = float(raw.get("speed") or 0.0)
+        except (TypeError, ValueError):
+            return []
+        # riarmo: se sei uscito davvero in pista (fuori box, in movimento)
+        if (not in_box) and spd > 60.0:
+            self._st.pop("gb_said", None)
+            self._st.pop("gb_wrong", None)
+        if not in_box or rpm < 300.0 or spd > 25.0:
+            return []
+        out = []
+        # ── AVVISO SLICK SOTTO LA PIOGGIA (sicurezza, prima di tutto) ──
+        try:
+            w = float(raw.get("wetness_min") if raw.get("wetness_min") is not None
+                      else (raw.get("wetness") or 0.0))
+            rn = float(raw.get("raining") or 0.0)
+        except (TypeError, ValueError):
+            w = rn = 0.0
+        wet_track = (w > 0.20 or rn >= 0.4)
+        if wet_track and not self._wet_mounted(raw):
+            if not self._st.get("gb_wrong"):
+                self._st["gb_wrong"] = True
+                out.append(self.msg("garage_wrong_tyre"))
+        elif not wet_track:
+            self._st.pop("gb_wrong", None)
+        # ── BRIEFING INFO (una volta, dopo il warm-up per non perderlo) ──
+        born = self._st.get("born")
+        if born is None:                       # come il warm-up del sanity_filter
+            born = self._st["born"] = _time.monotonic()
+        if not self._st.get("gb_said") \
+                and _time.monotonic() - born >= 5.5:
+            self._st["gb_said"] = True
+            grip = self._grip_word(raw)
+            gomme = self._tyre_word(raw)
+            try:
+                tt = int(round(float(raw.get("track_temp") or 0.0)))
+            except (TypeError, ValueError):
+                tt = 0
+            if grip and gomme and tt > 0:
+                out.append(self.msg("garage_brief", grip=grip, temp=tt,
+                                    gomme=gomme))
+        return [m for m in out if m]
+
+    def _grip_word(self, raw):
+        """Gommatura pista 0-4 -> parola (o None se dato assente)."""
+        try:
+            g = int(raw.get("track_grip"))
+        except (TypeError, ValueError):
+            return None
+        if not (0 <= g <= 4):
+            return None
+        return {0: self._L("verde", "green", "verde", "verte"),
+                1: self._L("poco gommata", "low on rubber",
+                           "con poca goma", "peu gommee"),
+                2: self._L("mediamente gommata", "medium rubbered",
+                           "con goma media", "moyennement gommee"),
+                3: self._L("ben gommata", "well rubbered-in",
+                           "bien engomada", "bien gommee"),
+                4: self._L("satura di gomma", "saturated with rubber",
+                           "saturada de goma", "saturee de gomme")}[g]
+
+    def _tyre_word(self, raw):
+        """Gomme montate: nuove o usate al X percento + mescola (o None)."""
+        tw = raw.get("tyre_wear")
+        c4 = raw.get("tyre_compound4") or []
+        comp = ""
+        if isinstance(c4, (list, tuple)) and c4:
+            s = str(c4[0] or "").upper()[:1]
+            comp = {"S": self._L("morbide", "softs", "blandas", "tendres"),
+                    "M": self._L("medie", "mediums", "medias", "medium"),
+                    "H": self._L("dure", "hards", "duras", "dures"),
+                    "W": self._L("da bagnato", "wets", "de lluvia",
+                                 "pluie")}.get(s, "")
+        if not (isinstance(tw, (list, tuple)) and tw):
+            return comp or None
+        try:
+            worst = min(float(x) for x in tw if x is not None)
+        except (TypeError, ValueError):
+            return comp or None
+        if worst >= 97.0:
+            base = self._L("nuove", "fresh", "nuevas", "neuves")
+            return ("%s %s" % (base, comp)).strip() if comp else base
+        pct = int(round(worst))
+        used = self._L("usate al %d percento" % pct,
+                       "used, %d percent left" % pct,
+                       "usadas al %d por ciento" % pct,
+                       "usees a %d pour cent" % pct)
+        return ("%s %s" % (comp, used)).strip() if comp else used
+
+    def pit_lane_release(self, raw):
+        """SAFE RELEASE: mentre esci dalla corsia box, se sul tracciato sta
+        arrivando un'auto verso il punto di immissione ti dice di aspettare /
+        stare attento; quando la via e' libera, 'vai'. Usa il modello-dati
+        della mappa (tutte le auto con lapdist+velocita'). Solo in corsia box."""
+        raw = raw or {}
+        tm = raw.get("traffic_map") or {}
+        pl = tm.get("player") or {}
+        tl = float(tm.get("track_len") or 0.0)
+        in_lane = bool(raw.get("in_pitlane") or raw.get("in_pits"))
+        try:
+            spd = float(raw.get("speed") or 0.0)
+        except (TypeError, ValueError):
+            spd = 0.0
+        # solo mentre PERCORRI la corsia verso l'uscita (non fermo al box,
+        # non gia' a velocita' pista): finestra 15..110 km/h.
+        if (not in_lane) or raw.get("garage") or tl <= 0 \
+                or not (15.0 <= spd <= 110.0):
+            self._st.pop("pl_state", None)
+            return []
+        try:
+            my = float(pl.get("lapdist"))
+        except (TypeError, ValueError):
+            return []
+        soon = None
+        for c in (tm.get("cars") or []):
+            if c.get("is_player") or c.get("in_pits") or c.get("garage"):
+                continue
+            cs = float(c.get("speed") or 0.0)
+            if cs < 12.0:                       # ferma/lentissima: non un rischio
+                continue
+            back = (my - float(c.get("lapdist") or 0.0)) % tl
+            if back <= 3.0 or back > 220.0:     # o gia' passata, o troppo lontana
+                continue
+            dt = back / cs                      # secondi all'immissione
+            if 0.3 < dt <= 3.5 and (soon is None or dt < soon):
+                soon = dt
+        prev = self._st.get("pl_state")
+        if soon is not None:
+            if prev != "wait":
+                self._st["pl_state"] = "wait"
+                return [self.msg("pit_release_wait", s=int(round(soon)))]
+            return []
+        if prev == "wait":
+            self._st["pl_state"] = "clear"
+            return [self.msg("pit_release_clear")]
+        self._st["pl_state"] = "clear"
+        return []
 
     def wet_sector_map(self, raw, laps_done):
         """MAPPA BAGNATO PER SETTORE: accumula asciutto/bagnato (surface_type)

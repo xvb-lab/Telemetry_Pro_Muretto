@@ -6165,6 +6165,154 @@
         "Pneus ok pour le relais, attaque.",
         "Pas de gestion, tu peux y aller a fond."
       ]
+    },
+    "garage_brief": {
+      "cat": "strategia",
+      "level": "info",
+      "beep": true,
+      "it": "Pista {grip}, asfalto {temp} gradi. Monti gomme {gomme}.",
+      "variants_it": [
+        "Pista {grip}, asfalto {temp} gradi. Monti gomme {gomme}.",
+        "Condizioni: {grip}, {temp} gradi. Hai gomme {gomme}.",
+        "Asfalto a {temp} gradi, pista {grip}. Sotto hai {gomme}.",
+        "Briefing: {grip}, {temp} gradi sull'asfalto, gomme {gomme}.",
+        "Fuori {temp} gradi, pista {grip}. Gomme {gomme}."
+      ],
+      "en": "Track {grip}, tarmac {temp} degrees. You're on {gomme}.",
+      "variants_en": [
+        "Track {grip}, tarmac {temp} degrees. You're on {gomme}.",
+        "Conditions: {grip}, {temp} degrees. Tyres {gomme}.",
+        "Tarmac {temp} degrees, track {grip}. You've got {gomme}.",
+        "Briefing: {grip}, {temp} degrees on the tarmac, {gomme}.",
+        "It's {temp} degrees out, track {grip}. You're on {gomme}."
+      ],
+      "es": "Pista {grip}, asfalto {temp} grados. Llevas gomas {gomme}.",
+      "variants_es": [
+        "Pista {grip}, asfalto {temp} grados. Llevas gomas {gomme}.",
+        "Condiciones: {grip}, {temp} grados. Gomas {gomme}.",
+        "Asfalto a {temp} grados, pista {grip}. Llevas {gomme}.",
+        "Briefing: {grip}, {temp} grados en el asfalto, gomas {gomme}.",
+        "Fuera {temp} grados, pista {grip}. Gomas {gomme}."
+      ],
+      "fr": "Piste {grip}, bitume {temp} degres. Tu es en {gomme}.",
+      "variants_fr": [
+        "Piste {grip}, bitume {temp} degres. Tu es en {gomme}.",
+        "Conditions : {grip}, {temp} degres. Pneus {gomme}.",
+        "Bitume a {temp} degres, piste {grip}. Tu as {gomme}.",
+        "Briefing : {grip}, {temp} degres sur le bitume, pneus {gomme}.",
+        "Il fait {temp} degres, piste {grip}. Tu es en {gomme}."
+      ]
+    },
+    "garage_wrong_tyre": {
+      "cat": "strategia",
+      "level": "critical",
+      "beep": true,
+      "it": "Non uscire: piove e hai le slick, monta le wet.",
+      "variants_it": [
+        "Non uscire: piove e hai le slick, monta le wet.",
+        "Fermo, treno sbagliato: fuori piove, servono le wet.",
+        "Con le slick sotto la pioggia non uscire, cambia in wet.",
+        "Stop: hai le slick e la pista e' bagnata, monta wet.",
+        "Non e' aria da slick, piove: prima le wet, poi esci."
+      ],
+      "en": "Don't go out: it's raining and you're on slicks, fit wets.",
+      "variants_en": [
+        "Don't go out: it's raining and you're on slicks, fit wets.",
+        "Hold it, wrong tyres: it's wet out there, you need wets.",
+        "Slicks in the rain, don't go out, switch to wets.",
+        "Stop: you're on slicks and the track's wet, fit wets.",
+        "No slick weather, it's raining: wets first, then go."
+      ],
+      "es": "No salgas: llueve y llevas slick, monta lluvia.",
+      "variants_es": [
+        "No salgas: llueve y llevas slick, monta lluvia.",
+        "Para, gomas equivocadas: esta mojado, necesitas lluvia.",
+        "Slick bajo la lluvia, no salgas, cambia a lluvia.",
+        "Alto: llevas slick y la pista esta mojada, monta lluvia.",
+        "No es dia de slick, llueve: primero lluvia, luego sal."
+      ],
+      "fr": "Ne sors pas : il pleut et tu es en slick, monte les pluie.",
+      "variants_fr": [
+        "Ne sors pas : il pleut et tu es en slick, monte les pluie.",
+        "Attends, mauvais pneus : c'est mouille, il te faut les pluie.",
+        "Slick sous la pluie, ne sors pas, passe en pluie.",
+        "Stop : tu es en slick et la piste est mouillee, monte pluie.",
+        "Pas un temps a slick, il pleut : pluie d'abord, puis sors."
+      ]
+    },
+    "pit_release_wait": {
+      "cat": "pista",
+      "level": "warn",
+      "beep": true,
+      "it": "Aspetta, arriva una macchina, {s} secondi.",
+      "variants_it": [
+        "Aspetta, arriva una macchina, {s} secondi.",
+        "Attento in uscita: traffico in arrivo, {s} secondi.",
+        "Non uscire ora, uno sta arrivando tra {s}.",
+        "Dai strada, macchina in arrivo tra {s} secondi.",
+        "Occhio, uno in arrivo tra {s}, aspetta."
+      ],
+      "en": "Wait, car coming, {s} seconds.",
+      "variants_en": [
+        "Wait, car coming, {s} seconds.",
+        "Careful on exit: traffic incoming, {s} seconds.",
+        "Don't go yet, one's arriving in {s}.",
+        "Give way, car coming in {s} seconds.",
+        "Heads up, one incoming in {s}, hold."
+      ],
+      "es": "Espera, viene un coche, {s} segundos.",
+      "variants_es": [
+        "Espera, viene un coche, {s} segundos.",
+        "Cuidado al salir: trafico llegando, {s} segundos.",
+        "No salgas aun, uno llega en {s}.",
+        "Cede el paso, coche llegando en {s} segundos.",
+        "Ojo, uno llegando en {s}, espera."
+      ],
+      "fr": "Attends, une voiture arrive, {s} secondes.",
+      "variants_fr": [
+        "Attends, une voiture arrive, {s} secondes.",
+        "Attention a la sortie : trafic qui arrive, {s} secondes.",
+        "Ne sors pas encore, une arrive dans {s}.",
+        "Laisse passer, voiture dans {s} secondes.",
+        "Attention, une arrive dans {s}, attends."
+      ]
+    },
+    "pit_release_clear": {
+      "cat": "pista",
+      "level": "info",
+      "beep": true,
+      "it": "Libero, puoi uscire.",
+      "variants_it": [
+        "Libero, puoi uscire.",
+        "Via libera, vai.",
+        "Pulito, esci pure.",
+        "Nessuno, puoi immetterti.",
+        "Strada libera, vai."
+      ],
+      "en": "Clear, you can go.",
+      "variants_en": [
+        "Clear, you can go.",
+        "All clear, go.",
+        "Clean, you can exit.",
+        "Nobody there, merge.",
+        "Track's clear, go."
+      ],
+      "es": "Libre, puedes salir.",
+      "variants_es": [
+        "Libre, puedes salir.",
+        "Via libre, vamos.",
+        "Limpio, sal.",
+        "No hay nadie, incorporate.",
+        "Pista libre, vamos."
+      ],
+      "fr": "Libre, tu peux sortir.",
+      "variants_fr": [
+        "Libre, tu peux sortir.",
+        "C'est bon, vas-y.",
+        "Propre, tu peux sortir.",
+        "Personne, insere-toi.",
+        "Voie libre, vas-y."
+      ]
     }
   }
 }
