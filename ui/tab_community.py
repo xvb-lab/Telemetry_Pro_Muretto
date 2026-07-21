@@ -170,6 +170,20 @@ class _RankRow(QFrame):
             h.setSpacing(0)
         pcol = "#ffffff"
         pb = QLabel(str(pos)); pb.setFixedWidth(44); pb.setAlignment(Qt.AlignCenter)
+        # PODIO di classe: trofeo (oro/argento/bronzo) al posto del numero
+        # per i primi 3. assets/img/tr_1.png / tr_2.png / tr_3.png
+        if pos in (1, 2, 3):
+            try:
+                from PySide6.QtGui import QPixmap
+                _tp = (Path(__file__).resolve().parent.parent
+                       / "assets" / "img" / ("tr_%d.png" % pos))
+                if _tp.exists():
+                    _pm = QPixmap(str(_tp))
+                    if not _pm.isNull():
+                        pb.setPixmap(_pm.scaledToHeight(
+                            34, Qt.SmoothTransformation))
+            except Exception:
+                pass
         if self._card_bg is not None:
             # numero grande corsivo, stesso stile delle card onboard
             pb.setStyleSheet(
