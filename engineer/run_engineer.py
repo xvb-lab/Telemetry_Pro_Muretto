@@ -132,32 +132,13 @@ def _auto_fuel_tick(feed, live, cfg, brain, laps_done):
     if now - _AF["ts"] < 5.0:
         return
     _AF["ts"] = now
-    # VE minima che copre i giri rimanenti (+2), come ieri (collaudato v2):
-    # riempi per finire la gara. La sosta e' opzionale (gomme), non impone un
-    # secondo stint separato -> NON dividere per stint.
-    need = live.get("laps_needed")
-    if need is None or float(live.get("race_remaining") or 0.0) < 120.0:
-        return
     menu_raw = feed.pit_menu_raw()
-    best = auto_fuel_target(menu_raw, need)
-    if best is None:
+    if not menu_raw:
         return
-    idx, pct = best
-    _AF["pct"] = pct                            # cache: usata nei tick intermedi
-    live["auto_fuel_pct"] = pct                 # -> l'ingegnere annuncia il target
-    item = next((it for it in menu_raw
-                 if str((it or {}).get("name") or "").startswith("VIRTUAL ENERGY")),
-                None)
     changed = False
-    if item is not None:
-        try:
-            cur_ix = int(item.get("currentSetting") or 0)
-        except (TypeError, ValueError):
-            cur_ix = 0
-        if idx != cur_ix:
-            item["currentSetting"] = idx
-            changed = True
-    # AUTO WET: se piove e sei su slick, monta le WET nel pit menu da solo
+    # ── AUTO WET (INDIPENDENTE dal fuel): se piove e sei su slick, monta le WET
+    # nel pit menu da solo. Prima era gated dietro il calcolo benzina -> non
+    # scattava mai (fine gara / need assente). Ora gira sempre.
     try:
         wet_cond = (float(live.get("wetness") or 0.0) > 0.25
                     or float(live.get("raining") or 0.0) >= 0.4)
@@ -167,6 +148,26 @@ def _auto_fuel_tick(feed, live, cfg, brain, laps_done):
             changed = True
     except Exception:
         pass
+    # ── FUEL: VE minima che copre i giri rimanenti (+2). Solo se il dato c'e'
+    # e non a fine gara. La sosta e' opzionale (gomme) -> NON dividere per stint.
+    need = live.get("laps_needed")
+    if need is not None and float(live.get("race_remaining") or 0.0) >= 120.0:
+        best = auto_fuel_target(menu_raw, need)
+        if best is not None:
+            idx, pct = best
+            _AF["pct"] = pct                    # cache: usata nei tick intermedi
+            live["auto_fuel_pct"] = pct         # -> l'ingegnere annuncia il target
+            item = next((it for it in menu_raw
+                         if str((it or {}).get("name") or "")
+                         .startswith("VIRTUAL ENERGY")), None)
+            if item is not None:
+                try:
+                    cur_ix = int(item.get("currentSetting") or 0)
+                except (TypeError, ValueError):
+                    cur_ix = 0
+                if idx != cur_ix:
+                    item["currentSetting"] = idx
+                    changed = True
     if not changed:
         return
     try:

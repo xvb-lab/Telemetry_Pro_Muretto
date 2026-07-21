@@ -2022,10 +2022,11 @@ class Engineer:
         if pct is None:
             self._st.pop("af_said", None)    # opzione spenta: riarma
             return []
-        said = self._st.get("af_said")
-        if said is not None and abs(int(pct) - int(said)) < 5:
+        # UNA VOLTA SOLA: il ritocco benzina non va ripetuto (dava fastidio,
+        # lo diceva a raffica mentre il target scendeva a gara che si accorcia).
+        if self._st.get("af_said"):
             return []
-        self._st["af_said"] = int(pct)
+        self._st["af_said"] = True
         return [self.msg("autofuel_set", pct=int(pct))]
 
     def box_call(self, raw, laps_done):
@@ -2604,19 +2605,27 @@ class Engineer:
         return out
 
     def _rival_name(self, name):
-        """Nome rivale per la voce (cognome abbreviato)."""
-        from core.utils import short_name as _sn
-        return _sn(name or "")
+        """Nome rivale per la VOCE: SOLO il cognome. L'iniziale abbreviata
+        ('A. Fuoco') la TTS la legge male ('a fuoco') -> uso l'ultimo token."""
+        parts = str(name or "").strip().split()
+        return parts[-1] if parts else ""
+
+    def _same_class(self, raw, cls):
+        """True se la classe del rivale e' la MIA (info rivali solo di classe)."""
+        my = (class_tag(raw.get("car_class") or "") or self._cat or "").upper()
+        return bool(my) and (class_tag(str(cls or "")) or "").upper() == my
 
     def opp_penalty(self, raw):
-        """RIVALE che prende una penalita' NUOVA. LMU da' il CONTATORE (non il
-        tipo), quindi diciamo chi, non quale. Una alla volta. Voce spotter."""
+        """RIVALE DI CLASSE che prende una penalita' NUOVA. LMU da' il CONTATORE
+        (non il tipo): diciamo chi, non quale. Solo stessa classe. Voce spotter."""
         raw = raw or {}
         cars = raw.get("cars") or {}
         prev = self._st.get("cars_pen")
         out = []
         if prev:
             for cid, c in cars.items():
+                if not self._same_class(raw, c.get("cls")):
+                    continue
                 pp = prev.get(cid)
                 nm = self._rival_name(c.get("name", ""))
                 if pp is not None and int(c.get("pen", 0)) > int(pp) and nm:
@@ -2626,14 +2635,16 @@ class Engineer:
         return out
 
     def opp_pace_drop(self, raw):
-        """RIVALE che perde passo di colpo: ultimo giro oltre +3s sul suo
-        miglior recente. Una volta per calo. Voce spotter."""
+        """RIVALE DI CLASSE che perde passo di colpo: ultimo giro oltre +3s sul
+        suo miglior recente. Solo stessa classe. Una volta per calo. Spotter."""
         raw = raw or {}
         cars = raw.get("cars") or {}
         best = self._st.setdefault("cars_best", {})
         said = self._st.setdefault("cars_slow_said", {})
         out = []
         for cid, c in cars.items():
+            if not self._same_class(raw, c.get("cls")):
+                continue
             try:
                 last = float(c.get("last", -1))
             except (TypeError, ValueError):
