@@ -6033,6 +6033,72 @@
         "{name} décroche.",
         "{name} perd du temps, attention."
       ]
+    },
+    "tlimits_warn_where": {
+      "cat": "flag",
+      "level": "warn",
+      "beep": true,
+      "it": "Track limits in curva {turn}, ancora {left}.",
+      "variants_it": [
+        "Track limits in curva {turn}, ancora {left}.",
+        "Occhio ai limiti in curva {turn}, restano {left}.",
+        "Curva {turn}, track limits: {left} margine.",
+        "Limiti pista in curva {turn}, {left} alla penalità."
+      ],
+      "en": "Track limits in turn {turn}, {left} left.",
+      "variants_en": [
+        "Track limits in turn {turn}, {left} left.",
+        "Watch the limits in turn {turn}, {left} to go.",
+        "Turn {turn}, track limits: {left} margin.",
+        "Track limits turn {turn}, {left} to a penalty."
+      ],
+      "es": "Track limits en curva {turn}, quedan {left}.",
+      "variants_es": [
+        "Track limits en curva {turn}, quedan {left}.",
+        "Ojo a los límites en curva {turn}, quedan {left}.",
+        "Curva {turn}, track limits: {left} de margen.",
+        "Límites de pista en curva {turn}, {left} para la sanción."
+      ],
+      "fr": "Track limits au virage {turn}, encore {left}.",
+      "variants_fr": [
+        "Track limits au virage {turn}, encore {left}.",
+        "Attention aux limites au virage {turn}, {left} restant.",
+        "Virage {turn}, track limits : {left} de marge.",
+        "Limites de piste virage {turn}, {left} avant pénalité."
+      ]
+    },
+    "tlimits_pen_where": {
+      "cat": "flag",
+      "level": "warn",
+      "beep": true,
+      "it": "Penalità track limits, curva {turn}.",
+      "variants_it": [
+        "Penalità track limits, curva {turn}.",
+        "Hai una penalità track limits in curva {turn}.",
+        "Track limits: penalità, curva {turn}.",
+        "Penalità limiti pista, curva {turn}."
+      ],
+      "en": "Track limits penalty, turn {turn}.",
+      "variants_en": [
+        "Track limits penalty, turn {turn}.",
+        "You have a track limits penalty, turn {turn}.",
+        "Track limits: penalty, turn {turn}.",
+        "Track limits penalty at turn {turn}."
+      ],
+      "es": "Penalización track limits, curva {turn}.",
+      "variants_es": [
+        "Penalización track limits, curva {turn}.",
+        "Tienes una penalización de track limits en curva {turn}.",
+        "Track limits: penalización, curva {turn}.",
+        "Penalización límites de pista, curva {turn}."
+      ],
+      "fr": "Pénalité track limits, virage {turn}.",
+      "variants_fr": [
+        "Pénalité track limits, virage {turn}.",
+        "Tu as une pénalité track limits au virage {turn}.",
+        "Track limits : pénalité, virage {turn}.",
+        "Pénalité limites de piste, virage {turn}."
+      ]
     }
   }
 }

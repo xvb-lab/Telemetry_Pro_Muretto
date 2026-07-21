@@ -2194,13 +2194,42 @@ class Engineer:
             return []       # azzerato (penalita' scontata o reset sessione)
         # steps AUMENTATI. pen (mTrackLimitsStepsPerPenalty) e' la SOGLIA:
         # penalita' quando steps >= pen; 'left' = punti che restano.
+        turn = self._corner_at(raw)          # quale curva (se pista appresa)
         if pen > 0:
             left = pen - steps
             if left <= 0:
+                if turn:
+                    return [self.msg("tlimits_pen_where", turn=turn)]
                 return [self.msg("tlimits_pen")]
             if left <= 2:
+                if turn:
+                    return [self.msg("tlimits_warn_where", left=left, turn=turn)]
                 return [self.msg("tlimits_warn", left=left)]
         return []
+
+    def _corner_at(self, raw):
+        """Numero della curva APPRESA piu' vicina alla posizione attuale, o
+        None se non affidabile (pista non appresa / troppo lontano)."""
+        corners = self._learned_corners(raw)
+        if not corners:
+            return None
+        try:
+            d = float(raw.get("lapdist") or -1.0)
+        except (TypeError, ValueError):
+            return None
+        if d < 0:
+            return None
+        near = None
+        for c in corners:
+            try:
+                cd = float(c.get("d"))
+            except (TypeError, ValueError):
+                continue
+            if near is None or abs(cd - d) < abs(float(near.get("d")) - d):
+                near = c
+        if near is None or abs(float(near.get("d")) - d) > 150.0:
+            return None
+        return near.get("n")
 
     def fuel_save_option(self, raw, laps_done):
         """MARGINE PER UNA SOSTA IN MENO: se allungando ogni stint di pochi
