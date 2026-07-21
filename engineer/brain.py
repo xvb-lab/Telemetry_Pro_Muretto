@@ -1358,95 +1358,51 @@ class Engineer:
         return ("%s %s" % (comp, used)).strip() if comp else used
 
     def pit_lane_release(self, raw):
-        """SAFE RELEASE — SOLO quando ESCI dal box (mai al rientro). Due pericoli,
-        dal modello-mappa (pit_scan: ogni auto con posizione X/Z + lapdist + vel):
-          (A) fermo/lento nel box e stai per immetterti, un'auto percorre la
-              CORSIA e ti arriva vicino (distanza reale, in avvicinamento) -> aspetta.
-          (B) rulli verso l'uscita e un'auto in PISTA arriva al merge -> aspetta.
-        Via libera dopo un 'aspetta' -> 'vai'.
-
-        USCITA vs RIENTRO (trick mappa): in garage stai nella piazzola
-        (garage=True) finche' il musino non e' fuori; poi diventa in_pits. Il
-        RIENTRO dalla pista invece e' pit_state=2 (entering), MAI da garage.
-        Quindi 'leaving' = sei/eri in garage da poco E non stai entrando."""
+        """USCITA DAL GARAGE (box) IN SICUREZZA. Sei DENTRO il box (garage=True),
+        motore acceso, muso verso l'uscita: prima di uscire, se un'auto sta
+        percorrendo la CORSIA e ti arriva vicino -> "aspetta"; quando e' libera
+        -> "vai". SOLO dal garage (NON l'immissione in pista dalla corsia).
+        Dati come la mappa: chi e' nel proprio box e' a parte (garage), chi
+        percorre la corsia ha i dot arancioni (in_pits)."""
         raw = raw or {}
-        tm = raw.get("traffic_map") or {}
-        pl = tm.get("player") or {}
-        tl = float(tm.get("track_len") or 0.0)
-        now = _time.monotonic()
-        garage = bool(raw.get("garage"))
-        try:
-            pit_state = int(raw.get("pit_state") or 0)
-        except (TypeError, ValueError):
-            pit_state = 0
-        if garage:
-            self._st["gar_seen_t"] = now
-        recent_garage = (now - self._st.get("gar_seen_t", -1e9)) < 25.0
-        # MOTORE SPENTO in garage: non stai andando da nessuna parte -> niente
-        # safe-release (era inutile sentirlo da fermo a motore spento).
         try:
             rpm = float(raw.get("rpm") or 0.0)
         except (TypeError, ValueError):
             rpm = 0.0
-        # LEAVING = uscita dal box, motore acceso. pit_state 2 = rientro -> mai.
-        leaving = (garage or recent_garage) and pit_state != 2 and rpm >= 300.0
-        if not leaving:
+        # SOLO dentro il box, motore acceso
+        if not raw.get("garage") or rpm < 300.0:
             self._st.pop("pl_state", None)
             self._st.pop("pl_dist", None)
             return []
-        try:
-            spd = float(raw.get("speed") or 0.0)      # km/h
-        except (TypeError, ValueError):
-            spd = 0.0
-        cars = tm.get("cars") or []
-        threat = False
-
-        # ── (A) traffico NELLA CORSIA (auto dai box accanto) — distanza X/Z ──
+        tm = raw.get("traffic_map") or {}
+        pl = tm.get("player") or {}
         px, pz = pl.get("x"), pl.get("z")
+        if px is None or pz is None:
+            return []
         prevd = self._st.get("pl_dist") or {}
         curd = {}
-        if px is not None and pz is not None and spd <= 70.0:
-            for c in cars:
-                if c.get("is_player") or c.get("garage"):
-                    continue
-                if not (c.get("in_pits") or c.get("in_pitlane")):
-                    continue                          # solo auto DENTRO la corsia
-                if float(c.get("speed") or 0.0) < 4.0:
-                    continue                          # ferma nel suo box: non conta
-                cx, cz = c.get("x"), c.get("z")
-                if cx is None or cz is None:
-                    continue
-                d = ((float(cx) - float(px)) ** 2
-                     + (float(cz) - float(pz)) ** 2) ** 0.5
-                cid = c.get("id")
-                curd[cid] = d
-                if d > 200.0:                         # ~12s a 60 km/h di corsia
-                    continue
-                pd = prevd.get(cid)
-                if pd is not None and d < pd - 0.15:  # in avvicinamento (conferma)
-                    threat = True
+        threat = False
+        # auto che PERCORRONO la corsia (in_pits, in movimento) vicine a te
+        for c in (tm.get("cars") or []):
+            if c.get("is_player") or c.get("garage"):
+                continue                              # nel proprio box: a parte
+            if not (c.get("in_pits") or c.get("in_pitlane")):
+                continue                              # solo auto NELLA corsia
+            if float(c.get("speed") or 0.0) < 4.0:
+                continue                              # ferma: non un rischio
+            cx, cz = c.get("x"), c.get("z")
+            if cx is None or cz is None:
+                continue
+            d = ((float(cx) - float(px)) ** 2
+                 + (float(cz) - float(pz)) ** 2) ** 0.5
+            cid = c.get("id")
+            curd[cid] = d
+            if d > 200.0:
+                continue
+            pd = prevd.get(cid)
+            if pd is not None and d < pd - 0.15:      # in avvicinamento (conferma)
+                threat = True
         self._st["pl_dist"] = curd
-
-        # ── (B) auto in PISTA al merge, mentre rulli verso l'uscita ──
-        if (not threat) and tl > 0 and (15.0 <= spd <= 110.0) \
-                and not raw.get("garage"):
-            try:
-                my = float(pl.get("lapdist"))
-            except (TypeError, ValueError):
-                my = None
-            if my is not None:
-                for c in cars:
-                    if c.get("is_player") or c.get("in_pits") or c.get("garage"):
-                        continue
-                    cs = float(c.get("speed") or 0.0)
-                    if cs < 12.0:
-                        continue
-                    back = (my - float(c.get("lapdist") or 0.0)) % tl
-                    if back <= 3.0 or back > 220.0:
-                        continue
-                    if 0.3 < (back / cs) <= 3.5:
-                        threat = True
-                        break
 
         prev = self._st.get("pl_state")
         if threat:
