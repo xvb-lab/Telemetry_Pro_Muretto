@@ -1069,6 +1069,11 @@ class Engineer:
         gioco sventoli la blu — qualche secondo in piu' per decidere dove farla
         passare. Una per vettura, solo se sta CHIUDENDO; riarmo a >8s. (v2)"""
         raw = raw or {}
+        # AL VIA il campo e' ammassato e i gap non sono affidabili: niente
+        # pre-blu nel primo giro (evita chiamate a vuoto tipo "hyper dietro"
+        # quando le classi veloci sono in realta' tutte davanti).
+        if int(raw.get("laps_completed") or 0) < 1:
+            return []
         riv = raw.get("rivals") or {}
         traffic = riv.get("traffic_behind") or []
         _RK = {"HY": 4, "LMH": 4, "LMDH": 4, "P2": 3, "LMP2": 3,

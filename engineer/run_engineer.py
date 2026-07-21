@@ -63,11 +63,11 @@ def _apply_cfg(vox, cfg):
 _AF = {"ts": 0.0}
 
 
-def _auto_fuel_tick(feed, live, cfg):
+def _auto_fuel_tick(feed, live, cfg, brain, laps_done):
     """AUTO PIT (opt-in, flag `auto_pit`): scrive nel pit menu la VIRTUAL
-    ENERGY *minima* che copre i giri rimanenti (+2), dalla tabella %->giri DEL
-    GIOCO. Ciclo 5s, solo in gara (>2 min). Espone `live['auto_fuel_pct']` per
-    l'annuncio dell'ingegnere. Fedele al collaudato del recorder v2:
+    ENERGY *minima* che copre lo STINT DOPO LA PROSSIMA SOSTA (+2), dalla
+    tabella %->giri DEL GIOCO. Ciclo 5s, solo in gara (>2 min). Espone
+    `live['auto_fuel_pct']` per l'annuncio dell'ingegnere.
       - confronto col currentSetting ATTUALE (LMU azzera dopo la sosta)
       - POST /loadPitMenu solo se il valore nel gioco e' diverso."""
     if not live or not cfg.get("auto_pit", False):
@@ -76,7 +76,23 @@ def _auto_fuel_tick(feed, live, cfg):
     if now - _AF["ts"] < 5.0:
         return
     _AF["ts"] = now
+    # giri da caricare al pit = quelli DELLO STINT DOPO la prossima sosta, non
+    # l'intera gara. Con sosta a meta' distanza carichi per lo stint finale.
+    # Nessun piano soste (o soste finite) -> riempi fino a fine gara.
     need = live.get("laps_needed")
+    try:
+        model = getattr(brain, "_race_model", None) or {}
+        stops = model.get("stops") or []
+        race_laps = model.get("race_laps")
+        if stops and race_laps:
+            future = sorted(int(s["lap"]) for s in stops
+                            if s.get("lap") and int(s["lap"]) > int(laps_done or 0))
+            if future:
+                nxt = future[0]
+                following = future[1] if len(future) > 1 else int(race_laps)
+                need = max(1, int(following) - nxt)
+    except Exception:
+        pass
     if need is None or float(live.get("race_remaining") or 0.0) < 120.0:
         return
     menu_raw = feed.pit_menu_raw()
@@ -232,7 +248,7 @@ def run():
                 brain.set_class(cls)
             est = float(d.get("est_lap") or d.get("best_lap") or 0.0)
             live = feed.lmu_live(d, est)
-            _auto_fuel_tick(feed, live, _cfg)      # AUTO PIT: scrive VE + annuncia
+            _auto_fuel_tick(feed, live, _cfg, brain, ld)   # AUTO PIT: VE stint + annuncia
             # raw per il cervello: fisica + blocco strategia
             raw = dict(d)
             raw["ts"] = time.monotonic()

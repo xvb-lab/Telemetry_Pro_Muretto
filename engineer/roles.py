@@ -16,7 +16,8 @@ def _role(codes, r):
         _MSG_ROLE[c] = r
 
 
-_role(["gap_ahead", "gap_behind", "gap_both", "gap_undercut", "blue_flag",
+_role(["fast_class_close", "fast_class_now",
+       "gap_ahead", "gap_behind", "gap_both", "gap_undercut", "blue_flag",
        "blue_flag_multi", "blue_flag_simple", "traffic_ahead",
        "local_yellow", "yellow_flag", "yellow_pit"], "spotter")
 _role(["brief_strat_data", "brief_strat_new"], "strategist")
