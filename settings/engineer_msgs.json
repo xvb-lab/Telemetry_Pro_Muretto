@@ -6535,6 +6535,177 @@
         "Tu mene la classe, le plus rapide.",
         "La pole est a toi pour l'instant."
       ]
+    },
+    "retire_race": {
+      "cat": "sicurezza",
+      "level": "critical",
+      "beep": true,
+      "it": "La macchina sembra andata, ritiro.",
+      "variants_it": [
+        "La macchina sembra andata, ritiro.",
+        "Danno grave e motore spento, ci ritiriamo.",
+        "Non riparte, purtroppo e' finita qui: ritiro.",
+        "Macchina ferma, la gara e' compromessa, ritiro.",
+        "Motore morto dopo il contatto, ritiriamo la vettura.",
+        "E' andata, niente da fare: ritiro.",
+        "La macchina non risponde piu', ci ritiriamo.",
+        "Danno terminale, chiudiamo qui la gara.",
+        "Non si riaccende, ritiro: mettiti in sicurezza.",
+        "Fine gara per noi, la macchina e' andata."
+      ],
+      "en": "Car looks gone, we retire.",
+      "variants_en": [
+        "Car looks gone, we retire.",
+        "Heavy damage and engine dead, we're retiring.",
+        "It won't restart, I'm afraid that's it: retire.",
+        "Car's stopped, race is over, we retire.",
+        "Engine dead after the contact, we retire the car.",
+        "It's gone, nothing to do: retire.",
+        "The car's not responding, we're retiring.",
+        "Terminal damage, we end the race here.",
+        "It won't fire up, retire: get to safety.",
+        "Race over for us, the car is done."
+      ],
+      "es": "El coche parece perdido, nos retiramos.",
+      "variants_es": [
+        "El coche parece perdido, nos retiramos.",
+        "Dano grave y motor apagado, abandonamos.",
+        "No arranca, me temo que es el final: retiro.",
+        "Coche parado, la carrera acabo, nos retiramos.",
+        "Motor muerto tras el contacto, retiramos el coche.",
+        "Se acabo, nada que hacer: retiro.",
+        "El coche no responde, nos retiramos.",
+        "Dano terminal, terminamos aqui la carrera.",
+        "No enciende, retiro: ponte a salvo.",
+        "Fin de carrera, el coche esta perdido."
+      ],
+      "fr": "La voiture semble perdue, on abandonne.",
+      "variants_fr": [
+        "La voiture semble perdue, on abandonne.",
+        "Gros degat et moteur mort, on se retire.",
+        "Elle ne redemarre pas, c'est fini : abandon.",
+        "Voiture arretee, la course est finie, on abandonne.",
+        "Moteur mort apres le contact, on retire la voiture.",
+        "C'est fini, rien a faire : abandon.",
+        "La voiture ne repond plus, on se retire.",
+        "Degat terminal, on termine la course ici.",
+        "Elle ne demarre pas, abandon : mets-toi en securite.",
+        "Course finie pour nous, la voiture est morte."
+      ]
+    },
+    "retire_practice": {
+      "cat": "sicurezza",
+      "level": "critical",
+      "beep": true,
+      "it": "Macchina andata, esci in sicurezza: ti aspettiamo ai box.",
+      "variants_it": [
+        "Macchina andata, esci in sicurezza: ti aspettiamo ai box.",
+        "Motore spento e danno, mettiti al sicuro, arrivano i commissari.",
+        "Non riparte, esci dalla pista con calma, ci vediamo ai box.",
+        "E' finita la prova cosi', portati in sicurezza.",
+        "Danno grave, accosta in sicurezza, ti recuperano.",
+        "Vettura ferma, esci dai guai e torna ai box.",
+        "Non c'e' verso, mettiti in sicurezza e aspetta i commissari.",
+        "Prova compromessa, portala fuori pista in sicurezza.",
+        "Macchina morta, sicurezza prima di tutto, ai box.",
+        "Basta cosi' per oggi, esci sicuro e rientra."
+      ],
+      "en": "Car's gone, get out safely: we'll wait at the box.",
+      "variants_en": [
+        "Car's gone, get out safely: we'll wait at the box.",
+        "Engine dead and damage, get to safety, marshals are coming.",
+        "It won't restart, ease off track, see you at the box.",
+        "Practice ends here, get yourself to safety.",
+        "Heavy damage, pull over safely, they'll recover you.",
+        "Car's stopped, get out of danger and back to the box.",
+        "No way back, get to safety and wait for the marshals.",
+        "Session's done, take it off track safely.",
+        "Car's dead, safety first, back to the box.",
+        "That's enough for today, get out safe and come in."
+      ],
+      "es": "Coche perdido, sal con seguridad: te esperamos en boxes.",
+      "variants_es": [
+        "Coche perdido, sal con seguridad: te esperamos en boxes.",
+        "Motor muerto y dano, ponte a salvo, llegan los comisarios.",
+        "No arranca, sal de pista con calma, nos vemos en boxes.",
+        "Se acabo la practica, ponte a salvo.",
+        "Dano grave, apartate con seguridad, te recogeran.",
+        "Coche parado, sal del peligro y vuelve a boxes.",
+        "No hay manera, ponte a salvo y espera a los comisarios.",
+        "Sesion terminada, sacalo de pista con seguridad.",
+        "Coche muerto, seguridad primero, a boxes.",
+        "Basta por hoy, sal seguro y entra."
+      ],
+      "fr": "Voiture perdue, sors en securite : on t'attend au stand.",
+      "variants_fr": [
+        "Voiture perdue, sors en securite : on t'attend au stand.",
+        "Moteur mort et degat, mets-toi en securite, les commissaires arrivent.",
+        "Elle ne redemarre pas, sors doucement, on se voit au stand.",
+        "La seance finit ici, mets-toi en securite.",
+        "Gros degat, range-toi en securite, ils vont te recuperer.",
+        "Voiture arretee, sors du danger et reviens au stand.",
+        "Aucune chance, mets-toi en securite et attends les commissaires.",
+        "Seance terminee, sors de piste en securite.",
+        "Voiture morte, securite d'abord, au stand.",
+        "Ca suffit pour aujourd'hui, sors en securite et rentre."
+      ]
+    },
+    "retire_quali": {
+      "cat": "sicurezza",
+      "level": "critical",
+      "beep": true,
+      "it": "Macchina andata, la qualifica finisce qui.",
+      "variants_it": [
+        "Macchina andata, la qualifica finisce qui.",
+        "Motore spento e danno: la quali e' finita cosi'.",
+        "Non riparte, la qualifica e' compromessa.",
+        "E' andata, niente piu' tempi: quali finita.",
+        "Danno terminale, la tua qualifica si chiude qui.",
+        "Vettura ferma, la sessione di quali e' finita.",
+        "Non c'e' piu' giro buono, la quali e' andata.",
+        "Purtroppo la qualifica finisce cosi'.",
+        "Macchina morta, stop alla qualifica.",
+        "Fine della quali per noi, la macchina e' andata."
+      ],
+      "en": "Car's gone, qualifying ends here.",
+      "variants_en": [
+        "Car's gone, qualifying ends here.",
+        "Engine dead and damage: quali's over.",
+        "It won't restart, qualifying is compromised.",
+        "It's gone, no more times: quali done.",
+        "Terminal damage, your qualifying ends here.",
+        "Car's stopped, the quali session is over.",
+        "No more clean lap, qualifying is gone.",
+        "Afraid qualifying ends like this.",
+        "Car's dead, quali stopped.",
+        "End of quali for us, the car is done."
+      ],
+      "es": "Coche perdido, la clasificacion acaba aqui.",
+      "variants_es": [
+        "Coche perdido, la clasificacion acaba aqui.",
+        "Motor muerto y dano: la quali se acabo.",
+        "No arranca, la clasificacion esta comprometida.",
+        "Se acabo, no hay mas tiempos: quali terminada.",
+        "Dano terminal, tu clasificacion acaba aqui.",
+        "Coche parado, la sesion de quali termino.",
+        "No hay vuelta buena, la quali se acabo.",
+        "La clasificacion termina asi, lo siento.",
+        "Coche muerto, quali detenida.",
+        "Fin de la quali, el coche esta perdido."
+      ],
+      "fr": "Voiture perdue, les qualifs finissent ici.",
+      "variants_fr": [
+        "Voiture perdue, les qualifs finissent ici.",
+        "Moteur mort et degat : la quali est finie.",
+        "Elle ne redemarre pas, la qualif est compromise.",
+        "C'est fini, plus de temps : quali terminee.",
+        "Degat terminal, ta qualif finit ici.",
+        "Voiture arretee, la seance de quali est finie.",
+        "Plus de tour propre, la quali est finie.",
+        "Malheureusement la qualif finit ainsi.",
+        "Voiture morte, quali stoppee.",
+        "Fin de quali pour nous, la voiture est morte."
+      ]
     }
   }
 }

@@ -38,7 +38,8 @@ def _mk(codes, tier):
 _mk(["box_wheel", "box_aero", "box_susp", "box_body", "box_s2", "box_now",
      "box_last", "box_retire", "tyres_over", "brakes_over", "engine_over",
      "yellow_flag", "fuel_short", "box_flat", "box_penalty", "box_tyre_dead",
-     "box_tyre", "rain_box_now", "rain_box_pace", "local_yellow"], 0)
+     "box_tyre", "rain_box_now", "rain_box_pace", "local_yellow",
+     "retire_race", "retire_practice", "retire_quali"], 0)
 # P1 strategia / meteo / briefing (devono essere detti)
 _mk(["ready", "briefing_strat", "briefing_laps", "briefing_save", "plan",
      "plan_hist", "learn_prov", "pit_window", "fuel_laps", "energy_laps",

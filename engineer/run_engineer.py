@@ -227,6 +227,7 @@ def _collect(brain, raw, ld, pace):
         # 🟠 RACE ENGINEER — sicurezza / auto
         (brain.flags_call, (raw,)),
         (brain.damage_call, (raw,)),
+        (brain.terminal_damage, (raw,)),          # combo contatto+danno+motore morto -> ritiro
         (brain.aero_call, (raw,)),
         (brain.contact_call, (raw,)),
         (brain.engine_check, (raw,)),

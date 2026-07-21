@@ -692,6 +692,57 @@ class Engineer:
         self._st["dmg_code"] = code
         return [self.msg(code)]
 
+    def terminal_damage(self, raw):
+        """DANNO TERMINALE: combo contatto + danno + motore SPENTO (per le HY
+        ibride anche l'e-motore spento, senno' e' un falso). Se non riparte
+        entro 10s -> ritiro (frase per tipo sessione) e da qui SILENZIA i
+        messaggi inutili. Una volta per sessione."""
+        raw = raw or {}
+        if self._st.get("term_said"):
+            return []
+        now = _time.monotonic()
+        try:
+            rpm = float(raw.get("rpm") or 0.0)
+            imag = float(raw.get("impact_mag") or 0.0)
+        except (TypeError, ValueError):
+            return []
+        # DANNO presente
+        dmg = (any(raw.get("wheel_off") or []) or any(raw.get("wheel_flat") or [])
+               or bool(raw.get("parts_off"))
+               or any(int(x or 0) >= 2 for x in (raw.get("dent_sev") or [])))
+        try:
+            dmg = dmg or float(raw.get("aero") or 0.0) >= 0.15
+        except (TypeError, ValueError):
+            pass
+        # MOTORE MORTO (per le HY ibride anche l'e-motore, senno' e' un falso)
+        dead = rpm < 50.0
+        my = (class_tag(raw.get("car_class") or "") or self._cat or "").upper()
+        if my in ("HY", "LMH", "LMDH"):
+            try:
+                dead = dead and float(raw.get("emotor_rpm") or 0.0) < 50.0
+            except (TypeError, ValueError):
+                pass
+        # CONTATTO registrato (botta vera)
+        if imag >= 250.0:
+            self._st["term_hit_t"] = now
+        hit = (now - self._st.get("term_hit_t", -1e9)) < 60.0
+        if not (dmg and dead and hit):
+            self._st.pop("term_t0", None)       # riparte / non piu' combo
+            return []
+        t0 = self._st.get("term_t0")
+        if t0 is None:
+            self._st["term_t0"] = now            # parte il conto dei 10s
+            return []
+        if now - t0 < 10.0:
+            return []
+        # TERMINALE: la macchina e' andata
+        self._st["term_said"] = True
+        self._st["terminal"] = True              # silenzia il resto (sanity)
+        kind = session_kind(raw.get("session_type"))
+        code = ("retire_practice" if kind == "practice"
+                else "retire_quali" if kind == "qualy" else "retire_race")
+        return [self.msg(code)]
+
     def aero_call(self, raw):
         """Danno AERO e SOSPENSIONI dai wearables LMU: informazione con
         la conseguenza spiegata, la scelta e' del pilota."""
@@ -2789,6 +2840,9 @@ class Engineer:
                 and code not in self._ARB_BRIEFING \
                 and _time.monotonic() - born < 5.0:
             return False, "warm-up: primi 5s di ascolto"
+        # MACCHINA ANDATA (ritiro dichiarato): silenzio tutto tranne il ritiro
+        if self._st.get("terminal") and not code.startswith("retire_"):
+            return False, "terminale: silenzio (macchina andata)"
         # LEGGE CENTRALE DI STATO — prima di ogni logica di modulo
         in_lane = bool(raw.get("in_pits") or raw.get("in_pitlane")
                        or raw.get("garage"))
