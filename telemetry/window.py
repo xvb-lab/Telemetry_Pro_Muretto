@@ -3439,7 +3439,7 @@ class _MenuHeader(QFrame):
             "background:rgba(0,0,0,0.22);border:1px solid rgba(255,255,255,0.18);"
             "border-radius:8px;padding:6px 12px;}"
             "#mhTeam:focus{border:1px solid #ff1d43;}")
-        h = QHBoxLayout(self); h.setContentsMargins(26, 14, 26, 14); h.setSpacing(34)
+        h = QHBoxLayout(self); h.setContentsMargins(24, 12, 24, 12); h.setSpacing(20)
 
         # AVATAR pilota = CASCO con la livrea scelta (click = menu 20 livree)
         self.avatar = _SvgBox()
@@ -3457,20 +3457,17 @@ class _MenuHeader(QFrame):
         self.avatar.mousePressEvent = lambda e: self._pick_helmet()
         h.addWidget(self.avatar, 0, Qt.AlignVCenter)
 
-        # PILOTA
+        # PILOTA + TEAM impilati (team SOTTO il nome, campo piu' piccolo)
         c1w = QWidget(); c1w.setStyleSheet("background:transparent;")
         c1 = QVBoxLayout(c1w); c1.setContentsMargins(0, 0, 0, 0); c1.setSpacing(2)
         _d = QLabel("DRIVER"); _d.setObjectName("mhCap"); c1.addWidget(_d)
         self.lb_driver = QLabel("\u2014"); self.lb_driver.setObjectName("mhVal")
         c1.addWidget(self.lb_driver)
-        h.addWidget(c1w, 0, Qt.AlignVCenter)
-
-        # TEAM (editabile)
-        c2w = QWidget(); c2w.setStyleSheet("background:transparent;")
-        c2 = QVBoxLayout(c2w); c2.setContentsMargins(0, 0, 0, 0); c2.setSpacing(2)
-        _t = QLabel("TEAM"); _t.setObjectName("mhCap"); c2.addWidget(_t)
+        _t = QLabel("TEAM"); _t.setObjectName("mhCap")
+        _t.setStyleSheet("margin-top:5px;")
+        c1.addWidget(_t)
         self.ed_team = QLineEdit(); self.ed_team.setObjectName("mhTeam")
-        self.ed_team.setMaxLength(30); self.ed_team.setFixedWidth(240)
+        self.ed_team.setMaxLength(30); self.ed_team.setFixedWidth(190)
         self.ed_team.setPlaceholderText("Your team")
         self.ed_team.setFocusPolicy(Qt.ClickFocus)   # niente focus/lampeggio automatico
         self.ed_team.editingFinished.connect(self._save_team)
@@ -3481,8 +3478,8 @@ class _MenuHeader(QFrame):
         self._team_timer.timeout.connect(self._team_commit)
         self.ed_team.textEdited.connect(lambda *_: self._team_timer.start())
         self.ed_team.installEventFilter(self)
-        c2.addWidget(self.ed_team)
-        h.addWidget(c2w, 0, Qt.AlignVCenter)
+        c1.addWidget(self.ed_team)
+        h.addWidget(c1w, 0, Qt.AlignVCenter)
 
         # SESSIONI LOCALI: subito dopo team — numero sopra, "Sessions" sotto (bianco)
         c3w = QWidget(); c3w.setStyleSheet("background:transparent;")
@@ -3522,6 +3519,27 @@ class _MenuHeader(QFrame):
                            "font-weight:600;letter-spacing:1px;background:transparent;")
         c5.addWidget(cap3)
         h.addWidget(c5w, 0, Qt.AlignVCenter)
+
+        # RISULTATI GARA: gare, vittorie, podi, top5, DNF (dalle sessioni gara)
+        def _statcol(attr, cap):
+            _w = QWidget(); _w.setStyleSheet("background:transparent;")
+            _v = QVBoxLayout(_w)
+            _v.setContentsMargins(0, 0, 0, 0); _v.setSpacing(2)
+            _lb = QLabel("0"); _lb.setObjectName("mhVal")
+            _lb.setAlignment(Qt.AlignHCenter)
+            _v.addWidget(_lb)
+            _c = QLabel(cap); _c.setAlignment(Qt.AlignHCenter)
+            _c.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:12px;"
+                             "font-weight:600;letter-spacing:1px;"
+                             "background:transparent;")
+            _v.addWidget(_c)
+            setattr(self, attr, _lb)
+            h.addWidget(_w, 0, Qt.AlignVCenter)
+        _statcol("lb_races", "GARE")
+        _statcol("lb_wins", "VITTORIE")
+        _statcol("lb_podiums", "PODI")
+        _statcol("lb_top5", "TOP 5")
+        _statcol("lb_dnf", "DNF")
 
         # rotella OPTIONS: SPOSTATA nel footer (in basso a destra);
         # l'attributo resta per compatibilita' col wiring esistente
@@ -3620,6 +3638,17 @@ class _MenuHeader(QFrame):
         except Exception:
             n = 0
         self.lb_sess.setText(_abbr_num(n))
+        # risultati gara: gare, vittorie, podi, top5, DNF (dalle sessioni gara)
+        try:
+            from core.results import race_stats
+            _rs = race_stats()
+            self.lb_races.setText(_abbr_num(_rs["races"]))
+            self.lb_wins.setText(_abbr_num(_rs["wins"]))
+            self.lb_podiums.setText(_abbr_num(_rs["podiums"]))
+            self.lb_top5.setText(_abbr_num(_rs["top5"]))
+            self.lb_dnf.setText(_abbr_num(_rs["dnf"]))
+        except Exception:
+            pass
         # online: driver unici + ref times (best attivi). Cache + refresh background.
         try:
             from core import online as _online
@@ -6863,7 +6892,7 @@ class _MenuHeader(QFrame):
             "background:rgba(0,0,0,0.22);border:1px solid rgba(255,255,255,0.18);"
             "border-radius:8px;padding:6px 12px;}"
             "#mhTeam:focus{border:1px solid #ff1d43;}")
-        h = QHBoxLayout(self); h.setContentsMargins(26, 14, 26, 14); h.setSpacing(34)
+        h = QHBoxLayout(self); h.setContentsMargins(24, 12, 24, 12); h.setSpacing(20)
 
         # AVATAR pilota = CASCO con la livrea scelta (click = menu 20 livree)
         self.avatar = _SvgBox()
@@ -6881,20 +6910,17 @@ class _MenuHeader(QFrame):
         self.avatar.mousePressEvent = lambda e: self._pick_helmet()
         h.addWidget(self.avatar, 0, Qt.AlignVCenter)
 
-        # PILOTA
+        # PILOTA + TEAM impilati (team SOTTO il nome, campo piu' piccolo)
         c1w = QWidget(); c1w.setStyleSheet("background:transparent;")
         c1 = QVBoxLayout(c1w); c1.setContentsMargins(0, 0, 0, 0); c1.setSpacing(2)
         _d = QLabel("DRIVER"); _d.setObjectName("mhCap"); c1.addWidget(_d)
         self.lb_driver = QLabel("\u2014"); self.lb_driver.setObjectName("mhVal")
         c1.addWidget(self.lb_driver)
-        h.addWidget(c1w, 0, Qt.AlignVCenter)
-
-        # TEAM (editabile)
-        c2w = QWidget(); c2w.setStyleSheet("background:transparent;")
-        c2 = QVBoxLayout(c2w); c2.setContentsMargins(0, 0, 0, 0); c2.setSpacing(2)
-        _t = QLabel("TEAM"); _t.setObjectName("mhCap"); c2.addWidget(_t)
+        _t = QLabel("TEAM"); _t.setObjectName("mhCap")
+        _t.setStyleSheet("margin-top:5px;")
+        c1.addWidget(_t)
         self.ed_team = QLineEdit(); self.ed_team.setObjectName("mhTeam")
-        self.ed_team.setMaxLength(30); self.ed_team.setFixedWidth(240)
+        self.ed_team.setMaxLength(30); self.ed_team.setFixedWidth(190)
         self.ed_team.setPlaceholderText("Your team")
         self.ed_team.setFocusPolicy(Qt.ClickFocus)   # niente focus/lampeggio automatico
         self.ed_team.editingFinished.connect(self._save_team)
@@ -6905,8 +6931,8 @@ class _MenuHeader(QFrame):
         self._team_timer.timeout.connect(self._team_commit)
         self.ed_team.textEdited.connect(lambda *_: self._team_timer.start())
         self.ed_team.installEventFilter(self)
-        c2.addWidget(self.ed_team)
-        h.addWidget(c2w, 0, Qt.AlignVCenter)
+        c1.addWidget(self.ed_team)
+        h.addWidget(c1w, 0, Qt.AlignVCenter)
 
         # SESSIONI LOCALI: subito dopo team — numero sopra, "Sessions" sotto (bianco)
         c3w = QWidget(); c3w.setStyleSheet("background:transparent;")
@@ -6946,6 +6972,27 @@ class _MenuHeader(QFrame):
                            "font-weight:600;letter-spacing:1px;background:transparent;")
         c5.addWidget(cap3)
         h.addWidget(c5w, 0, Qt.AlignVCenter)
+
+        # RISULTATI GARA: gare, vittorie, podi, top5, DNF (dalle sessioni gara)
+        def _statcol(attr, cap):
+            _w = QWidget(); _w.setStyleSheet("background:transparent;")
+            _v = QVBoxLayout(_w)
+            _v.setContentsMargins(0, 0, 0, 0); _v.setSpacing(2)
+            _lb = QLabel("0"); _lb.setObjectName("mhVal")
+            _lb.setAlignment(Qt.AlignHCenter)
+            _v.addWidget(_lb)
+            _c = QLabel(cap); _c.setAlignment(Qt.AlignHCenter)
+            _c.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:12px;"
+                             "font-weight:600;letter-spacing:1px;"
+                             "background:transparent;")
+            _v.addWidget(_c)
+            setattr(self, attr, _lb)
+            h.addWidget(_w, 0, Qt.AlignVCenter)
+        _statcol("lb_races", "GARE")
+        _statcol("lb_wins", "VITTORIE")
+        _statcol("lb_podiums", "PODI")
+        _statcol("lb_top5", "TOP 5")
+        _statcol("lb_dnf", "DNF")
 
         # rotella OPTIONS: SPOSTATA nel footer (in basso a destra);
         # l'attributo resta per compatibilita' col wiring esistente
@@ -7044,6 +7091,17 @@ class _MenuHeader(QFrame):
         except Exception:
             n = 0
         self.lb_sess.setText(_abbr_num(n))
+        # risultati gara: gare, vittorie, podi, top5, DNF (dalle sessioni gara)
+        try:
+            from core.results import race_stats
+            _rs = race_stats()
+            self.lb_races.setText(_abbr_num(_rs["races"]))
+            self.lb_wins.setText(_abbr_num(_rs["wins"]))
+            self.lb_podiums.setText(_abbr_num(_rs["podiums"]))
+            self.lb_top5.setText(_abbr_num(_rs["top5"]))
+            self.lb_dnf.setText(_abbr_num(_rs["dnf"]))
+        except Exception:
+            pass
         # online: driver unici + ref times (best attivi). Cache + refresh background.
         try:
             from core import online as _online
