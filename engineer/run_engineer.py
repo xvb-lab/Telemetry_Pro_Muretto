@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 from core.reader import TelemetryReader
-from core.strategy import StrategyFeed, auto_fuel_target
+from core.strategy import StrategyFeed, auto_fuel_target, fetch_weather5
 from core.shared_memory import SharedMemory
 from core.voice import Voice
 from core import engineer_cfg
@@ -61,6 +61,25 @@ def _apply_cfg(vox, cfg):
 
 
 _AF = {"ts": 0.0, "pct": None}
+_WX = {"sig": None, "fc": None, "ts": 0.0}
+
+
+def _forecast(d):
+    """Forecast pioggia [5 nodi] della sessione, cache per (pista, tipo).
+    Ritenta ogni 5s finche' LMU non lo espone (pre-verde puo' arrivare tardi)."""
+    sig = (d.get("track"), d.get("session_type"))
+    now = time.monotonic()
+    if sig != _WX["sig"]:
+        _WX["sig"] = sig
+        _WX["fc"] = None
+        _WX["ts"] = 0.0
+    if _WX["fc"] is None and (now - _WX["ts"]) > 5.0:
+        _WX["ts"] = now
+        try:
+            _WX["fc"] = fetch_weather5(d.get("session_type"))
+        except Exception:
+            _WX["fc"] = None
+    return _WX["fc"]
 
 
 def _auto_fuel_tick(feed, live, cfg, brain, laps_done):
@@ -155,6 +174,7 @@ def _collect(brain, raw, ld, pace):
         (brain.wet_tyre, (raw,)),
         (brain.pit_ack, (raw, ld)),
         # 🔵 STRATEGY
+        (brain.race_briefing, (raw,)),           # briefing meteo al rolling start
         (brain.race_plan, (raw,)),
         (brain.box_call, (raw, ld)),
         (brain.strategy_check, (raw, pace, ld)),
@@ -263,6 +283,7 @@ def run():
             raw["on_track"] = True
             raw["lap_time"] = d.get("last_lap")       # per sector_delta / feedback
             raw["lmu_live"] = live
+            raw["forecast_rain"] = _forecast(d)       # meteo gara (briefing al via)
             if live:
                 raw["lmu_per_lap"] = live.get("per_lap")
                 raw["lmu_strat"] = {

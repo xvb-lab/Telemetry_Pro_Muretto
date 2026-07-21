@@ -279,6 +279,35 @@ def build_lmu_live(d, ve_table, constraint, meas_per_lap, est_lap):
         return None
 
 
+_FC_SLOTS = ["START", "NODE_25", "NODE_50", "NODE_75", "FINISH"]
+_FC_KEY = {1: "PRACTICE", 2: "PRACTICE", 3: "PRACTICE", 4: "QUALIFY",
+           5: "QUALIFY", 6: "RACE", 7: "RACE", 8: "RACE"}
+
+
+def fetch_weather5(session_type, timeout=0.6):
+    """Probabilita' pioggia 0-100 ai 5 nodi (START..FINISH) dal forecast LMU
+    (gia' esposto PRIMA del via). Lista di 5 float, o None se non disponibile."""
+    d = _get("/rest/sessions/weather", timeout)
+    if not isinstance(d, dict):
+        return None
+    key = _FC_KEY.get(int(session_type or 0))
+    sess = (d.get(key) if key else None) or d.get("RACE") \
+        or d.get("QUALIFY") or d.get("PRACTICE")
+    if not isinstance(sess, dict):
+        return None
+    rains = []
+    for slot in _FC_SLOTS:
+        nd = sess.get(slot, {}) or {}
+        r = (nd.get("WNV_RAIN_CHANCE", {}) or {}).get("currentValue", 0)
+        try:
+            rains.append(float(r))
+        except (TypeError, ValueError):
+            rains.append(0.0)
+    if rains and max(rains) <= 1.0:          # alcune build: 0-1 invece di 0-100
+        rains = [r * 100.0 for r in rains]
+    return rains
+
+
 def auto_fuel_target(menu_raw, laps_needed, margin=2):
     """AUTO-FUEL (collaudato 20/07): dalla tabella %->giri del pit menu di LMU
     la % di VIRTUAL ENERGY *minima* che copre `laps_needed + margin` giri.

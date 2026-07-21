@@ -2037,6 +2037,36 @@ class Engineer:
         self._st["wx_case"] = code
         return [self.msg(code, **kw)]
 
+    def race_briefing(self, raw):
+        """BRIEFING METEO al rolling start (PRE-VERDE): quadro pioggia della
+        gara dal forecast LMU (nodi START..FINISH), gia' esposto prima del via.
+        Una volta per sessione. Asciutto = sereno; pioggia = avvisa."""
+        raw = raw or {}
+        if self._st.get("rb_said"):
+            return []
+        try:
+            styp = int(raw.get("session_type") or 0)
+            phase = int(raw.get("game_phase") or 0)
+            ld = int(raw.get("laps_completed") or 0)
+        except (TypeError, ValueError):
+            return []
+        if styp < 10:                        # solo GARA
+            return []
+        if phase >= 5 and ld >= 1:           # verde passato da un pezzo: niente briefing tardivo
+            return []
+        fc = raw.get("forecast_rain")
+        if not fc or len(fc) < 2:
+            return []                        # forecast non ancora pronto: riprova
+        try:
+            vals = [float(x) for x in fc]
+        except (TypeError, ValueError):
+            return []
+        self._st["rb_said"] = True
+        pista = str(raw.get("track") or "").strip()
+        if max(vals) < 30.0:                 # gara prevista asciutta
+            return [self.msg("weather_dry", pista=pista)]
+        return [self.msg("weather_wet", pista=pista)]
+
     def briefing(self, raw):
         """PROVA: briefing APPRESO — se conosco gia' la pista dai tuoi
         giri passati, lo dico (best, curve mappate). Una volta."""

@@ -20,7 +20,8 @@ _role(["fast_class_close", "fast_class_now",
        "gap_ahead", "gap_behind", "gap_both", "gap_undercut", "blue_flag",
        "blue_flag_multi", "blue_flag_simple", "traffic_ahead",
        "local_yellow", "yellow_flag", "yellow_pit"], "spotter")
-_role(["brief_strat_data", "brief_strat_new"], "strategist")
+_role(["brief_strat_data", "brief_strat_new",
+       "weather_dry", "weather_wet"], "strategist")
 _role(["brief_spot", "pit_exit_clean", "pit_exit_fast", "pit_exit_hole",
        "pit_exit_traffic"], "spotter")
 _role(["contact_ok", "contact_who", "contact_ok_who"], "spotter")
