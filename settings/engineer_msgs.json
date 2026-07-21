@@ -6916,6 +6916,71 @@
         "Le chrono est fini, on termine ici.",
         "Fin du temps, session terminee."
       ]
+    },
+    "overtake_done": {
+      "cat": "performance",
+      "level": "info",
+      "beep": true,
+      "it": "Bel sorpasso! Ora sei {pos}.",
+      "variants_it": [
+        "Bel sorpasso! Ora sei {pos}.",
+        "Passato! Sei {pos} in classe.",
+        "Grande, guadagni la posizione: {pos}.",
+        "Sorpasso pulito, ora {pos}.",
+        "Bravo, te lo sei preso! {pos}.",
+        "Un altro passato, sei {pos}.",
+        "Che manovra! Ora {pos}.",
+        "Posizione guadagnata, sei {pos}.",
+        "Lo hai messo dietro, {pos}.",
+        "Testa bassa e via, sei {pos}.",
+        "Sorpasso da manuale, {pos}.",
+        "Uno in meno davanti, ora {pos}."
+      ],
+      "en": "Nice pass! You're now {pos}.",
+      "variants_en": [
+        "Nice pass! You're now {pos}.",
+        "Got him! You're {pos} in class.",
+        "Great, position gained: {pos}.",
+        "Clean overtake, now {pos}.",
+        "Well done, you took it! {pos}.",
+        "Another one done, you're {pos}.",
+        "What a move! Now {pos}.",
+        "Position gained, you're {pos}.",
+        "Left him behind, {pos}.",
+        "Head down and go, you're {pos}.",
+        "Textbook pass, {pos}.",
+        "One less ahead, now {pos}."
+      ],
+      "es": "Buen adelantamiento! Ahora eres {pos}.",
+      "variants_es": [
+        "Buen adelantamiento! Ahora eres {pos}.",
+        "Lo pasaste! Eres {pos} en clase.",
+        "Genial, posicion ganada: {pos}.",
+        "Adelantamiento limpio, ahora {pos}.",
+        "Bien hecho, te lo llevaste! {pos}.",
+        "Otro pasado, eres {pos}.",
+        "Que maniobra! Ahora {pos}.",
+        "Posicion ganada, eres {pos}.",
+        "Lo dejaste atras, {pos}.",
+        "Cabeza baja y a por ello, {pos}.",
+        "Adelantamiento de manual, {pos}.",
+        "Uno menos delante, ahora {pos}."
+      ],
+      "fr": "Beau depassement ! Tu es {pos}.",
+      "variants_fr": [
+        "Beau depassement ! Tu es {pos}.",
+        "Passe ! Tu es {pos} en classe.",
+        "Super, position gagnee : {pos}.",
+        "Depassement propre, maintenant {pos}.",
+        "Bien joue, tu l'as pris ! {pos}.",
+        "Un autre passe, tu es {pos}.",
+        "Quelle manoeuvre ! Maintenant {pos}.",
+        "Position gagnee, tu es {pos}.",
+        "Tu l'as laisse derriere, {pos}.",
+        "Tete baissee et vas-y, {pos}.",
+        "Depassement parfait, {pos}.",
+        "Un de moins devant, {pos}."
+      ]
     }
   }
 }

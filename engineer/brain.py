@@ -1554,6 +1554,31 @@ class Engineer:
                          gap=("%.3f" % gap).replace(".", ","),
                          name=self._rival_name(pole_nm))]
 
+    def overtake_call(self, raw, laps_done):
+        """Complimenti per un SORPASSO fatto: la posizione DI CLASSE migliora
+        (non conta doppiati / altre classi). Solo in gara, in pista, dopo il
+        via. Tanti modi diversi. Il sorpasso subito non si commenta."""
+        if session_kind(raw.get("session_type")) != "race":
+            return []
+        if laps_done < 1 or raw.get("in_pits") or raw.get("garage"):
+            return []
+        riv = raw.get("rivals") or {}
+        try:
+            cp = int(riv.get("class_place"))
+        except (TypeError, ValueError):
+            return []
+        if cp <= 0:
+            return []
+        prev = self._st.get("ot_place")
+        self._st["ot_place"] = cp
+        if prev is None or cp >= prev:
+            return []                       # nessun guadagno (o subito): niente
+        now = _time.monotonic()
+        if now - self._st.get("ot_t", 0.0) < 8.0:
+            return []
+        self._st["ot_t"] = now
+        return [self.msg("overtake_done", pos=cp)]
+
     def stint_debrief(self, raw, laps_done):
         """DEBRIEF di stint (a voce, in garage a fine stint): giri, miglior giro,
         gomme a fine stint, consumo a giro, e dove migliorare. Accumula mentre
