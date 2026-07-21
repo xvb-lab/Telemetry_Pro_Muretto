@@ -1908,7 +1908,10 @@ class Engineer:
         if new_lap and not self._st.get("cd_lastlap") \
                 and rem <= lt * 0.98 and (total - rem) > total * 0.3:
             self._st["cd_lastlap"] = True
-            return [self.msg("last_lap")]
+            # "ultimo giro" SOLO in gara; in prova/quali il tempo scade e basta
+            if session_kind(raw.get("session_type")) == "race":
+                return [self.msg("last_lap")]
+            return [self.msg("session_time_up")]
         step = 600 if total <= 2700 else 1800
         mark = int(rem // step)
         if mark != self._st.get("cd_mark") and rem > 90:

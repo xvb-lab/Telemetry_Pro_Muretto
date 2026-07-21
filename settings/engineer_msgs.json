@@ -6879,6 +6879,43 @@
         "{name} t'a pris {dove}.",
         "Coup {dove} de {name}."
       ]
+    },
+    "session_time_up": {
+      "cat": "strategia",
+      "level": "info",
+      "beep": true,
+      "it": "Tempo finito, sessione chiusa.",
+      "variants_it": [
+        "Tempo finito, sessione chiusa.",
+        "Tempo scaduto, sessione conclusa.",
+        "Tempo esaurito, la sessione e' finita.",
+        "Scaduto il tempo, chiudiamo qui.",
+        "Fine del tempo, sessione chiusa."
+      ],
+      "en": "Time's up, session closed.",
+      "variants_en": [
+        "Time's up, session closed.",
+        "Time's up, session over.",
+        "Time expired, session done.",
+        "Clock's up, we're done here.",
+        "End of time, session closed."
+      ],
+      "es": "Se acabo el tiempo, sesion cerrada.",
+      "variants_es": [
+        "Se acabo el tiempo, sesion cerrada.",
+        "Tiempo agotado, sesion terminada.",
+        "Tiempo cumplido, sesion finalizada.",
+        "Se acabo el tiempo, cerramos aqui.",
+        "Fin del tiempo, sesion cerrada."
+      ],
+      "fr": "Temps ecoule, session terminee.",
+      "variants_fr": [
+        "Temps ecoule, session terminee.",
+        "Le temps est fini, session close.",
+        "Temps epuise, session finie.",
+        "Le chrono est fini, on termine ici.",
+        "Fin du temps, session terminee."
+      ]
     }
   }
 }
