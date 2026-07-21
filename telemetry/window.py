@@ -4132,10 +4132,12 @@ class _IntroPage(QWidget):
     def _on_position(self, pos):
         if self._dur <= 0:
             return
-        if not self._bg_started and pos >= self._dur - 3000:
+        # taglia gli ULTIMI 7s del video (richiesta utente): fine anticipata
+        _cut = self._dur - 7000 if self._dur > 9000 else self._dur - 120
+        if not self._bg_started and pos >= _cut - 3000:
             self._bg_started = True
             self._bg_anim.start()
-        if not self._ended and pos >= self._dur - 120:
+        if not self._ended and pos >= _cut:
             self._at_end()
 
     def _at_end(self):
@@ -7580,10 +7582,12 @@ class _IntroPage(QWidget):
     def _on_position(self, pos):
         if self._dur <= 0:
             return
-        if not self._bg_started and pos >= self._dur - 3000:
+        # taglia gli ULTIMI 7s del video (richiesta utente): fine anticipata
+        _cut = self._dur - 7000 if self._dur > 9000 else self._dur - 120
+        if not self._bg_started and pos >= _cut - 3000:
             self._bg_started = True
             self._bg_anim.start()
-        if not self._ended and pos >= self._dur - 120:
+        if not self._ended and pos >= _cut:
             self._at_end()
 
     def _at_end(self):
