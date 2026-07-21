@@ -468,6 +468,8 @@ class Engineer:
             "wear_now": wear_now, "deg_per_lap": deg,
             "wear_dead": 78.0 if wetm else 70.0,
         }
+        self._deg = deg                       # per manage_briefing (gestisci/spingi)
+        self._wear_dead = snap["wear_dead"]
         mp = _mur.plan(snap)
         if not mp.get("ok"):
             return []
@@ -2230,6 +2232,30 @@ class Engineer:
         if near is None or abs(float(near.get("d")) - d) > 150.0:
             return None
         return near.get("n")
+
+    def manage_briefing(self, raw):
+        """GESTISCI o SPINGI (nel briefing): se lo stint e' limitato dall'usura
+        gomma (arriverebbe morta tirando) -> gestisci; senno' via libera. Una
+        volta, quando il piano c'e'."""
+        if self._st.get("mng_said"):
+            return []
+        plan = self._plan or {}
+        try:
+            stint = float(plan.get("stint_laps") or 0.0)
+        except (TypeError, ValueError):
+            return []
+        if stint <= 0:
+            return []
+        self._st["mng_said"] = True
+        deg = getattr(self, "_deg", None)
+        dead = float(getattr(self, "_wear_dead", 70.0) or 70.0)
+        budget = max(5.0, 100.0 - dead)
+        try:
+            if deg and float(deg) * stint >= budget * 0.85:
+                return [self.msg("briefing_manage")]
+        except (TypeError, ValueError):
+            pass
+        return [self.msg("briefing_push")]
 
     def fuel_save_option(self, raw, laps_done):
         """MARGINE PER UNA SOSTA IN MENO: se allungando ogni stint di pochi

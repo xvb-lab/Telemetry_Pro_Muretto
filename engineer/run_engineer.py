@@ -212,6 +212,7 @@ def _collect(brain, raw, ld, pace):
         (brain.weather_check, (raw, ld)),
         (brain.strat_extra_stop, (raw, ld)),
         (brain.fuel_save_option, (raw, ld)),      # margine per una sosta in meno
+        (brain.manage_briefing, (raw,)),          # gestisci / spingi nel briefing
         (brain.pit_exit_traffic, (raw,)),         # traffico al rientro box (v2)
         (brain.status_update, (raw, ld)),
         (brain.autofuel_call, (raw, ld)),

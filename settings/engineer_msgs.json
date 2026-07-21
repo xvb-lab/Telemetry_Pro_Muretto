@@ -6099,6 +6099,72 @@
         "Track limits : pénalité, virage {turn}.",
         "Pénalité limites de piste, virage {turn}."
       ]
+    },
+    "briefing_manage": {
+      "cat": "strategia",
+      "level": "info",
+      "beep": true,
+      "it": "Gara da gestire: le gomme non arrivano se le tiri.",
+      "variants_it": [
+        "Gara da gestire: le gomme non arrivano se le tiri.",
+        "Serve gestione gomma, non arrivi in fondo tirando.",
+        "Da gestire: cura le coperture per arrivare.",
+        "Gestione gomma: risparmia o non arriva in fondo."
+      ],
+      "en": "Manage this one: the tyres won't last if you push.",
+      "variants_en": [
+        "Manage this one: the tyres won't last if you push.",
+        "Tyre management needed, you won't make it flat out.",
+        "One to manage: look after the tyres to the end.",
+        "Manage: save the tyres or they won't last."
+      ],
+      "es": "Carrera para gestionar: las gomas no llegan si aprietas.",
+      "variants_es": [
+        "Carrera para gestionar: las gomas no llegan si aprietas.",
+        "Hace falta gestion de goma, no llegas al limite.",
+        "A gestionar: cuida los neumaticos para llegar.",
+        "Gestion: cuida la goma o no llega."
+      ],
+      "fr": "Course a gerer : les pneus ne tiennent pas si tu pousses.",
+      "variants_fr": [
+        "Course a gerer : les pneus ne tiennent pas si tu pousses.",
+        "Gestion des pneus necessaire, tu ne finis pas a fond.",
+        "A gerer : menage les pneus pour aller au bout.",
+        "Gestion : menage la gomme sinon elle ne tient pas."
+      ]
+    },
+    "briefing_push": {
+      "cat": "strategia",
+      "level": "info",
+      "beep": true,
+      "it": "Puoi spingere, le gomme reggono lo stint.",
+      "variants_it": [
+        "Puoi spingere, le gomme reggono lo stint.",
+        "Via libera: nessuna gestione, spingi.",
+        "Gomme ok per lo stint, attacca.",
+        "Niente gestione, puoi andare a tutta."
+      ],
+      "en": "You can push, the tyres last the stint.",
+      "variants_en": [
+        "You can push, the tyres last the stint.",
+        "Green light: no management, push.",
+        "Tyres are fine for the stint, attack.",
+        "No management needed, go flat out."
+      ],
+      "es": "Puedes apretar, las gomas aguantan el stint.",
+      "variants_es": [
+        "Puedes apretar, las gomas aguantan el stint.",
+        "Via libre: sin gestion, aprieta.",
+        "Gomas ok para el stint, ataca.",
+        "Sin gestion, puedes ir a tope."
+      ],
+      "fr": "Tu peux pousser, les pneus tiennent le relais.",
+      "variants_fr": [
+        "Tu peux pousser, les pneus tiennent le relais.",
+        "Feu vert : pas de gestion, pousse.",
+        "Pneus ok pour le relais, attaque.",
+        "Pas de gestion, tu peux y aller a fond."
+      ]
     }
   }
 }
