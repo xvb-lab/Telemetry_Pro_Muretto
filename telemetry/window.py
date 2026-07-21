@@ -3635,11 +3635,13 @@ class _MenuHeader(QFrame):
         try:
             from core.results import race_stats
             _rs = race_stats()
-            self.lb_races.setText(_abbr_num(_rs["races"]))
-            self.lb_wins.setText(_abbr_num(_rs["wins"]))
-            self.lb_podiums.setText(_abbr_num(_rs["podiums"]))
-            self.lb_top5.setText(_abbr_num(_rs["top5"]))
-            self.lb_dnf.setText(_abbr_num(_rs["dnf"]))
+            # override MANUALE dal profilo (stat_*) per inserire lo storico
+            # (es. dati 2024): se il campo e' impostato vince, senno' automatico
+            for _k, _lb in (("races", self.lb_races), ("wins", self.lb_wins),
+                            ("podiums", self.lb_podiums), ("top5", self.lb_top5),
+                            ("dnf", self.lb_dnf)):
+                _v = prof.get("stat_" + _k, _rs.get(_k, 0))
+                _lb.setText(_abbr_num(int(_v)))
         except Exception:
             pass
         # online: driver unici + ref times (best attivi). Cache + refresh background.
@@ -7081,11 +7083,13 @@ class _MenuHeader(QFrame):
         try:
             from core.results import race_stats
             _rs = race_stats()
-            self.lb_races.setText(_abbr_num(_rs["races"]))
-            self.lb_wins.setText(_abbr_num(_rs["wins"]))
-            self.lb_podiums.setText(_abbr_num(_rs["podiums"]))
-            self.lb_top5.setText(_abbr_num(_rs["top5"]))
-            self.lb_dnf.setText(_abbr_num(_rs["dnf"]))
+            # override MANUALE dal profilo (stat_*) per inserire lo storico
+            # (es. dati 2024): se il campo e' impostato vince, senno' automatico
+            for _k, _lb in (("races", self.lb_races), ("wins", self.lb_wins),
+                            ("podiums", self.lb_podiums), ("top5", self.lb_top5),
+                            ("dnf", self.lb_dnf)):
+                _v = prof.get("stat_" + _k, _rs.get(_k, 0))
+                _lb.setText(_abbr_num(int(_v)))
         except Exception:
             pass
         # online: driver unici + ref times (best attivi). Cache + refresh background.
@@ -10417,6 +10421,41 @@ class TelemetryWindow(QMainWindow):
             "QLineEdit:focus{border:1px solid #ff1d43;}")
         self._team_edit.editingFinished.connect(self._save_team_opt)
         _trl.addWidget(self._team_edit, 0, Qt.AlignVCenter)
+        # riga "Results" (editabile): correggi gare/vittorie ecc. a mano
+        # (es. storico 2024 che LMU non espone). Vuoto -> automatico dalle sessioni.
+        from PySide6.QtWidgets import QSpinBox as _QSpin
+        self._resultsrow = QWidget()
+        self._resultsrow.setObjectName("widgetRow")
+        self._resultsrow.setFixedHeight(46)
+        _rrl = QHBoxLayout(self._resultsrow)
+        _rrl.setContentsMargins(14, 0, 12, 0); _rrl.setSpacing(6)
+        _rnm = QLabel("Results"); _rnm.setObjectName("widgetName")
+        _rrl.addWidget(_rnm, 0, Qt.AlignVCenter)
+        _rrl.addStretch(1)
+        try:
+            from core.results import race_stats as _rstat
+            _auto = _rstat()
+        except Exception:
+            _auto = {}
+        try:
+            _pf0 = _load_profile()
+        except Exception:
+            _pf0 = {}
+        self._stat_spins = {}
+        for _k, _cap in (("races", "R"), ("wins", "W"), ("podiums", "P"),
+                         ("top5", "T5"), ("dnf", "DNF")):
+            _cl = QLabel(_cap)
+            _cl.setStyleSheet("color:#9fb0c8;font-size:11px;font-weight:700;"
+                              "background:transparent;")
+            _rrl.addWidget(_cl, 0, Qt.AlignVCenter)
+            _sp = _QSpin(); _sp.setRange(0, 9999); _sp.setFixedWidth(52)
+            _sp.setValue(int(_pf0.get("stat_" + _k, _auto.get(_k, 0))))
+            _sp.setStyleSheet(
+                "QSpinBox{color:#fff;background:rgba(255,255,255,0.08);"
+                "border:none;border-radius:6px;padding:2px 4px;font-size:12px;}")
+            _sp.valueChanged.connect(lambda v, k=_k: self._save_stat_opt(k, v))
+            self._stat_spins[_k] = _sp
+            _rrl.addWidget(_sp, 0, Qt.AlignVCenter)
         # riga "Music" (check tondo): stessa fattura della riga intro
         try:
             _mus0 = bool(_load_profile().get("music_on", True))
@@ -10700,9 +10739,10 @@ class TelemetryWindow(QMainWindow):
         # righe Video intro + Music nella 3a colonna della pagina OPTIONS
         try:
             self._app._legacy._overlaytab._extra_col.insertWidget(0, self._teamrow)
-            self._app._legacy._overlaytab._extra_col.insertWidget(1, self._introrow)
-            self._app._legacy._overlaytab._extra_col.insertWidget(2, self._musicrow)
-            self._app._legacy._overlaytab._extra_col.insertWidget(3, self._lockrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(1, self._resultsrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(2, self._introrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(3, self._musicrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(4, self._lockrow)
             # Team dev NASCOSTO (pulizia 20/07): la galleria brand resta
             # nel codice, riga non inserita — per riaverla basta questa:
             # self._app._legacy._overlaytab._extra_col.insertWidget(3, self._teamdevrow)
@@ -11292,6 +11332,18 @@ class TelemetryWindow(QMainWindow):
         try:
             from core.soundtrack import Soundtrack
             Soundtrack.instance().set_enabled(on)
+        except Exception:
+            pass
+
+    def _save_stat_opt(self, key, val):
+        """Salva un risultato corretto a mano (stat_*) nel profilo e aggiorna
+        l'header. Per lo storico che LMU non espone (es. 2024)."""
+        try:
+            d = _load_profile(); d["stat_" + key] = int(val); _save_profile(d)
+        except Exception:
+            pass
+        try:
+            self._menu.banner.refresh()
         except Exception:
             pass
 
