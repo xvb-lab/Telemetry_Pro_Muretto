@@ -39,7 +39,8 @@ _mk(["box_wheel", "box_aero", "box_susp", "box_body", "box_s2", "box_now",
      "box_last", "box_retire", "tyres_over", "brakes_over", "engine_over",
      "yellow_flag", "fuel_short", "box_flat", "box_penalty", "box_tyre_dead",
      "box_tyre", "rain_box_now", "rain_box_pace", "local_yellow",
-     "retire_race", "retire_practice", "retire_quali"], 0)
+     "retire_race", "retire_practice", "retire_quali",
+     "pit_release_wait", "pit_release_clear", "garage_wrong_tyre"], 0)
 # P1 strategia / meteo / briefing (devono essere detti)
 _mk(["ready", "briefing_strat", "briefing_laps", "briefing_save", "plan",
      "plan_hist", "learn_prov", "pit_window", "fuel_laps", "energy_laps",
@@ -61,8 +62,9 @@ _mk(["ready", "briefing_strat", "briefing_laps", "briefing_save", "plan",
 # BLU: urgenti, quasi come una gialla (auto veloce che ti sta per doppiare:
 # vanno dette subito, non scartate come semplice info gara). Richiesta utente.
 _mk(["blue_flag", "blue_flag_multi", "blue_flag_simple"], 1)
-# Semaforo pit (prova/quali) + conferma pit pronta: devono essere detti.
-_mk(["pit_closed", "pit_open", "pit_ready", "tyre_stock"], 1)
+# Semaforo pit (prova/quali) + conferma pit pronta + briefing box: detti, ma
+# SOTTO il safe-release (P0) -> il briefing si accoda e lo senti in out-lap.
+_mk(["pit_closed", "pit_open", "pit_ready", "tyre_stock", "garage_brief"], 1)
 # P2 stato vettura + check consumi
 _mk(["tyres_cold", "tyres_warm", "brakes_cold", "tyres_hot", "brakes_hot",
      "aero_light", "aero_bad", "susp_light", "susp_bad", "damage_body",
@@ -87,6 +89,9 @@ _RADIO_MIN_GAP = 5.0       # secondi tra due messaggi non critici
 _RADIO_NO_REPEAT = 20.0    # non ripetere la stessa frase entro N secondi
 _GROUP_GAP = 8.0           # un solo messaggio per gruppo entro N secondi
 _YELLOW = ("local_yellow", "yellow_flag")
+# cosa TAGLIA il messaggio in corso: gialle + il safe-release "aspetta" (auto in
+# arrivo mentre esci dal box) -> deve passare subito, non dopo il briefing.
+_PREEMPT = _YELLOW + ("pit_release_wait",)
 # Tono SENZA ritardo (subito dopo il beep): gialle + blu (urgenza) e pit_ready
 # (i suoi 3s sono gia' l'attesa; il ritardo tono NON deve sommarsi). Richiesta utente.
 _URGENT_TONE = _YELLOW + ("blue_flag", "blue_flag_multi", "blue_flag_simple",
@@ -174,8 +179,9 @@ class RadioManager:
         if busy:
             cur = self._cur
             cur_t0 = _MSG_TIER.get((cur or {}).get("code"), 4) == 0
-            # solo la GIALLA (e solo se il corrente non è già sicurezza) preempta
-            if not (top["m"].get("code") in _YELLOW and not cur_t0):
+            # solo GIALLA/safe-release (e solo se il corrente non è già
+            # sicurezza) preempta -> il briefing tagliato si riaccoda e lo senti dopo
+            if not (top["m"].get("code") in _PREEMPT and not cur_t0):
                 return
             if cur:                             # riaccoda il messaggio tagliato
                 ct = cur.get("text")
