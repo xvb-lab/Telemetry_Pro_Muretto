@@ -212,6 +212,7 @@ class Engineer:
         self._plan_sig = None
         self._ctx = {}
         self._sane_events = []
+        self._sec_best = None            # riferimento settori: riparte pulito
 
     # ── filtro letture strappate ─────────────────────────────────────
     def glitch(self, raw):
@@ -1112,6 +1113,21 @@ class Engineer:
         return [self.msg("grip_up" if g > prev else "grip_down",
                          stato=names[g])]
 
+    def _seed_sectors(self, raw):
+        """Riferimento settori dal 1o giro: i migliori settori APPRESI su questa
+        pista/classe (se ci sono), senno' [None,None,None] (parte dai tuoi)."""
+        try:
+            from core.engineer_learn import load as _ll
+            prof = _ll(raw.get("track") or "",
+                       class_tag(raw.get("car_class") or "")) or {}
+            secs = ((prof.get("dry") or {}).get("sectors")) or []
+            if isinstance(secs, list) and len(secs) == 3 \
+                    and all(isinstance(x, (int, float)) and x > 0 for x in secs):
+                return [float(secs[0]), float(secs[1]), float(secs[2])]
+        except Exception:
+            pass
+        return [None, None, None]
+
     def sector_delta(self, raw, laps_done):
         """DOVE PERDI: a fine giro confronta i 3 settori col tuo MIGLIORE e, se
         perdi in modo netto (>=0.18s), te lo dice. Solo all'asciutto (sul bagnato
@@ -1139,7 +1155,9 @@ class Engineer:
         secs = [s1, s2c - s1, lt - s2c]
         best = getattr(self, "_sec_best", None)
         if not isinstance(best, list):
-            best = self._sec_best = [None, None, None]
+            # SEED dal 1o giro: se la pista e' appresa uso i settori migliori
+            # storici come riferimento -> "dove perdi" gia' dal primo giro.
+            best = self._sec_best = self._seed_sectors(raw)
         deltas = []
         for i in range(3):
             if best[i] is None or secs[i] < best[i]:
