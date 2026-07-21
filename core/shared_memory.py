@@ -509,6 +509,35 @@ class SharedMemory:
             self._sim = None
             return None
 
+    def car_states(self):
+        """Snapshot per-auto (rivali): {id: {name, cls, pen, last, place}}.
+        Serve a rilevare penalita' NUOVE e cali di passo dei rivali. {} se non
+        disponibile. LMU espone il CONTATORE penalita' (non il tipo)."""
+        try:
+            sim = self._get_sim()
+            if not sim:
+                return {}
+            from pyLMUSharedMemory.lmu_data import MAX_MAPPED_VEHICLES as _MX
+            si = sim.scoring.scoringInfo
+            num = int(si.mNumVehicles)
+            out = {}
+            for i in range(min(num, _MX)):
+                v = sim.scoring.vehScoringInfo[i]
+                if int(getattr(v, "mIsPlayer", 0)):
+                    continue
+                nm = bytes(v.mDriverName).split(b"\x00")[0].decode("utf-8", "ignore")
+                cls = bytes(v.mVehicleClass).split(b"\x00")[0]\
+                    .decode("utf-8", "ignore")
+                out[int(v.mID)] = {
+                    "name": nm, "cls": cls,
+                    "pen": int(getattr(v, "mNumPenalties", 0) or 0),
+                    "last": float(getattr(v, "mLastLapTime", -1) or -1),
+                    "place": int(getattr(v, "mPlace", 0) or 0),
+                }
+            return out
+        except Exception:
+            return {}
+
     def flags(self):
         """Bandiere: distanza (m) auto lenta più vicina davanti sotto gialla e
         sua classe; classe dell'auto che ti doppia (blu); penalità; scacchi.

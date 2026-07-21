@@ -228,6 +228,8 @@ def _collect(brain, raw, ld, pace):
         (brain.gap_call, (raw, ld)),
         (brain.traffic_ahead_call, (raw,)),
         (brain.fast_class_call, (raw,)),          # pre-blu classe veloce (v2)
+        (brain.opp_penalty, (raw,)),              # rivale penalizzato
+        (brain.opp_pace_drop, (raw,)),            # rivale che perde passo
         (brain.lock_pattern_call, (raw, ld)),
         (brain.pace_notes_call, (raw, ld)),
         (brain.tlimits_call, (raw, ld)),
@@ -340,6 +342,7 @@ def run():
                 _nc = mem.nearest_car()
                 if _nc:
                     raw["nearest_car"] = _nc
+                raw["cars"] = mem.car_states()    # penalità / passo rivali
             except Exception:
                 pass
             # tick strappato (dato incoerente) -> salta

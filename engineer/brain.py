@@ -2030,6 +2030,53 @@ class Engineer:
         self._st["wx_case"] = code
         return [self.msg(code, **kw)]
 
+    def _rival_name(self, name):
+        """Nome rivale per la voce (cognome abbreviato)."""
+        from core.utils import short_name as _sn
+        return _sn(name or "")
+
+    def opp_penalty(self, raw):
+        """RIVALE che prende una penalita' NUOVA. LMU da' il CONTATORE (non il
+        tipo), quindi diciamo chi, non quale. Una alla volta. Voce spotter."""
+        raw = raw or {}
+        cars = raw.get("cars") or {}
+        prev = self._st.get("cars_pen")
+        out = []
+        if prev:
+            for cid, c in cars.items():
+                pp = prev.get(cid)
+                nm = self._rival_name(c.get("name", ""))
+                if pp is not None and int(c.get("pen", 0)) > int(pp) and nm:
+                    out.append(self.msg("opp_penalty", name=nm))
+                    break
+        self._st["cars_pen"] = {cid: int(c.get("pen", 0)) for cid, c in cars.items()}
+        return out
+
+    def opp_pace_drop(self, raw):
+        """RIVALE che perde passo di colpo: ultimo giro oltre +3s sul suo
+        miglior recente. Una volta per calo. Voce spotter."""
+        raw = raw or {}
+        cars = raw.get("cars") or {}
+        best = self._st.setdefault("cars_best", {})
+        said = self._st.setdefault("cars_slow_said", {})
+        out = []
+        for cid, c in cars.items():
+            try:
+                last = float(c.get("last", -1))
+            except (TypeError, ValueError):
+                continue
+            if last <= 20.0:
+                continue
+            b = best.get(cid)
+            nm = self._rival_name(c.get("name", ""))
+            if b and last > b + 3.0 and nm and not out:
+                if said.get(cid) != int(last):
+                    said[cid] = int(last)
+                    out.append(self.msg("opp_slow", name=nm))
+            if b is None or last < b:
+                best[cid] = last
+        return out
+
     def rain_pace_loss(self, raw, laps_done):
         """SU SLICK COL BAGNATO: tiene il tuo passo ASCIUTTO come riferimento;
         se ora il giro crolla oltre soglia (stai scivolando) suggerisce le wet.

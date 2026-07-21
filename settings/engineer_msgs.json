@@ -5951,6 +5951,88 @@
         "Contact avec {name}, tout intact.",
         "Juste frôlés avec {name}, continue."
       ]
+    },
+    "opp_penalty": {
+      "cat": "rivali",
+      "level": "info",
+      "beep": true,
+      "it": "Penalità per {name}.",
+      "variants_it": [
+        "Penalità per {name}.",
+        "{name} ha preso una penalità.",
+        "{name} penalizzato.",
+        "Race control: penalità per {name}.",
+        "{name} in penalità.",
+        "Penalità a {name}."
+      ],
+      "en": "Penalty for {name}.",
+      "variants_en": [
+        "Penalty for {name}.",
+        "{name} has a penalty.",
+        "{name} penalised.",
+        "Race control: penalty for {name}.",
+        "{name} got a penalty.",
+        "Penalty on {name}."
+      ],
+      "es": "Penalización para {name}.",
+      "variants_es": [
+        "Penalización para {name}.",
+        "{name} tiene una penalización.",
+        "{name} penalizado.",
+        "Race control: penalización para {name}.",
+        "{name} sancionado.",
+        "Penalización a {name}."
+      ],
+      "fr": "Pénalité pour {name}.",
+      "variants_fr": [
+        "Pénalité pour {name}.",
+        "{name} a une pénalité.",
+        "{name} pénalisé.",
+        "Race control : pénalité pour {name}.",
+        "{name} sanctionné.",
+        "Pénalité sur {name}."
+      ]
+    },
+    "opp_slow": {
+      "cat": "rivali",
+      "level": "info",
+      "beep": true,
+      "it": "{name} sta perdendo passo.",
+      "variants_it": [
+        "{name} sta perdendo passo.",
+        "{name} è in calo di passo.",
+        "{name} rallenta, forse un problema.",
+        "Passo giù per {name}.",
+        "{name} sta mollando.",
+        "{name} perde tempo, occhio."
+      ],
+      "en": "{name} is losing pace.",
+      "variants_en": [
+        "{name} is losing pace.",
+        "{name} pace is dropping.",
+        "{name} slowing, maybe an issue.",
+        "Pace down for {name}.",
+        "{name} is fading.",
+        "{name} losing time, watch."
+      ],
+      "es": "{name} está perdiendo ritmo.",
+      "variants_es": [
+        "{name} está perdiendo ritmo.",
+        "{name} baja el ritmo.",
+        "{name} se frena, quizá un problema.",
+        "Ritmo abajo para {name}.",
+        "{name} se está cayendo.",
+        "{name} pierde tiempo, ojo."
+      ],
+      "fr": "{name} perd du rythme.",
+      "variants_fr": [
+        "{name} perd du rythme.",
+        "Le rythme de {name} baisse.",
+        "{name} ralentit, souci possible.",
+        "Rythme en baisse pour {name}.",
+        "{name} décroche.",
+        "{name} perd du temps, attention."
+      ]
     }
   }
 }
