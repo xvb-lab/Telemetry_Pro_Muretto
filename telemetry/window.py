@@ -3428,7 +3428,7 @@ class _MenuHeader(QFrame):
         super().__init__(parent)
         self._on_community = on_community
         self.setObjectName("menuHdr")
-        self.setFixedHeight(100)
+        self.setFixedHeight(126)
         self.setStyleSheet(
             "#menuHdr{background:rgba(255,255,255,0.07);border:none;border-radius:14px;}"
             "#mhCap{color:#9fb0c8;font-family:'Heebo';font-size:10px;font-weight:700;"
@@ -3505,7 +3505,6 @@ class _MenuHeader(QFrame):
         cap2.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:13px;"
                            "font-weight:600;letter-spacing:1px;background:transparent;")
         c4.addWidget(cap2)
-        h.addWidget(c4w, 0, Qt.AlignVCenter)
 
         # REF TIMES: record best attivi in classifica (dal Worker)
         c5w = QWidget(); c5w.setStyleSheet("background:transparent;")
@@ -3518,7 +3517,6 @@ class _MenuHeader(QFrame):
         cap3.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:13px;"
                            "font-weight:600;letter-spacing:1px;background:transparent;")
         c5.addWidget(cap3)
-        h.addWidget(c5w, 0, Qt.AlignVCenter)
 
         # RISULTATI GARA: gare, vittorie, podi, top5, DNF (dalle sessioni gara)
         def _statcol(attr, cap):
@@ -3540,6 +3538,9 @@ class _MenuHeader(QFrame):
         _statcol("lb_podiums", "PODI")
         _statcol("lb_top5", "TOP 5")
         _statcol("lb_dnf", "DNF")
+        # dati COMMUNITY (online) spostati a DESTRA, dopo i risultati gara
+        h.addWidget(c4w, 0, Qt.AlignVCenter)
+        h.addWidget(c5w, 0, Qt.AlignVCenter)
 
         # rotella OPTIONS: SPOSTATA nel footer (in basso a destra);
         # l'attributo resta per compatibilita' col wiring esistente
@@ -6881,7 +6882,7 @@ class _MenuHeader(QFrame):
         super().__init__(parent)
         self._on_community = on_community
         self.setObjectName("menuHdr")
-        self.setFixedHeight(100)
+        self.setFixedHeight(126)
         self.setStyleSheet(
             "#menuHdr{background:rgba(255,255,255,0.07);border:none;border-radius:14px;}"
             "#mhCap{color:#9fb0c8;font-family:'Heebo';font-size:10px;font-weight:700;"
@@ -6958,7 +6959,6 @@ class _MenuHeader(QFrame):
         cap2.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:13px;"
                            "font-weight:600;letter-spacing:1px;background:transparent;")
         c4.addWidget(cap2)
-        h.addWidget(c4w, 0, Qt.AlignVCenter)
 
         # REF TIMES: record best attivi in classifica (dal Worker)
         c5w = QWidget(); c5w.setStyleSheet("background:transparent;")
@@ -6971,7 +6971,6 @@ class _MenuHeader(QFrame):
         cap3.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:13px;"
                            "font-weight:600;letter-spacing:1px;background:transparent;")
         c5.addWidget(cap3)
-        h.addWidget(c5w, 0, Qt.AlignVCenter)
 
         # RISULTATI GARA: gare, vittorie, podi, top5, DNF (dalle sessioni gara)
         def _statcol(attr, cap):
@@ -6993,6 +6992,9 @@ class _MenuHeader(QFrame):
         _statcol("lb_podiums", "PODI")
         _statcol("lb_top5", "TOP 5")
         _statcol("lb_dnf", "DNF")
+        # dati COMMUNITY (online) spostati a DESTRA, dopo i risultati gara
+        h.addWidget(c4w, 0, Qt.AlignVCenter)
+        h.addWidget(c5w, 0, Qt.AlignVCenter)
 
         # rotella OPTIONS: SPOSTATA nel footer (in basso a destra);
         # l'attributo resta per compatibilita' col wiring esistente
