@@ -64,8 +64,8 @@ def session_kind(m_session):
 
 
 def _fmt_lap_round(s):
-    """Tempo giro PARLATO: '1 e 52 basso/alto'; sotto il minuto '54 e 8'.
-    Con l'opzione radio 'lap_time_tenths': preciso, '1 e 52 e 3'."""
+    """Tempo giro PARLATO col DECIMALE sempre: '1 e 52 e 3' (sotto il minuto
+    '54 e 8'). Si puo' spegnere con l'opzione radio 'lap_time_tenths'=false."""
     try:
         s = float(s)
     except (TypeError, ValueError):
@@ -81,7 +81,7 @@ def _fmt_lap_round(s):
         return "%d e %d" % (sec, dec)
     try:
         from core.engineer_cfg import load as _plc
-        if _plc().get("lap_time_tenths"):
+        if _plc().get("lap_time_tenths", True):    # decimale SEMPRE (default on)
             return "%d e %02d e %d" % (m, sec, int((sec_f - sec) * 10))
     except Exception:
         pass
