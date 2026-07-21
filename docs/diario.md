@@ -245,6 +245,21 @@ dipendenze in `core/` — la strada più veloce e affidabile per lasciare la cos
 (traffico proiettato al rientro box), `wet_sector_map` (settore più bagnato).
 Agganciate in `_collect`, testate. Con sector_delta = **4 di 6** funzioni v2 fatte.
 
+**FASE 2 — UI COMPLETA reintegrata, app PRONTA.**
+- Portati `telemetry/` (window.py 11k + common/trace_view/recorder/db/strategy/
+  reader), `ui/` (tab overview/circuits/team/community/settings/overlay + widgets/
+  icons), `gui/config_window`, `data/` (tracks). Import + istanza OK.
+- **Engineer DECOUPLED**: `telemetry/engineer_tab.py` riscritto SNELLO (QWidget
+  segnaposto + API minima cfg/no-op che tab_overlay/window si aspettano); NIENTE
+  `engineer_overlay` né motore in-process. Il cervello è il processo muretto.
+- `main.py` = entry nuovo: QApplication + `TelemetryWindow` + font + icona;
+  **lancia il muretto separato** (se `engineer_on`) e lo chiude con l'app
+  (`aboutToQuit`). Overlay: fix spawn di `tab_overlay` → `-m overlays.run_overlay`.
+- **PROVATO**: `python main.py` → app UI VIVA + muretto VIVO (separato), log
+  pulito, nessun crash. L'app completa gira senza engineer in-process (no scatti).
+- Restano (FASE 3-5): online/community, fusione Opzioni ingegnere nella UI,
+  riordino assets + centralizzazione paths, prova overlay live, bilingue UI.
+
 **Assets reimportati TUTTI ("come prima", richiesta utente).**
 - Portati dal backup: `assets/` completo (103M: bg/cars/catcards/class/flags/mfd/
   racecontrol/teamradio/tracklogos/trackcards/trackmaps_svg/weather/svg/video…),
