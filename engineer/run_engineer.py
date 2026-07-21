@@ -62,6 +62,35 @@ def _apply_cfg(vox, cfg):
 
 _AF = {"ts": 0.0, "pct": None}
 _WX = {"sig": None, "fc": None, "ts": 0.0}
+_TINV = {"inv": None, "ts": 0.0}
+
+
+def _tyre_inv():
+    """Inventario gomme (REST TireManagement), cache 10s: slick nuovi/usati."""
+    now = time.monotonic()
+    if _TINV["inv"] is not None and (now - _TINV["ts"]) < 10.0:
+        return _TINV["inv"]
+    if (now - _TINV["ts"]) < 3.0:
+        return _TINV["inv"]
+    _TINV["ts"] = now
+    try:
+        import json as _j
+        import urllib.request as _u
+        req = _u.Request("http://localhost:6397/rest/garage/UIScreen/TireManagement",
+                         headers={"Accept": "application/json"})
+        with _u.urlopen(req, timeout=0.4) as r:
+            d = _j.loads(r.read())
+        go = (d or {}).get("tireInvGarageOptions") or {}
+        first = (go.get("tireOptions") or [[]])[0]
+        sn = su = 0
+        for t in first:
+            if isinstance(t, dict) and t.get("compoundIndex") == 0:
+                su += 1 if t.get("isUsed") else 0
+                sn += 0 if t.get("isUsed") else 1
+        _TINV["inv"] = {"slick_new": sn, "slick_used": su}
+    except Exception:
+        _TINV["inv"] = None
+    return _TINV["inv"]
 
 
 def _forecast(d):
@@ -206,6 +235,7 @@ def _collect(brain, raw, ld, pace):
         (brain.pit_ack, (raw, ld)),
         (brain.pit_ready, (raw,)),                # "pronti per il pit stop" alla chiamata
         (brain.pit_light, (raw,)),                # semaforo pit chiusa/aperta (prova/quali)
+        (brain.tyre_stock, (raw,)),               # inventario gomme (treni nuovi/usati)
         # 🔵 STRATEGY
         (brain.race_briefing, (raw,)),           # briefing meteo al rolling start
         (brain.race_plan, (raw,)),
@@ -353,6 +383,7 @@ def run():
                 # con lapdist+velocità) serve SOLO in corsia/box -> economico.
                 if raw.get("in_pits") or raw.get("in_pitlane") or raw.get("garage"):
                     raw["traffic_map"] = mem.pit_scan()
+                    raw["tyre_inventory"] = _tyre_inv()
             except Exception:
                 pass
             # tick strappato (dato incoerente) -> salta

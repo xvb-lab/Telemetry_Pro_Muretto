@@ -6424,6 +6424,43 @@
         "C'est vert, tu peux rejoindre la piste.",
         "Pit ouverte, libre de sortir."
       ]
+    },
+    "tyre_stock": {
+      "cat": "strategia",
+      "level": "info",
+      "beep": true,
+      "it": "Hai {new} treni nuovi e {used} usati.",
+      "variants_it": [
+        "Hai {new} treni nuovi e {used} usati.",
+        "In dotazione: {new} set nuovi, {used} usati.",
+        "Gomme rimaste: {new} nuove, {used} usate.",
+        "Treni slick: {new} nuovi e {used} usati disponibili.",
+        "Restano {new} set nuovi e {used} usati."
+      ],
+      "en": "You have {new} new sets and {used} used.",
+      "variants_en": [
+        "You have {new} new sets and {used} used.",
+        "In stock: {new} new sets, {used} used.",
+        "Tyres left: {new} new, {used} used.",
+        "Slick sets: {new} new and {used} used available.",
+        "{new} new sets and {used} used remaining."
+      ],
+      "es": "Tienes {new} juegos nuevos y {used} usados.",
+      "variants_es": [
+        "Tienes {new} juegos nuevos y {used} usados.",
+        "En dotacion: {new} juegos nuevos, {used} usados.",
+        "Gomas restantes: {new} nuevas, {used} usadas.",
+        "Juegos slick: {new} nuevos y {used} usados.",
+        "Quedan {new} juegos nuevos y {used} usados."
+      ],
+      "fr": "Tu as {new} trains neufs et {used} usages.",
+      "variants_fr": [
+        "Tu as {new} trains neufs et {used} usages.",
+        "En dotation : {new} trains neufs, {used} usages.",
+        "Pneus restants : {new} neufs, {used} usages.",
+        "Trains slick : {new} neufs et {used} usages.",
+        "Il reste {new} trains neufs et {used} usages."
+      ]
     }
   }
 }

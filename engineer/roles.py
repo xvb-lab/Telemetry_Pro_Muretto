@@ -23,7 +23,7 @@ _role(["fast_class_close", "fast_class_now", "opp_penalty", "opp_slow",
 _role(["brief_strat_data", "brief_strat_new",
        "weather_dry", "weather_wet", "rain_box_pace",
        "briefing_save", "briefing_manage", "briefing_push",
-       "garage_wrong_tyre"], "strategist")
+       "garage_wrong_tyre", "tyre_stock"], "strategist")
 _role(["brief_spot", "pit_exit_clean", "pit_exit_fast", "pit_exit_hole",
        "pit_exit_traffic", "pit_release_wait", "pit_release_clear"], "spotter")
 _role(["contact_ok", "contact_who", "contact_ok_who"], "spotter")

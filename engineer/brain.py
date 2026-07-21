@@ -1418,6 +1418,25 @@ class Engineer:
         self._st["pl_light"] = "open"     # gia' aperta all'arrivo: muto
         return []
 
+    def tyre_stock(self, raw):
+        """INVENTARIO GOMME (una volta): treni slick nuovi/usati rimasti. Detto
+        in box (garage/corsia), utile prima di uscire. Dato REST dotazione."""
+        if self._st.get("ts_said"):
+            return []
+        if not (raw.get("garage") or raw.get("in_pits")
+                or raw.get("in_pitlane")):
+            return []
+        inv = raw.get("tyre_inventory") or {}
+        try:
+            new = int(inv.get("slick_new"))
+            used = int(inv.get("slick_used"))
+        except (TypeError, ValueError):
+            return []
+        if new + used <= 0:
+            return []
+        self._st["ts_said"] = True
+        return [self.msg("tyre_stock", new=new, used=used)]
+
     def wet_sector_map(self, raw, laps_done):
         """MAPPA BAGNATO PER SETTORE: accumula asciutto/bagnato (surface_type)
         per settore mentre giri; a fine giro, se un settore e' nettamente piu'

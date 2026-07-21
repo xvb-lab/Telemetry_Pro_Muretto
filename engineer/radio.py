@@ -61,7 +61,7 @@ _mk(["ready", "briefing_strat", "briefing_laps", "briefing_save", "plan",
 # vanno dette subito, non scartate come semplice info gara). Richiesta utente.
 _mk(["blue_flag", "blue_flag_multi", "blue_flag_simple"], 1)
 # Semaforo pit (prova/quali) + conferma pit pronta: devono essere detti.
-_mk(["pit_closed", "pit_open", "pit_ready"], 1)
+_mk(["pit_closed", "pit_open", "pit_ready", "tyre_stock"], 1)
 # P2 stato vettura + check consumi
 _mk(["tyres_cold", "tyres_warm", "brakes_cold", "tyres_hot", "brakes_hot",
      "aero_light", "aero_bad", "susp_light", "susp_bad", "damage_body",
