@@ -1473,9 +1473,24 @@ class Engineer:
         self._st["pl_light"] = "open"     # gia' aperta all'arrivo: muto
         return []
 
+    def _ord_word(self, n):
+        """Ordinale a parole nella lingua giusta (1..10), senno' '{n}°'."""
+        it = {1: "primo", 2: "secondo", 3: "terzo", 4: "quarto", 5: "quinto",
+              6: "sesto", 7: "settimo", 8: "ottavo", 9: "nono", 10: "decimo"}
+        en = {1: "first", 2: "second", 3: "third", 4: "fourth", 5: "fifth",
+              6: "sixth", 7: "seventh", 8: "eighth", 9: "ninth", 10: "tenth"}
+        es = {1: "primero", 2: "segundo", 3: "tercero", 4: "cuarto", 5: "quinto",
+              6: "sexto", 7: "septimo", 8: "octavo", 9: "noveno", 10: "decimo"}
+        fr = {1: "premier", 2: "deuxieme", 3: "troisieme", 4: "quatrieme",
+              5: "cinquieme", 6: "sixieme", 7: "septieme", 8: "huitieme",
+              9: "neuvieme", 10: "dixieme"}
+        return self._L(it.get(n, "%d" % n), en.get(n, "%d" % n),
+                       es.get(n, "%d" % n), fr.get(n, "%d" % n))
+
     def quali_pole(self, raw, laps_done):
-        """QUALI (solo info): a fine giro dice il gap dalla POLA della tua classe
-        (best degli altri) o 'sei in pola'. Anti-spam: solo se cambia stato/gap."""
+        """QUALI (solo info): a fine giro, in base alla CLASSIFICA di classe per
+        best lap -> pole (complimenti), oppure top-5 (posizione + gap al rivale
+        davanti a te), oppure gap dalla pole. Anti-spam: solo se cambia stato."""
         if session_kind(raw.get("session_type")) != "qualy":
             return []
         if laps_done == self._st.get("qp_lap"):
@@ -1488,8 +1503,7 @@ class Engineer:
         if mine <= 0:
             return []
         my_cls = (class_tag(raw.get("car_class") or "") or self._cat or "").upper()
-        pole_t = None
-        pole_nm = None
+        field = [(mine, None)]            # (best, nome); nome None = TU
         for c in (raw.get("cars") or {}).values():
             if (class_tag(str(c.get("cls") or "")) or "").upper() != my_cls:
                 continue
@@ -1497,25 +1511,40 @@ class Engineer:
                 b = float(c.get("best") or -1)
             except (TypeError, ValueError):
                 continue
-            if b > 0 and (pole_t is None or b < pole_t):
-                pole_t = b
-                pole_nm = c.get("name")
-        if pole_t is None:
-            return []                     # nessun rivale di classe col best
-        lead = mine <= pole_t
-        state = ("lead", 0) if lead else ("gap", round(mine - pole_t, 1))
+            if b > 0:
+                field.append((b, c.get("name")))
+        if len(field) < 2:
+            return []                     # solo tu con un tempo: niente
+        field.sort(key=lambda x: x[0])
+        rank = next(i for i, (b, nm) in enumerate(field) if nm is None) + 1
+        # POLE
+        if rank == 1:
+            if self._st.get("qp_state") == ("lead", 0):
+                return []
+            self._st["qp_state"] = ("lead", 0)
+            return [self.msg("quali_pole_lead", mytime=_fmt_lap_round(mine))]
+        # TOP-5: posizione + gap al rivale UNA POSIZIONE davanti a te
+        if rank <= 5:
+            ahead = field[rank - 2]
+            g = max(0.0, mine - ahead[0])
+            state = ("top5", rank, round(g, 1))
+            if state == self._st.get("qp_state"):
+                return []
+            self._st["qp_state"] = state
+            return [self.msg("quali_top5", ord=self._ord_word(rank),
+                             gap=("%.3f" % g).replace(".", ","),
+                             name=self._rival_name(ahead[1]))]
+        # FUORI dai 5: gap dalla pole
+        pole = field[0]
+        g = mine - pole[0]
+        state = ("gap", round(g, 1))
         if state == self._st.get("qp_state"):
             return []
         self._st["qp_state"] = state
-        if lead:
-            return [self.msg("quali_pole_lead", mytime=_fmt_lap_round(mine))]
-        gap = mine - pole_t
-        if gap < 0.03:
-            return []
         return [self.msg("quali_pole_gap",
-                         gap=("%.3f" % gap).replace(".", ","),
-                         name=self._rival_name(pole_nm),
-                         ptime=_fmt_lap_round(pole_t))]
+                         gap=("%.3f" % g).replace(".", ","),
+                         name=self._rival_name(pole[1]),
+                         ptime=_fmt_lap_round(pole[0]))]
 
     def overtake_call(self, raw, laps_done):
         """Complimenti per un SORPASSO fatto: la posizione DI CLASSE migliora

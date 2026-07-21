@@ -7018,6 +7018,43 @@
         "Secteurs : {s1}, {s2} et {s3}.",
         "Meilleur premier {s1}, deuxieme {s2}, troisieme {s3}."
       ]
+    },
+    "quali_top5": {
+      "cat": "performance",
+      "level": "info",
+      "beep": true,
+      "it": "Buon tempo, sei {ord} in classe. A {gap} da {name}, davanti a te.",
+      "variants_it": [
+        "Buon tempo, sei {ord} in classe. A {gap} da {name}, davanti a te.",
+        "Sei {ord} di classe: {gap} da {name} davanti.",
+        "{ord} in classe, ottimo. Ti mancano {gap} su {name}.",
+        "Bel giro, {ord} in classe. {name} davanti a {gap}.",
+        "Posizione {ord} in classe, a {gap} da {name}."
+      ],
+      "en": "Good lap, you're {ord} in class. {gap} to {name} ahead of you.",
+      "variants_en": [
+        "Good lap, you're {ord} in class. {gap} to {name} ahead of you.",
+        "You're {ord} in class: {gap} to {name} ahead.",
+        "{ord} in class, nice. You need {gap} on {name}.",
+        "Great lap, {ord} in class. {name} ahead by {gap}.",
+        "Position {ord} in class, {gap} to {name}."
+      ],
+      "es": "Buena vuelta, eres {ord} en clase. A {gap} de {name}, delante de ti.",
+      "variants_es": [
+        "Buena vuelta, eres {ord} en clase. A {gap} de {name}, delante de ti.",
+        "Eres {ord} de clase: {gap} de {name} delante.",
+        "{ord} en clase, excelente. Te faltan {gap} sobre {name}.",
+        "Buena vuelta, {ord} en clase. {name} delante a {gap}.",
+        "Posicion {ord} en clase, a {gap} de {name}."
+      ],
+      "fr": "Bon tour, tu es {ord} en classe. A {gap} de {name}, devant toi.",
+      "variants_fr": [
+        "Bon tour, tu es {ord} en classe. A {gap} de {name}, devant toi.",
+        "Tu es {ord} en classe : {gap} de {name} devant.",
+        "{ord} en classe, excellent. Il te manque {gap} sur {name}.",
+        "Beau tour, {ord} en classe. {name} devant a {gap}.",
+        "Position {ord} en classe, a {gap} de {name}."
+      ]
     }
   }
 }

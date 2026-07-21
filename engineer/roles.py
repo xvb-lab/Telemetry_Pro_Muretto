@@ -31,7 +31,7 @@ _role(["contact_ok", "contact_who", "contact_ok_who",
 _role(["lap_fast", "lap_fast_clean", "lap_slow", "sector_loss",
        "perf_report", "ref_pace", "under_pace", "on_pace", "pace_margin",
        "lap_time_call", "quali_pole_gap", "quali_pole_lead",
-       "overtake_done"], "spotter")
+       "quali_top5", "overtake_done"], "spotter")
 _role(["fin_strat_good", "fin_strat_ok"], "strategist")
 _role(["fin_spot_good", "fin_spot_ok"], "spotter")
 _role(["plan_nostop", "plan_stops", "plan_stops_solo", "plan_eco_save",
