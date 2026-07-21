@@ -225,8 +225,35 @@ class ConfigWindow(QDialog):
             grid.addWidget(QLabel("Layout GPS"), row_i, 0)
             grid.addWidget(self._make_toggle("gps"), row_i, 1)
             row_i += 1
-        # wec26mfd (Dashboard): MODULI FISSI dal 20/07 — nel pannello
-        # resta solo la scala comune, niente piu' spinbox Mod 1-8
+        # wec26mfd (Dashboard): AUTO PIT (i Mod 1-8 si gestiscono in overlay)
+        elif self._key == "wec26mfd":
+            # Il muretto scrive la Virtual Energy nel pit menu. Salva SUBITO in
+            # engineer_cfg (fuori Apply/Save): il muretto lo rilegge live e lo
+            # stesso flag e' anche nel menu Mod 3 del dash.
+            from core import engineer_cfg as _ecfg
+            grid.addWidget(QLabel("Auto pit"), row_i, 0)
+            _ap = QPushButton()
+            _ap.setCheckable(True)
+            _ap.setCursor(Qt.PointingHandCursor)
+            _ap.setObjectName("switchBtn")
+            _ap.setFixedSize(52, 26)
+            try:
+                _on0 = bool(_ecfg.load().get("auto_pit", False))
+            except Exception:
+                _on0 = False
+            _ap.setChecked(_on0)
+            _ap.setText("ON" if _on0 else "OFF")
+
+            def _ap_tgl(on, b=_ap):
+                b.setText("ON" if on else "OFF")
+                try:
+                    _ecfg.save(auto_pit=bool(on))
+                except Exception:
+                    pass
+            _ap.toggled.connect(_ap_tgl)
+            grid.addWidget(_ap, row_i, 1)
+            row_i += 1
+        # gli altri overlay WEC: soglia lotta / preview
         elif self._key in ("wec26battle", "wec26battleb", "wec26flag",
                            "wec26radio"):
             # ── WEC 2026: soglia lotta (solo battle) + PREVIEW per

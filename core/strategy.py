@@ -279,6 +279,34 @@ def build_lmu_live(d, ve_table, constraint, meas_per_lap, est_lap):
         return None
 
 
+def auto_fuel_target(menu_raw, laps_needed, margin=2):
+    """AUTO-FUEL (collaudato 20/07): dalla tabella %->giri del pit menu di LMU
+    la % di VIRTUAL ENERGY *minima* che copre `laps_needed + margin` giri.
+    Ritorna (indice_opzione, pct) da scrivere, o None se non calcolabile.
+    Se il pieno non basta -> (ultima_opzione, 100). Deterministico, niente I/O."""
+    if not menu_raw or laps_needed is None:
+        return None
+    item = None
+    for it in menu_raw:
+        if str((it or {}).get("name") or "").startswith("VIRTUAL ENERGY"):
+            item = it
+            break
+    if item is None:
+        return None
+    opts = item.get("settings") or []
+    best = None
+    for ix, op in enumerate(opts):
+        m = re.match(r"(\d+)%\s+(\d+)\s+laps", str((op or {}).get("text") or ""))
+        if m and int(m.group(2)) >= int(laps_needed) + margin:
+            if best is None or int(m.group(1)) < best[1]:
+                best = (ix, int(m.group(1)))
+    if best is None:
+        if not opts:
+            return None
+        best = (len(opts) - 1, 100)      # il pieno non basta: TUTTO
+    return best
+
+
 # ─────────────────────────────────────────────────────────────────────────
 #  FEED — tiene i dati REST in cache (thread dedicato, non-bloccante) e
 #  produce `lmu_live` su richiesta con la fisica fresca. La usa il muretto.
@@ -343,6 +371,12 @@ class StrategyFeed:
                         self._usage_ve = ve
                         self._usage_fu = fu
                         self._usage_stint = st
+
+    def pit_menu_raw(self):
+        """Lista integrale del pit menu (per la scrittura auto-fuel POST)."""
+        with self._lock:
+            pm = self._pit_menu or {}
+        return pm.get("_raw")
 
     def lmu_live(self, physics, est_lap):
         """Combina la cache REST + la fisica fresca -> blocco lmu_live."""

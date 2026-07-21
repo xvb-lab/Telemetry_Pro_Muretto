@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 from core.reader import TelemetryReader
-from core.strategy import StrategyFeed
+from core.strategy import StrategyFeed, auto_fuel_target
 from core.shared_memory import SharedMemory
 from core.voice import Voice
 from core import engineer_cfg
@@ -56,6 +56,55 @@ def _apply_cfg(vox, cfg):
         pass
     try:
         vox.set_tone_delay(float(cfg.get("beep_delay_s", 2.0)))
+    except Exception:
+        pass
+
+
+_AF = {"ts": 0.0}
+
+
+def _auto_fuel_tick(feed, live, cfg):
+    """AUTO PIT (opt-in, flag `auto_pit`): scrive nel pit menu la VIRTUAL
+    ENERGY *minima* che copre i giri rimanenti (+2), dalla tabella %->giri DEL
+    GIOCO. Ciclo 5s, solo in gara (>2 min). Espone `live['auto_fuel_pct']` per
+    l'annuncio dell'ingegnere. Fedele al collaudato del recorder v2:
+      - confronto col currentSetting ATTUALE (LMU azzera dopo la sosta)
+      - POST /loadPitMenu solo se il valore nel gioco e' diverso."""
+    if not live or not cfg.get("auto_pit", False):
+        return
+    now = time.monotonic()
+    if now - _AF["ts"] < 5.0:
+        return
+    _AF["ts"] = now
+    need = live.get("laps_needed")
+    if need is None or float(live.get("race_remaining") or 0.0) < 120.0:
+        return
+    menu_raw = feed.pit_menu_raw()
+    best = auto_fuel_target(menu_raw, need)
+    if best is None:
+        return
+    idx, pct = best
+    live["auto_fuel_pct"] = pct                 # -> l'ingegnere annuncia il target
+    item = next((it for it in menu_raw
+                 if str((it or {}).get("name") or "").startswith("VIRTUAL ENERGY")),
+                None)
+    if item is None:
+        return
+    try:
+        cur_ix = int(item.get("currentSetting") or 0)
+    except (TypeError, ValueError):
+        cur_ix = 0
+    if idx == cur_ix:                            # gia' giusto: niente scrittura
+        return
+    item["currentSetting"] = idx
+    try:
+        import json as _js
+        import urllib.request as _ur
+        req = _ur.Request(
+            "http://localhost:6397/rest/garage/PitMenu/loadPitMenu",
+            data=_js.dumps(menu_raw).encode("utf-8"),
+            headers={"Content-Type": "application/json"}, method="POST")
+        _ur.urlopen(req, timeout=1.5)
     except Exception:
         pass
 
@@ -149,7 +198,8 @@ def run():
     feed.start()
     mem = SharedMemory.instance()
     vox = Voice(lang=lang)
-    _apply_cfg(vox, engineer_cfg.load())      # volume/beep/ritardo dalle Opzioni
+    _cfg = engineer_cfg.load()
+    _apply_cfg(vox, _cfg)                     # volume/beep/ritardo dalle Opzioni
     brain = Engineer(lang=lang)
     brain.new_session()
     radio = RadioManager()
@@ -160,8 +210,9 @@ def run():
     try:
         while True:
             _now = time.monotonic()
-            if _now - _cfg_ts > 2.0:         # opzioni live (volume/beep/ritardo)
-                _apply_cfg(vox, engineer_cfg.load())
+            if _now - _cfg_ts > 2.0:         # opzioni live (volume/beep/ritardo/auto_pit)
+                _cfg = engineer_cfg.load()
+                _apply_cfg(vox, _cfg)
                 _cfg_ts = _now
             d = reader.read()
             if not d:
@@ -181,6 +232,7 @@ def run():
                 brain.set_class(cls)
             est = float(d.get("est_lap") or d.get("best_lap") or 0.0)
             live = feed.lmu_live(d, est)
+            _auto_fuel_tick(feed, live, _cfg)      # AUTO PIT: scrive VE + annuncia
             # raw per il cervello: fisica + blocco strategia
             raw = dict(d)
             raw["ts"] = time.monotonic()

@@ -25,6 +25,7 @@ from PySide6.QtGui import (QPainter, QColor, QFont, QFontMetricsF,
 
 from widgets.weconboard.widget import WecOnboardOverlay
 from core.paths import USER_DIR
+from core import engineer_cfg          # flag auto_pit condiviso col muretto
 
 _ROOT = Path(__file__).parent.parent.parent
 _W, _H = 500, 300              # 260 + le due ROW (20+20): i moduli
@@ -234,6 +235,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._prefs = {}
         self._m3_sel = 0           # voce selezionata nel menu Mod 3
         self._m2_sel = 0           # voce selezionata nella pagina PIT
+        self._auto_pit = False     # AUTO PIT (engineer_cfg): mostrato nel Mod 3
+        self._ap_ts = 0.0          # throttle rilettura flag auto_pit
+        try:
+            self._auto_pit = bool(engineer_cfg.load().get("auto_pit", False))
+        except Exception:
+            pass
         self._pm_items = []
         # scancode dei comandi elettronica: letti dal keyboard.json di
         # LMU (bind fantasma scritti dall'app + eventuali bind utente)
@@ -487,6 +494,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                             time.monotonic())
                     self._page_beep()
                     self.update()
+                elif self._m3_sel == 2:    # AUTO PIT (auto-fuel del muretto)
+                    self._auto_pit = not self._auto_pit
+                    self._ap_ts = time.monotonic()
+                    try:
+                        engineer_cfg.save(auto_pit=self._auto_pit)
+                    except Exception:
+                        pass
+                    self._m3_msg = (("AUTO PIT ON - MURETTO SCRIVE LA VE"
+                                     if self._auto_pit else "AUTO PIT OFF"),
+                                    time.monotonic())
+                    self._page_beep()
+                    self.update()
         # croce su/giu: cambio valore della casella selezionata
         elif (b & (_XI_DU | _XI_DD)) and not (prev & (_XI_DU | _XI_DD)):
             act = self._active_mods()
@@ -501,7 +520,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             elif mod == 3:
                 # nel menu SETTINGS: sposta la voce selezionata
                 self._m3_sel = (self._m3_sel
-                                + (1 if (b & _XI_DD) else -1)) % 2
+                                + (1 if (b & _XI_DD) else -1)) % 3
                 self._page_beep()
                 self.update()
             elif self._ctrl_sel is not None:
@@ -1364,12 +1383,23 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         bx = _W / 1334.0
         by = (_H - self.HDR - self.ROW_T - self.ROW_B) / 750.0
         y0 = self.HDR + self.ROW_T
+        # AUTO PIT vive in engineer_cfg (lo scrive anche la config overlay):
+        # rilettura throttled 1s cosi' il valore mostrato resta allineato
+        _now = time.monotonic()
+        if _now - self._ap_ts > 1.0:
+            self._ap_ts = _now
+            try:
+                self._auto_pit = bool(engineer_cfg.load().get("auto_pit", False))
+            except Exception:
+                pass
         # MENU VERO: voci reali con valore
         ITEMS = (("SPEED UNIT",
                   self._prefs.get("speed_unit", "KPH")),
                  ("ELECTRIC CONTROL",
                   "ON" if self._prefs.get("electric_control")
-                  else "OFF"))
+                  else "OFF"),
+                 ("AUTO PIT",
+                  "ON" if self._auto_pit else "OFF"))
         f = QFont(FAM)
         f.setPixelSize(max(6, int(44 * by)))
         p.setFont(f)
