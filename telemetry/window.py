@@ -62,12 +62,12 @@ from core.classes import class_tag
 
 # Link supporto allo sviluppo (modificabili)
 _DONATE_URL = "https://paypal.me/Jonathanuk"     # link donazioni
-_GITHUB_URL = "https://github.com/xvb-lab/Telemetry_Pro"
+_GITHUB_URL = "https://github.com/xvb-lab/Telemetry_Pro_Muretto"
 _DOCS_URL = "https://xvb-lab.github.io/Telemetry_Pro_Docs/"
 _APP_VERSION = "v0.3b"
 # ── controllo aggiornamenti: ultima release pubblicata su GitHub ──
-_GH_LATEST_API = "https://api.github.com/repos/xvb-lab/Telemetry_Pro/releases/latest"
-_GH_RELEASES_URL = "https://github.com/xvb-lab/Telemetry_Pro/releases"
+_GH_LATEST_API = "https://api.github.com/repos/xvb-lab/Telemetry_Pro_Muretto/releases/latest"
+_GH_RELEASES_URL = "https://github.com/xvb-lab/Telemetry_Pro_Muretto/releases"
 
 
 # ogni categoria = una tab a sé (comparazione Selected vs Compare)
@@ -10362,7 +10362,7 @@ class TelemetryWindow(QMainWindow):
         _dw.setObjectName("ftDonateBox")
         _dw.setCursor(Qt.PointingHandCursor)
         _dw.setStyleSheet("#ftDonateBox{background:#ffffff;border-radius:12px;}")
-        _dl = QHBoxLayout(_dw); _dl.setContentsMargins(12, 4, 12, 4)
+        _dl = QHBoxLayout(_dw); _dl.setContentsMargins(14, 4, 14, 4)
         _dl.setSpacing(5)
         _dn = QLabel("Donate")
         _dn.setStyleSheet("color:#0a0032;font-size:14px;font-weight:500;"
