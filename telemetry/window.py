@@ -10448,8 +10448,8 @@ class TelemetryWindow(QMainWindow):
         _dc.setCursor(Qt.PointingHandCursor)
         _dc.setStyleSheet(
             "QPushButton#ftDocs{color:#ffffff;font-size:14px;font-weight:700;"
-            "background:#0a66c2;border:none;border-radius:12px;padding:4px 14px;}"
-            "QPushButton#ftDocs:hover{background:#1478d8;}")
+            "background:transparent;border:none;padding:4px 8px;}"
+            "QPushButton#ftDocs:hover{color:#c9ccd3;}")
         try:
             _dc.setIcon(_globe_icon(7, 7))       # 7px a destra e in basso
             _dc.setIconSize(QSize(16, 16))
@@ -10761,11 +10761,11 @@ class TelemetryWindow(QMainWindow):
         _dw = QWidget()
         _dw.setObjectName("ftDonateBox")
         _dw.setCursor(Qt.PointingHandCursor)
-        _dw.setStyleSheet("#ftDonateBox{background:#ffffff;border-radius:12px;}")
+        _dw.setStyleSheet("#ftDonateBox{background:transparent;}")
         _dl = QHBoxLayout(_dw); _dl.setContentsMargins(14, 4, 14, 4)
         _dl.setSpacing(5)
         _dn = QLabel("Donate")
-        _dn.setStyleSheet("color:#0a0032;font-size:14px;font-weight:500;"
+        _dn.setStyleSheet("color:#ffffff;font-size:14px;font-weight:800;"
                           "background:transparent;")
         _dl.addWidget(_dn, 0, Qt.AlignVCenter)
         _pp = _SvgBox(); _pp.setFixedSize(16, 16)
@@ -10782,8 +10782,8 @@ class TelemetryWindow(QMainWindow):
         _gh.setCursor(Qt.PointingHandCursor)
         _gh.setStyleSheet(
             "QPushButton#ftGh{color:#ffffff;font-size:14px;font-weight:700;"
-            "background:#000000;border:none;border-radius:12px;padding:4px 14px;}"
-            "QPushButton#ftGh:hover{background:#1c1e22;}")
+            "background:transparent;border:none;padding:4px 8px;}"
+            "QPushButton#ftGh:hover{color:#c9ccd3;}")
         _gh.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(_GITHUB_URL)))
         # icona DOPO il testo: QIcon da SVG + layout RightToLeft
         def _svg_icon(svg):
