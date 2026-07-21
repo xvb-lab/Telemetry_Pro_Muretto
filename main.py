@@ -21,9 +21,6 @@ _ICON_CANDIDATES = [ROOT / "assets" / "icons" / "icon.ico",
                     ROOT / "assets" / "icon.ico",
                     ROOT / "assets" / "icons" / "icon.png"]
 
-_muretto_proc = None
-
-
 def app_icon() -> QIcon:
     for p in _ICON_CANDIDATES:
         if p.exists():
@@ -43,30 +40,24 @@ def _set_win_taskbar_id():
 
 
 def _start_muretto():
-    """Avvia il MURETTO in un processo separato, se abilitato nelle opzioni."""
-    global _muretto_proc
+    """All'avvio lancia il muretto se abilitato; poi il toggle Engineer nella
+    UI lo gestisce dal vivo (stesso gestore di processo condiviso)."""
     try:
         from core.engineer_cfg import load
         if not load().get("engineer_on", False):
             return
-        kw = {"cwd": str(ROOT)}
-        if sys.platform == "win32":
-            kw["creationflags"] = 0x08000000      # niente console
-        _muretto_proc = subprocess.Popen(
-            [sys.executable, "-m", "engineer.run_engineer"], **kw)
+        from core import muretto_proc
+        muretto_proc.start()
     except Exception:
         pass
 
 
 def _stop_muretto():
-    global _muretto_proc
-    p = _muretto_proc
-    if p and p.poll() is None:
-        try:
-            p.terminate()
-        except Exception:
-            pass
-    _muretto_proc = None
+    try:
+        from core import muretto_proc
+        muretto_proc.stop()
+    except Exception:
+        pass
 
 
 def main():
