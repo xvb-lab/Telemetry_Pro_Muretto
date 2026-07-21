@@ -74,7 +74,8 @@ _mk(["tyres_cold", "tyres_warm", "brakes_cold", "tyres_hot", "brakes_hot",
      "tyre_worn_info", "contact_who", "contact_ok_who", "contact_ok",
      "contact_where", "contact_where_who",
      "quali_pole_gap", "quali_pole_lead", "overtake_done",
-     "debrief_stint", "debrief_sectors", "debrief_tyre", "debrief_improve"], 2)
+     "debrief_stint", "debrief_sectors", "debrief_tyre", "debrief_improve",
+     "lap_time_call"], 2)
 # P3 info gara
 _mk(["leader", "pole_pos", "pos_race", "pos_qualy", "pos_lead", "pos_pole",
      "near_ahead", "near_behind", "opp_best", "time_left", "time_hours",
@@ -82,7 +83,7 @@ _mk(["leader", "pole_pos", "pos_race", "pos_qualy", "pos_lead", "pos_pole",
      "traffic_ahead", "ahead_pit", "gap_both", "gap_ahead",
      "gap_behind", "gap_closing", "pos_gain", "pos_loss", "best_lap_new",
      "batt_info", "lap_fast", "lap_fast_clean", "lap_slow", "perf_report",
-     "lap_time_call", "grip_status", "grip_up", "grip_down"], 3)
+     "grip_status", "grip_up", "grip_down"], 3)
 # default 4 = coaching (passo, settori, note curva)
 
 _TIER_TTL = {0: 999, 1: 30, 2: 12, 3: 8, 4: 10}

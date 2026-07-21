@@ -2449,12 +2449,19 @@ class Engineer:
             return []
         try:
             lap = int(raw.get("laps_completed") or 0)
+            dist = float(raw.get("lapdist") or 0.0)
         except (TypeError, ValueError):
             return []
-        # gate sul TRAGUARDO: si valuta solo quando scatta il giro nuovo
-        if lap == self._st.get("pos_lap"):
+        # NUOVO GIRO: NON leggere la posizione sulla linea (lo scoring e' ancora
+        # quello del giro appena tagliato -> annunciava P2 mentre eri P1). Segna
+        # 'da controllare' e leggi PIU' AVANTI, dentro il giro nuovo.
+        if lap != self._st.get("pos_lap"):
+            self._st["pos_lap"] = lap
+            self._st["pos_check"] = True
             return []
-        self._st["pos_lap"] = lap
+        if not self._st.get("pos_check") or dist < 150.0:
+            return []
+        self._st["pos_check"] = False
         prev = self._st.get("pos_prev")
         self._st["pos_prev"] = pos
         if prev is None or pos == prev:
@@ -3089,8 +3096,9 @@ class Engineer:
                                for e in log):
                 self._sane_log(m, "arbitro: ripetizione entro 25s")
                 continue
-            # budget: max 3 info in 20s (warn/critical passano sempre)
-            if lvl <= 1 and sum(1 for e in log
+            # budget: max 3 info in 20s (warn/critical passano sempre). Il tempo
+            # giro e' un periodico VOLUTO ad ogni giro -> esente dal budget.
+            if lvl <= 1 and code != "lap_time_call" and sum(1 for e in log
                                 if e[2] <= 1 and now - e[0] <= 20.0) >= 3:
                 self._sane_log(m, "arbitro: budget info esaurito")
                 continue
