@@ -1382,8 +1382,14 @@ class Engineer:
         if garage:
             self._st["gar_seen_t"] = now
         recent_garage = (now - self._st.get("gar_seen_t", -1e9)) < 25.0
-        # LEAVING = uscita dal box. pit_state 2 = entering (rientro) -> mai.
-        leaving = (garage or recent_garage) and pit_state != 2
+        # MOTORE SPENTO in garage: non stai andando da nessuna parte -> niente
+        # safe-release (era inutile sentirlo da fermo a motore spento).
+        try:
+            rpm = float(raw.get("rpm") or 0.0)
+        except (TypeError, ValueError):
+            rpm = 0.0
+        # LEAVING = uscita dal box, motore acceso. pit_state 2 = rientro -> mai.
+        leaving = (garage or recent_garage) and pit_state != 2 and rpm >= 300.0
         if not leaving:
             self._st.pop("pl_state", None)
             self._st.pop("pl_dist", None)
