@@ -188,5 +188,7 @@ class RadioManager:
             role = role_for(code)
             print("[%s] %s" % (ROLE_LABEL.get(role, role), m.get("text")))
             _write_team_radio(role, m.get("text"))   # ponte per la futura grafica WEC
+            # lo spotter (lei) un filo piu' alta: bandiere/gap sempre ben udibili
+            _vol = "+22%" if role == "spotter" else None
             vox.speak(m.get("text"), voice=voice_for(code, lang),
-                      beep=bool(m.get("beep")))
+                      beep=bool(m.get("beep")), vol=_vol)

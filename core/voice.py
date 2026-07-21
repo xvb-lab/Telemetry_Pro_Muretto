@@ -173,13 +173,13 @@ class Voice:
         self._t.start()
 
     # ── API pubblica ──
-    def speak(self, text, voice=None, beep=False):
-        """Accoda una frase intera. `voice` (opzionale) = voce Edge per QUESTA
-        frase (ruoli diversi non si accavallano). `beep` = suona il tono radio
-        + attende il ritardo PRIMA di parlare. No-op se voce off o nessun backend."""
+    def speak(self, text, voice=None, beep=False, vol=None):
+        """Accoda una frase intera. `voice` = voce Edge per QUESTA frase.
+        `beep` = tono radio + ritardo prima di parlare. `vol` = boost SSML per
+        QUESTA frase (es. '+20%') per alzare una voce specifica. No-op se off."""
         if not text or not self.enabled:
             return
-        self._q.put((str(text), voice, bool(beep)))
+        self._q.put((str(text), voice, bool(beep), vol))
 
     # ── tono radio (beep) + ritardo ───────────────────────────────────────
     def set_beep(self, path=None, enabled=True):
@@ -339,11 +339,13 @@ class Voice:
                 text = item[0]
                 _pv = item[1] if len(item) > 1 else None
                 _beep = bool(item[2]) if len(item) > 2 else False
+                _vol = item[3] if len(item) > 3 else None   # boost SSML frase
                 if _pv:                       # voce per QUESTA frase
                     self._edge_voice = _pv
                     self._edge_failed = False
             else:
                 text = item                   # retro-compat: stringa semplice
+                _vol = None
             if text is None:
                 break
             if not self.enabled:
@@ -363,7 +365,7 @@ class Voice:
                     continue                    # tagliato durante beep/ritardo
                 text = _expand_voice(text)
                 if backend == "edge":
-                    if not self._edge_failed and self._say_edge(text):
+                    if not self._edge_failed and self._say_edge(text, _vol):
                         pass
                     else:
                         self._edge_failed = True   # niente rete: passa a Elsa
@@ -386,9 +388,10 @@ class Voice:
             finally:
                 self._speaking = False
 
-    def _say_edge(self, text):
+    def _say_edge(self, text, vol=None):
         """Edge TTS: sintetizza la frase intera in mp3 e la riproduce (MCI).
-        Ritorna True se ok, False se fallisce (niente rete) -> fallback Elsa."""
+        `vol` = boost SSML (es. '+20%') per alzare QUESTA voce. Ritorna True se
+        ok, False se fallisce (niente rete) -> fallback Elsa."""
         import os
         import tempfile
         import asyncio
@@ -401,9 +404,11 @@ class Voice:
             fd, path = tempfile.mkstemp(suffix=".mp3", prefix="lmuvoce_")
             os.close(fd)
             rate = ("%+d%%" % self._rate) if self._rate else "+0%"
+            volume = vol or "+0%"
 
             async def _go():
-                comm = edge_tts.Communicate(text, self._edge_voice, rate=rate)
+                comm = edge_tts.Communicate(text, self._edge_voice,
+                                            rate=rate, volume=volume)
                 await comm.save(path)
 
             loop = asyncio.new_event_loop()
