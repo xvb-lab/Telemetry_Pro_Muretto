@@ -1260,21 +1260,33 @@ class Engineer:
         return ("%s %s" % (comp, used)).strip() if comp else used
 
     def pit_lane_release(self, raw):
-        """SAFE RELEASE all'uscita dai box. Due pericoli, entrambi dal
-        modello-mappa (pit_scan: ogni auto con posizione X/Z + lapdist + vel):
-          (A) sei fermo/lento nel box e stai per immetterti, ma un'auto percorre
-              la CORSIA e ti arriva vicino (distanza reale, in avvicinamento)
-              -> aspetta. E' il caso vero: auto che escono dai box accanto.
-          (B) rulli verso l'uscita e un'auto in PISTA arriva al merge (lapdist)
-              -> aspetta.
-        Via libera dopo un 'aspetta' -> 'vai'."""
+        """SAFE RELEASE — SOLO quando ESCI dal box (mai al rientro). Due pericoli,
+        dal modello-mappa (pit_scan: ogni auto con posizione X/Z + lapdist + vel):
+          (A) fermo/lento nel box e stai per immetterti, un'auto percorre la
+              CORSIA e ti arriva vicino (distanza reale, in avvicinamento) -> aspetta.
+          (B) rulli verso l'uscita e un'auto in PISTA arriva al merge -> aspetta.
+        Via libera dopo un 'aspetta' -> 'vai'.
+
+        USCITA vs RIENTRO (trick mappa): in garage stai nella piazzola
+        (garage=True) finche' il musino non e' fuori; poi diventa in_pits. Il
+        RIENTRO dalla pista invece e' pit_state=2 (entering), MAI da garage.
+        Quindi 'leaving' = sei/eri in garage da poco E non stai entrando."""
         raw = raw or {}
         tm = raw.get("traffic_map") or {}
         pl = tm.get("player") or {}
         tl = float(tm.get("track_len") or 0.0)
-        in_area = bool(raw.get("in_pitlane") or raw.get("in_pits")
-                       or raw.get("garage"))
-        if not in_area:
+        now = _time.monotonic()
+        garage = bool(raw.get("garage"))
+        try:
+            pit_state = int(raw.get("pit_state") or 0)
+        except (TypeError, ValueError):
+            pit_state = 0
+        if garage:
+            self._st["gar_seen_t"] = now
+        recent_garage = (now - self._st.get("gar_seen_t", -1e9)) < 25.0
+        # LEAVING = uscita dal box. pit_state 2 = entering (rientro) -> mai.
+        leaving = (garage or recent_garage) and pit_state != 2
+        if not leaving:
             self._st.pop("pl_state", None)
             self._st.pop("pl_dist", None)
             return []
