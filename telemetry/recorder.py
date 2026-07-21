@@ -863,7 +863,11 @@ class TelemetryRecorder:
         # (mCurrentET): avanza finché la sessione è viva (anche in garage/setup),
         # si ferma ai menu / a fine sessione. Quindi chiudo in fretta SOLO quando
         # il tempo è fermo. Garage e cambio gomme nel setup restano protetti.
-        if self._armed and self._ever_active:
+        # GUARDIA: sganciamo anche PRIMA del primo stint (bug: armato in garage
+        # "waiting for stint 1", torni al menu e la pill restava incollata perche'
+        # _ever_active era ancora False). Protetto l'online: in attesa del verde
+        # _wait_green=True -> non sgancia; garage vivo -> ET avanza (et_running).
+        if self._armed and not self._wait_green:
             now = time.monotonic()
             try:
                 rt = self._mem.in_realtime()

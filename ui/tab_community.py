@@ -255,18 +255,21 @@ class _RankRow(QFrame):
         else:
             h.addSpacing(8)
         # CASCO del pilota: livrea scelta dall'autore del tempo (campo
-        # "helmet" nel record del Worker; se manca, niente casco)
+        # "helmet" nel record del Worker). Se manca (record delle versioni
+        # vecchie) mostriamo un CASCO BASE neutro, cosi' la riga non resta
+        # spoglia e si copre la differenza tra vecchia versione e questa.
         _hcode = str(rec.get("helmet") or "").strip()
+        _hex = _hcode if (_hcode.startswith("#") and len(_hcode) == 7) \
+            else "#8a90a0"                    # grigio neutro = casco base
         _helmet_w = None
-        if _hcode.startswith("#") and len(_hcode) == 7:
-            try:
-                from ui.icons import helmet_svg_bytes
-                _hbx = _SvgBox(); _hbx.setFixedSize(46, 36)
-                _hbx.setStyleSheet("background:transparent;")
-                _hbx.load(helmet_svg_bytes(_hcode))
-                _helmet_w = _hbx      # aggiunto DOPO i kg carburante
-            except Exception:
-                pass
+        try:
+            from ui.icons import helmet_svg_bytes
+            _hbx = _SvgBox(); _hbx.setFixedSize(46, 36)
+            _hbx.setStyleSheet("background:transparent;")
+            _hbx.load(helmet_svg_bytes(_hex))
+            _helmet_w = _hbx      # aggiunto DOPO i kg carburante
+        except Exception:
+            pass
         # GAP subito dopo il nome (prima dei simboli). Bianco, accento sul 1°.
         _ms0 = rec.get("lap_ms")
         _gap = ("+%.3f" % ((_ms0 - leader_ms) / 1000.0)) \

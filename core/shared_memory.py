@@ -99,6 +99,13 @@ class SharedMemory:
                 return True
             si = sim.scoring.scoringInfo
             if not bool(si.mInRealtime):
+                # AVVIO A FREDDO: se non siamo MAI stati in realtime (app aperta
+                # nel menu), niente debounce -> torna subito False, cosi' gli
+                # overlay non lampeggiano per ~0.7s all'avvio prima di sparire.
+                if getattr(self, "_rt_true_seen", None) is None:
+                    self._last_et = None
+                    self._et_frozen_since = None
+                    return False
                 # DEBOUNCE: la shared memory non ha version counter e una
                 # lettura strappata da' mInRealtime=0 per UN tick -> overlay
                 # a sfarfallio in pista. Il "fuori pista" deve CONFERMARSI
@@ -114,6 +121,7 @@ class SharedMemory:
                 self._et_frozen_since = None
                 return False
             self._rt_false_since = None
+            self._rt_true_seen = time.monotonic()   # confermato in pista almeno una volta
             # ── rilevazione pausa: il tempo di sessione si ferma ──
             et = float(si.mCurrentET)
             now = time.monotonic()
@@ -537,6 +545,48 @@ class SharedMemory:
             return out
         except Exception:
             return {}
+
+    def pit_scan(self):
+        """SAFE RELEASE / uscita box: come la mappa, ogni auto con
+        lapdist + in_pits + garage + velocita'. Serve al muretto per capire,
+        mentre esci dalla corsia box, se sta arrivando qualcuno sul tracciato.
+        Ritorna {'track_len': m, 'player': {...}|None, 'cars': [ {...} ]} o
+        None se non disponibile. Velocita' in m/s (mLocalVel, come il MapReader)."""
+        try:
+            sim = self._get_sim()
+            if not sim:
+                return None
+            from pyLMUSharedMemory.lmu_data import MAX_MAPPED_VEHICLES as _MX
+            from core.classes import class_tag
+            si = sim.scoring.scoringInfo
+            track_len = float(si.mLapDist) or 0.0
+            if track_len <= 0:
+                return None
+            num = int(si.mNumVehicles)
+            cars = []
+            player = None
+            for i in range(min(num, _MX)):
+                v = sim.scoring.vehScoringInfo[i]
+                cls = bytes(v.mVehicleClass).split(b"\x00")[0]\
+                    .decode("utf-8", "ignore")
+                vv = v.mLocalVel
+                spd = (vv.x * vv.x + vv.y * vv.y + vv.z * vv.z) ** 0.5
+                c = {
+                    "id": int(v.mID),
+                    "cls": class_tag(cls),
+                    "lapdist": float(v.mLapDist),
+                    "in_pits": bool(v.mInPits),
+                    "garage": bool(getattr(v, "mInGarageStall", False)),
+                    "pit": int(getattr(v, "mPitState", 0) or 0),
+                    "speed": spd,
+                    "is_player": bool(v.mIsPlayer),
+                }
+                cars.append(c)
+                if c["is_player"]:
+                    player = c
+            return {"track_len": track_len, "player": player, "cars": cars}
+        except Exception:
+            return None
 
     def flags(self):
         """Bandiere: distanza (m) auto lenta più vicina davanti sotto gialla e
