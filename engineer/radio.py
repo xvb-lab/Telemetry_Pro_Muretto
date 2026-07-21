@@ -60,6 +60,8 @@ _mk(["ready", "briefing_strat", "briefing_laps", "briefing_save", "plan",
 # BLU: urgenti, quasi come una gialla (auto veloce che ti sta per doppiare:
 # vanno dette subito, non scartate come semplice info gara). Richiesta utente.
 _mk(["blue_flag", "blue_flag_multi", "blue_flag_simple"], 1)
+# Semaforo pit (prova/quali) + conferma pit pronta: devono essere detti.
+_mk(["pit_closed", "pit_open", "pit_ready"], 1)
 # P2 stato vettura + check consumi
 _mk(["tyres_cold", "tyres_warm", "brakes_cold", "tyres_hot", "brakes_hot",
      "aero_light", "aero_bad", "susp_light", "susp_bad", "damage_body",
@@ -84,7 +86,7 @@ _YELLOW = ("local_yellow", "yellow_flag")
 # Tono SENZA ritardo (subito dopo il beep): gialle + blu (urgenza) e pit_ready
 # (i suoi 3s sono gia' l'attesa; il ritardo tono NON deve sommarsi). Richiesta utente.
 _URGENT_TONE = _YELLOW + ("blue_flag", "blue_flag_multi", "blue_flag_simple",
-                          "pit_ready")
+                          "pit_ready", "pit_open")
 
 # ── gruppi di mutua esclusione (la sicurezza tier 0 non è mai deduplicata) ─
 _MSG_GROUP = {}

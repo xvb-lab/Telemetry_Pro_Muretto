@@ -1383,6 +1383,41 @@ class Engineer:
         self._st["pr_said"] = True
         return [self.msg("pit_ready")]
 
+    def pit_light(self, raw):
+        """SEMAFORO PIT (prova/quali): la corsia box e' CHIUSA finche'
+        game_phase == 0; appena passa a > 0 la pit APRE (verde). Fonte: shared
+        memory (come TinyPedal: pit_open = mGamePhase > 0). Solo nell'area box,
+        motore acceso, e non in gara (li' il via e' un'altra procedura).
+        Col rosso, uscire = Stop&Go."""
+        raw = raw or {}
+        if session_kind(raw.get("session_type")) == "race":
+            self._st.pop("pl_light", None)
+            return []
+        in_area = bool(raw.get("garage") or raw.get("in_pits")
+                       or raw.get("in_pitlane"))
+        try:
+            rpm = float(raw.get("rpm") or 0.0)
+        except (TypeError, ValueError):
+            rpm = 0.0
+        if (not in_area) or rpm < 300.0:
+            self._st.pop("pl_light", None)
+            return []
+        try:
+            ph = int(raw.get("game_phase"))
+        except (TypeError, ValueError):
+            return []
+        st = self._st.get("pl_light")
+        if ph <= 0:                       # pit CHIUSA (semaforo rosso)
+            if st != "closed":
+                self._st["pl_light"] = "closed"
+                return [self.msg("pit_closed")]
+            return []
+        if st == "closed":                # era chiusa -> ora VERDE
+            self._st["pl_light"] = "open"
+            return [self.msg("pit_open")]
+        self._st["pl_light"] = "open"     # gia' aperta all'arrivo: muto
+        return []
+
     def wet_sector_map(self, raw, laps_done):
         """MAPPA BAGNATO PER SETTORE: accumula asciutto/bagnato (surface_type)
         per settore mentre giri; a fine giro, se un settore e' nettamente piu'

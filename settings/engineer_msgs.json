@@ -6350,6 +6350,80 @@
         "L'equipe est prete pour le pit.",
         "Tout est pret au stand pour toi."
       ]
+    },
+    "pit_closed": {
+      "cat": "strategia",
+      "level": "warn",
+      "beep": true,
+      "it": "Pit ancora chiusa, aspetta il verde al semaforo.",
+      "variants_it": [
+        "Pit ancora chiusa, aspetta il verde al semaforo.",
+        "Semaforo rosso, pit chiusa: fermati o e' Stop and Go.",
+        "Non uscire, la pit e' chiusa: col rosso prendi lo Stop and Go.",
+        "Pit lane chiusa, il direttore non ha ancora dato il verde.",
+        "Rosso al semaforo: aspetta, se esci ora e' penalita."
+      ],
+      "en": "Pit still closed, wait for the green at the light.",
+      "variants_en": [
+        "Pit still closed, wait for the green at the light.",
+        "Red light, pit closed: stop or it's a Stop and Go.",
+        "Don't go out, pit's closed: red means a Stop and Go.",
+        "Pit lane closed, race control hasn't opened it yet.",
+        "Red at the light: wait, leaving now is a penalty."
+      ],
+      "es": "Pit aun cerrado, espera el verde en el semaforo.",
+      "variants_es": [
+        "Pit aun cerrado, espera el verde en el semaforo.",
+        "Semaforo rojo, pit cerrado: para o es Stop and Go.",
+        "No salgas, el pit esta cerrado: rojo es Stop and Go.",
+        "Pit lane cerrado, direccion no lo ha abierto aun.",
+        "Rojo en el semaforo: espera, salir ahora es penalizacion."
+      ],
+      "fr": "Pit encore fermee, attends le vert au feu.",
+      "variants_fr": [
+        "Pit encore fermee, attends le vert au feu.",
+        "Feu rouge, pit fermee : arrete-toi ou c'est Stop and Go.",
+        "Ne sors pas, la pit est fermee : rouge = Stop and Go.",
+        "Pit lane fermee, la direction ne l'a pas encore ouverte.",
+        "Rouge au feu : attends, sortir maintenant c'est une penalite."
+      ]
+    },
+    "pit_open": {
+      "cat": "strategia",
+      "level": "warn",
+      "beep": true,
+      "it": "Verde, pit aperta: puoi uscire.",
+      "variants_it": [
+        "Verde, pit aperta: puoi uscire.",
+        "Semaforo verde, via libera dai box.",
+        "Pit aperta, vai pure.",
+        "E' verde, puoi immetterti in pista.",
+        "Aperta la pit, sei libero di uscire."
+      ],
+      "en": "Green, pit open: you can go.",
+      "variants_en": [
+        "Green, pit open: you can go.",
+        "Green light, clear to leave the pits.",
+        "Pit's open, off you go.",
+        "It's green, you can join the track.",
+        "Pit open, you're free to exit."
+      ],
+      "es": "Verde, pit abierto: puedes salir.",
+      "variants_es": [
+        "Verde, pit abierto: puedes salir.",
+        "Semaforo verde, via libre desde boxes.",
+        "Pit abierto, vamos.",
+        "Es verde, puedes incorporarte.",
+        "Pit abierto, libre para salir."
+      ],
+      "fr": "Vert, pit ouverte : tu peux sortir.",
+      "variants_fr": [
+        "Vert, pit ouverte : tu peux sortir.",
+        "Feu vert, voie libre depuis les stands.",
+        "Pit ouverte, vas-y.",
+        "C'est vert, tu peux rejoindre la piste.",
+        "Pit ouverte, libre de sortir."
+      ]
     }
   }
 }
