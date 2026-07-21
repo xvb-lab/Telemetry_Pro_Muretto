@@ -24,6 +24,9 @@ settings/engineer_cfg.json
 # Segreto community: URL Worker + write_token (bundlato nell'exe, MAI nel git pubblico)
 settings/online.json
 
+# Mappe imparate a runtime dal map widget (per-macchina, si rigenerano guidando)
+settings/maps/
+
 # Sistema / editor
 .DS_Store
 Thumbs.db
