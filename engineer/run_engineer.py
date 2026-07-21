@@ -60,7 +60,7 @@ def _apply_cfg(vox, cfg):
         pass
 
 
-_AF = {"ts": 0.0}
+_AF = {"ts": 0.0, "pct": None}
 
 
 def _auto_fuel_tick(feed, live, cfg, brain, laps_done):
@@ -70,8 +70,16 @@ def _auto_fuel_tick(feed, live, cfg, brain, laps_done):
     `live['auto_fuel_pct']` per l'annuncio dell'ingegnere.
       - confronto col currentSetting ATTUALE (LMU azzera dopo la sosta)
       - POST /loadPitMenu solo se il valore nel gioco e' diverso."""
-    if not live or not cfg.get("auto_pit", False):
+    if not cfg.get("auto_pit", False):
+        _AF["pct"] = None                       # opzione spenta: annuncio si ri-arma
+        if live is not None:
+            live["auto_fuel_pct"] = None
         return
+    if live is None:
+        return
+    # porta SEMPRE l'ultimo target nel live (anche nei tick tra un calcolo e
+    # l'altro): senza questo l'annuncio vedrebbe None e ri-annuncerebbe ogni 5s
+    live["auto_fuel_pct"] = _AF.get("pct")
     now = time.monotonic()
     if now - _AF["ts"] < 5.0:
         return
@@ -100,6 +108,7 @@ def _auto_fuel_tick(feed, live, cfg, brain, laps_done):
     if best is None:
         return
     idx, pct = best
+    _AF["pct"] = pct                            # cache: usata nei tick intermedi
     live["auto_fuel_pct"] = pct                 # -> l'ingegnere annuncia il target
     item = next((it for it in menu_raw
                  if str((it or {}).get("name") or "").startswith("VIRTUAL ENERGY")),
