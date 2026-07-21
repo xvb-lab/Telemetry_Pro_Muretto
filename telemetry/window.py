@@ -3988,12 +3988,24 @@ class _IntroPage(QWidget):
         self._subtitle.setAlignment(Qt.AlignCenter)
         self._subtitle.setStyleSheet(
             "QLabel { font-family:'Archivo SemiExpanded'; font-style:italic;"
-            " font-weight:900; font-size:34px; letter-spacing:3px;"
+            " font-weight:900; font-size:58px; letter-spacing:4px;"
             " color:#FF1D43; background:transparent; }"
         )
         self._subtitle_proxy = self._scene.addWidget(self._subtitle)
         self._subtitle_proxy.setZValue(9)
         self._subtitle_proxy.setOpacity(0.0)
+
+        # versione, piccola, sotto MURETTO
+        self._version = QLabel("v.0.3 beta")
+        self._version.setAlignment(Qt.AlignCenter)
+        self._version.setStyleSheet(
+            "QLabel { font-family:'Heebo'; font-weight:400; font-size:15px;"
+            " letter-spacing:2px; color:rgba(255,255,255,0.55);"
+            " background:transparent; }"
+        )
+        self._version_proxy = self._scene.addWidget(self._version)
+        self._version_proxy.setZValue(9)
+        self._version_proxy.setOpacity(0.0)
 
         self._enter = QPushButton("ENTER")
         self._enter.setCursor(Qt.PointingHandCursor)
@@ -4042,6 +4054,7 @@ class _IntroPage(QWidget):
         self._fade_title = [_mk_fade(self._title_proxy),
                             _mk_fade(self._stripes_proxy)]
         self._fade_sub = _mk_fade(self._subtitle_proxy)
+        self._fade_ver = _mk_fade(self._version_proxy)
         self._fade_enter = _mk_fade(self._enter_proxy)
 
         # animazione d'ingresso del simbolo: scale 1.35 -> 1.0 + opacity 0 -> 1
@@ -4075,10 +4088,10 @@ class _IntroPage(QWidget):
         self._player.positionChanged.connect(self._on_position)
 
         QTimer.singleShot(3000, self._show_skip)
-        QTimer.singleShot(3000, self._reveal_overlays)   # titolo
-        QTimer.singleShot(4600, self._reveal_symbol)     # ~1.6s dopo il titolo
-        QTimer.singleShot(5000, self._reveal_subtitle)   # +2s: MURETTO
-        QTimer.singleShot(8000, self._reveal_enter)      # +3s da MURETTO: ENTRA
+        QTimer.singleShot(10000, self._reveal_overlays)  # titolo (dopo ~10s)
+        QTimer.singleShot(11600, self._reveal_symbol)    # ~1.6s dopo il titolo
+        QTimer.singleShot(12000, self._reveal_subtitle)  # +2s: MURETTO + versione
+        QTimer.singleShot(15000, self._reveal_enter)     # +3s da MURETTO: ENTRA
         self._player.play()
         if self._music is not None:
             self._music.play()
@@ -4140,6 +4153,7 @@ class _IntroPage(QWidget):
         self._place_mute()
         self._place_title()
         self._place_subtitle()
+        self._place_version()
         self._place_enter()
         self._place_reload()
         self._place_stripes()
@@ -4159,9 +4173,10 @@ class _IntroPage(QWidget):
             for a in self._fade_title:
                 a.start()
 
-    def _reveal_subtitle(self):        # MURETTO (2s dopo il titolo)
+    def _reveal_subtitle(self):        # MURETTO + versione (2s dopo il titolo)
         if not self._done:
             self._fade_sub.start()
+            self._fade_ver.start()
 
     def _reveal_enter(self):           # ENTRA (3s dopo MURETTO)
         if not self._done:
@@ -4180,16 +4195,28 @@ class _IntroPage(QWidget):
         self._subtitle_proxy.setPos((vp.width() - sh.width()) / 2.0,
                                     title_bottom + 4)
 
-    def _place_enter(self):
-        self._enter.adjustSize()
-        sh = self._enter.sizeHint()
+    def _place_version(self):
+        self._version.adjustSize()
+        sh = self._version.sizeHint()
         ts = self._title.sizeHint()
         ss = self._subtitle.sizeHint()
         vp = self._view.viewport().size()
         sub_bottom = (vp.height() * 0.42 + ts.height() / 2.0
                       + 4 + ss.height())
+        self._version_proxy.setPos((vp.width() - sh.width()) / 2.0,
+                                   sub_bottom + 2)
+
+    def _place_enter(self):
+        self._enter.adjustSize()
+        sh = self._enter.sizeHint()
+        ts = self._title.sizeHint()
+        ss = self._subtitle.sizeHint()
+        vs = self._version.sizeHint()
+        vp = self._view.viewport().size()
+        ver_bottom = (vp.height() * 0.42 + ts.height() / 2.0
+                      + 4 + ss.height() + 2 + vs.height())
         self._enter_proxy.setPos((vp.width() - sh.width()) / 2.0,
-                                 sub_bottom + 18)
+                                 ver_bottom + 16)
 
     def _place_reload(self):
         m = 24
@@ -7379,12 +7406,24 @@ class _IntroPage(QWidget):
         self._subtitle.setAlignment(Qt.AlignCenter)
         self._subtitle.setStyleSheet(
             "QLabel { font-family:'Archivo SemiExpanded'; font-style:italic;"
-            " font-weight:900; font-size:34px; letter-spacing:3px;"
+            " font-weight:900; font-size:58px; letter-spacing:4px;"
             " color:#FF1D43; background:transparent; }"
         )
         self._subtitle_proxy = self._scene.addWidget(self._subtitle)
         self._subtitle_proxy.setZValue(9)
         self._subtitle_proxy.setOpacity(0.0)
+
+        # versione, piccola, sotto MURETTO
+        self._version = QLabel("v.0.3 beta")
+        self._version.setAlignment(Qt.AlignCenter)
+        self._version.setStyleSheet(
+            "QLabel { font-family:'Heebo'; font-weight:400; font-size:15px;"
+            " letter-spacing:2px; color:rgba(255,255,255,0.55);"
+            " background:transparent; }"
+        )
+        self._version_proxy = self._scene.addWidget(self._version)
+        self._version_proxy.setZValue(9)
+        self._version_proxy.setOpacity(0.0)
 
         self._enter = QPushButton("ENTER")
         self._enter.setCursor(Qt.PointingHandCursor)
@@ -7433,6 +7472,7 @@ class _IntroPage(QWidget):
         self._fade_title = [_mk_fade(self._title_proxy),
                             _mk_fade(self._stripes_proxy)]
         self._fade_sub = _mk_fade(self._subtitle_proxy)
+        self._fade_ver = _mk_fade(self._version_proxy)
         self._fade_enter = _mk_fade(self._enter_proxy)
 
         # animazione d'ingresso del simbolo: scale 1.35 -> 1.0 + opacity 0 -> 1
@@ -7466,10 +7506,10 @@ class _IntroPage(QWidget):
         self._player.positionChanged.connect(self._on_position)
 
         QTimer.singleShot(3000, self._show_skip)
-        QTimer.singleShot(3000, self._reveal_overlays)   # titolo
-        QTimer.singleShot(4600, self._reveal_symbol)     # ~1.6s dopo il titolo
-        QTimer.singleShot(5000, self._reveal_subtitle)   # +2s: MURETTO
-        QTimer.singleShot(8000, self._reveal_enter)      # +3s da MURETTO: ENTRA
+        QTimer.singleShot(10000, self._reveal_overlays)  # titolo (dopo ~10s)
+        QTimer.singleShot(11600, self._reveal_symbol)    # ~1.6s dopo il titolo
+        QTimer.singleShot(12000, self._reveal_subtitle)  # +2s: MURETTO + versione
+        QTimer.singleShot(15000, self._reveal_enter)     # +3s da MURETTO: ENTRA
         self._player.play()
         if self._music is not None:
             self._music.play()
@@ -7531,6 +7571,7 @@ class _IntroPage(QWidget):
         self._place_mute()
         self._place_title()
         self._place_subtitle()
+        self._place_version()
         self._place_enter()
         self._place_reload()
         self._place_stripes()
@@ -7550,9 +7591,10 @@ class _IntroPage(QWidget):
             for a in self._fade_title:
                 a.start()
 
-    def _reveal_subtitle(self):        # MURETTO (2s dopo il titolo)
+    def _reveal_subtitle(self):        # MURETTO + versione (2s dopo il titolo)
         if not self._done:
             self._fade_sub.start()
+            self._fade_ver.start()
 
     def _reveal_enter(self):           # ENTRA (3s dopo MURETTO)
         if not self._done:
@@ -7571,16 +7613,28 @@ class _IntroPage(QWidget):
         self._subtitle_proxy.setPos((vp.width() - sh.width()) / 2.0,
                                     title_bottom + 4)
 
-    def _place_enter(self):
-        self._enter.adjustSize()
-        sh = self._enter.sizeHint()
+    def _place_version(self):
+        self._version.adjustSize()
+        sh = self._version.sizeHint()
         ts = self._title.sizeHint()
         ss = self._subtitle.sizeHint()
         vp = self._view.viewport().size()
         sub_bottom = (vp.height() * 0.42 + ts.height() / 2.0
                       + 4 + ss.height())
+        self._version_proxy.setPos((vp.width() - sh.width()) / 2.0,
+                                   sub_bottom + 2)
+
+    def _place_enter(self):
+        self._enter.adjustSize()
+        sh = self._enter.sizeHint()
+        ts = self._title.sizeHint()
+        ss = self._subtitle.sizeHint()
+        vs = self._version.sizeHint()
+        vp = self._view.viewport().size()
+        ver_bottom = (vp.height() * 0.42 + ts.height() / 2.0
+                      + 4 + ss.height() + 2 + vs.height())
         self._enter_proxy.setPos((vp.width() - sh.width()) / 2.0,
-                                 sub_bottom + 18)
+                                 ver_bottom + 16)
 
     def _place_reload(self):
         m = 24
