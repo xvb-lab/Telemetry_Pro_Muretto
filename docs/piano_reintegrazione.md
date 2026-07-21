@@ -52,6 +52,18 @@ alla review/live), ma senza guidare l'ingegnere.
 - Mantenere il **fix `list_sessions`** (cache per mtime) in `db.py`.
 - Gli overlay vanno lanciati con lo stesso interprete (`pythonw`) e cwd della root.
 
+## Decisioni aggiuntive (2026-07-21)
+- **Grafica radio ingegnere = OVERLAY** (non doppio cervello): il muretto resta
+  processo voce separato; scrive il messaggio corrente in `team_radio.json`
+  (FATTO in `RadioManager`). Un futuro overlay WEC leggerà quel file e mostrerà
+  chi parla — **text-less** (meglio solo voce). **La grafica si fa ALLA FINE, non
+  ora**: per adesso solo il ponte (scrittura file). Le **impostazioni ingegnere**
+  (lingua, voci, volumi, tono, beep, on/off, i 3 toni) andranno in una **pagina
+  del settings della UI**, insieme agli overlay.
+- **App BILINGUE (IT/EN)**: setting lingua in Options → guida sia l'ingegnere
+  (già 4 lingue) sia la UI. La traduzione della UI (stringhe in window.py/tab) si
+  fa a strati; il setting + lo strato i18n si mettono durante la FASE 2/4.
+
 ## Scelte utente (2026-07-21)
 - **Recorder nell'app: SÌ** (per review/overview/stint), ma **senza guidare
   l'engineer** (quello è il muretto separato).

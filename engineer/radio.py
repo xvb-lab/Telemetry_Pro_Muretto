@@ -12,6 +12,19 @@ import time
 
 from engineer.roles import voice_for, role_for, ROLE_LABEL
 
+
+def _write_team_radio(role, text):
+    """Scrive il messaggio corrente in USER_DIR/team_radio.json: ponte per il
+    futuro overlay grafico WEC (text-less), che leggerà chi parla. Difensivo."""
+    try:
+        import json
+        from core.paths import USER_DIR
+        (USER_DIR / "team_radio.json").write_text(
+            json.dumps({"t": time.time(), "role": role, "text": text or ""},
+                       ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+
 # ── tier di priorità: 0 = sicurezza (passa sempre) … 4 = coaching ─────────
 _MSG_TIER = {}
 
@@ -174,5 +187,6 @@ class RadioManager:
             code = m.get("code")
             role = role_for(code)
             print("[%s] %s" % (ROLE_LABEL.get(role, role), m.get("text")))
+            _write_team_radio(role, m.get("text"))   # ponte per la futura grafica WEC
             vox.speak(m.get("text"), voice=voice_for(code, lang),
                       beep=bool(m.get("beep")))
