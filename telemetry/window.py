@@ -3466,19 +3466,12 @@ class _MenuHeader(QFrame):
         _t = QLabel("TEAM"); _t.setObjectName("mhCap")
         _t.setStyleSheet("margin-top:5px;")
         c1.addWidget(_t)
-        self.ed_team = QLineEdit(); self.ed_team.setObjectName("mhTeam")
-        self.ed_team.setMaxLength(30); self.ed_team.setFixedWidth(190)
-        self.ed_team.setPlaceholderText("Your team")
-        self.ed_team.setFocusPolicy(Qt.ClickFocus)   # niente focus/lampeggio automatico
-        self.ed_team.editingFinished.connect(self._save_team)
-        # dopo 5s (dal click o dall'ultima digitazione) salva e togli il cursore
-        self._team_timer = QTimer(self)
-        self._team_timer.setSingleShot(True)
-        self._team_timer.setInterval(5000)
-        self._team_timer.timeout.connect(self._team_commit)
-        self.ed_team.textEdited.connect(lambda *_: self._team_timer.start())
-        self.ed_team.installEventFilter(self)
-        c1.addWidget(self.ed_team)
+        # team in SOLA LETTURA (piccolo): si modifica dalle OPTIONS
+        self.lb_team = QLabel("—")
+        self.lb_team.setStyleSheet(
+            "color:#e8ebf2;font-family:'Heebo';font-size:14px;"
+            "font-weight:600;background:transparent;")
+        c1.addWidget(self.lb_team)
         h.addWidget(c1w, 0, Qt.AlignVCenter)
 
         # SESSIONI LOCALI: subito dopo team — numero sopra, "Sessions" sotto (bianco)
@@ -3628,8 +3621,7 @@ class _MenuHeader(QFrame):
             prof = {}
         from core.utils import short_name as _sn
         self.lb_driver.setText((_sn(prof.get("driver") or "") or "\u2014").upper())
-        if not self.ed_team.hasFocus():
-            self.ed_team.setText(prof.get("team", "") or "")
+        self.lb_team.setText(prof.get("team", "") or "—")
         n = 0
         try:
             from core.paths import LOGS_DIR
@@ -6920,19 +6912,12 @@ class _MenuHeader(QFrame):
         _t = QLabel("TEAM"); _t.setObjectName("mhCap")
         _t.setStyleSheet("margin-top:5px;")
         c1.addWidget(_t)
-        self.ed_team = QLineEdit(); self.ed_team.setObjectName("mhTeam")
-        self.ed_team.setMaxLength(30); self.ed_team.setFixedWidth(190)
-        self.ed_team.setPlaceholderText("Your team")
-        self.ed_team.setFocusPolicy(Qt.ClickFocus)   # niente focus/lampeggio automatico
-        self.ed_team.editingFinished.connect(self._save_team)
-        # dopo 5s (dal click o dall'ultima digitazione) salva e togli il cursore
-        self._team_timer = QTimer(self)
-        self._team_timer.setSingleShot(True)
-        self._team_timer.setInterval(5000)
-        self._team_timer.timeout.connect(self._team_commit)
-        self.ed_team.textEdited.connect(lambda *_: self._team_timer.start())
-        self.ed_team.installEventFilter(self)
-        c1.addWidget(self.ed_team)
+        # team in SOLA LETTURA (piccolo): si modifica dalle OPTIONS
+        self.lb_team = QLabel("—")
+        self.lb_team.setStyleSheet(
+            "color:#e8ebf2;font-family:'Heebo';font-size:14px;"
+            "font-weight:600;background:transparent;")
+        c1.addWidget(self.lb_team)
         h.addWidget(c1w, 0, Qt.AlignVCenter)
 
         # SESSIONI LOCALI: subito dopo team — numero sopra, "Sessions" sotto (bianco)
@@ -7082,8 +7067,7 @@ class _MenuHeader(QFrame):
             prof = {}
         from core.utils import short_name as _sn
         self.lb_driver.setText((_sn(prof.get("driver") or "") or "\u2014").upper())
-        if not self.ed_team.hasFocus():
-            self.ed_team.setText(prof.get("team", "") or "")
+        self.lb_team.setText(prof.get("team", "") or "—")
         n = 0
         try:
             from core.paths import LOGS_DIR
@@ -10411,6 +10395,28 @@ class TelemetryWindow(QMainWindow):
         _irl.addStretch(1)
         self._intro_chk = _CircleCheck(_on0, "#ff1d43", self._intro_click)
         _irl.addWidget(self._intro_chk, 0, Qt.AlignVCenter)
+        # riga "Team" (editabile): scrive il team nel profilo; l'header lo mostra
+        self._teamrow = QWidget()
+        self._teamrow.setObjectName("widgetRow")
+        self._teamrow.setFixedHeight(46)
+        _trl = QHBoxLayout(self._teamrow)
+        _trl.setContentsMargins(14, 0, 12, 0)
+        _tnm = QLabel("Team"); _tnm.setObjectName("widgetName")
+        _trl.addWidget(_tnm, 0, Qt.AlignVCenter)
+        _trl.addStretch(1)
+        self._team_edit = QLineEdit()
+        self._team_edit.setMaxLength(30); self._team_edit.setFixedWidth(220)
+        self._team_edit.setPlaceholderText("Your team")
+        try:
+            self._team_edit.setText(_load_profile().get("team", "") or "")
+        except Exception:
+            pass
+        self._team_edit.setStyleSheet(
+            "QLineEdit{color:#ffffff;background:rgba(255,255,255,0.08);"
+            "border:none;border-radius:8px;padding:5px 10px;font-size:13px;}"
+            "QLineEdit:focus{border:1px solid #ff1d43;}")
+        self._team_edit.editingFinished.connect(self._save_team_opt)
+        _trl.addWidget(self._team_edit, 0, Qt.AlignVCenter)
         # riga "Music" (check tondo): stessa fattura della riga intro
         try:
             _mus0 = bool(_load_profile().get("music_on", True))
@@ -10693,9 +10699,10 @@ class TelemetryWindow(QMainWindow):
         self.setCentralWidget(central)
         # righe Video intro + Music nella 3a colonna della pagina OPTIONS
         try:
-            self._app._legacy._overlaytab._extra_col.insertWidget(0, self._introrow)
-            self._app._legacy._overlaytab._extra_col.insertWidget(1, self._musicrow)
-            self._app._legacy._overlaytab._extra_col.insertWidget(2, self._lockrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(0, self._teamrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(1, self._introrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(2, self._musicrow)
+            self._app._legacy._overlaytab._extra_col.insertWidget(3, self._lockrow)
             # Team dev NASCOSTO (pulizia 20/07): la galleria brand resta
             # nel codice, riga non inserita — per riaverla basta questa:
             # self._app._legacy._overlaytab._extra_col.insertWidget(3, self._teamdevrow)
@@ -11285,6 +11292,18 @@ class TelemetryWindow(QMainWindow):
         try:
             from core.soundtrack import Soundtrack
             Soundtrack.instance().set_enabled(on)
+        except Exception:
+            pass
+
+    def _save_team_opt(self):
+        """Salva il team (dalle Options) nel profilo e aggiorna l'header."""
+        try:
+            t = self._team_edit.text().strip()[:30]
+            d = _load_profile(); d["team"] = t; _save_profile(d)
+        except Exception:
+            pass
+        try:
+            self._menu.banner.refresh()
         except Exception:
             pass
 
