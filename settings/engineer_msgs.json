@@ -6466,13 +6466,13 @@
       "cat": "performance",
       "level": "info",
       "beep": true,
-      "it": "La pola in classe e' di {name}, {ptime}. Sei a {gap} secondi.",
+      "it": "La pole in classe e' di {name}, {ptime}. Sei a {gap} secondi.",
       "variants_it": [
-        "La pola in classe e' di {name}, {ptime}. Sei a {gap} secondi.",
+        "La pole in classe e' di {name}, {ptime}. Sei a {gap} secondi.",
         "Miglior tempo di classe {name}, {ptime}: ti mancano {gap} secondi.",
         "Il tempo da battere e' {ptime} di {name}, sei a {gap}.",
-        "Pola provvisoria {name} in {ptime}. Il tuo distacco: {gap} secondi.",
-        "Per la pola servono {gap} secondi: {name} ha fatto {ptime}."
+        "Pole provvisoria {name} in {ptime}. Il tuo distacco: {gap} secondi.",
+        "Per la pole servono {gap} secondi: {name} ha fatto {ptime}."
       ],
       "en": "Class pole is {name}, {ptime}. You're {gap} seconds off.",
       "variants_en": [
@@ -6503,14 +6503,14 @@
       "cat": "performance",
       "level": "info",
       "beep": true,
-      "it": "Sei in pola di classe! {mytime}, gran giro.",
+      "it": "Sei in pole di classe! {mytime}, gran giro.",
       "variants_it": [
-        "Sei in pola di classe! {mytime}, gran giro.",
-        "Pola tua! {mytime}, complimenti.",
+        "Sei in pole di classe! {mytime}, gran giro.",
+        "Pole tua! {mytime}, complimenti.",
         "Miglior tempo di classe, {mytime}. Bravo!",
         "Comandi la classe con {mytime}, tienila.",
-        "Che giro! {mytime}, sei in pola.",
-        "Provvisoria pola in {mytime}, ottimo lavoro."
+        "Che giro! {mytime}, sei in pole.",
+        "Provvisoria pole in {mytime}, ottimo lavoro."
       ],
       "en": "You're on class pole! {mytime}, great lap.",
       "variants_en": [
