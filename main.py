@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
         # prova toni (ascolta i tre suoni al volume impostato)
         _tonerow = QHBoxLayout()
         for _lbl, _name in (("▶ Radio", "radio"), ("▶ Fine", "end"),
-                            ("▶ Push-to-talk", "radio2")):
+                            ("▶ Push-to-talk", "push")):
             _b = QPushButton(_lbl)
             _b.clicked.connect(lambda _=False, n=_name: self._play_tone(n))
             _tonerow.addWidget(_b)

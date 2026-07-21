@@ -33,7 +33,7 @@ def _pick(name):
 
 _BEEP = _pick("radio")      # tono OPEN (prima della voce)
 _END = _pick("end")         # tono OVER (fine messaggio)
-_PTT = _pick("radio2")      # tono push-to-talk (riservato: radio a 2 vie da fare)
+_PTT = _pick("push")        # tono push-to-talk (riservato: radio a 2 vie da fare)
 
 
 def _apply_cfg(vox, cfg):
