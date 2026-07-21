@@ -4122,10 +4122,9 @@ class _IntroPage(QWidget):
         QTimer.singleShot(11600, self._reveal_symbol)    # ~1.6s dopo il titolo
         QTimer.singleShot(12000, self._reveal_subtitle)  # +2s: MURETTO + versione
         QTimer.singleShot(15000, self._reveal_enter)     # +3s da MURETTO: ENTRA
-        # AUDIO subito, VIDEO dopo 10 secondi (richiesta utente)
+        self._player.play()
         if self._music is not None:
             self._music.play()
-        QTimer.singleShot(10000, self._player.play)
 
     def _on_duration(self, d):
         self._dur = d
@@ -4133,12 +4132,10 @@ class _IntroPage(QWidget):
     def _on_position(self, pos):
         if self._dur <= 0:
             return
-        # taglia gli ULTIMI 10s del video (richiesta utente): fine anticipata
-        _cut = self._dur - 10000 if self._dur > 12000 else self._dur - 120
-        if not self._bg_started and pos >= _cut - 3000:
+        if not self._bg_started and pos >= self._dur - 3000:
             self._bg_started = True
             self._bg_anim.start()
-        if not self._ended and pos >= _cut:
+        if not self._ended and pos >= self._dur - 120:
             self._at_end()
 
     def _at_end(self):
@@ -7573,10 +7570,9 @@ class _IntroPage(QWidget):
         QTimer.singleShot(11600, self._reveal_symbol)    # ~1.6s dopo il titolo
         QTimer.singleShot(12000, self._reveal_subtitle)  # +2s: MURETTO + versione
         QTimer.singleShot(15000, self._reveal_enter)     # +3s da MURETTO: ENTRA
-        # AUDIO subito, VIDEO dopo 10 secondi (richiesta utente)
+        self._player.play()
         if self._music is not None:
             self._music.play()
-        QTimer.singleShot(10000, self._player.play)
 
     def _on_duration(self, d):
         self._dur = d
@@ -7584,12 +7580,10 @@ class _IntroPage(QWidget):
     def _on_position(self, pos):
         if self._dur <= 0:
             return
-        # taglia gli ULTIMI 10s del video (richiesta utente): fine anticipata
-        _cut = self._dur - 10000 if self._dur > 12000 else self._dur - 120
-        if not self._bg_started and pos >= _cut - 3000:
+        if not self._bg_started and pos >= self._dur - 3000:
             self._bg_started = True
             self._bg_anim.start()
-        if not self._ended and pos >= _cut:
+        if not self._ended and pos >= self._dur - 120:
             self._at_end()
 
     def _at_end(self):
