@@ -217,7 +217,9 @@ class Soundtrack:
     def _tick(self):
         try:
             v = float(self._out.volume())
-            step = _FADE_REF * _STEP_MS / float(_FADE_MS)
+            # passo PROPORZIONALE al volume di crociera: la dissolvenza dura
+            # sempre ~_FADE_MS (come prima), non piu' veloce a volume basso
+            step = max(0.012, self._vol * _STEP_MS / float(_FADE_MS))
             if abs(v - self._target) <= step:
                 self._out.setVolume(self._target)
                 self._fade.stop()

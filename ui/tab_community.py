@@ -379,15 +379,14 @@ class _RankRow(QFrame):
             h.addWidget(_tw, 0, Qt.AlignVCenter)
             h.addSpacing(6)
             h.addWidget(_fw, 0, Qt.AlignVCenter)
-            # PODIO di classe: trofeo DOPO la benzina, per i primi 3
-            _tro = self._trophy_widget(pos)
-            if _tro is not None:
-                h.addSpacing(16)
-                h.addWidget(_tro, 0, Qt.AlignVCenter)
+            # colonna TROFEO a larghezza FISSA dopo la benzina: riservata per
+            # tutte (trofeo sui primi 3), cosi' NON spinge/sposta le altre celle
+            h.addSpacing(16)
+            h.addWidget(self._trophy_widget(pos), 0, Qt.AlignVCenter)
             h.addSpacing(14)
             h.addStretch(1)
-            # card corta: il navy finisce qui, non a tutta pagina
-            self.setFixedWidth(900)
+            # card piu' LARGA per ospitare la colonna trofeo senza stringere
+            self.setFixedWidth(980)
         else:
             t = QLabel(_fmt_ms(ms))
             t.setStyleSheet("color:%s;font-family:'Heebo';font-size:19px;"
@@ -409,30 +408,29 @@ class _RankRow(QFrame):
                 h.addWidget(_sl); h.addSpacing(6)
 
     def _trophy_widget(self, pos):
-        """Trofeo di classe (oro/argento/bronzo) per i primi 3. Render a 2x e
-        devicePixelRatio=2 -> nitido (niente sgranatura). None se pos>3."""
-        if pos not in (1, 2, 3):
-            return None
-        try:
-            from PySide6.QtGui import QPixmap
-            _tp = (Path(__file__).resolve().parent.parent
-                   / "assets" / "img" / ("tr_%d.png" % pos))
-            if not _tp.exists():
-                return None
-            pm = QPixmap(str(_tp))
-            if pm.isNull():
-                return None
-            dpr = 2.0
-            pm = pm.scaledToHeight(int(52 * dpr), Qt.SmoothTransformation)
-            pm.setDevicePixelRatio(dpr)
-            lb = QLabel()
-            lb.setPixmap(pm)
-            lb.setFixedWidth(58)
-            lb.setAlignment(Qt.AlignCenter)
-            lb.setStyleSheet("background:transparent;")
-            return lb
-        except Exception:
-            return None
+        """Colonna TROFEO a larghezza FISSA (non spinge la riga): trofeo per i
+        primi 3 (oro/argento/bronzo), vuota per gli altri -> spazio riservato
+        uguale per tutte le righe. Render 2x nitido (niente sgranatura)."""
+        lb = QLabel()
+        lb.setFixedWidth(60)
+        lb.setAlignment(Qt.AlignCenter)
+        lb.setStyleSheet("background:transparent;")
+        if pos in (1, 2, 3):
+            try:
+                from PySide6.QtGui import QPixmap
+                _tp = (Path(__file__).resolve().parent.parent
+                       / "assets" / "img" / ("tr_%d.png" % pos))
+                if _tp.exists():
+                    pm = QPixmap(str(_tp))
+                    if not pm.isNull():
+                        dpr = 2.0
+                        pm = pm.scaledToHeight(int(52 * dpr),
+                                               Qt.SmoothTransformation)
+                        pm.setDevicePixelRatio(dpr)
+                        lb.setPixmap(pm)
+            except Exception:
+                pass
+        return lb
 
     def paintEvent(self, e):
         # sfondo card: TINTA BRAND con gradiente + barra bianca diagonale
