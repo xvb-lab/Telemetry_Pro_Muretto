@@ -84,23 +84,10 @@ def _auto_fuel_tick(feed, live, cfg, brain, laps_done):
     if now - _AF["ts"] < 5.0:
         return
     _AF["ts"] = now
-    # giri da caricare al pit = quelli DELLO STINT DOPO la prossima sosta, non
-    # l'intera gara. Con sosta a meta' distanza carichi per lo stint finale.
-    # Nessun piano soste (o soste finite) -> riempi fino a fine gara.
+    # VE minima che copre i giri rimanenti (+2), come ieri (collaudato v2):
+    # riempi per finire la gara. La sosta e' opzionale (gomme), non impone un
+    # secondo stint separato -> NON dividere per stint.
     need = live.get("laps_needed")
-    try:
-        model = getattr(brain, "_race_model", None) or {}
-        stops = model.get("stops") or []
-        race_laps = model.get("race_laps")
-        if stops and race_laps:
-            future = sorted(int(s["lap"]) for s in stops
-                            if s.get("lap") and int(s["lap"]) > int(laps_done or 0))
-            if future:
-                nxt = future[0]
-                following = future[1] if len(future) > 1 else int(race_laps)
-                need = max(1, int(following) - nxt)
-    except Exception:
-        pass
     if need is None or float(live.get("race_remaining") or 0.0) < 120.0:
         return
     menu_raw = feed.pit_menu_raw()
