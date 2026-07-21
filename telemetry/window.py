@@ -3607,7 +3607,8 @@ class _MenuHeader(QFrame):
             prof = _load_profile()
         except Exception:
             prof = {}
-        self.lb_driver.setText(((prof.get("driver") or "").strip() or "\u2014").upper())
+        from core.utils import short_name as _sn
+        self.lb_driver.setText((_sn(prof.get("driver") or "") or "\u2014").upper())
         if not self.ed_team.hasFocus():
             self.ed_team.setText(prof.get("team", "") or "")
         n = 0
@@ -7030,7 +7031,8 @@ class _MenuHeader(QFrame):
             prof = _load_profile()
         except Exception:
             prof = {}
-        self.lb_driver.setText(((prof.get("driver") or "").strip() or "\u2014").upper())
+        from core.utils import short_name as _sn
+        self.lb_driver.setText((_sn(prof.get("driver") or "") or "\u2014").upper())
         if not self.ed_team.hasFocus():
             self.ed_team.setText(prof.get("team", "") or "")
         n = 0

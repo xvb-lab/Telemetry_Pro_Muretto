@@ -212,11 +212,9 @@ class _RankRow(QFrame):
             h.addWidget(pb); h.addSpacing(10)
             h.addWidget(box, 0, Qt.AlignVCenter); h.addSpacing(12)
         dcol = QVBoxLayout(); dcol.setSpacing(1); dcol.setContentsMargins(0, 0, 0, 0)
-        # nome stile entry list: "J. Sanfilippo" (iniziale + cognome)
-        _pn = (rec.get("player") or "\u2014").strip()
-        _pp = _pn.split()
-        if len(_pp) >= 2:
-            _pn = _pp[0][0] + ". " + " ".join(_pp[1:])
+        # nome corto broadcast: "J. Sanfilippo" / "J. M. Sanfilippo" (util unico)
+        from core.utils import short_name as _sn
+        _pn = _sn(rec.get("player") or "") or "\u2014"
         dl = QLabel(_pn.upper())
         if self._card_bg is not None:
             dl.setStyleSheet(

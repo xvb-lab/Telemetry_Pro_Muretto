@@ -43,6 +43,17 @@ def load_custom_fonts():
     _fonts_loaded = True
 
 
+def short_name(full):
+    """Nome corto stile broadcast: abbrevia TUTTI i nomi tranne il cognome.
+    'Jonathan Sanfilippo' -> 'J. Sanfilippo'; 'Jon Marco Sanfilippo' ->
+    'J. M. Sanfilippo'. Un nome solo resta intero."""
+    parts = (full or "").strip().split()
+    if len(parts) <= 1:
+        return (full or "").strip()
+    inits = " ".join((p[0] + ".") for p in parts[:-1])
+    return "%s %s" % (inits, parts[-1])
+
+
 # ── FORMATTAZIONE TEMPI ───────────────────────────────────────────────
 def fmt_time(s) -> str:
     """Secondi -> 'M:SS.mmm'. '--:--.---' se non valido."""
