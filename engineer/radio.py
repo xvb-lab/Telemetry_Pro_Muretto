@@ -81,8 +81,10 @@ _RADIO_MIN_GAP = 5.0       # secondi tra due messaggi non critici
 _RADIO_NO_REPEAT = 20.0    # non ripetere la stessa frase entro N secondi
 _GROUP_GAP = 8.0           # un solo messaggio per gruppo entro N secondi
 _YELLOW = ("local_yellow", "yellow_flag")
-# gialle + blu: il tono suona SENZA ritardo (urgenza). Richiesta utente.
-_URGENT_TONE = _YELLOW + ("blue_flag", "blue_flag_multi", "blue_flag_simple")
+# Tono SENZA ritardo (subito dopo il beep): gialle + blu (urgenza) e pit_ready
+# (i suoi 3s sono gia' l'attesa; il ritardo tono NON deve sommarsi). Richiesta utente.
+_URGENT_TONE = _YELLOW + ("blue_flag", "blue_flag_multi", "blue_flag_simple",
+                          "pit_ready")
 
 # ── gruppi di mutua esclusione (la sicurezza tier 0 non è mai deduplicata) ─
 _MSG_GROUP = {}
