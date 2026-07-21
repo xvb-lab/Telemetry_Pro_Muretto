@@ -1,35 +1,60 @@
 """core/soundtrack.py — Colonna sonora dell'app.
 
-Due tracce (audio degli mp4 in assets, riprodotti direttamente da Qt):
-  home       assets/home_sd.mp4    -> tutte le schermate
-  telemetry  assets/telemetry.mp4  -> schermate telemetria
+Tracce lette dalle cartelle in assets/audio/music/ (mp3):
+  home       hometrack/   -> menu e schermate generali (rotazione CASUALE)
+  community  community/   -> area circuiti/sessioni/stint (persiste)
+  setups     setups/      -> pagina setup
+  telemetry  telemetry/   -> pagina telemetria
 
 Regole:
   - cambio schermata = cambio traccia con DISSOLVENZA (mai a strappo);
+    restare nella STESSA zona non riavvia la traccia (persiste);
   - sessione LIVE armata = la musica sfuma e SI FERMA; riprende (in
     dissolvenza) quando la sessione si chiude e il recorder si disarma;
   - durante l'intro video niente musica (l'intro ha il suo audio);
-  - file mancante/vuoto (es. traccia ancora da scaricare) -> si ripiega
-    sulla home senza errori; multimedia non disponibile -> silenzio e basta.
+  - volume regolabile dalle OPTIONS (profilo 'music_vol', 0..100);
+  - cartella/file mancante -> si ripiega sulla home senza errori; multimedia
+    non disponibile -> silenzio e basta.
 """
 from pathlib import Path
 
 _ASSETS = Path(__file__).resolve().parent.parent / "assets"
-_FILES = {"home": [_ASSETS / "home_sd.mp4",
-                   _ASSETS / "home_sd_2.mp4",
-                   _ASSETS / "home_sd_3.mp4"],
-          "telemetry": _ASSETS / "telemetry.mp4",
-          "setups": _ASSETS / "SETUPS.m4a"}
-_VOL = 0.30          # volume di crociera (0..1)
+_MUSIC = _ASSETS / "audio" / "music"
+
+
+def _folder(name):
+    """mp3 ESISTENTI in assets/audio/music/<name> (lista = rotazione)."""
+    d = _MUSIC / name
+    if not d.exists():
+        return []
+    return sorted(p for p in d.glob("*.mp3")
+                  if p.exists() and p.stat().st_size > 1024)
+
+
+# ricalcolate a ogni avvio: aggiungere/togliere mp3 nelle cartelle basta
+_FILES = {
+    "home": _folder("hometrack"),
+    "community": _folder("community"),
+    "setups": _folder("setups"),
+    "telemetry": _folder("telemetry"),
+}
 _FADE_MS = 1200      # durata dissolvenza
 _STEP_MS = 60        # passo del timer di fade
+_FADE_REF = 1.0      # riferimento per la velocita' di fade (indip. dal volume)
+
+
+def _load_vol():
+    try:
+        from core.profile import _load_profile
+        v = float(_load_profile().get("music_vol", 70))
+    except Exception:
+        v = 70.0
+    return max(0.0, min(1.0, v / 100.0))
 
 
 def _cands(name):
-    """File ESISTENTI e non vuoti per una traccia (lista = rotazione)."""
     v = _FILES.get(name)
-    lst = v if isinstance(v, list) else ([v] if v else [])
-    return [p for p in lst if p and p.exists() and p.stat().st_size > 1024]
+    return list(v) if isinstance(v, list) else ([v] if v else [])
 
 
 class Soundtrack:
@@ -51,10 +76,11 @@ class Soundtrack:
         self._enabled = True     # check "Music" nelle OPTIONS
         self._pending = None     # traccia da caricare quando il fade-out finisce
         self._target = 0.0
+        self._vol = _load_vol()  # volume di crociera (0..1), dalle OPTIONS
 
     # ── API ───────────────────────────────────────────────────────────
     def set_screen(self, name):
-        """name: 'home' | 'telemetry' | None (nessuna musica, es. intro)."""
+        """name: 'home'|'community'|'setups'|'telemetry'|None (intro)."""
         if name == self._track:
             return
         self._track = name
@@ -77,9 +103,19 @@ class Soundtrack:
             return
         self._enabled = on
         if self._player is None and not on:
-            return                 # mai partita: basta il flag
+            return
         if self._ensure():
             self._apply()
+
+    def set_volume(self, pct):
+        """Volume musica app 0..100 (dal cursore OPTIONS). Applica dal vivo."""
+        try:
+            self._vol = max(0.0, min(1.0, float(pct) / 100.0))
+        except (TypeError, ValueError):
+            return
+        # se sta suonando (target > 0), risali/scendi al nuovo livello dolce
+        if self._player is not None and self._target > 0.0:
+            self._fade_to(self._vol)
 
     # ── interni ───────────────────────────────────────────────────────
     def _ensure(self):
@@ -92,7 +128,6 @@ class Soundtrack:
             self._out.setVolume(0.0)
             self._player = QMediaPlayer()
             self._player.setAudioOutput(self._out)
-            # loop deciso per traccia in _load (rotazione = 1, singola = inf)
             self._player.mediaStatusChanged.connect(self._on_status)
             self._fade = QTimer()
             self._fade.setInterval(_STEP_MS)
@@ -123,7 +158,7 @@ class Soundtrack:
             if self._loaded is None:
                 self._load(want)               # primo avvio: parte da zero
                 self._player.play()
-                self._fade_to(_VOL)
+                self._fade_to(self._vol)
             else:
                 self._pending = want           # cambio: giu', swap, su
                 self._fade_to(0.0)
@@ -135,12 +170,12 @@ class Soundtrack:
                     self._player.play()
             except Exception:
                 pass
-            self._fade_to(_VOL)
+            self._fade_to(self._vol)
 
     def _load(self, name):
-        """Carica un file della traccia: con piu' candidati (home) sceglie a
-        CASO evitando di ripetere quello appena sentito, e loops=1 cosi' a
-        fine pezzo _on_status passa al prossimo. Traccia singola = loop inf."""
+        """Carica un file: con piu' candidati (home) sceglie a CASO evitando di
+        ripetere l'ultimo, loops=1 cosi' a fine pezzo _on_status passa al
+        prossimo. Traccia singola = loop infinito."""
         from PySide6.QtCore import QUrl
         import random
         cands = _cands(name)
@@ -161,8 +196,7 @@ class Soundtrack:
         self._loaded = name
 
     def _on_status(self, st):
-        """Fine pezzo (solo tracce a rotazione, loops=1): avanti col
-        prossimo file casuale della stessa schermata, senza dissolvenza."""
+        """Fine pezzo (tracce a rotazione, loops=1): prossimo file casuale."""
         try:
             from PySide6.QtMultimedia import QMediaPlayer
             if st != QMediaPlayer.MediaStatus.EndOfMedia:
@@ -183,17 +217,16 @@ class Soundtrack:
     def _tick(self):
         try:
             v = float(self._out.volume())
-            step = _VOL * _STEP_MS / float(_FADE_MS)
+            step = _FADE_REF * _STEP_MS / float(_FADE_MS)
             if abs(v - self._target) <= step:
                 self._out.setVolume(self._target)
                 self._fade.stop()
                 if self._target <= 0.0:
                     if self._pending is not None and not self._live:
-                        # fade-out finito: cambia traccia e risali
                         self._load(self._pending)
                         self._pending = None
                         self._player.play()
-                        self._fade_to(_VOL)
+                        self._fade_to(self._vol)
                     else:
                         self._player.pause()   # silenzio: ferma davvero
             else:

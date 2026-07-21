@@ -3922,7 +3922,12 @@ class _IntroPage(QWidget):
             self._music = QMediaPlayer(self)
             self._music_out = QAudioOutput(self)
             self._music.setAudioOutput(self._music_out)
-            self._music_out.setVolume(0.70)
+            try:
+                from core.profile import _load_profile as _lp
+                _mv = max(0.0, min(1.0, float(_lp().get("music_vol", 70)) / 100.0))
+            except Exception:
+                _mv = 0.70
+            self._music_out.setVolume(_mv)
             self._music.setSource(QUrl.fromLocalFile(str(self._MUSIC)))
         self._player.setVideoOutput(self._item)
         self._player.mediaStatusChanged.connect(self._on_status)
@@ -7340,7 +7345,12 @@ class _IntroPage(QWidget):
             self._music = QMediaPlayer(self)
             self._music_out = QAudioOutput(self)
             self._music.setAudioOutput(self._music_out)
-            self._music_out.setVolume(0.70)
+            try:
+                from core.profile import _load_profile as _lp
+                _mv = max(0.0, min(1.0, float(_lp().get("music_vol", 70)) / 100.0))
+            except Exception:
+                _mv = 0.70
+            self._music_out.setVolume(_mv)
             self._music.setSource(QUrl.fromLocalFile(str(self._MUSIC)))
         self._player.setVideoOutput(self._item)
         self._player.mediaStatusChanged.connect(self._on_status)
@@ -10355,6 +10365,27 @@ class TelemetryWindow(QMainWindow):
         self._set_music_lbl(_mus0)
         _mrl.addWidget(self._music_lbl, 0, Qt.AlignVCenter)
         _mrl.addStretch(1)
+        # cursore VOLUME musica app (0..100): salva su profilo + applica live
+        from PySide6.QtWidgets import QSlider
+        try:
+            _mv0 = int(_load_profile().get("music_vol", 70))
+        except Exception:
+            _mv0 = 70
+        self._music_vol = QSlider(Qt.Horizontal)
+        self._music_vol.setRange(0, 100)
+        self._music_vol.setValue(max(0, min(100, _mv0)))
+        self._music_vol.setFixedWidth(120)
+        self._music_vol.setCursor(Qt.PointingHandCursor)
+        self._music_vol.setStyleSheet(
+            "QSlider::groove:horizontal{height:4px;background:#3a3d47;"
+            "border-radius:2px;}"
+            "QSlider::sub-page:horizontal{height:4px;background:#ff1d43;"
+            "border-radius:2px;}"
+            "QSlider::handle:horizontal{width:12px;height:12px;margin:-5px 0;"
+            "background:#ffffff;border-radius:6px;}")
+        self._music_vol.valueChanged.connect(self._music_vol_changed)
+        _mrl.addWidget(self._music_vol, 0, Qt.AlignVCenter)
+        _mrl.addSpacing(12)
         self._music_chk = _CircleCheck(_mus0, "#ff1d43", self._music_click)
         _mrl.addWidget(self._music_chk, 0, Qt.AlignVCenter)
         # riga "Lock overlays": BLOCCA il trascinamento degli overlay
@@ -10865,10 +10896,11 @@ class TelemetryWindow(QMainWindow):
                     else "telemetry"
             elif w is getattr(self, "_telemetry_page", None):
                 t = "telemetry"
-            elif w in (getattr(self, "_menu", None),
-                       getattr(self, "_trackpage", None),
+            elif w in (getattr(self, "_trackpage", None),
                        getattr(self, "_sessions_page", None),
-                       getattr(self, "_stint_page", None),
+                       getattr(self, "_stint_page", None)):
+                t = "community"            # circuiti -> sessioni -> stint: persiste
+            elif w in (getattr(self, "_menu", None),
                        getattr(self, "_options_page", None)):
                 t = "home"
             else:
@@ -11189,6 +11221,18 @@ class TelemetryWindow(QMainWindow):
         try:
             from core.soundtrack import Soundtrack
             Soundtrack.instance().set_enabled(on)
+        except Exception:
+            pass
+
+    def _music_vol_changed(self, v):
+        """Cursore volume musica app: salva su profilo e applica dal vivo."""
+        try:
+            d = _load_profile(); d["music_vol"] = int(v); _save_profile(d)
+        except Exception:
+            pass
+        try:
+            from core.soundtrack import Soundtrack
+            Soundtrack.instance().set_volume(int(v))
         except Exception:
             pass
 
