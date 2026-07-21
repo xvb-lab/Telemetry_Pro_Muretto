@@ -10428,7 +10428,7 @@ class TelemetryWindow(QMainWindow):
         fl.addWidget(_mlab, 0, Qt.AlignVCenter)
         fl.addSpacing(10)
         _flab = QLabel("LMU Telemetry Pro  %s" % _APP_VERSION)
-        _flab.setStyleSheet("color:#aeb6c4;font-size:14px;font-weight:700;"
+        _flab.setStyleSheet("color:#aeb6c4;font-size:14px;font-weight:400;"
                             "background:transparent;")
         fl.addWidget(_flab, 0, Qt.AlignVCenter)
         fl.addSpacing(18)
