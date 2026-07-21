@@ -115,6 +115,12 @@ class RadioManager:
         self._last = 0.0         # ultimo messaggio non critico
         self._cur = None         # messaggio in bocca ora (per la preemption)
 
+    def reset(self):
+        """Svuota la coda e il messaggio in bocca (es. all'ingresso in pausa/
+        menu): il muretto NON deve continuare frasi fuori sessione."""
+        self._q = []
+        self._cur = None
+
     def push(self, msgs):
         """Accoda i candidati: salta doppioni, frasi dette da poco, e gruppi
         già serviti (tier>=1)."""

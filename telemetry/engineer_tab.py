@@ -31,10 +31,10 @@ class _EngineerTab(QWidget):
         self._tone_out = None
         lay = QVBoxLayout(self)
         lay.setAlignment(Qt.AlignCenter)
-        title = QLabel("Ingegnere / Muretto")
+        title = QLabel("Engineer")
         title.setStyleSheet("font-size:15px; font-weight:600;")
         title.setAlignment(Qt.AlignCenter)
-        sub = QLabel("Voce (processo separato). Impostazioni dall'ingranaggio.")
+        sub = QLabel("Voice (separate process). Settings from the gear icon.")
         sub.setAlignment(Qt.AlignCenter)
         lay.addWidget(title)
         lay.addWidget(sub)
@@ -146,13 +146,13 @@ class _EngineerTab(QWidget):
         root.setContentsMargins(18, 16, 18, 16)
         root.setSpacing(14)
 
-        hdr = QLabel("MURETTO — RADIO / VOCE")
+        hdr = QLabel("ENGINEER — RADIO / VOICE")
         hdr.setStyleSheet("color:#aeb6c4; font-size:12px; font-weight:700;"
                           " letter-spacing:2px;")
         root.addWidget(hdr)
 
         # ── Lingua ──
-        lw, lh = self._row("Lingua")
+        lw, lh = self._row("Language")
         self._lang_btns = {}
         cur = (cfg.get("lang") or "it")
         for code, lbl in _LANGS:
@@ -171,7 +171,7 @@ class _EngineerTab(QWidget):
         root.addWidget(lw)
 
         # ── Volume voce ──
-        vw, vh = self._row("Volume voce")
+        vw, vh = self._row("Voice volume")
         sl = QSlider(Qt.Horizontal)
         sl.setRange(0, 100)
         try:
@@ -197,13 +197,13 @@ class _EngineerTab(QWidget):
         root.addWidget(vw)
 
         # ── Beep radio on/off ──
-        bw, bh = self._row("Beep radio")
+        bw, bh = self._row("Radio beep")
         bh.addWidget(self._toggle(bool(cfg.get("beep_on", True)),
                                   lambda on: self._save(beep_on=on)))
         root.addWidget(bw)
 
         # ── Ritardo tono radio (0-5 s) ──
-        dw, dh = self._row("Ritardo tono radio")
+        dw, dh = self._row("Radio tone delay")
         sp = QSpinBox()
         sp.setRange(0, 5)
         sp.setSuffix(" s")
@@ -221,7 +221,7 @@ class _EngineerTab(QWidget):
         line.setFrameShape(QFrame.HLine)
         line.setStyleSheet("color:#2a2d38;")
         root.addWidget(line)
-        tw, th = self._row("Prova toni")
+        tw, th = self._row("Test tones")
         for lbl, tone in (("Radio", "radio"), ("Over", "end"),
                           ("Push", "push")):
             tb = QPushButton(lbl)
@@ -236,8 +236,7 @@ class _EngineerTab(QWidget):
         root.addWidget(tw)
 
         root.addStretch(1)
-        note = QLabel("Le modifiche sono applicate dal muretto entro 2 secondi, "
-                      "senza riavvii.")
+        note = QLabel("Changes take effect within 2 seconds — no restart.")
         note.setStyleSheet("color:#7f8796; font-size:11px;")
         note.setWordWrap(True)
         root.addWidget(note)

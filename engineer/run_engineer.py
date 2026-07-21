@@ -232,6 +232,7 @@ def run():
           % lang)
     _last_class = None
     _cfg_ts = 0.0
+    _off = False
     try:
         while True:
             _now = time.monotonic()
@@ -246,8 +247,19 @@ def run():
             # SOLO in pista viva: nei menu / pausa / replay / fuori sessione la
             # shared memory resta piena di dati STANTII -> il muretto DEVE tacere.
             if not mem.is_on_track():
+                if not _off:                 # appena entrati in pausa/menu:
+                    _off = True
+                    try:
+                        vox.interrupt()      # taglia la frase in corso
+                    except Exception:
+                        pass
+                    try:
+                        radio.reset()        # svuota la coda (niente "1 minuto" in pausa)
+                    except Exception:
+                        pass
                 time.sleep(0.25)
                 continue
+            _off = False
             drv = d.get("driver") or ""
             ld = int(d.get("laps_completed") or 0)
             feed.set_context(drv, ld)
