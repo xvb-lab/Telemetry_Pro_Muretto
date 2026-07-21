@@ -107,6 +107,11 @@ class Engineer:
                      "on_pace", "under_pace", "over_pace", "pace_")
     # Pit CHIAMATO (stai rientrando): niente famiglia gap/attacco.
     _LAW_INBOUND_MUTE = ("gap_", "pos_attack", "pos_edge")
+    # QUALIFICA (sei da solo): lo spotter NON da' bandiere ne' traffico.
+    # Restano tempi/settori/passo/gomme/grip: servono in quali.
+    _LAW_QUALI_MUTE = ("blue_", "yellow", "local_yellow", "traffic_",
+                       "fast_class", "gap_", "opp_", "pit_exit",
+                       "pit_release")
 
     def __init__(self, lang="it"):
         self.lang = lang if lang in self._LANGS else "it"
@@ -1284,7 +1289,7 @@ class Engineer:
         px, pz = pl.get("x"), pl.get("z")
         prevd = self._st.get("pl_dist") or {}
         curd = {}
-        if px is not None and pz is not None and spd <= 35.0:
+        if px is not None and pz is not None and spd <= 70.0:
             for c in cars:
                 if c.get("is_player") or c.get("garage"):
                     continue
@@ -1299,7 +1304,7 @@ class Engineer:
                      + (float(cz) - float(pz)) ** 2) ** 0.5
                 cid = c.get("id")
                 curd[cid] = d
-                if d > 45.0:                          # troppo lontana
+                if d > 200.0:                         # ~12s a 60 km/h di corsia
                     continue
                 pd = prevd.get(cid)
                 if pd is not None and d < pd - 0.15:  # in avvicinamento (conferma)
@@ -1338,6 +1343,28 @@ class Engineer:
             return [self.msg("pit_release_clear")]
         self._st["pl_state"] = "clear"
         return []
+
+    def pit_ready(self, raw):
+        """Alla TUA chiamata pit (pit_state>=1), dopo ~3s: 'pronti per il pit
+        stop'. In tutte le sessioni. Una volta per richiesta, riarma a pit_state 0."""
+        raw = raw or {}
+        try:
+            ps = int(raw.get("pit_state") or 0)
+        except (TypeError, ValueError):
+            ps = 0
+        if ps == 0:                                # nessuna richiesta: riarma
+            self._st.pop("pr_t0", None)
+            self._st.pop("pr_said", None)
+            return []
+        now = _time.monotonic()
+        t0 = self._st.get("pr_t0")
+        if t0 is None:
+            self._st["pr_t0"] = now
+            return []
+        if self._st.get("pr_said") or (now - t0) < 3.0:
+            return []
+        self._st["pr_said"] = True
+        return [self.msg("pit_ready")]
 
     def wet_sector_map(self, raw, laps_done):
         """MAPPA BAGNATO PER SETTORE: accumula asciutto/bagnato (surface_type)
@@ -2659,6 +2686,13 @@ class Engineer:
             inbound = False
         if inbound and code.startswith(self._LAW_INBOUND_MUTE):
             return False, "legge stato: pit chiamato"
+        # TIPO SESSIONE: in quali sei solo (niente bandiere/traffico dallo
+        # spotter); il traffico di rientro pit ha senso SOLO in gara.
+        _kind = session_kind(raw.get("session_type"))
+        if _kind == "qualy" and code.startswith(self._LAW_QUALI_MUTE):
+            return False, "quali: niente bandiere/traffico (sei solo)"
+        if _kind != "race" and code.startswith(("pit_exit",)):
+            return False, "pit-exit traffic: solo in gara"
         riv = raw.get("rivals") or {}
 
         def _gok(v):

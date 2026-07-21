@@ -6313,6 +6313,43 @@
         "Personne, insere-toi.",
         "Voie libre, vas-y."
       ]
+    },
+    "pit_ready": {
+      "cat": "strategia",
+      "level": "info",
+      "beep": true,
+      "it": "Siamo pronti per il pit stop.",
+      "variants_it": [
+        "Siamo pronti per il pit stop.",
+        "Box pronto, ti aspettiamo.",
+        "Pronti al pit, quando vuoi.",
+        "Squadra pronta per la sosta.",
+        "Tutto pronto ai box per te."
+      ],
+      "en": "We're ready for the pit stop.",
+      "variants_en": [
+        "We're ready for the pit stop.",
+        "Box is ready, we're waiting for you.",
+        "Ready for the stop whenever you are.",
+        "Crew's ready for the pit.",
+        "All set in the pits for you."
+      ],
+      "es": "Estamos listos para el pit stop.",
+      "variants_es": [
+        "Estamos listos para el pit stop.",
+        "Box listo, te esperamos.",
+        "Listos para la parada cuando quieras.",
+        "Equipo preparado para el pit.",
+        "Todo listo en boxes para ti."
+      ],
+      "fr": "On est prets pour l'arret au stand.",
+      "variants_fr": [
+        "On est prets pour l'arret au stand.",
+        "Le stand est pret, on t'attend.",
+        "Prets pour l'arret quand tu veux.",
+        "L'equipe est prete pour le pit.",
+        "Tout est pret au stand pour toi."
+      ]
     }
   }
 }

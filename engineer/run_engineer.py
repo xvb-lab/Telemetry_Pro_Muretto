@@ -204,6 +204,7 @@ def _collect(brain, raw, ld, pace):
         (brain.battery_check, (raw, ld)),
         (brain.wet_tyre, (raw,)),
         (brain.pit_ack, (raw, ld)),
+        (brain.pit_ready, (raw,)),                # "pronti per il pit stop" alla chiamata
         # 🔵 STRATEGY
         (brain.race_briefing, (raw,)),           # briefing meteo al rolling start
         (brain.race_plan, (raw,)),
