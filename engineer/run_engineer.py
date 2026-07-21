@@ -119,15 +119,27 @@ def _auto_fuel_tick(feed, live, cfg, brain, laps_done):
     item = next((it for it in menu_raw
                  if str((it or {}).get("name") or "").startswith("VIRTUAL ENERGY")),
                 None)
-    if item is None:
-        return
+    changed = False
+    if item is not None:
+        try:
+            cur_ix = int(item.get("currentSetting") or 0)
+        except (TypeError, ValueError):
+            cur_ix = 0
+        if idx != cur_ix:
+            item["currentSetting"] = idx
+            changed = True
+    # AUTO WET: se piove e sei su slick, monta le WET nel pit menu da solo
     try:
-        cur_ix = int(item.get("currentSetting") or 0)
-    except (TypeError, ValueError):
-        cur_ix = 0
-    if idx == cur_ix:                            # gia' giusto: niente scrittura
+        wet_cond = (float(live.get("wetness") or 0.0) > 0.25
+                    or float(live.get("raining") or 0.0) >= 0.4)
+        comp = live.get("compound4") or []
+        on_slick = bool(comp) and not any("W" in str(c).upper() for c in comp)
+        if wet_cond and on_slick and _set_wet_tyres(menu_raw):
+            changed = True
+    except Exception:
+        pass
+    if not changed:
         return
-    item["currentSetting"] = idx
     try:
         import json as _js
         import urllib.request as _ur
@@ -138,6 +150,25 @@ def _auto_fuel_tick(feed, live, cfg, brain, laps_done):
         _ur.urlopen(req, timeout=1.5)
     except Exception:
         pass
+
+
+def _set_wet_tyres(menu_raw):
+    """Imposta le gomme WET nel pit menu (master TIRES + le 4 ruote). Ritorna
+    True se ha cambiato qualcosa."""
+    changed = False
+    for it in menu_raw or []:
+        nm = str((it or {}).get("name") or "").upper()
+        if not (nm.startswith("TIRES") or nm[:2] in ("FL", "FR", "RL", "RR")):
+            continue
+        opts = it.get("settings") or []
+        for ix, op in enumerate(opts):
+            t = str((op or {}).get("text") or "").upper()
+            if "WET" in t or "RAIN" in t:
+                if int(it.get("currentSetting") or 0) != ix:
+                    it["currentSetting"] = ix
+                    changed = True
+                break
+    return changed
 
 
 def _speak(vox, msgs, lang, seen):
