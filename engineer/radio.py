@@ -81,6 +81,8 @@ _RADIO_MIN_GAP = 5.0       # secondi tra due messaggi non critici
 _RADIO_NO_REPEAT = 20.0    # non ripetere la stessa frase entro N secondi
 _GROUP_GAP = 8.0           # un solo messaggio per gruppo entro N secondi
 _YELLOW = ("local_yellow", "yellow_flag")
+# gialle + blu: il tono suona SENZA ritardo (urgenza). Richiesta utente.
+_URGENT_TONE = _YELLOW + ("blue_flag", "blue_flag_multi", "blue_flag_simple")
 
 # ── gruppi di mutua esclusione (la sicurezza tier 0 non è mai deduplicata) ─
 _MSG_GROUP = {}
@@ -200,4 +202,5 @@ class RadioManager:
             # lo spotter (lei) un filo piu' alta: bandiere/gap sempre ben udibili
             _vol = "+22%" if role == "spotter" else None
             vox.speak(m.get("text"), voice=voice_for(code, lang),
-                      beep=bool(m.get("beep")), vol=_vol)
+                      beep=bool(m.get("beep")), vol=_vol,
+                      urgent=(code in _URGENT_TONE))

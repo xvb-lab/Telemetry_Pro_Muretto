@@ -173,13 +173,14 @@ class Voice:
         self._t.start()
 
     # ── API pubblica ──
-    def speak(self, text, voice=None, beep=False, vol=None):
+    def speak(self, text, voice=None, beep=False, vol=None, urgent=False):
         """Accoda una frase intera. `voice` = voce Edge per QUESTA frase.
         `beep` = tono radio + ritardo prima di parlare. `vol` = boost SSML per
-        QUESTA frase (es. '+20%') per alzare una voce specifica. No-op se off."""
+        QUESTA frase (es. '+20%') per alzare una voce specifica. `urgent` =
+        tono SENZA ritardo (gialle/blu: subito). No-op se off."""
         if not text or not self.enabled:
             return
-        self._q.put((str(text), voice, bool(beep), vol))
+        self._q.put((str(text), voice, bool(beep), vol, bool(urgent)))
 
     # ── tono radio (beep) + ritardo ───────────────────────────────────────
     def set_beep(self, path=None, enabled=True):
@@ -340,6 +341,7 @@ class Voice:
                 _pv = item[1] if len(item) > 1 else None
                 _beep = bool(item[2]) if len(item) > 2 else False
                 _vol = item[3] if len(item) > 3 else None   # boost SSML frase
+                _urgent = bool(item[4]) if len(item) > 4 else False
                 if _pv:                       # voce per QUESTA frase
                     self._edge_voice = _pv
                     self._edge_failed = False
@@ -360,7 +362,9 @@ class Voice:
                             self._play_mci(str(self._beep_path))
                         except Exception:
                             pass
-                    self._abort_evt.wait(self._tone_delay)   # ritardo interrompibile
+                    # gialle/blu: tono senza ritardo (subito); gli altri col ritardo
+                    _d = 0.0 if _urgent else self._tone_delay
+                    self._abort_evt.wait(_d)   # ritardo interrompibile
                 if self._abort_evt.is_set():
                     continue                    # tagliato durante beep/ritardo
                 text = _expand_voice(text)
