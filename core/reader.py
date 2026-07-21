@@ -162,9 +162,12 @@ class TelemetryReader:
                 "emotor_tq": float(t.mElectricBoostMotorTorque),
                 "water_temp": float(t.mEngineWaterTemp),
                 "oil_temp": float(t.mEngineOilTemp),
-                # ultimo IMPATTO (contatti/botte): tempo e intensita'
+                # ultimo IMPATTO (contatti/botte): tempo, intensita' e POSIZIONE
+                # locale (per capire QUALE parte tocca: davanti/dietro/lato).
                 "impact_et": float(getattr(t, "mLastImpactET", 0.0) or 0.0),
                 "impact_mag": float(getattr(t, "mLastImpactMagnitude", 0.0) or 0.0),
+                "impact_x": float(getattr(getattr(t, "mLastImpactPos", None), "x", 0.0) or 0.0),
+                "impact_z": float(getattr(getattr(t, "mLastImpactPos", None), "z", 0.0) or 0.0),
                 "speed": speed_ms * 3.6,
                 "g_long": float(la.z) / 9.81,
                 "g_lat": float(la.x) / 9.81,

@@ -808,7 +808,8 @@ class Engineer:
             self._st["imp_pend"] = {
                 "t": now, "aero": float(raw.get("aero") or 0.0),
                 "dent": sum(int(x or 0) for x in (raw.get("dent_sev") or [])),
-                "who": (_nc.get("name") or None) if _near else None}
+                "who": (_nc.get("name") or None) if _near else None,
+                "zone": self._impact_zone(raw)}     # QUALE parte tocca
             return []
         if pend and now - pend["t"] >= 3.0:
             self._st.pop("imp_pend", None)
@@ -821,16 +822,57 @@ class Engineer:
                      and not any(bool(x) for x in (raw.get("wheel_flat") or []))
                      and not raw.get("parts_off"))
             who = pend.get("who")
+            zone = pend.get("zone")
             if clean:
                 self._st["imp_said_t"] = now
                 return [self.msg("contact_ok_who", name=who) if who
                         else self.msg("contact_ok")]
+            # danno vero: dico DOVE hai toccato (parte auto) + con chi se lo so
+            self._st["imp_said_t"] = now
+            if zone and who:
+                return [self.msg("contact_where_who", dove=zone, name=who)]
+            if zone:
+                return [self.msg("contact_where", dove=zone)]
             if who:
-                # danno vero: il RACE ENGINEER dira' l'entita' (damage/aero);
-                # qui lo spotter dice ALMENO con chi ti sei toccato.
-                self._st["imp_said_t"] = now
                 return [self.msg("contact_who", name=who)]
         return []
+
+    _IMPACT_FRONT_SIGN = 1     # se in pista davanti/dietro risulta invertito -> -1
+    _IMPACT_RIGHT_SIGN = 1     # se sinistra/destra risulta invertito -> -1
+
+    def _impact_zone(self, raw):
+        """Parte della macchina colpita dall'ultimo urto, da mLastImpactPos.
+        Convenzione TinyPedal: lato = -impact_x, longitudinale = impact_z.
+        Assunta: davanti = z>0, destra = x(neg)>0. Se in pista risulta
+        specchiato, invertire _IMPACT_FRONT_SIGN / _IMPACT_RIGHT_SIGN."""
+        try:
+            lx = -float(raw.get("impact_x") or 0.0) * self._IMPACT_RIGHT_SIGN
+            lz = float(raw.get("impact_z") or 0.0) * self._IMPACT_FRONT_SIGN
+        except (TypeError, ValueError):
+            return None
+        if abs(lx) < 0.05 and abs(lz) < 0.05:
+            return None
+        fb = lr = None
+        if abs(lz) >= abs(lx) * 0.5:
+            fb = "front" if lz > 0 else "rear"
+        if abs(lx) >= abs(lz) * 0.5:
+            lr = "right" if lx > 0 else "left"
+        _F = self._L("davanti", "at the front", "delante", "a l'avant")
+        _B = self._L("dietro", "at the rear", "detras", "a l'arriere")
+        _R = self._L("a destra", "on the right", "a la derecha", "a droite")
+        _Lt = self._L("a sinistra", "on the left", "a la izquierda", "a gauche")
+        _Rs = self._L("sulla fiancata destra", "on the right side",
+                      "en el lado derecho", "sur le flanc droit")
+        _Ls = self._L("sulla fiancata sinistra", "on the left side",
+                      "en el lado izquierdo", "sur le flanc gauche")
+        if fb and lr:
+            return "%s %s" % (_F if fb == "front" else _B,
+                              _R if lr == "right" else _Lt)
+        if fb:
+            return _F if fb == "front" else _B
+        if lr:
+            return _Rs if lr == "right" else _Ls
+        return None
 
     def flags_call(self, raw):
         """Gialla LOCALE davanti + BLU a gruppo vero (dati da

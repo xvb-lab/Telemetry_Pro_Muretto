@@ -26,7 +26,8 @@ _role(["brief_strat_data", "brief_strat_new",
        "garage_wrong_tyre", "tyre_stock"], "strategist")
 _role(["brief_spot", "pit_exit_clean", "pit_exit_fast", "pit_exit_hole",
        "pit_exit_traffic", "pit_release_wait", "pit_release_clear"], "spotter")
-_role(["contact_ok", "contact_who", "contact_ok_who"], "spotter")
+_role(["contact_ok", "contact_who", "contact_ok_who",
+       "contact_where", "contact_where_who"], "spotter")
 _role(["lap_fast", "lap_fast_clean", "lap_slow", "sector_loss",
        "perf_report", "ref_pace", "under_pace", "on_pace", "pace_margin",
        "lap_time_call", "quali_pole_gap", "quali_pole_lead"], "spotter")

@@ -6805,6 +6805,80 @@
         "Le point faible etait le {turn}, travaille-le.",
         "Tu perds du temps au {turn}, garde-le en tete."
       ]
+    },
+    "contact_where": {
+      "cat": "pista",
+      "level": "warn",
+      "beep": true,
+      "it": "Toccato {dove}.",
+      "variants_it": [
+        "Toccato {dove}.",
+        "Botta {dove}.",
+        "Contatto {dove}, occhio.",
+        "Hai preso {dove}.",
+        "Colpo {dove}."
+      ],
+      "en": "Contact {dove}.",
+      "variants_en": [
+        "Contact {dove}.",
+        "Hit {dove}.",
+        "You caught it {dove}.",
+        "Knock {dove}, watch it.",
+        "Took one {dove}."
+      ],
+      "es": "Toque {dove}.",
+      "variants_es": [
+        "Toque {dove}.",
+        "Golpe {dove}.",
+        "Contacto {dove}, ojo.",
+        "Te dieron {dove}.",
+        "Impacto {dove}."
+      ],
+      "fr": "Touche {dove}.",
+      "variants_fr": [
+        "Touche {dove}.",
+        "Choc {dove}.",
+        "Contact {dove}, attention.",
+        "Tu l'as pris {dove}.",
+        "Coup {dove}."
+      ]
+    },
+    "contact_where_who": {
+      "cat": "pista",
+      "level": "warn",
+      "beep": true,
+      "it": "Toccato {dove} con {name}.",
+      "variants_it": [
+        "Toccato {dove} con {name}.",
+        "Botta {dove}, era {name}.",
+        "Contatto con {name}, {dove}.",
+        "{name} ti ha preso {dove}.",
+        "Colpo {dove} da {name}."
+      ],
+      "en": "Contact {dove} with {name}.",
+      "variants_en": [
+        "Contact {dove} with {name}.",
+        "Hit {dove}, it was {name}.",
+        "Contact with {name}, {dove}.",
+        "{name} caught you {dove}.",
+        "Knock {dove} from {name}."
+      ],
+      "es": "Toque {dove} con {name}.",
+      "variants_es": [
+        "Toque {dove} con {name}.",
+        "Golpe {dove}, era {name}.",
+        "Contacto con {name}, {dove}.",
+        "{name} te dio {dove}.",
+        "Impacto {dove} de {name}."
+      ],
+      "fr": "Touche {dove} avec {name}.",
+      "variants_fr": [
+        "Touche {dove} avec {name}.",
+        "Choc {dove}, c'etait {name}.",
+        "Contact avec {name}, {dove}.",
+        "{name} t'a pris {dove}.",
+        "Coup {dove} de {name}."
+      ]
     }
   }
 }
