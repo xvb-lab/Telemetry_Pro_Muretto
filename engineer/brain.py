@@ -1546,13 +1546,14 @@ class Engineer:
             return []
         self._st["qp_state"] = state
         if lead:
-            return [self.msg("quali_pole_lead")]
+            return [self.msg("quali_pole_lead", mytime=_fmt_lap_round(mine))]
         gap = mine - pole_t
         if gap < 0.03:
             return []
         return [self.msg("quali_pole_gap",
                          gap=("%.3f" % gap).replace(".", ","),
-                         name=self._rival_name(pole_nm))]
+                         name=self._rival_name(pole_nm),
+                         ptime=_fmt_lap_round(pole_t))]
 
     def overtake_call(self, raw, laps_done):
         """Complimenti per un SORPASSO fatto: la posizione DI CLASSE migliora
