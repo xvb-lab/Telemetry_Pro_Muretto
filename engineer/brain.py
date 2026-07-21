@@ -1610,6 +1610,19 @@ class Engineer:
                 ll = 0.0
             if ll > 0 and (d.get("best") is None or ll < d["best"]):
                 d["best"] = ll
+            # migliori settori dello stint (last_s1/last_s2 cumulativi + giro)
+            try:
+                _s1 = float(raw.get("last_s1") or 0.0)
+                _s2c = float(raw.get("last_s2") or 0.0)
+                if _s1 > 0 and _s2c > _s1 and ll > _s2c:
+                    _secs = [_s1, _s2c - _s1, ll - _s2c]
+                    _bs = d.get("bs") or [None, None, None]
+                    for _i in range(3):
+                        if _bs[_i] is None or _secs[_i] < _bs[_i]:
+                            _bs[_i] = _secs[_i]
+                    d["bs"] = _bs
+            except (TypeError, ValueError):
+                pass
             tw = raw.get("tyre_wear")
             if isinstance(tw, (list, tuple)) and tw:
                 try:
@@ -1631,6 +1644,12 @@ class Engineer:
         if d.get("best"):
             out.append(self.msg("debrief_stint", laps=int(d["laps"]),
                                 best=_fmt_lap_round(d["best"])))
+        _bs = d.get("bs")
+        if _bs and all(x is not None for x in _bs):
+            out.append(self.msg("debrief_sectors",
+                                s1=_fmt_lap_round(_bs[0]),
+                                s2=_fmt_lap_round(_bs[1]),
+                                s3=_fmt_lap_round(_bs[2])))
         if d.get("wear") is not None:
             cons = ""
             if d.get("per_lap"):

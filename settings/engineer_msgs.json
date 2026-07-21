@@ -6985,6 +6985,39 @@
         "Depassement parfait, {pos}.",
         "Un de moins devant, {pos}."
       ]
+    },
+    "debrief_sectors": {
+      "cat": "strategia",
+      "level": "info",
+      "beep": true,
+      "it": "Migliori settori: {s1}, {s2}, {s3}.",
+      "variants_it": [
+        "Migliori settori: {s1}, {s2}, {s3}.",
+        "I tuoi split migliori: {s1}, {s2}, {s3}.",
+        "Settori: {s1}, {s2} e {s3}.",
+        "Miglior primo {s1}, secondo {s2}, terzo {s3}."
+      ],
+      "en": "Best sectors: {s1}, {s2}, {s3}.",
+      "variants_en": [
+        "Best sectors: {s1}, {s2}, {s3}.",
+        "Your best splits: {s1}, {s2}, {s3}.",
+        "Sectors: {s1}, {s2} and {s3}.",
+        "Best first {s1}, second {s2}, third {s3}."
+      ],
+      "es": "Mejores sectores: {s1}, {s2}, {s3}.",
+      "variants_es": [
+        "Mejores sectores: {s1}, {s2}, {s3}.",
+        "Tus mejores parciales: {s1}, {s2}, {s3}.",
+        "Sectores: {s1}, {s2} y {s3}.",
+        "Mejor primero {s1}, segundo {s2}, tercero {s3}."
+      ],
+      "fr": "Meilleurs secteurs : {s1}, {s2}, {s3}.",
+      "variants_fr": [
+        "Meilleurs secteurs : {s1}, {s2}, {s3}.",
+        "Tes meilleurs intermediaires : {s1}, {s2}, {s3}.",
+        "Secteurs : {s1}, {s2} et {s3}.",
+        "Meilleur premier {s1}, deuxieme {s2}, troisieme {s3}."
+      ]
     }
   }
 }
