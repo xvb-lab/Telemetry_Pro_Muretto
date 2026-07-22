@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════════════ */
 
 * {
-    font-family: "Heebo", "Consolas", monospace;
+    font-family: "Archivo SemiExpanded", "Consolas", monospace;
     font-weight: bold;
 }
 
@@ -22,13 +22,13 @@
 
 #btnClose {
     background: #2a2a35; border: 1px solid #3f3f52; border-radius: 3px;
-    color: #8f939d; font-size: 10px; font-weight: bold; font-family: "Consolas", monospace;
+    color: #8f939d; font-size: 10px; font-weight: bold; font-family: "Archivo SemiExpanded";
 }
 #btnClose:hover { background: #c0392b; border-color: #e74c3c; color: #ffffff; }
 
 #btnMinimize {
     background: #2a2a35; border: 1px solid #3f3f52; border-radius: 3px;
-    color: #8f939d; font-size: 10px; font-weight: bold; font-family: "Consolas", monospace;
+    color: #8f939d; font-size: 10px; font-weight: bold; font-family: "Archivo SemiExpanded";
 }
 #btnMinimize:hover { background: #34495e; border-color: #5d6d7e; color: #ffffff; }
 

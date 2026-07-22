@@ -723,18 +723,16 @@
       "level": "info",
       "beep": false,
       "en": "{turn} brake {meters}m later · {delta}",
-      "it": "In {turn} puoi frenare {meters} metri dopo, {delta_v}.",
+      "it": "In curva {turn} puoi staccare {meters} metri più avanti: stai frenando prima del tuo riferimento.",
       "variants_it": [
-        "In {turn} puoi frenare {meters} metri dopo, {delta_v}.",
-        "{turn}, ritarda la frenata di {meters} metri, ci sono {delta_v}.",
-        "Frena più tardi in {turn}, {delta_v}.",
-        "Puoi posticipare il punto di staccata in {turn} di {meters} metri, guadagni {delta_v}.",
-        "C'è margine in staccata alla {turn}, ritarda di {meters} metri per recuperare {delta_v}.",
-        "Inserimento profondo in {turn}, sposta la frenata avanti di {meters} metri, vale {delta_v}.",
-        "Ritarda l'attacco ai freni in {turn} di {meters} metri, ballano {delta_v}.",
-        "Allunga la staccata in {turn} di {meters} metri, telemetria dice {delta_v}.",
-        "Più aggressivo in frenata alla {turn}, sposta il punto di {meters} metri per {delta_v}.",
-        "{turn}, frena {meters} metri oltre il tuo riferimento attuale, ballano {delta_v}."
+        "In curva {turn} puoi staccare {meters} metri più avanti: stai frenando prima del tuo riferimento.",
+        "Curva {turn}: il tuo best frena {meters} metri dopo. C'è margine in staccata.",
+        "Stai anticipando la frenata in curva {turn}: ritarda di {meters} metri e riprendi il tuo tempo.",
+        "Dati alla mano, in curva {turn} lasci {meters} metri di staccata: portala più profonda.",
+        "Curva {turn}, frenata conservativa: sposta il punto {meters} metri avanti, la macchina ci sta.",
+        "Puoi essere più profondo in curva {turn}: {meters} metri più avanti rispetto a come stai staccando ora.",
+        "In curva {turn} il riferimento è {meters} metri oltre il tuo punto attuale: fidati del freno.",
+        "Staccata di curva {turn}: allunga di {meters} metri, è dove facevi il tuo tempo migliore."
       ],
       "es": "{turn} frena {meters}m más tarde · {delta}",
       "fr": "{turn} freine {meters}m plus tard · {delta}"
@@ -748,7 +746,7 @@
       "variants_it": [
         "In {turn} frena {meters} metri prima, perdi {delta_v}.",
         "Anticipa la frenata in {turn}, {delta_v}.",
-        "{turn}, stacca prima di {meters} metri, {delta_v}.",
+        "Curva {turn}, stacca prima di {meters} metri, {delta_v}.",
         "Stai overfrenando in {turn}, anticipa di {meters} metri per non perdere {delta_v}.",
         "Per evitare il bloccaggio in {turn}, frena {meters} metri prima, perdi {delta_v}.",
         "Anticipa la staccata in {turn} di {meters} metri, ottimizzi l'uscita di {delta_v}.",
@@ -768,7 +766,7 @@
       "it": "In {turn} porta più velocità, sei a {v} contro {vref}, {delta_v}.",
       "variants_it": [
         "In {turn} porta più velocità, sei a {v} contro {vref}, {delta_v}.",
-        "{turn}, più minima, {v} contro {vref}.",
+        "Curva {turn}, più minima, {v} contro {vref}.",
         "Tieni velocità in {turn}, {delta_v}.",
         "Fai scorrere la vettura in {turn}, minima a {v} rispetto a {vref}, perdi {delta_v}.",
         "Incrementa la velocità di percorrenza in {turn}, {v} contro {vref}, differenza {delta_v}.",
@@ -789,7 +787,7 @@
       "it": "In {turn} blocchi, frena più leggero, {delta_v}.",
       "variants_it": [
         "In {turn} blocchi, frena più leggero, {delta_v}.",
-        "{turn}, stai bloccando l'anteriore, dosa il freno.",
+        "Curva {turn}, stai bloccando l'anteriore, dosa il freno.",
         "Occhio al bloccaggio in {turn}, {delta_v}.",
         "Evita il bloccaggio delle ruote in {turn}, costa {delta_v}.",
         "Telemetria segnala bloccaggio nocivo in {turn}, perdi {delta_v}.",
@@ -810,7 +808,7 @@
       "it": "In {turn} apri il gas prima in uscita, {delta_v}.",
       "variants_it": [
         "In {turn} apri il gas prima in uscita, {delta_v}.",
-        "{turn}, anticipa la trazione, {delta_v}.",
+        "Curva {turn}, anticipa la trazione, {delta_v}.",
         "Più gas in uscita di {turn}, {delta_v}.",
         "Anticipa la fase di trazione fuori dalla {turn}, ballano {delta_v}.",
         "Accelera prima in uscita da {turn}, margine di {delta_v}.",
@@ -828,18 +826,14 @@
       "level": "warn",
       "beep": false,
       "en": "{turn} wheelspin · feed throttle · {delta}",
-      "it": "In {turn} pattini, dosa il gas, {delta_v}.",
+      "it": "Pattini in uscita dalla curva {turn}: dosa il gas finché la macchina non è dritta.",
       "variants_it": [
-        "In {turn} pattini, dosa il gas, {delta_v}.",
-        "{turn}, troppo gas in uscita, sei in pattinamento.",
-        "Modula in uscita di {turn}, {delta_v}.",
-        "Gestisci il pattinamento in uscita da {turn}, surriscaldi le gomme e perdi {delta_v}.",
-        "Evita di far pattinare le ruote posteriori in {turn}, costa {delta_v}.",
-        "Controllo di trazione sotto stress in {turn}, parzializza il gas, c'è {delta_v}.",
-        "Uscita da {turn} nervosa, troppo wheelspin, perdi {delta_v}.",
-        "Addolcisci l'erogazione in uscita da {turn}, il pattinamento tarpa la velocità, perdi {delta_v}.",
-        "Slittamento eccessivo rilevato in {turn}, modula il piede destro, costa {delta_v}.",
-        "Ruote posteriori in crisi di trazione alla {turn}, non pattinare, perdi {delta_v}."
+        "Pattini in uscita dalla curva {turn}: dosa il gas finché la macchina non è dritta.",
+        "Troppo gas fuori dalla curva {turn}: il posteriore slitta, apri più progressivo.",
+        "Uscita di curva {turn} nervosa: parzializza, stai bruciando la gomma dietro.",
+        "Curva {turn}: trazione in crisi in uscita. Raddrizza il volante prima di dare tutto.",
+        "In uscita dalla curva {turn} le posteriori girano a vuoto: erogazione più dolce.",
+        "Dosa il piede destro fuori dalla curva {turn}: ogni pattinata è tempo e gomma persi."
       ],
       "es": "{turn} patinaje · dosifica el gas · {delta}",
       "fr": "{turn} patinage · dose les gaz · {delta}"
@@ -852,7 +846,7 @@
       "it": "In {turn} la minima è bassa, {v}, {delta_v}.",
       "variants_it": [
         "In {turn} la minima è bassa, {v}, {delta_v}.",
-        "{turn}, troppa poca velocità in curva, {v}.",
+        "Curva {turn}, troppa poca velocità in curva, {v}.",
         "Alza la minima in {turn}, {delta_v}.",
         "La velocità a centro curva in {turn} è scesa a {v}, perdiamo {delta_v}.",
         "Troppo lento nel punto di corda della {turn}, {v}, deficit di {delta_v}.",
@@ -933,10 +927,10 @@
       "level": "warn",
       "beep": true,
       "en": "Full course yellow, slow down.",
-      "it": "Full course yellow, rallenta.",
+      "it": "Gialla generale! Rallenta.",
       "variants_it": [
-        "Full course yellow, rallenta.",
-        "Gialla ovunque, rallenta."
+        "Gialla generale! Rallenta.",
+        "Gialla ovunque! Alza il piede."
       ],
       "es": "Full course yellow, reduce.",
       "fr": "Full course yellow, ralentis."
@@ -1177,18 +1171,16 @@
       "level": "info",
       "beep": false,
       "en": "{turn} · slow there",
-      "it": "Sei lento in {turn}.",
+      "it": "Sei lento in curva {turn}.",
       "variants_it": [
-        "Sei lento in {turn}.",
-        "Perdi in {turn}.",
-        "In {turn} non ci siamo.",
-        "Lavora la {turn}.",
-        "{turn} lenta.",
-        "Migliora la {turn}.",
-        "Attento alla {turn}.",
-        "Perdi tempo in {turn}.",
-        "{turn} da sistemare.",
-        "Più veloce in {turn}."
+        "Sei lento in curva {turn}.",
+        "Perdi tempo in curva {turn}.",
+        "In curva {turn} lasci qualcosa: lavorala.",
+        "La curva {turn} non gira: rivedi ingresso e linea.",
+        "Occhio alla curva {turn}, è lì che perdi.",
+        "Curva {turn} da sistemare: entra più pulito.",
+        "Il cronometro dice curva {turn}: si può fare meglio.",
+        "Concentrati sulla curva {turn}, il resto va."
       ],
       "es": "{turn} · lento ahí",
       "fr": "{turn} · lent là"
@@ -1402,18 +1394,16 @@
       "level": "warn",
       "beep": false,
       "en": "Brakes hot · ease braking",
-      "it": "Freni caldi, raffreddali un po'.",
+      "it": "Freni caldi, dai aria ai freni in rettilineo.",
       "variants_it": [
-        "Freni caldi, raffreddali un po'.",
+        "Freni caldi, dai aria ai freni in rettilineo.",
         "Freni in temperatura alta, gestisci.",
         "Freni caldi, occhio alla staccata.",
         "Temperatura freni in salita, modera.",
-        "Freni caldi, dai loro respiro.",
         "Freni un po' troppo caldi, gestisci.",
         "Freni caldi, allunga le frenate.",
         "Freni in zona calda, attento.",
-        "Freni caldi, evita di stressarli.",
-        "Freni caldi, raffreddali in rettilineo."
+        "Freni caldi, frenate più dolci per un giro."
       ],
       "es": "Frenos calientes · frena más suave",
       "fr": "Freins chauds · freine plus doux"
@@ -1486,18 +1476,15 @@
       "level": "critical",
       "beep": true,
       "en": "Brakes over temp · fading risk",
-      "it": "Freni al limite, raffreddali.",
+      "it": "Freni al limite! Aria ai freni, subito.",
       "variants_it": [
-        "Freni al limite, raffreddali.",
+        "Freni al limite! Aria ai freni, subito.",
         "Freni troppo caldi, alza il piede.",
-        "Freni surriscaldati, gestiscili.",
-        "Freni oltre temperatura, raffredda.",
-        "Freni bollenti, dai loro respiro.",
+        "Freni oltre temperatura: frena prima e più dolce.",
         "Temperatura freni alta, gestisci la staccata.",
         "Freni troppo caldi, modera le staccate.",
-        "Freni al limite termico, raffredda un giro.",
-        "Freni surriscaldati, attento alla frenata.",
-        "Freni caldissimi, raffreddali subito."
+        "Freni al limite termico, un giro d'aria.",
+        "Freni surriscaldati, attento alla frenata."
       ],
       "es": "Frenos pasados de temperatura · riesgo de fading",
       "fr": "Freins en surchauffe · risque de fading"
@@ -1632,28 +1619,14 @@
       "cat": "flags",
       "level": "warn",
       "beep": true,
-      "it": "Blu per te, lascia passare senza rovinarti il giro.",
+      "it": "Blu! Arriva una {classe}, lascia strada.",
       "variants_it": [
-        "Blu per te, lascia passare senza rovinarti il giro.",
-        "Bandiera blu, falla passare.",
-        "Blu, lascia strada.",
-        "Blu: fatti superare, non perdere tempo.",
-        "Arriva più veloce, blu: dagli spazio.",
-        "Bandiera blu, lascia passare pulito.",
-        "Blu per te, non ostacolare.",
-        "Blu, dai strada in un punto sicuro.",
-        "Fatti da parte, bandiera blu.",
-        "Blu: lascia passare e riprendi il tuo passo.",
-        "Vettura più veloce dietro, blu: spazio.",
-        "Blu, non lottare, lascia andare.",
-        "Bandiera blu, cedi la posizione.",
-        "Blu per te: apri e falla passare.",
-        "Blu, liberala senza strappi.",
-        "Ti sfilano, blu: agevola il sorpasso.",
-        "Blu, lascia la traiettoria un attimo.",
-        "Bandiera blu, passaggio pulito.",
-        "Blu: dai strada, poi torna sul tuo ritmo.",
-        "Blu per te, falla sfilare e non rischiare."
+        "Blu! Arriva una {classe}, lascia strada.",
+        "Blu! {classe} in arrivo, falla passare.",
+        "Blu! Dai strada alla {classe}.",
+        "Bandiera blu! {classe} dietro, spazio.",
+        "Blu! {classe} più veloce, non ostacolare.",
+        "Blu! Lascia passare la {classe}."
       ],
       "en": "Blue for you, let them by without wrecking your lap.",
       "es": "Azul para ti, déjalo pasar sin arruinar tu vuelta.",
@@ -1745,18 +1718,12 @@
       "cat": "flags",
       "level": "warn",
       "beep": true,
-      "it": "Attento in {turn}, già {count} track limits.",
+      "it": "Attento, stai tagliando spesso in curva {turn}: già {count} track limits lì.",
       "variants_it": [
-        "Attento in {turn}, già {count} track limits.",
-        "In {turn} sbagli sempre, {count} volte.",
-        "Occhio alla {turn}, {count} track limits.",
-        "{turn}, {count} volte fuori.",
-        "Sempre in {turn}, {count} limiti.",
-        "Ripeti in {turn}, {count} volte.",
-        "{turn} problematica, {count} track limits.",
-        "In {turn} esci, {count} volte.",
-        "Concentrati su {turn}, {count} limiti.",
-        "{count} track limits in {turn}, correggi."
+        "Attento, stai tagliando spesso in curva {turn}: già {count} track limits lì.",
+        "Curva {turn} di nuovo: {count} track limits nello stesso punto. Correggi la linea.",
+        "Occhio alla curva {turn}: {count} tagli, tieni le ruote dentro.",
+        "Sempre curva {turn}: {count} track limits. Stringi la traiettoria."
       ],
       "en": "Careful in {turn}, that's {count} track limits already.",
       "es": "Cuidado en {turn}, ya llevas {count} límites de pista.",
@@ -2434,18 +2401,11 @@
       "cat": "strategy",
       "level": "info",
       "beep": true,
-      "it": "Gara su {laps} giri. Autonomia {autonomy} giri a {fonte}, {stints} stint e {stops} soste.",
+      "it": "Allora, gara su {laps} giri: autonomia {autonomy} a {fonte}, {stints} stint e {stops} soste.",
       "variants_it": [
-        "Gara su {laps} giri. Autonomia {autonomy} giri a {fonte}, {stints} stint e {stops} soste.",
-        "Sono {laps} giri. Col carico fai {autonomy} giri a {fonte}: {stints} stint, {stops} soste.",
-        "{laps} giri da coprire. Autonomia {autonomy} giri a {fonte}: {stints} stint e {stops} soste.",
-        "Distanza {laps} giri. {autonomy} giri di autonomia a {fonte}: piano a {stints} stint, {stops} soste.",
-        "Piano gara: {laps} giri, autonomia {autonomy} a {fonte}, {stints} stint, {stops} soste.",
-        "Gara di {laps} giri. Con il carico copri {autonomy} giri: {stints} stint e {stops} soste.",
-        "{laps} giri totali. Autonomia {autonomy} giri a {fonte}, quindi {stints} stint e {stops} soste.",
-        "Briefing: {laps} giri, {autonomy} di autonomia a {fonte}, {stints} stint, {stops} soste.",
-        "Sono {laps} giri. Autonomia {autonomy} a {fonte}: {stints} stint, {stops} soste previste.",
-        "Gara {laps} giri. Col pieno {autonomy} giri a {fonte}: {stints} stint e {stops} soste."
+        "Allora, gara su {laps} giri: autonomia {autonomy} a {fonte}, {stints} stint e {stops} soste.",
+        "Il quadro è questo: {laps} giri, {autonomy} di autonomia a {fonte}. Facciamo {stints} stint con {stops} soste.",
+        "Gara da {laps} giri: con {fonte} copriamo {autonomy}, piano su {stints} stint e {stops} soste."
       ],
       "en": "Race over {laps} laps. Range {autonomy} laps on {fonte}, {stints} stints and {stops} stops.",
       "es": "Carrera a {laps} vueltas. Autonomía {autonomy} vueltas de {fonte}, {stints} stints y {stops} paradas.",
@@ -2928,6 +2888,21 @@
       "en": "Green flag, we go again.",
       "es": "Verde, seguimos.",
       "fr": "Vert, on repart."
+    },
+    "race_start": {
+      "level": "info",
+      "beep": true,
+      "it": "Verde, vai!",
+      "variants_it": [
+        "Verde, vai!",
+        "Bandiera verde, si parte!",
+        "Verde, via!",
+        "Semaforo verde, si scatta!",
+        "Verde, spingi!"
+      ],
+      "en": "Green, go!",
+      "es": "Verde, vamos!",
+      "fr": "Vert, c'est parti !"
     },
     "wet_patchy": {
       "level": "warn",
@@ -3450,28 +3425,16 @@
     "local_yellow": {
       "level": "warn",
       "beep": true,
-      "it": "Gialla, {dist} metri.",
+      "it": "Gialla! Attento, {dist} metri.",
       "variants_it": [
-        "Gialla, {dist} metri.",
-        "Bandiera gialla tra {dist} metri.",
-        "Gialla a {dist} metri, alza il piede.",
-        "Attento, gialla a {dist} metri.",
-        "Gialla vicina, {dist} metri.",
-        "Giallo a {dist} metri: pronto a rallentare.",
-        "Gialla in arrivo, {dist} metri.",
-        "{dist} metri alla gialla.",
-        "Occhio, gialla a {dist} metri.",
-        "Gialla a {dist}: niente sorpassi.",
-        "Rallenta, gialla tra {dist} metri.",
-        "Zona gialla a {dist} metri.",
-        "Gialla davanti, {dist} metri.",
-        "Prudenza, gialla a {dist} metri.",
-        "Gialla a {dist} metri, mani pronte.",
-        "Segnalata gialla a {dist} metri.",
-        "Gialla, {dist} metri: pronto a scalare.",
-        "A {dist} metri c'è gialla.",
-        "Gialla a {dist}, attento in staccata.",
-        "Bandiera gialla, {dist} metri davanti."
+        "Gialla! Attento, {dist} metri.",
+        "Gialla, {dist} metri!",
+        "Gialla a {dist}! Alza il piede.",
+        "Attento! Gialla a {dist} metri.",
+        "Gialla davanti, {dist} metri!",
+        "Occhio! Gialla a {dist}.",
+        "Gialla a {dist}! Niente sorpassi.",
+        "Gialla, {dist} metri! Pronto a rallentare."
       ],
       "en": "Yellow, {dist} metres.",
       "es": "Amarilla, {dist} metros.",
@@ -4087,28 +4050,14 @@
     "blue_flag_simple": {
       "level": "warn",
       "beep": true,
-      "it": "Bandiera blu, falla passare.",
+      "it": "Blu! Lascia strada.",
       "variants_it": [
-        "Bandiera blu, falla passare.",
-        "Blu, lascia passare.",
-        "Blu, dagli strada.",
-        "Blu, fatti superare.",
-        "Blu, cedi.",
-        "Bandiera blu, dai spazio.",
-        "Blu, non ostacolare.",
-        "Blu, lascia andare.",
-        "Blu, fatti da parte.",
-        "Bandiera blu, via libera.",
-        "Blu, apri e lascia.",
-        "Blu, molla la posizione.",
-        "Blu, dai strada subito.",
-        "Bandiera blu, passalo.",
-        "Blu, lascialo sfilare.",
-        "Blu, non lottare.",
-        "Blu, spostati.",
-        "Bandiera blu, cedi il passo.",
-        "Blu, liberalo.",
-        "Blu, fallo passare pulito."
+        "Blu! Lascia strada.",
+        "Blu! Falla passare.",
+        "Blu! Dai spazio.",
+        "Bandiera blu! Fatti superare.",
+        "Blu! Non ostacolare.",
+        "Blu! Dai strada subito."
       ],
       "en": "Blue flag, let them past.",
       "es": "Bandera azul, déjalo pasar.",
@@ -4503,28 +4452,13 @@
       "cat": "flags",
       "level": "warn",
       "beep": true,
-      "it": "Bandiera blu, {n} vetture in arrivo, apre una {classe}: agevola.",
+      "it": "Blu! {n} vetture in arrivo, apre una {classe}.",
       "variants_it": [
-        "Bandiera blu, {n} vetture in arrivo, apre una {classe}: agevola.",
-        "Blu, {n} in arrivo, davanti una {classe}: dai strada.",
-        "Blu, arrivano {n} vetture, la prima è {classe}: lascia passare.",
-        "{n} vetture in blu, apre {classe}: fatti superare pulito.",
-        "Blu multiplo, {n} auto, guida una {classe}: cedi.",
-        "Blu, treno di {n} vetture, {classe} davanti: spazio.",
-        "Attento, {n} in arrivo sotto blu, apre {classe}.",
-        "Blu, {n} vetture, la {classe} per prima: non ostacolare.",
-        "{n} auto più veloci, blu, testa {classe}: lascia strada.",
-        "Blu, gruppo di {n}, {classe} in testa: agevola il sorpasso.",
-        "Bandiera blu, {n} in arrivo con una {classe} davanti.",
-        "Blu, {n} vetture, apre {classe}: falle passare.",
-        "Arrivano {n} sotto blu, prima la {classe}: cedi.",
-        "Blu, {n} auto, {classe} davanti: liberale.",
-        "Treno blu di {n}, guida {classe}: spazio pulito.",
-        "Blu, {n} vetture veloci, {classe} per prima: non lottare.",
-        "{n} in blu, apre {classe}: fatti da parte.",
-        "Blu multiplo, {n} auto con {classe} in testa: dai strada.",
-        "Blu, {n} in arrivo, {classe} davanti: passaggio pulito.",
-        "Bandiera blu, {n} vetture, prima la {classe}: agevola."
+        "Blu! {n} vetture in arrivo, apre una {classe}.",
+        "Blu! Arrivano {n}, prima la {classe}: dai strada.",
+        "Blu! Treno di {n}, {classe} davanti: spazio.",
+        "Blu! {n} auto, apre {classe}: falle passare.",
+        "Blu! {n} in arrivo, {classe} in testa: non lottare."
       ],
       "en": "Blue flag, {n} cars coming, a {classe} leads: help them by.",
       "es": "Bandera azul, {n} coches llegando, abre un {classe}: facilita.",
@@ -5758,32 +5692,61 @@
         "La piste se décharge de gomme, maintenant {stato} : moins de grip dispo."
       ]
     },
+    "yellow_sector": {
+      "cat": "flag",
+      "level": "warn",
+      "beep": true,
+      "it": "Gialla nel settore {settore}! Attento.",
+      "variants_it": [
+        "Gialla nel settore {settore}! Attento.",
+        "Gialla, settore {settore}!",
+        "Bandiera gialla nel settore {settore}, occhio.",
+        "Gialla al settore {settore}! Pronto a rallentare.",
+        "Attento, gialla nel settore {settore}."
+      ],
+      "en": "Yellow in sector {settore}! Careful.",
+      "variants_en": [
+        "Yellow in sector {settore}! Careful.",
+        "Yellow flag, sector {settore}.",
+        "Caution, yellow in sector {settore}."
+      ],
+      "es": "¡Amarilla en el sector {settore}! Atento.",
+      "fr": "Jaune dans le secteur {settore} ! Attention."
+    },
+    "driver_check": {
+      "cat": "damage",
+      "level": "warn",
+      "beep": true,
+      "it": "Grossa botta. Tutto ok?",
+      "variants_it": [
+        "Grossa botta. Tutto ok?",
+        "Tutto bene? Com'è la macchina?",
+        "Botta pesante, tutto a posto?",
+        "Tutto ok? La macchina risponde?"
+      ],
+      "en": "Big hit. You okay?",
+      "variants_en": [
+        "Big hit. You okay?",
+        "All good? How's the car?"
+      ],
+      "es": "¡Golpe fuerte! ¿Estás bien? Háblame.",
+      "fr": "Gros choc ! Ça va ? Parle-moi."
+    },
     "contact_who": {
       "cat": "damage",
       "level": "info",
       "beep": true,
-      "it": "Contatto con {name}.",
+      "it": "Contatto con {name}. Controlla la macchina.",
       "variants_it": [
-        "Contatto con {name}.",
-        "Toccato con {name}.",
-        "Contatto: {name}.",
-        "Hai preso contatto con {name}.",
-        "Ti sei toccato con {name}.",
-        "Contatto con {name}, controlla l'auto.",
-        "Botta con {name}.",
-        "Contatto con {name}, occhio ai danni.",
-        "Toccato {name}.",
-        "Contatto ruota a ruota con {name}.",
-        "C'è stato contatto con {name}.",
-        "Urto con {name}.",
-        "Contatto con {name}, senti la macchina.",
+        "Contatto con {name}. Controlla la macchina.",
+        "Contatto con {name}, senti se è tutto a posto.",
+        "Ti sei toccato con {name}, occhio.",
+        "Botta con {name}. Verifica sterzo e assetto.",
+        "Ci siamo toccati con {name}, controlla i danni.",
+        "Contatto con {name}. Come risponde la macchina?",
+        "Contatto duro con {name}, valuta i danni.",
         "Ti ha toccato {name}.",
-        "Contatto con {name}, verifica tutto ok.",
-        "Scontro leggero con {name}.",
-        "Contatto con {name} in quella curva.",
-        "Toccato con {name}, resta concentrato.",
-        "Contatto con {name}, controlla lo sterzo.",
-        "Contatto: era {name}."
+        "Toccato con {name}. Controlla lo sterzo."
       ],
       "en": "Contact with {name}.",
       "variants_en": [
@@ -6170,13 +6133,11 @@
       "cat": "strategia",
       "level": "info",
       "beep": true,
-      "it": "Pista {grip}, asfalto {temp} gradi. Monti gomme {gomme}.",
+      "it": "Pista {grip}, asfalto a {temp} gradi. Sei fuori con gomme {gomme}.",
       "variants_it": [
-        "Pista {grip}, asfalto {temp} gradi. Monti gomme {gomme}.",
-        "Condizioni: {grip}, {temp} gradi. Hai gomme {gomme}.",
-        "Asfalto a {temp} gradi, pista {grip}. Sotto hai {gomme}.",
-        "Briefing: {grip}, {temp} gradi sull'asfalto, gomme {gomme}.",
-        "Fuori {temp} gradi, pista {grip}. Gomme {gomme}."
+        "Pista {grip}, asfalto a {temp} gradi. Sei fuori con gomme {gomme}.",
+        "Allora: asfalto a {temp} gradi, pista {grip}. Montiamo {gomme}.",
+        "Ti do il quadro: {temp} gradi a terra, pista {grip}, gomme {gomme}."
       ],
       "en": "Track {grip}, tarmac {temp} degrees. You're on {gomme}.",
       "variants_en": [
@@ -6432,10 +6393,10 @@
       "it": "Hai {new} treni nuovi e {used} usati.",
       "variants_it": [
         "Hai {new} treni nuovi e {used} usati.",
-        "In dotazione: {new} set nuovi, {used} usati.",
+        "In dotazione: {new} treni nuovi, {used} usati.",
         "Gomme rimaste: {new} nuove, {used} usate.",
         "Treni slick: {new} nuovi e {used} usati disponibili.",
-        "Restano {new} set nuovi e {used} usati."
+        "Restano {new} treni nuovi e {used} usati."
       ],
       "en": "You have {new} new sets and {used} used.",
       "variants_en": [
@@ -6784,9 +6745,9 @@
       "it": "Dove migliorare: lavora la curva {turn}.",
       "variants_it": [
         "Dove migliorare: lavora la curva {turn}.",
-        "Puoi guadagnare nella {turn}.",
-        "Il punto debole era la {turn}, lavorala.",
-        "Sulla {turn} lasci tempo, tienila a mente."
+        "Il punto debole dello stint era la curva {turn}: tienila a mente.",
+        "Nella curva {turn} lasci tempo: al prossimo giro d'occhio lì.",
+        "Puoi guadagnare in curva {turn}, il resto è solido."
       ],
       "en": "Where to improve: work turn {turn}.",
       "variants_en": [
@@ -7055,6 +7016,727 @@
         "Beau tour, {ord} en classe. {name} devant a {gap}.",
         "Position {ord} en classe, a {gap} de {name}."
       ]
+    },
+    "run_aborted": {
+      "beep": true,
+      "level": "info",
+      "it": "Ok, run abortito. Ora raffredda la macchina.",
+      "variants_it": [
+        "Ok, run abortito. Ora raffredda la macchina.",
+        "Giro buttato, nessun problema: raffredda gomme e freni.",
+        "Run chiuso qui. Raffredda la macchina, prepariamo il prossimo."
+      ],
+      "en": "Ok, run aborted. Cool the car down now.",
+      "es": "Ok, run abortado. Ahora enfria el coche.",
+      "fr": "Ok, run abandonne. Refroidis la voiture maintenant."
+    },
+    "blue_flag_train": {
+      "beep": true,
+      "level": "warn",
+      "it": "Blu! In arrivo {lista}: lascia strada.",
+      "variants_it": [
+        "Blu! In arrivo {lista}: lascia strada.",
+        "Blu! Dietro hai {lista}: dai spazio.",
+        "Blu! Arrivano {lista}: falle passare.",
+        "Blu! Treno in arrivo, {lista}: non ostacolare."
+      ],
+      "en": "Blue flag, {lista} coming: let them by.",
+      "es": "Bandera azul, llegan {lista}: deja pasar.",
+      "fr": "Drapeau bleu, {lista} arrivent : laisse passer."
+    },
+    "community_seen": {
+      "cat": "community",
+      "level": "info",
+      "beep": true,
+      "it": "In pista c'è {name}. Il suo tempo di riferimento qui è {time}.",
+      "variants_it": [
+        "In pista c'è {name}. Il suo tempo di riferimento qui è {time}.",
+        "Occhio, c'è {name} in sessione. Su questa pista gira in {time}.",
+        "Abbiamo {name} con noi oggi. Il suo giro qui vale {time}.",
+        "C'è anche {name}. Il suo miglior tempo su questo tracciato è {time}.",
+        "{name} è in pista. Qui il suo riferimento è {time}.",
+        "Ti segnalo {name}: su questa pista fa {time}.",
+        "In sessione c'è {name}, tempo di riferimento {time}.",
+        "Da tenere d'occhio {name}: qui gira sul {time}.",
+        "C'è {name} oggi. Il suo miglior tempo su questa pista è {time}.",
+        "Presente {name}. Riferimento su questo tracciato: {time}.",
+        "Con noi c'è {name}, che qui ha girato in {time}.",
+        "{name} è dei nostri. Il suo tempo su questa pista è {time}.",
+        "Nota: {name} in pista. Il suo giro di riferimento è {time}.",
+        "Occhio a {name}, su questo tracciato vale {time}.",
+        "In pista anche {name}. Qui il suo passo è da {time}.",
+        "C'è {name}: il suo miglior tempo qui è {time}.",
+        "Ti segnalo {name} in sessione, riferimento {time} su questa pista.",
+        "Abbiamo {name} in pista, con un {time} su questo tracciato.",
+        "{name} presente oggi. Su questa pista il suo tempo è {time}.",
+        "Dai tempi community c'è {name}: qui gira in {time}."
+      ],
+      "en": "{name} is on track. Their reference here is {time}.",
+      "variants_en": [
+        "{name} is on track. Their reference here is {time}.",
+        "Heads up, {name} is in the session. Around here they run {time}.",
+        "We've got {name} today. Their best on this track is {time}.",
+        "{name} is out there. Reference lap here: {time}.",
+        "Note: {name} on track, lap time {time} here.",
+        "There's {name} too, {time} on this circuit.",
+        "Watch {name}: here they lap in {time}.",
+        "{name} present today, reference {time} on this track.",
+        "In the session: {name}, best here {time}.",
+        "From the community: {name}, {time} around here."
+      ],
+      "es": "{name} está en pista. Su referencia aquí es {time}.",
+      "variants_es": [
+        "{name} está en pista. Su referencia aquí es {time}.",
+        "Atento, {name} está en la sesión. Aquí gira en {time}.",
+        "Tenemos a {name} hoy. Su mejor tiempo en este trazado es {time}.",
+        "{name} está fuera. Vuelta de referencia aquí: {time}.",
+        "Nota: {name} en pista, tiempo {time} aquí.",
+        "También está {name}, {time} en este circuito.",
+        "Ojo con {name}: aquí gira en {time}.",
+        "{name} presente hoy, referencia {time} en esta pista.",
+        "En la sesión: {name}, mejor aquí {time}.",
+        "De la comunidad: {name}, {time} por aquí."
+      ],
+      "fr": "{name} est en piste. Sa référence ici est {time}.",
+      "variants_fr": [
+        "{name} est en piste. Sa référence ici est {time}.",
+        "Attention, {name} est dans la session. Ici il tourne en {time}.",
+        "On a {name} aujourd'hui. Son meilleur sur ce circuit est {time}.",
+        "{name} est dehors. Tour de référence ici : {time}.",
+        "Note : {name} en piste, temps {time} ici.",
+        "Il y a aussi {name}, {time} sur ce tracé.",
+        "Surveille {name} : ici il tourne en {time}.",
+        "{name} présent aujourd'hui, référence {time} sur cette piste.",
+        "Dans la session : {name}, meilleur ici {time}.",
+        "De la communauté : {name}, {time} par ici."
+      ]
+    },
+    "community_seen_notime": {
+      "cat": "community",
+      "level": "info",
+      "beep": true,
+      "it": "In pista c'è {name}, ma non ha ancora un tempo su questa pista.",
+      "variants_it": [
+        "In pista c'è {name}, ma non ha ancora un tempo su questa pista.",
+        "Occhio, c'è {name}. Su questo tracciato non ha ancora girato.",
+        "Abbiamo {name} con noi. Qui non ha ancora un tempo registrato.",
+        "C'è anche {name}, senza un riferimento su questa pista per ora.",
+        "{name} è in sessione, ma su questo tracciato non ha ancora un tempo.",
+        "Ti segnalo {name}: qui non ha ancora messo un giro.",
+        "Presente {name}. Nessun suo tempo su questa pista, ancora.",
+        "Con noi c'è {name}, ancora senza riferimento qui.",
+        "Nota: {name} in pista, ma su questo tracciato non ha ancora un tempo.",
+        "C'è {name}: su questa pista non ha ancora un tempo.",
+        "In pista anche {name}, per ora senza un giro di riferimento qui.",
+        "Ti segnalo {name}, ancora senza tempo su questo tracciato."
+      ],
+      "en": "{name} is on track, but no time here yet.",
+      "variants_en": [
+        "{name} is on track, but no time here yet.",
+        "Heads up, {name} is out, no lap on this circuit yet.",
+        "We've got {name}, no reference here so far.",
+        "{name} is in the session, but no time on this track yet.",
+        "Note: {name} on track, still no lap here.",
+        "There's {name}, no reference here for now.",
+        "{name} present, no time on this circuit yet.",
+        "From the community: {name}, still no lap here."
+      ],
+      "es": "{name} está en pista, pero aún sin tiempo aquí.",
+      "variants_es": [
+        "{name} está en pista, pero aún sin tiempo aquí.",
+        "Atento, {name} está fuera, todavía sin vuelta en este circuito.",
+        "Tenemos a {name}, sin referencia aquí por ahora.",
+        "{name} está en la sesión, pero aún sin tiempo en este trazado.",
+        "Nota: {name} en pista, todavía sin vuelta aquí.",
+        "También está {name}, sin referencia aquí de momento.",
+        "{name} presente, aún sin tiempo en este circuito.",
+        "De la comunidad: {name}, todavía sin vuelta aquí."
+      ],
+      "fr": "{name} est en piste, mais pas encore de temps ici.",
+      "variants_fr": [
+        "{name} est en piste, mais pas encore de temps ici.",
+        "Attention, {name} est dehors, pas encore de tour sur ce circuit.",
+        "On a {name}, pas de référence ici pour l'instant.",
+        "{name} est dans la session, mais pas encore de temps sur ce tracé.",
+        "Note : {name} en piste, toujours pas de tour ici.",
+        "Il y a aussi {name}, pas de référence ici pour le moment.",
+        "{name} présent, pas encore de temps sur ce circuit.",
+        "De la communauté : {name}, toujours pas de tour ici."
+      ]
+    },
+    "contact_damage": {
+      "cat": "danni",
+      "level": "warn",
+      "beep": true,
+      "it": "Ho controllato: hai danneggiato {parts}. Senti come risponde, se non va rientriamo.",
+      "variants_it": [
+        "Ho controllato: hai danneggiato {parts}. Senti come risponde, se non va rientriamo.",
+        "La botta ha lasciato il segno: danno a {parts}. Vedi se riesci a continuare, altrimenti box.",
+        "Dai dati risulta danneggiata {parts}. Se la macchina si guida, andiamo avanti.",
+        "C'è un danno a {parts}. Prova qualche curva e dimmi come va."
+      ],
+      "en": "Contact: damage to {parts}.",
+      "variants_en": [
+        "Contact: damage to {parts}.",
+        "You touched: damage to {parts}.",
+        "Contact, you took {parts} damage.",
+        "Damage to {parts} after contact.",
+        "Watch out, damage to {parts}."
+      ],
+      "es": "Contacto: daño en {parts}.",
+      "variants_es": [
+        "Contacto: daño en {parts}.",
+        "Te han tocado: daño en {parts}.",
+        "Contacto, daño en {parts}.",
+        "Daño en {parts} tras el contacto.",
+        "Ojo, daño en {parts}."
+      ],
+      "fr": "Contact : dégâts sur {parts}.",
+      "variants_fr": [
+        "Contact : dégâts sur {parts}.",
+        "Touché : dégâts sur {parts}.",
+        "Contact, dégâts sur {parts}.",
+        "Dégâts sur {parts} après le contact.",
+        "Attention, dégâts sur {parts}."
+      ]
+    },
+    "contact_damage_who": {
+      "cat": "danni",
+      "level": "warn",
+      "beep": true,
+      "it": "Il contatto con {name} è costato: danno a {parts}. Vedi se riesci a continuare, altrimenti rientriamo.",
+      "variants_it": [
+        "Il contatto con {name} è costato: danno a {parts}. Vedi se riesci a continuare, altrimenti rientriamo.",
+        "Ho controllato dopo il contatto con {name}: danneggiata {parts}. Senti come risponde.",
+        "Il contatto con {name} ha lasciato danni a {parts}. Se la macchina si guida, andiamo avanti.",
+        "Dai dati, con {name} hai preso danni a {parts}. Prova qualche curva e dimmi come va."
+      ],
+      "en": "Contact with {name}: damage to {parts}.",
+      "variants_en": [
+        "Contact with {name}: damage to {parts}.",
+        "{name} touched you: damage to {parts}.",
+        "Contact with {name}, you took {parts}.",
+        "Touched by {name}: damage to {parts}."
+      ],
+      "es": "Contacto con {name}: daño en {parts}.",
+      "variants_es": [
+        "Contacto con {name}: daño en {parts}.",
+        "{name} te ha tocado: daño en {parts}.",
+        "Contacto con {name}, daño en {parts}.",
+        "Tocado por {name}: daño en {parts}."
+      ],
+      "fr": "Contact avec {name} : dégâts sur {parts}.",
+      "variants_fr": [
+        "Contact avec {name} : dégâts sur {parts}.",
+        "{name} t'a touché : dégâts sur {parts}.",
+        "Contact avec {name}, dégâts sur {parts}.",
+        "Touché par {name} : dégâts sur {parts}."
+      ]
+    },
+    "stopped_check": {
+      "cat": "safety",
+      "level": "warn",
+      "beep": true,
+      "it": "Sei fermo, tutto ok? Dai dati la macchina è integra: quando puoi, riparti in sicurezza.",
+      "variants_it": [
+        "Sei fermo, tutto ok? Dai dati la macchina è integra: quando puoi, riparti in sicurezza.",
+        "Ti vedo fermo: la macchina dai dati è a posto. Riparti appena è sicuro.",
+        "Fermo in pista: tutto sotto controllo? Occhio al traffico quando riparti."
+      ],
+      "en": "You've stopped, all okay? Car looks fine on data: rejoin safely when you can.",
+      "es": "Estás parado, ¿todo bien? El coche está íntegro: reincorpórate con cuidado.",
+      "fr": "Tu es arrêté, ça va ? La voiture est saine : repars prudemment."
+    },
+    "stopped_check_dmg": {
+      "cat": "safety",
+      "level": "warn",
+      "beep": true,
+      "it": "Sei fermo e la macchina ha danni: se riparte, rientra piano. Altrimenti accosta in un punto sicuro.",
+      "variants_it": [
+        "Sei fermo e la macchina ha danni: se riparte, rientra piano. Altrimenti accosta in un punto sicuro.",
+        "Fermo con danni sui dati: prova a ripartire con calma, e se non va mettiti al sicuro.",
+        "Ti vedo fermo, e abbiamo danni registrati: valuta se riesci a rientrare ai box."
+      ],
+      "en": "You're stopped and the car has damage: if it moves, bring it back gently. Otherwise park somewhere safe.",
+      "es": "Parado y con daños: si arranca, vuelve despacio. Si no, aparca en zona segura.",
+      "fr": "Arrêté avec des dégâts : si ça roule, rentre doucement. Sinon gare-toi en sécurité."
+    },
+    "outlap_gt3": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Out-lap: dischi in acciaio, li scaldi tu — due frenate decise e un filo di freno tenuto: il calore dei dischi entra nelle gomme. Freni in finestra sopra i trecento, gomme sopra i settanta al core prima di spingere.",
+      "variants_it": [
+        "Out-lap: dischi in acciaio, li scaldi tu — due frenate decise e un filo di freno tenuto: il calore dei dischi entra nelle gomme. Freni in finestra sopra i trecento, gomme sopra i settanta al core prima di spingere.",
+        "Giro di lancio: sulle GT il freno scalda prima della gomma. Staccate progressive, niente strappi di sterzo: quando il core passa i settanta puoi attaccare.",
+        "Procedura out-lap: porta i dischi in temperatura con frenate decise, la gomma segue col calore dei cerchi. Un giro pulito e sei in finestra."
+      ],
+      "en": "Out-lap: steel discs, you warm them — two firm brake applications and a touch of dragging: disc heat soaks into the tyres. Brakes above three hundred, tyre core above seventy before you push.",
+      "es": "Vuelta de salida: discos de acero, caliéntalos tú con frenadas firmes; el calor pasa a las gomas.",
+      "fr": "Tour de sortie : disques acier, chauffe-les avec des freinages francs ; la chaleur passe aux pneus."
+    },
+    "outlap_hy": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Out-lap: freni in carbonio, sotto i duecentocinquanta non mordono — staccate progressive per portarli in finestra. Rigenerazione al massimo e batteria sui tre quarti: se satura, il brake-by-wire ti taglia un asse in staccata. Core gomma sopra i settantacinque.",
+      "variants_it": [
+        "Out-lap: freni in carbonio, sotto i duecentocinquanta non mordono — staccate progressive per portarli in finestra. Rigenerazione al massimo e batteria sui tre quarti: se satura, il brake-by-wire ti taglia un asse in staccata. Core gomma sopra i settantacinque.",
+        "Giro di lancio Hypercar: scalda il carbonio con frenate crescenti e tieni d'occhio il SOC — batteria piena vuol dire niente rigenerazione e frenata sbilanciata. Deploy regolato per chiudere il giro con la stessa carica.",
+        "Procedura: carbonio in temperatura prima di tutto, poi la gomma. Gestisci la batteria: mai satura in frenata, mai vuota quando rientri — dal box esci solo in elettrico."
+      ],
+      "en": "Out-lap: carbon brakes don't bite below two-fifty — progressive braking to window them. Regen at max, battery around three quarters: if it saturates, brake-by-wire cuts an axle. Tyre core above seventy-five.",
+      "es": "Vuelta de salida: frenos de carbono, no muerden por debajo de 250. Batería a tres cuartos.",
+      "fr": "Tour de sortie : freins carbone, sous 250 ils ne mordent pas. Batterie aux trois quarts."
+    },
+    "outlap_p2": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Out-lap: carbonio anche qui — portalo sopra i duecentocinquanta con staccate progressive. La Goodyear vuole due giri veri: core sopra i settantacinque e la macchina si accende. Niente attacco al primo settore.",
+      "variants_it": [
+        "Out-lap: carbonio anche qui — portalo sopra i duecentocinquanta con staccate progressive. La Goodyear vuole due giri veri: core sopra i settantacinque e la macchina si accende. Niente attacco al primo settore.",
+        "Giro di lancio P2: freni carbonio da scaldare per primi, la gomma arriva al secondo giro. Il Gibson spinge: trazione dolce finché il posteriore non è in finestra."
+      ],
+      "en": "Out-lap: carbon brakes here too — above two-fifty with progressive stops. The Goodyear needs two proper laps: core above seventy-five and the car comes alive.",
+      "es": "Vuelta de salida P2: carbono por encima de 250, la goma llega a la segunda vuelta.",
+      "fr": "Tour de sortie P2 : carbone au-dessus de 250, le pneu arrive au deuxieme tour."
+    },
+    "outlap_p3": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Out-lap: scalda il carbonio con staccate progressive e dai due giri alla gomma. Meno carico e meno aiuti delle sorelle grandi: trazione dolce in uscita finché il posteriore non è in temperatura.",
+      "variants_it": [
+        "Out-lap: scalda il carbonio con staccate progressive e dai due giri alla gomma. Meno carico e meno aiuti delle sorelle grandi: trazione dolce in uscita finché il posteriore non è in temperatura.",
+        "Giro di lancio P3: freni prima, gomme poi. Il V8 ha coppia: dosala in uscita finché il core non passa i settantacinque."
+      ],
+      "en": "Out-lap: warm the carbon with progressive stops and give the tyre two laps. Gentle traction until the rear is in window.",
+      "es": "Vuelta de salida P3: frenos primero, gomas despues. Traccion suave.",
+      "fr": "Tour de sortie P3 : freins d'abord, pneus ensuite. Traction douce."
+    },
+    "kerb_zone_corner": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "In curva {n} prendi troppo cordolo: il colpo è violento, scomponi la macchina e stressi le sospensioni. Usane meno.",
+      "variants_it": [
+        "In curva {n} prendi troppo cordolo: il colpo è violento, scomponi la macchina e stressi le sospensioni. Usane meno.",
+        "Curva {n}: quel cordolo ti sta sbattendo la macchina. Tienine meno, guadagni stabilità.",
+        "Troppo cordolo in curva {n}: la sospensione prende botte secche. Traiettoria un filo più larga."
+      ],
+      "en": "Too much kerb at turn {n}: the hit is violent, it unsettles the car and stresses the suspension. Use less.",
+      "es": "Demasiado piano en la curva {n}: el golpe es violento. Usa menos.",
+      "fr": "Trop de vibreur au virage {n} : le choc est violent. Prends-en moins."
+    },
+    "kerb_zone": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Stai prendendo troppo cordolo in quel punto: colpi secchi sulle sospensioni. Addolcisci il passaggio.",
+      "variants_it": [
+        "Stai prendendo troppo cordolo in quel punto: colpi secchi sulle sospensioni. Addolcisci il passaggio.",
+        "Quel cordolo è violento: la macchina si scompone. Usane meno."
+      ],
+      "en": "Too much kerb there: sharp hits on the suspension. Smooth it out.",
+      "es": "Demasiado piano ahí: golpes secos. Suaviza el paso.",
+      "fr": "Trop de vibreur la : chocs secs. Adoucis le passage."
+    },
+    "car_sliding": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Stai scivolando parecchio: gomme oltre il limite, pulisci la guida per un paio di curve.",
+      "variants_it": [
+        "Stai scivolando parecchio: gomme oltre il limite, pulisci la guida per un paio di curve.",
+        "La macchina scivola: riprendi il ritmo con ingressi più dolci.",
+        "Troppo di traverso: così scaldi le gomme e perdi tempo. Pulito.",
+        "Stai facendo scivolare le gomme: un paio di curve tranquille e tornano."
+      ],
+      "en": "You're sliding a lot: tyres over the limit, tidy it up for a couple of corners.",
+      "es": "Estás derrapando mucho: limpia la conducción un par de curvas.",
+      "fr": "Tu glisses beaucoup : calme le pilotage pendant deux virages."
+    },
+    "flatspot_check": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Con questi bloccaggi rischi lo spiattellamento: se senti vibrazione al volante, la gomma è segnata e resta così. Valutiamo il cambio alla sosta.",
+      "variants_it": [
+        "Con questi bloccaggi rischi lo spiattellamento: se senti vibrazione al volante, la gomma è segnata e resta così. Valutiamo il cambio alla sosta.",
+        "Occhio allo spiattellamento: se il volante vibra, quella gomma è rovinata per sempre. Dimmelo e pianifichiamo il cambio."
+      ],
+      "en": "With these lockups you risk a flat spot: if the wheel vibrates, the tyre is marked for good. We can swap it at the stop.",
+      "es": "Con esos bloqueos puedes hacer un plano en la goma: si vibra el volante, la cambiamos en la parada.",
+      "fr": "Avec ces blocages tu risques un plat : si le volant vibre, on change au stand."
+    },
+    "setup_understeer": {
+      "cat": "setup",
+      "level": "info",
+      "beep": false,
+      "it": "Fai fatica a inserire: il davanti scivola più del dietro, sottosterzo. Da assetto: più ala davanti, antirollio anteriore più morbido, o un filo meno pressione davanti.",
+      "variants_it": [
+        "Fai fatica a inserire: il davanti scivola più del dietro, sottosterzo. Da assetto: più ala davanti, antirollio anteriore più morbido, o un filo meno pressione davanti.",
+        "L'anteriore non gira, spinge dritto in inserimento. Prova ad ammorbidire l'antirollio davanti o dare più carico all'anteriore.",
+        "Sottosterzo nei dati: il davanti slitta in ingresso curva. Più ala anteriore o meno pressione davanti e la macchina gira."
+      ],
+      "en": "Struggling on entry: the front slides more than the rear, understeer. Setup: more front wing, softer front anti-roll bar, or a touch less front pressure.",
+      "es": "Te cuesta meter el coche: subviraje. Más ala delantera o barra delantera más blanda.",
+      "fr": "Difficile a inscrire : sous-virage. Plus d'aile avant ou barre avant plus souple."
+    },
+    "setup_oversteer": {
+      "cat": "setup",
+      "level": "info",
+      "beep": false,
+      "it": "Il posteriore scappa in inserimento: sovrasterzo. Da assetto: più ala dietro, antirollio posteriore più morbido, o un filo più di pressione dietro.",
+      "variants_it": [
+        "Il posteriore scappa in inserimento: sovrasterzo. Da assetto: più ala dietro, antirollio posteriore più morbido, o un filo più di pressione dietro.",
+        "Il retrotreno balla: nei dati il dietro scivola più del davanti. Più carico dietro o antirollio posteriore più morbido.",
+        "Sovrasterzo in ingresso: stabilizza il posteriore con più ala dietro."
+      ],
+      "en": "The rear steps out on entry: oversteer. Setup: more rear wing, softer rear anti-roll bar, or a touch more rear pressure.",
+      "es": "La trasera se escapa: sobreviraje. Más ala trasera o barra trasera más blanda.",
+      "fr": "L'arriere decroche : survirage. Plus d'aile arriere ou barre arriere plus souple."
+    },
+    "gap_attack": {
+      "cat": "race",
+      "level": "info",
+      "beep": false,
+      "it": "Sei sotto il secondo da {name}: lo stai prendendo, prova l'attacco.",
+      "variants_it": [
+        "Sei sotto il secondo da {name}: lo stai prendendo, prova l'attacco.",
+        "{name} è lì davanti, meno di un secondo: attaccalo quando vedi lo spazio.",
+        "Ci sei, {name} è a tiro: scegli il punto e prova il sorpasso.",
+        "Lo hai ripreso: {name} a meno di un secondo. Quando sei pronto, vai."
+      ],
+      "en": "Under a second from {name}: you've got him, try the move.",
+      "variants_en": [
+        "Under a second from {name}: you've got him, try the move.",
+        "{name} is right there, pick your spot and go."
+      ],
+      "es": "A menos de un segundo de {name}: atácalo cuando veas el hueco.",
+      "fr": "Moins d'une seconde sur {name} : tente l'attaque."
+    },
+    "gap_attack_simple": {
+      "cat": "race",
+      "level": "info",
+      "beep": false,
+      "it": "Sei a tiro, meno di un secondo: prova l'attacco.",
+      "variants_it": [
+        "Sei a tiro, meno di un secondo: prova l'attacco.",
+        "Lo stai prendendo, scegli il punto e vai."
+      ],
+      "en": "You're in range, under a second: try the move.",
+      "es": "Estás a tiro: prueba el ataque.",
+      "fr": "Tu es a portee : tente l'attaque."
+    },
+    "gap_defend": {
+      "cat": "race",
+      "level": "info",
+      "beep": false,
+      "it": "{name} è sotto il secondo dietro: difenditi, chiudi le porte.",
+      "variants_it": [
+        "{name} è sotto il secondo dietro: difenditi, chiudi le porte.",
+        "Ti attacca {name}: copri l'interno in staccata.",
+        "{name} è negli scarichi: difendi la posizione, senza rischiare.",
+        "Occhio, {name} è a meno di un secondo: traiettorie pulite e chiudi gli spazi."
+      ],
+      "en": "{name} is under a second behind: defend, close the door.",
+      "variants_en": [
+        "{name} is under a second behind: defend, close the door.",
+        "{name} is attacking: cover the inside."
+      ],
+      "es": "{name} está a menos de un segundo: defiende la posición.",
+      "fr": "{name} est a moins d'une seconde : defends ta position."
+    },
+    "gap_defend_simple": {
+      "cat": "race",
+      "level": "info",
+      "beep": false,
+      "it": "Ti attaccano da dietro: difenditi, chiudi le porte.",
+      "variants_it": [
+        "Ti attaccano da dietro: difenditi, chiudi le porte.",
+        "Sotto attacco: copri l'interno e traiettorie pulite."
+      ],
+      "en": "Under attack from behind: defend, close the door.",
+      "es": "Te atacan por detrás: defiende.",
+      "fr": "On t'attaque : defends-toi."
+    },
+    "limits_clear": {
+      "cat": "race_control",
+      "level": "info",
+      "beep": false,
+      "it": "Taglio perdonato, nessuna sanzione. Si va avanti.",
+      "variants_it": [
+        "Taglio perdonato, nessuna sanzione. Si va avanti.",
+        "Tutto a posto, la direzione lascia correre.",
+        "Nessuna azione sul taglio, sei pulito.",
+        "Ok, taglio archiviato senza sanzioni.",
+        "Perdonato: hai restituito abbastanza, avanti così."
+      ],
+      "en": "Cut forgiven, no further action. Carry on.",
+      "variants_en": [
+        "Cut forgiven, no further action. Carry on.",
+        "All clear, race control lets it go.",
+        "No action on the cut, you're clean."
+      ],
+      "es": "Corte perdonado, sin sanción. Seguimos.",
+      "fr": "Coupe pardonnée, pas de sanction. On continue."
+    },
+    "limits_warning_n": {
+      "cat": "race_control",
+      "level": "warn",
+      "beep": true,
+      "it": "Warning per il taglio: sei a {tot} su {max}.",
+      "variants_it": [
+        "Warning per il taglio: sei a {tot} su {max}.",
+        "Track limits sul conto: {tot} su {max}.",
+        "Warning: sei a {tot}, la penalità scatta a {max}."
+      ],
+      "en": "Warning for the cut: you're at {tot} points of {max}.",
+      "es": "Warning por el corte: {tot} puntos de {max}.",
+      "fr": "Avertissement : {tot} points sur {max}."
+    },
+    "limits_warning": {
+      "cat": "race_control",
+      "level": "warn",
+      "beep": true,
+      "it": "Warning per il taglio, punti sul conto. Tienilo pulito.",
+      "variants_it": [
+        "Warning per il taglio, punti sul conto. Tienilo pulito.",
+        "Ti hanno dato un warning per track limits.",
+        "Warning dalla direzione: quel taglio è costato punti.",
+        "Track limits: warning assegnato, occhio al conteggio."
+      ],
+      "en": "Warning for the cut, points on your tally. Keep it clean.",
+      "variants_en": [
+        "Warning for the cut, points on your tally. Keep it clean.",
+        "Race control gave you a track limits warning."
+      ],
+      "es": "Warning por el corte, puntos en tu cuenta.",
+      "fr": "Avertissement pour la coupe, des points au compteur."
+    },
+    "limits_review_lap": {
+      "cat": "race_control",
+      "level": "warn",
+      "beep": true,
+      "it": "Taglio sotto esame: alza un attimo o ti cancellano il giro.",
+      "variants_it": [
+        "Taglio sotto esame: alza un attimo o ti cancellano il giro.",
+        "Valutano il taglio: molla il gas o perdi il tempo.",
+        "Taglio in verifica: se hai guadagnato, il giro salta."
+      ],
+      "en": "Cut under review: lift or they'll invalidate the lap.",
+      "es": "Corte en revisión: levanta o te anulan la vuelta.",
+      "fr": "Coupe à l'étude : lève ou le tour saute."
+    },
+    "limits_review_pos": {
+      "cat": "race_control",
+      "level": "warn",
+      "beep": true,
+      "it": "Hai superato tagliando: ridai la posizione, hai quindici secondi.",
+      "variants_it": [
+        "Hai superato tagliando: ridai la posizione, hai quindici secondi.",
+        "Sorpasso fuori pista: restituisci la posizione subito.",
+        "Posizione guadagnata col taglio: ridalla o è penalità."
+      ],
+      "en": "You passed while off track: give the place back, fifteen seconds.",
+      "es": "Adelantaste cortando: devuelve la posición.",
+      "fr": "Dépassement hors piste : rends la position."
+    },
+    "limits_review": {
+      "cat": "race_control",
+      "level": "warn",
+      "beep": true,
+      "it": "Taglio sotto esame: alza, o è penalità.",
+      "variants_it": [
+        "Taglio sotto esame: alza, o è penalità.",
+        "Stanno valutando il taglio: alza un attimo.",
+        "Taglio in verifica: molla il gas o prendi la penalità."
+      ],
+      "en": "Track limits under review, give it back.",
+      "variants_en": [
+        "Track limits under review, give it back.",
+        "They're checking the cut, lift.",
+        "Give it back or it's a penalty.",
+        "Cut under review, back off a touch.",
+        "Race control is reviewing the cut: give it back."
+      ],
+      "es": "Límite bajo revisión, devuélvelo.",
+      "variants_es": [
+        "Límite bajo revisión, devuélvelo.",
+        "Ojo, revisan el corte: levanta.",
+        "Devuélvelo o será penalización.",
+        "Corte en revisión, suelta un poco.",
+        "Race control revisa el corte: devuélvelo."
+      ],
+      "fr": "Limite à l'étude, rends-le.",
+      "variants_fr": [
+        "Limite à l'étude, rends-le.",
+        "Attention, ils vérifient le débordement : lève.",
+        "Rends-le ou c'est une pénalité.",
+        "Débordement à l'étude, relâche un peu.",
+        "Race control examine le débordement : rends-le."
+      ]
+    },
+    "garage_out_new_cold": {
+      "cat": "garage",
+      "level": "info",
+      "beep": false,
+      "it": "Esci con un treno nuovo di {gomme}, ancora freddo: primo giro pulito e portale in temperatura. Asfalto a {temp} gradi.",
+      "variants_it": [
+        "Esci con un treno nuovo di {gomme}, ancora freddo: primo giro pulito e portale in temperatura. Asfalto a {temp} gradi.",
+        "Gomma nuova, {gomme}: è fredda, dalle un giro per svegliarsi. Pista a {temp} gradi.",
+        "Treno fresco di {gomme} sotto la macchina, temperatura bassa: niente strappi nelle prime curve.",
+        "Montiamo {gomme} nuove: fredde per ora, un giro tranquillo e arrivano. {temp} gradi d'asfalto.",
+        "Set nuovo, {gomme}. Sono fredde: accompagnale, poi puoi lavorare. Asfalto sui {temp}.",
+        "Fuori con le {gomme} nuove: primo giro morbido che sono ancora fredde, asfalto a {temp} gradi.",
+        "Gomme {gomme} appena montate e fredde: costruisci la temperatura, senza fretta.",
+        "Treno nuovo e freddo: le {gomme} vogliono un giro buono prima di darti grip. {temp} gradi a terra."
+      ],
+      "en": "New set of {gomme}, still cold: clean first lap to bring them in. Track at {temp} degrees.",
+      "es": "Juego nuevo de {gomme}, frío: primera vuelta limpia. Pista a {temp} grados.",
+      "fr": "Train neuf de {gomme}, encore froid : premier tour propre. Piste a {temp} degres."
+    },
+    "garage_out_new_warm": {
+      "cat": "garage",
+      "level": "info",
+      "beep": false,
+      "it": "Treno nuovo di {gomme} e già in temperatura: puoi spingere quasi subito. Asfalto a {temp} gradi.",
+      "variants_it": [
+        "Treno nuovo di {gomme} e già in temperatura: puoi spingere quasi subito. Asfalto a {temp} gradi.",
+        "Gomma nuova e calda, {gomme}: condizioni ideali, sfruttale dal primo settore.",
+        "Esci con {gomme} nuove già calde: grip subito, fai il tempo. {temp} gradi d'asfalto.",
+        "Set fresco di {gomme}, temperatura già buona: niente scuse, si spinge.",
+        "Le {gomme} nuove sono già in finestra: attacca appena esci, asfalto a {temp}.",
+        "Treno nuovo, caldo al punto giusto: le {gomme} sono pronte, vai.",
+        "Gomme {gomme} nuove e in temperatura: dal secondo settore puoi già fare sul serio."
+      ],
+      "en": "New {gomme} already up to temperature: you can push almost right away. Track {temp} degrees.",
+      "es": "{gomme} nuevas y calientes: puedes apretar casi de inmediato.",
+      "fr": "{gomme} neufs et deja chauds : tu peux attaquer presque tout de suite."
+    },
+    "garage_out_used_cold": {
+      "cat": "garage",
+      "level": "info",
+      "beep": false,
+      "it": "Esci con gomma usata e fredda, {gomme}: i primi minuti scivola, accompagnala. Asfalto a {temp} gradi.",
+      "variants_it": [
+        "Esci con gomma usata e fredda, {gomme}: i primi minuti scivola, accompagnala. Asfalto a {temp} gradi.",
+        "Treno usato di {gomme}, temperatura bassa: doppia attenzione al primo giro, il grip arriva tardi.",
+        "Gomma {gomme} già lavorata e fredda: entra piano nelle prime staccate, poi si stabilizza.",
+        "Set usato e freddo: le {gomme} vanno rispettate per un giro pieno. {temp} gradi a terra.",
+        "Fuori con le {gomme} usate: fredde e con meno spalla, primo settore prudente.",
+        "Gomme usate, {gomme}, ancora fredde: il primo giro dice poco, non forzare.",
+        "Treno {gomme} di seconda vita e freddo: portalo su con calma, asfalto a {temp}."
+      ],
+      "en": "Used and cold {gomme}: it will slide the first minutes, nurse it. Track {temp} degrees.",
+      "es": "Goma usada y fría, {gomme}: paciencia el primer giro.",
+      "fr": "Pneus uses et froids, {gomme} : patience au premier tour."
+    },
+    "garage_out_used_warm": {
+      "cat": "garage",
+      "level": "info",
+      "beep": false,
+      "it": "Gomma usata ma già calda, {gomme}: grip decente da subito, occhio solo al degrado residuo. Asfalto a {temp} gradi.",
+      "variants_it": [
+        "Gomma usata ma già calda, {gomme}: grip decente da subito, occhio solo al degrado residuo. Asfalto a {temp} gradi.",
+        "Treno usato di {gomme} in temperatura: puoi girare subito, ma ricordati che ha già dei giri sulle spalle.",
+        "Le {gomme} usate sono calde: parti tranquillo, il limite arriva prima del solito.",
+        "Set {gomme} vissuto ma in finestra: buon grip iniziale, gestiscilo sul lungo.",
+        "Gomme usate e calde: vai pure, ma non aspettarti il passo del treno nuovo.",
+        "Treno {gomme} usato, temperatura buona: ok per lavorare, monitoriamo l'usura."
+      ],
+      "en": "Used but warm {gomme}: decent grip right away, just mind the remaining wear.",
+      "es": "Goma usada pero caliente: agarre decente ya, ojo al desgaste.",
+      "fr": "Pneus uses mais chauds : bon grip immediat, surveille l'usure."
+    },
+    "garage_prep": {
+      "cat": "garage",
+      "level": "info",
+      "beep": false,
+      "it": "Fermo un attimo: dammi due minuti, controllo pressioni, temperature e livelli, e decidiamo il programma — giro secco o long run.",
+      "variants_it": [
+        "Fermo un attimo: dammi due minuti, controllo pressioni, temperature e livelli, e decidiamo il programma — giro secco o long run.",
+        "Aspetta a uscire: due minuti per il check della macchina, poi ti dico il piano di lavoro.",
+        "Prima di accendere: verifico assetto, pressioni e carburante. Due minuti e decidiamo se fare tempo o passo gara.",
+        "Tienila spenta un attimo: guardo i dati dell'ultimo stint e prepariamo il programma. Giro secco o long run?",
+        "Un momento: passo in rassegna la macchina — freni, gomme, livelli — e poi usciamo con un piano chiaro."
+      ],
+      "en": "Hold on: give me two minutes to check pressures, temps and levels, then we decide the programme — hot lap or long run.",
+      "es": "Espera dos minutos: reviso presiones y niveles y decidimos el programa.",
+      "fr": "Deux minutes : je verifie pressions et niveaux, puis on decide le programme."
+    },
+    "garage_prep_go": {
+      "cat": "garage",
+      "level": "info",
+      "beep": false,
+      "it": "Ok, motore acceso: il check lo facciamo per strada. Ti aggiorno in pista.",
+      "variants_it": [
+        "Ok, motore acceso: il check lo facciamo per strada. Ti aggiorno in pista.",
+        "Va bene, si parte: il resto del quadro te lo do mentre giri.",
+        "Ricevuto, usciamo: controlli in corsa, ti dico tutto in pista.",
+        "Ok ok, niente attese: briefing volante, ti parlo appena sei fuori."
+      ],
+      "en": "Okay, engine on: we'll do the checks on the move. I'll update you on track.",
+      "es": "Vale, motor encendido: lo vemos en pista.",
+      "fr": "Ok, moteur en marche : on fera le point en piste."
+    },
+    "debrief_balance_us": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "Dai dati dello stint: in curva {turn} c'è troppo sottosterzo, l'anteriore slitta molto più del posteriore. Da assetto: più ala davanti o barra anteriore più morbida.",
+      "variants_it": [
+        "Dai dati dello stint: in curva {turn} c'è troppo sottosterzo, l'anteriore slitta molto più del posteriore. Da assetto: più ala davanti o barra anteriore più morbida.",
+        "L'analisi dice sottosterzo marcato in curva {turn}: il davanti scivola. Possiamo lavorare su ala anteriore, barra o mezzo psi in meno davanti.",
+        "Nel long run la curva {turn} è il punto critico: l'anteriore non tiene la linea. Ne parliamo per l'assetto — più carico davanti."
+      ],
+      "en": "Stint data: heavy understeer in turn {turn}, the front slides much more than the rear. Setup-wise: more front wing or softer front bar.",
+      "es": "Datos del stint: subviraje fuerte en la curva {turn}.",
+      "fr": "Donnees du relais : sous-virage marque au virage {turn}."
+    },
+    "debrief_balance_os": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "Dai dati dello stint: in curva {turn} il posteriore scappa, sovrasterzo netto. Da assetto: più ala dietro o barra posteriore più morbida.",
+      "variants_it": [
+        "Dai dati dello stint: in curva {turn} il posteriore scappa, sovrasterzo netto. Da assetto: più ala dietro o barra posteriore più morbida.",
+        "L'analisi dice sovrasterzo in curva {turn}: il retrotreno slitta più del davanti. Stabilizziamo con carico dietro o differenziale.",
+        "Nel long run il posteriore balla in curva {turn}: se vuoi lo curiamo d'assetto, più appoggio dietro."
+      ],
+      "en": "Stint data: the rear steps out in turn {turn}, clear oversteer. More rear wing or softer rear bar.",
+      "es": "Datos del stint: sobreviraje en la curva {turn}.",
+      "fr": "Donnees du relais : survirage au virage {turn}."
+    },
+    "debrief_wear_wheel": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "Per il long run occhio: stiamo consumando soprattutto la {ruota}. Gestione in trazione e percorrenza da quel lato, o rivediamo pressioni e camber.",
+      "variants_it": [
+        "Per il long run occhio: stiamo consumando soprattutto la {ruota}. Gestione in trazione e percorrenza da quel lato, o rivediamo pressioni e camber.",
+        "L'usura dello stint è sbilanciata: la {ruota} lavora più delle altre. Da guida o da assetto, va alleggerita.",
+        "Dai dati gomme: la {ruota} è quella che paga di più. Se il passo gara è lungo, curiamola — pressione o camber."
+      ],
+      "en": "For the long run: we're wearing mostly the {ruota}. Ease it on traction and mid-corner, or review pressures and camber.",
+      "es": "Ojo para la tanda larga: gastamos sobre todo la {ruota}.",
+      "fr": "Pour le long run : on use surtout la {ruota}."
+    },
+    "flatspot_confirmed": {
+      "cat": "damage",
+      "level": "warn",
+      "beep": true,
+      "it": "Confermato: hai spiattellato la {ruota}. La vibrazione resta finché non cambiamo il treno.",
+      "variants_it": [
+        "Confermato: hai spiattellato la {ruota}. La vibrazione resta finché non cambiamo il treno.",
+        "La {ruota} è spiattellata, me lo danno i dati: conviviamo con la vibrazione o cambiamo alla sosta.",
+        "Flat spot sulla {ruota}: gomma segnata per sempre, valuta il cambio."
+      ],
+      "en": "Confirmed: you've flat-spotted the {ruota}. The vibration stays until we change the set.",
+      "es": "Confirmado: plano en la {ruota}.",
+      "fr": "Confirme : plat sur la {ruota}."
     }
   }
 }

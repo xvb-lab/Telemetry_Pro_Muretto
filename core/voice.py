@@ -355,7 +355,25 @@ class Voice:
             self._speaking = True
             self._abort_evt.clear()
             try:
-                # tono radio (courtesy beep) + ritardo PRIMA della voce
+                # SINTESI edge IN PARALLELO al tono+ritardo: il tono parte SUBITO
+                # e mentre scorrono i secondi del ritardo la voce si genera; a fine
+                # ritardo e' gia' pronta. Cosi' tono->voce = SOLO il ritardo.
+                _edge_use = (backend == "edge" and not self._edge_failed)
+                _txt2 = _expand_voice(text)
+                _edge_res = {}
+                _synth_thr = None
+                if _edge_use:
+                    import threading as _th
+
+                    def _do_synth(_t=_txt2, _v=_vol):
+                        try:
+                            _edge_res["path"] = self._synth_edge(_t, _v)
+                        except Exception:
+                            _edge_res["path"] = None
+
+                    _synth_thr = _th.Thread(target=_do_synth, daemon=True)
+                    _synth_thr.start()
+                # tono radio (SUBITO) + ritardo (la sintesi lavora in parallelo)
                 if _beep and self._beep_on:
                     if self._beep_path:
                         try:
@@ -366,21 +384,41 @@ class Voice:
                     _d = 0.0 if _urgent else self._tone_delay
                     self._abort_evt.wait(_d)   # ritardo interrompibile
                 if self._abort_evt.is_set():
+                    if _synth_thr is not None:
+                        _synth_thr.join(3.0)
+                    _p = _edge_res.get("path")
+                    if _p:
+                        try:
+                            import os as _os
+                            _os.remove(_p)
+                        except Exception:
+                            pass
                     continue                    # tagliato durante beep/ritardo
-                text = _expand_voice(text)
-                if backend == "edge":
-                    if not self._edge_failed and self._say_edge(text, _vol):
-                        pass
+                # voce
+                if _edge_use:
+                    if _synth_thr is not None:
+                        _synth_thr.join(6.0)     # di solito gia' pronta
+                    _p = _edge_res.get("path")
+                    if _p:
+                        try:
+                            self._play_mci(_p)
+                        finally:
+                            try:
+                                import os as _os
+                                _os.remove(_p)
+                            except Exception:
+                                pass
                     else:
                         self._edge_failed = True   # niente rete: passa a Elsa
-                        self._say_powershell(text)
-                elif backend == "sapi":
-                    sapi.Speak(text, 0)             # 0 = sincrono in questo thread
-                elif backend == "pyttsx3":
-                    eng.say(text)
-                    eng.runAndWait()
-                elif backend == "powershell":
-                    self._say_powershell(text)
+                        self._say_powershell(_txt2)
+                else:
+                    if backend == "sapi":
+                        sapi.Speak(_txt2, 0)        # 0 = sincrono in questo thread
+                    elif backend == "pyttsx3":
+                        eng.say(_txt2)
+                        eng.runAndWait()
+                    elif backend == "powershell":
+                        self._say_powershell(_txt2)
                 # tono di FINE messaggio (over), dopo la voce; saltato se tagliato
                 if not self._abort_evt.is_set() and self._end_on and self._end_path:
                     try:
@@ -391,6 +429,49 @@ class Voice:
                 pass
             finally:
                 self._speaking = False
+
+    def _synth_edge(self, text, vol=None):
+        """Edge TTS: sintetizza in un mp3 e ritorna il PATH (o None). NON riproduce
+        e NON cancella: il chiamante riproduce e poi rimuove. Serve a generare la
+        voce PRIMA del tono, cosi' tono->voce = solo il ritardo impostato."""
+        import os
+        import tempfile
+        import asyncio
+        try:
+            import edge_tts
+        except Exception:
+            return None
+        path = None
+        try:
+            fd, path = tempfile.mkstemp(suffix=".mp3", prefix="lmuvoce_")
+            os.close(fd)
+            rate = ("%+d%%" % self._rate) if self._rate else "+0%"
+            volume = vol or "+0%"
+
+            async def _go():
+                comm = edge_tts.Communicate(text, self._edge_voice,
+                                            rate=rate, volume=volume)
+                await comm.save(path)
+
+            loop = asyncio.new_event_loop()
+            try:
+                loop.run_until_complete(_go())
+            finally:
+                loop.close()
+            if not os.path.exists(path) or os.path.getsize(path) < 256:
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
+                return None
+            return path
+        except Exception:
+            try:
+                if path and os.path.exists(path):
+                    os.remove(path)
+            except Exception:
+                pass
+            return None
 
     def _say_edge(self, text, vol=None):
         """Edge TTS: sintetizza la frase intera in mp3 e la riproduce (MCI).

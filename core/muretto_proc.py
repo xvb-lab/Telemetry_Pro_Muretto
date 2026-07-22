@@ -4,6 +4,7 @@ Singleton di processo condiviso NELLO STESSO processo UI: main.py lo lancia
 all'avvio (se engineer_on), e il toggle "Engineer" nella UI lo accende/spegne
 DAL VIVO senza riavviare l'app. Difensivo: niente eccezioni verso la UI.
 """
+import os
 import sys
 import subprocess
 from pathlib import Path
@@ -21,7 +22,9 @@ def start():
     global _proc
     if is_running():
         return True
-    kw = {"cwd": str(_ROOT)}
+    env = dict(os.environ)
+    env["LMU_PARENT_PID"] = str(os.getpid())      # watchdog: muore con l'app
+    kw = {"cwd": str(_ROOT), "env": env}
     if sys.platform == "win32":
         kw["creationflags"] = 0x08000000          # niente console
     try:
@@ -34,12 +37,16 @@ def start():
 
 
 def stop():
-    """Ferma il muretto se attivo."""
+    """Ferma il muretto se attivo (terminate, poi kill se resiste)."""
     global _proc
     p = _proc
     if p is not None and p.poll() is None:
         try:
             p.terminate()
+            try:
+                p.wait(timeout=1.5)
+            except Exception:
+                p.kill()                          # non si e' chiuso -> forzato
         except Exception:
             pass
     _proc = None

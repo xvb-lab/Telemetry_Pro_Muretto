@@ -1,5 +1,5 @@
 /* LMU List Widget (colonna dati) */
-* { font-family: "Heebo", "Consolas", monospace; }
+* { font-family: "Archivo SemiExpanded", "Consolas", monospace; }
 
 #overlay { background: transparent; }
 #container {

@@ -16,6 +16,19 @@ import time
 _LOCK = threading.Lock()
 _STATE = {"t": 0.0, "reason": "", "kind": "", "local": True,
           "pending": []}
+# TRACK LIMITS dal trace: MACCHINA A STATI del ciclo vero di LMU
+# (guida ufficiale + trace verificati):
+#   Off Track            -> investigation APERTA ("under review")
+#   Back On Track        -> rientrato, LMU valuta per 2-5s (se restituisci)
+#   No Track Cut         -> PERDONATO (esito "clear")
+#   Warning              -> WARNING assegnato (in prova/quali = giro invalidato)
+#   Local penalty "Track Limits" -> DT (dal flusso penalita', gia' gestito)
+# La riga 581 porta i numeri: WarnPts (punti warning), Pts (punti evento,
+# negativi = tempo perso), PlaceDiff (punti da sorpasso illegale).
+_TL = {"state": "idle", "t": 0.0, "warn": 0.0, "pts": 0.0,
+       "placediff": 0.0, "outcome": None, "out_t": 0.0}
+_RX_TLNUM = re.compile(r"WarnPts:\s*([\-\d.]+)\s+Pts:\s*([\-\d.]+)\s+ET:"
+                       r".*?PlaceDiff:\s*([\-\d.]+)", re.I)
 _STARTED = False
 
 _DIRS = [
@@ -55,6 +68,39 @@ def _parse(rest):
 def _feed(line, live):
     """Una riga di trace -> aggiorna lo stato. live=False in preload
     (niente t => banner e ingegnere non annunciano il passato)."""
+    # TRACK LIMITS: macchina a stati sul ciclo VERO (vedi commento _TL).
+    # In preload gli eventi restano muti (t=0). Distinto da mCountLapFlag
+    # (rumoroso: e' 1 anche a out-lap/partenza).
+    if "Track Limits:" in line:
+        now = time.monotonic() if live else 0.0
+        with _LOCK:
+            if "No Track Cut" in line:
+                _TL["state"] = "idle"
+                _TL["outcome"] = "clear"
+                _TL["out_t"] = now
+            elif "Warning;" in line:              # esito (non 'WarnPts')
+                _TL["state"] = "idle"
+                _TL["outcome"] = "warning"
+                _TL["out_t"] = now
+            elif "Off Track" in line:             # anche 'Off Track Again'
+                if _TL["state"] != "review":      # episodio NUOVO: numeri
+                    _TL["warn"] = _TL["pts"] = _TL["placediff"] = 0.0
+                _TL["state"] = "review"
+                _TL["t"] = now
+                _TL["outcome"] = None
+            elif "Back On Track" in line:         # valutazione 2-5s: resta review
+                if _TL["state"] == "review":
+                    _TL["t"] = now
+            else:
+                mn = _RX_TLNUM.search(line)
+                if mn:                            # riga 581: numeri evento
+                    try:
+                        _TL["warn"] = float(mn.group(1))
+                        _TL["pts"] = float(mn.group(2))
+                        _TL["placediff"] = float(mn.group(3))
+                    except (TypeError, ValueError):
+                        pass
+        return
     m = _RX.search(line)
     if m:
         kind, reason = _parse(m.group(2))
@@ -100,6 +146,9 @@ def _feed(line, live):
         with _LOCK:
             del _STATE["pending"][:]         # le penalita' non
                                              # sopravvivono al restart
+            _TL.update({"state": "idle", "t": 0.0, "outcome": None,
+                        "out_t": 0.0, "warn": 0.0, "pts": 0.0,
+                        "placediff": 0.0})
 
 
 def _tail():
@@ -134,7 +183,7 @@ def _tail():
                     _feed(line, live=True)
         except Exception:
             pass
-        time.sleep(0.5)
+        time.sleep(0.2)     # reattivo: LMU scrive a blocchi, meno latenza
 
 
 def latest_penalty():
@@ -157,3 +206,32 @@ def latest_penalty_parts():
     with _LOCK:
         return (_STATE["t"], _STATE["kind"], _STATE["reason"],
                 _STATE["local"])
+
+
+def track_limits_state(review_min=2.5, outcome_ttl=6.0, review_max=10.0):
+    """Stato track-limits VERO dal trace (macchina a stati).
+
+    Ritorna {'review': bool, 'outcome': 'clear'|'warning'|None,
+             'warn_pts', 'pts', 'placediff'}.
+    - review resta True per almeno `review_min` (i tagli lampo non si
+      perdono nel blocco 0.5s del tail) e si spegne da solo dopo
+      `review_max` senza esito (fail-safe).
+    - outcome e' esposto per `outcome_ttl` secondi dall'esito, poi None.
+    Preload (t=0) => mai attivo all'avvio. Niente mCountLapFlag."""
+    latest_penalty()               # assicura il tail avviato
+    now = time.monotonic()
+    with _LOCK:
+        t = _TL["t"]
+        # OGNI taglio mostra SEMPRE almeno `review_min` di UNDER REVIEW,
+        # anche se l'esito arriva nello stesso blocco di trace (LMU scrive
+        # a blocchi: i tagli leggeri "verdi" si chiudevano in un colpo solo
+        # e il review non si vedeva mai). Poi tocca all'esito.
+        rev = bool(t) and (
+            (_TL["state"] == "review" and (now - t) < review_max)
+            or (now - t) < review_min)
+        out = _TL["outcome"]
+        if out and (not _TL["out_t"] or (now - _TL["out_t"]) > outcome_ttl):
+            out = None
+        return {"review": rev, "outcome": out,
+                "warn_pts": _TL["warn"], "pts": _TL["pts"],
+                "placediff": _TL["placediff"]}

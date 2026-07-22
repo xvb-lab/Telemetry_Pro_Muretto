@@ -51,13 +51,13 @@
 
 
 /* ═══════════════════════════════════════════════════
-   LMU Standings — Heebo Minimalist Clean Style
+   LMU Standings — Archivo SemiExpanded Minimalist Clean Style
    ═══════════════════════════════════════════════════ */
 
 /* ── Font ed Estetica Globale ── */
 * {
     color: #e8eef5;
-    font-family: "Heebo", "Consolas", monospace;
+    font-family: "Archivo SemiExpanded", "Consolas", monospace;
     font-size: 14px;
    font-weight: bold; 
    text-align: center;                     
@@ -103,7 +103,7 @@
     color: #8f939d;             /* Icona grigia discreta di default */
     font-size: 10px;            /* Font leggibile per la 'X' */
     font-weight: bold;
-    font-family: "Consolas", monospace;
+    font-family: "Archivo SemiExpanded";
 }
 #btnClose:hover { 
     background: #c0392b;        /* Rosso scuro classico Linux solo al passaggio */
@@ -118,7 +118,7 @@
     color: #8f939d;             /* Icona grigia di default */
     font-size: 10px;            /* Font leggibile per il trattino '_' */
     font-weight: bold;
-    font-family: "Consolas", monospace;
+    font-family: "Archivo SemiExpanded";
 }
 #btnMinimize:hover { 
     background: #34495e;        /* Grigio-blu tipico delle transizioni Linux */

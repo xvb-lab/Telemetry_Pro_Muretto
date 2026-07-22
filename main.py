@@ -105,6 +105,30 @@ def main():
 
     _start_muretto()                          # muretto separato (se abilitato)
     app.aboutToQuit.connect(_stop_muretto)    # chiudi il muretto con l'app
+    # WATCHER: engineer_on e' l'UNICA verita' (Options E il dash lo scrivono).
+    # Il dash e' un processo a se' e non puo' avviare il muretto: qui il padre
+    # riconcilia il PROCESSO col flag ogni 2s, cosi' "RADIO ON" dal dash lo fa
+    # ripartire davvero anche se Options l'aveva spento.
+    try:
+        from PySide6.QtCore import QTimer as _QTimer
+        from core.engineer_cfg import load as _eload
+        from core import muretto_proc as _mp
+
+        def _reconcile_muretto():
+            try:
+                want = bool(_eload().get("engineer_on", False))
+                if want and not _mp.is_running():
+                    _mp.start()
+                elif (not want) and _mp.is_running():
+                    _mp.stop()
+            except Exception:
+                pass
+
+        win._muretto_timer = _QTimer()
+        win._muretto_timer.timeout.connect(_reconcile_muretto)
+        win._muretto_timer.start(2000)
+    except Exception:
+        pass
     sys.exit(app.exec())
 
 

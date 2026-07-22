@@ -378,7 +378,10 @@
     "scale": 1.0,
     "bg_opacity": 100,
     "update_ms": 300,
-    "preview": false
+    "preview": false,
+    "show_flags": true,
+    "show_penalties": true,
+    "show_messages": true
   },
   "wec26radio": {
     "enabled": false,

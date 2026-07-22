@@ -10,6 +10,7 @@ Uso:
                                             # strategia senza essere in pista
 """
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -109,6 +110,109 @@ def _forecast(d):
         except Exception:
             _WX["fc"] = None
     return _WX["fc"]
+
+
+# ── SPOTTER COMMUNITY: nome pilota in pista -> suo tempo di rif. su questa
+#    pista (dai ref online). Fetch di rete UNA volta per pista+classi, in un
+#    thread di sfondo: il loop del muretto non si blocca MAI. Degrada a vuoto
+#    se offline / community disattivata.
+_COMM = {"sig": None, "loading": False, "times": {}, "known": set()}
+
+
+def _community_fetch(short_track, class_tags):
+    """BG: costruisce times[(nome_lower, tag)] = miglior ms su QUESTA pista
+    (online.top per ogni classe, DRY+WET) + known = set globale dei nomi noti
+    (all_refs). Tutto difensivo: qualsiasi errore -> parziale/vuoto."""
+    from core import online
+    known = set()
+    try:
+        for row in (online.all_refs() or []):
+            pn = (row.get("player") or "").strip().lower()
+            if pn:
+                known.add(pn)
+    except Exception:
+        pass
+    times = {}
+    for tag in class_tags:
+        for wet in (False, True):
+            try:
+                key = online.make_key(tag, short_track, wet)
+                if not key:
+                    continue
+                for r in online.top(key, 200):
+                    pn = (r.get("player") or "").strip().lower()
+                    ms = r.get("lap_ms")
+                    if not pn or not ms:
+                        continue
+                    known.add(pn)
+                    k = (pn, tag)
+                    if k not in times or int(ms) < times[k]:
+                        times[k] = int(ms)
+            except Exception:
+                pass
+    _COMM["times"] = times
+    _COMM["known"] = known
+    _COMM["loading"] = False
+
+
+def _community_tick(track, field):
+    """Assicura il fetch (1 volta per pista+classi presenti) e ritorna
+    (times, known) correnti. Non blocca il loop. Vuoto finche' il bg non
+    finisce il primo fetch."""
+    try:
+        from core.classes import class_tag
+        from telemetry.db import _short_track
+    except Exception:
+        return {}, set()
+    tags = set()
+    for c in (field or {}).values():
+        t = class_tag(c.get("cls") or "")
+        if t:
+            tags.add(t)
+    short = _short_track(track or "")
+    sig = (short, frozenset(tags))
+    if short and tags and sig != _COMM["sig"] and not _COMM["loading"]:
+        _COMM["sig"] = sig
+        _COMM["loading"] = True
+        threading.Thread(target=_community_fetch, args=(short, tags),
+                         name="comm-spotter", daemon=True).start()
+    return _COMM["times"], _COMM["known"]
+
+
+# ── DANNI wearables (aero + sospensione) dal REST RepairAndRefuel: il muretto
+#    NON li aveva (raw['aero'] non era mai settato). Valori = FRAZIONE DI DANNO
+#    (0 = integro). Fetch in un thread, max 1/s, non blocca il loop.
+_WEAR = {"loading": False, "ts": 0.0, "aero": None, "susp": None}
+
+
+def _wearables_tick():
+    now = time.monotonic()
+    if _WEAR["loading"] or now - _WEAR["ts"] < 1.0:
+        return
+    _WEAR["loading"] = True
+    _WEAR["ts"] = now
+
+    def _work():
+        try:
+            import urllib.request as _ur
+            import json as _js
+            req = _ur.Request(
+                "http://localhost:6397/rest/garage/UIScreen/RepairAndRefuel",
+                headers={"Accept": "application/json"})
+            data = _js.loads(_ur.urlopen(req, timeout=1.0).read())
+            w = (data.get("wearables") or {}) if isinstance(data, dict) else {}
+            body = w.get("body") or {}
+            if isinstance(body, dict) and "aero" in body:
+                _WEAR["aero"] = float(body["aero"])
+            su = w.get("suspension") or []
+            if isinstance(su, list) and len(su) >= 4:
+                _WEAR["susp"] = [float(x) for x in su[:4]]
+        except Exception:
+            pass
+        finally:
+            _WEAR["loading"] = False
+
+    threading.Thread(target=_work, name="wearables", daemon=True).start()
 
 
 def _auto_fuel_tick(feed, live, cfg, brain, laps_done):
@@ -240,8 +344,7 @@ def _collect(brain, raw, ld, pace):
         (brain.flags_call, (raw,)),
         (brain.damage_call, (raw,)),
         (brain.terminal_damage, (raw,)),          # combo contatto+danno+motore morto -> ritiro
-        (brain.aero_call, (raw,)),
-        (brain.contact_call, (raw,)),
+        (brain.aero_call, (raw,)),        # UNICO modulo danni: contatto + danno
         (brain.engine_check, (raw,)),
         (brain.battery_check, (raw, ld)),
         (brain.wet_tyre, (raw,)),
@@ -251,9 +354,19 @@ def _collect(brain, raw, ld, pace):
         (brain.tyre_stock, (raw,)),               # inventario gomme (treni nuovi/usati)
         (brain.quali_pole, (raw, ld)),            # quali: gap dalla pola di classe
         (brain.overtake_call, (raw, ld)),         # complimenti sorpasso (gara)
+        (brain.attack_defend_call, (raw, ld)),    # a tiro: attacca / difenditi
+        (brain.slide_call, (raw, ld)),            # stai scivolando (sostenuto)
+        (brain.setup_coach, (raw, ld)),           # consigli assetto (SOLO prova)
+        (brain.kerb_call, (raw, ld)),             # cordoli violenti per zona
+        (brain.outlap_tech_call, (raw, ld)),      # out-lap tecnico per classe (prova)
+        (brain.stopped_check_call, (raw, ld)),    # fermo in pista + spia motore
+        (brain.corner_coach_call, (raw, ld)),     # coach staccate/trazione per curva (prova)
+        (brain.stint_findings_call, (raw, ld)),   # ingegneria stint: findings in garage
+        (brain.welcome_call, (raw,)),             # benvenuto in pista (v2)
         (brain.stint_debrief, (raw, ld)),         # debrief a voce a fine stint (garage)
         # 🔵 STRATEGY
         (brain.race_briefing, (raw,)),           # briefing meteo al rolling start
+        (brain.green_call, (raw,)),              # VIA / ripartenza: verde in gara
         (brain.race_plan, (raw,)),
         (brain.box_call, (raw, ld)),
         (brain.strategy_check, (raw, pace, ld)),
@@ -268,6 +381,7 @@ def _collect(brain, raw, ld, pace):
         (brain.autofuel_call, (raw, ld)),
         (brain.position_strategy, (raw, ld)),
         (brain.pos_call, (raw,)),
+        (brain.run_abort_call, (raw,)),           # prova/quali: giro buttato -> raffredda
         (brain.countdown, (raw, ld)),
         # 🟢 PERFORMANCE / spotter
         (brain.lap_time_call, (raw,)),
@@ -282,9 +396,11 @@ def _collect(brain, raw, ld, pace):
         (brain.fast_class_call, (raw,)),          # pre-blu classe veloce (v2)
         (brain.opp_penalty, (raw,)),              # rivale penalizzato
         (brain.opp_pace_drop, (raw,)),            # rivale che perde passo
+        (brain.community_spotter, (raw,)),        # pilota community in pista -> tempo rif.
         (brain.lock_pattern_call, (raw, ld)),
         (brain.pace_notes_call, (raw, ld)),
         (brain.tlimits_call, (raw, ld)),
+        (brain.limits_review_call, (raw,)),       # taglio sotto esame -> restituisci
         (brain.rain_live, (raw, ld)),
         (brain.rain_pace_loss, (raw, ld)),        # crollo passo su slick bagnato -> wet
         (brain.wet_patches, (raw,)),
@@ -327,6 +443,14 @@ def run():
     _last_class = None
     _cfg_ts = 0.0
     _off = False
+    _radio_off = False
+    # rilevatori 5Hz nel PROCESSO muretto (il recorder e' nell'altro processo
+    # e i suoi lock_events non arrivano qui): bloccaggi + cordoli violenti
+    _lock_ev = []; _kerb_ev = []
+    _lock_last = {}; _kerb_last = 0.0; _prev_sdf = []
+    _tl_prev_steps = 0
+    _brake_ev = []; _brk_prev = 0.0    # inizio staccata (fronte di salita)
+    _grr_prev = 1e12                   # sessione viva in garage (ET che scorre)
     try:
         while True:
             _now = time.monotonic()
@@ -340,7 +464,18 @@ def run():
                 continue
             # SOLO in pista viva: nei menu / pausa / replay / fuori sessione la
             # shared memory resta piena di dati STANTII -> il muretto DEVE tacere.
-            if not mem.is_on_track():
+            # ECCEZIONE: in GARAGE a sessione VIVA (il tempo scorre, es. monitor)
+            # il muretto parla — briefing/debrief da box come un team vero.
+            _garage_live = False
+            try:
+                _rr = float(d.get("race_remaining") or 0.0)
+                if bool(d.get("garage")) and _rr > 0.0 \
+                        and _rr < _grr_prev - 0.05:
+                    _garage_live = True
+                _grr_prev = _rr
+            except Exception:
+                pass
+            if not mem.is_on_track() and not _garage_live:
                 if not _off:                 # appena entrati in pausa/menu:
                     _off = True
                     try:
@@ -354,6 +489,22 @@ def run():
                 time.sleep(0.25)
                 continue
             _off = False
+            # RADIO OFF (flag engineer_on, stesso della riga Radio nelle Options,
+            # commutabile anche dal MOD3 del dash): muretto muto come in pausa
+            if not _cfg.get("engineer_on", True):
+                if not _radio_off:
+                    _radio_off = True
+                    try:
+                        vox.interrupt()
+                    except Exception:
+                        pass
+                    try:
+                        radio.reset()
+                    except Exception:
+                        pass
+                time.sleep(0.25)
+                continue
+            _radio_off = False
             drv = d.get("driver") or ""
             ld = int(d.get("laps_completed") or 0)
             feed.set_context(drv, ld)
@@ -370,6 +521,97 @@ def run():
             raw["on_track"] = True
             raw["lap_time"] = d.get("last_lap")       # per sector_delta / feedback
             raw["lmu_live"] = live
+            # ── EVENTI ad alta frequenza: BLOCCAGGI (ruota quasi ferma in
+            # frenata) e CORDOLI VIOLENTI (ruota sul cordolo + colpo secco di
+            # sospensione). Alimentano lock_pattern_call e kerb_call.
+            try:
+                _spd = float(d.get("speed") or 0.0)
+                _brk = float(d.get("brake") or 0.0)
+                _ldm = float(d.get("lapdist") or -1.0)
+                _rot = d.get("wheel_rot") or []
+                _sdf = d.get("susp_defl") or []
+                _srf = d.get("surface_type") or []
+                if _spd > 8.0 and _ldm >= 0:
+                    if len(_rot) >= 4:
+                        for _wi in range(4):
+                            try:
+                                _ws = abs(float(_rot[_wi] or 0.0)) * 0.33
+                            except (TypeError, ValueError):
+                                continue
+                            _ratio = _ws / _spd
+                            # bloccaggio = TRANSIZIONE: la ruota GIRAVA
+                            # (ratio>0.7 da <0.8s) e ora e' quasi ferma in
+                            # frenata DECISA. Se il campo rot e' morto/zero
+                            # fisso non scatta mai (niente falsi in GT3).
+                            if _ratio > 0.7:
+                                _lock_last[("ok", _wi)] = _now
+                            elif _brk > 0.4 and _spd > 15.0 \
+                                    and _ratio < 0.3 \
+                                    and _now - _lock_last.get(("ok", _wi),
+                                                              0.0) < 0.8 \
+                                    and _now - _lock_last.get(_wi, 0.0) > 1.0:
+                                _lock_last[_wi] = _now
+                                _lock_ev.append((_ldm, _wi))
+                    if len(_sdf) >= 4 and len(_prev_sdf) >= 4:
+                        for _wi in range(4):
+                            try:
+                                _dd = abs(float(_sdf[_wi] or 0.0)
+                                          - float(_prev_sdf[_wi] or 0.0))
+                            except (TypeError, ValueError):
+                                continue
+                            try:
+                                _onk = int(_srf[_wi]) == 5   # 5 = cordolo
+                            except (TypeError, ValueError, IndexError):
+                                _onk = False
+                            if _dd > (18.0 if _onk else 32.0) \
+                                    and _now - _kerb_last > 1.0:
+                                _kerb_last = _now
+                                _kerb_ev.append(_ldm)
+                                break
+                    _prev_sdf = list(_sdf)
+                # INIZIO STACCATA (fronte di salita del freno): per il
+                # coach frenate ("puoi staccare N metri dopo in curva X")
+                if _spd > 15.0 and _ldm >= 0 \
+                        and _brk > 0.35 and _brk_prev <= 0.35:
+                    _brake_ev.append((_now, _ldm))
+                _brk_prev = _brk
+                del _lock_ev[:-40]
+                del _kerb_ev[:-40]
+                del _brake_ev[:-24]
+                raw["lock_events"] = list(_lock_ev)
+                raw["kerb_events"] = list(_kerb_ev)
+                raw["brake_events"] = list(_brake_ev)
+            except Exception:
+                pass
+            # TRACK LIMITS: conto e soglie VERI al cervello (prima tl_steps
+            # non arrivava MAI -> gli avvisi "a rischio penalita'" erano
+            # morti) + LOG di calibrazione su ogni variazione del conto.
+            try:
+                _tl = mem.player_track_limits() or {}
+                raw["tl_steps"] = int(_tl.get("steps") or 0)
+                raw["tl_pen"] = int(_tl.get("per_penalty") or 0)
+                raw["tl_point"] = int(_tl.get("per_point") or 0)
+                if raw["tl_steps"] != _tl_prev_steps:
+                    try:
+                        from core.race_control import track_limits_state
+                        from core.paths import USER_DIR
+                        _st_tl = track_limits_state()
+                        with open(USER_DIR / "tl_calib.log", "a",
+                                  encoding="utf-8") as _fh:
+                            _fh.write("[%s] steps %s -> %s (perpoint=%s "
+                                      "perpen=%s) | evento: warn=%s pts=%s "
+                                      "placediff=%s\n" % (
+                                          time.strftime("%H:%M:%S"),
+                                          _tl_prev_steps, raw["tl_steps"],
+                                          raw["tl_point"], raw["tl_pen"],
+                                          _st_tl.get("warn_pts"),
+                                          _st_tl.get("pts"),
+                                          _st_tl.get("placediff")))
+                    except Exception:
+                        pass
+                    _tl_prev_steps = raw["tl_steps"]
+            except Exception:
+                pass
             raw["forecast_rain"] = _forecast(d)       # meteo gara (briefing al via)
             if live:
                 raw["lmu_per_lap"] = live.get("per_lap")
@@ -394,7 +636,22 @@ def run():
                 _nc = mem.nearest_car()
                 if _nc:
                     raw["nearest_car"] = _nc
+                # CHI ho toccato dal punto d'urto 3D (muro -> None)
+                raw["contact_who"] = mem.contact_driver()
                 raw["cars"] = mem.car_states()    # penalità / passo rivali
+                # SPOTTER COMMUNITY: tutti i piloti (io incluso, per ora) +
+                # mappa tempi community su questa pista (fetch bg, non blocca)
+                raw["limits_review"] = mem.player_limits_review()   # taglio sotto esame
+                raw["field"] = mem.field_drivers()
+                _ctimes, _cknown = _community_tick(d.get("track"), raw["field"])
+                raw["comm"] = {"times": _ctimes, "known": _cknown}
+                # DANNI aero + sospensione (REST wearables): il muretto
+                # ora li vede (prima raw['aero'] era sempre None)
+                _wearables_tick()
+                if _WEAR["aero"] is not None:
+                    raw["aero"] = _WEAR["aero"]
+                if _WEAR["susp"] is not None:
+                    raw["susp"] = _WEAR["susp"]
                 # SAFE RELEASE / briefing box: la mappa-traffico (tutte le auto
                 # con lapdist+velocità) serve SOLO in corsia/box -> economico.
                 if raw.get("in_pits") or raw.get("in_pitlane") or raw.get("garage"):
@@ -462,7 +719,42 @@ def demo():
     print("[muretto] DEMO finita")
 
 
+def _parent_watchdog():
+    """Se muore l'app padre (LMU_PARENT_PID), il muretto si chiude DA SOLO —
+    niente processi orfani che continuano a parlare / si sovrappongono."""
+    import os
+    ppid = os.environ.get("LMU_PARENT_PID")
+    if not ppid:
+        return
+    import threading
+
+    def _watch(pid):
+        try:
+            pid = int(pid)
+        except (TypeError, ValueError):
+            return
+        if os.name == "nt":
+            try:
+                import ctypes
+                h = ctypes.windll.kernel32.OpenProcess(0x00100000, False, pid)
+                if h:
+                    ctypes.windll.kernel32.WaitForSingleObject(h, -1)
+                    os._exit(0)
+            except Exception:
+                pass
+        import time as _tw
+        while True:
+            _tw.sleep(2.0)
+            try:
+                os.kill(pid, 0)
+            except OSError:
+                os._exit(0)
+
+    threading.Thread(target=_watch, args=(ppid,), daemon=True).start()
+
+
 def main():
+    _parent_watchdog()               # muore con l'app padre
     if "--demo" in sys.argv:
         demo()
     else:

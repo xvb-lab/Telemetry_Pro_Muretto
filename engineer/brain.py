@@ -100,13 +100,16 @@ class Engineer:
     _PACE_MARGIN = 1.025
 
     # ── LEGGE CENTRALE DI STATO (il centro della ragnatela) ──────────
-    # In corsia/box/garage: le frasi da pista libera non hanno senso.
-    _LAW_PIT_MUTE = ("gap_", "pos_", "blue_", "traffic_", "lock_",
-                     "sector_", "lap_fast", "lap_slow", "lap_time",
-                     "theo_", "quali_", "fast_class", "grip_", "temp_",
-                     "on_pace", "under_pace", "over_pace", "pace_")
-    # Pit CHIAMATO (stai rientrando): niente famiglia gap/attacco.
-    _LAW_INBOUND_MUTE = ("gap_", "pos_attack", "pos_edge")
+    # In corsia/box/garage e a pit CHIAMATO: WHITELIST — passano SOLO i
+    # messaggi pit/box, la sicurezza (bandiere, danni, ritiro) e il
+    # debrief. Tutto il resto (gap, meteo, strategia, coaching, tempi)
+    # in quel momento e' rumore. Richiesta utente 22/07.
+    _LAW_PIT_KEEP = ("pit_", "box_", "garage_", "autofuel", "yellow",
+                     "local_yellow", "blue_", "retire_", "driver_check",
+                     "contact_", "aero_", "susp_", "damage", "tyre_flat",
+                     "wheel_", "fuel_short", "engine_", "brakes_over",
+                     "tyres_over", "limits_", "tlimits_", "debrief_",
+                     "race_start", "green_restart", "session_end")
     # QUALIFICA (sei da solo): lo spotter NON da' bandiere ne' traffico.
     # Restano tempi/settori/passo/gomme/grip: servono in quali.
     _LAW_QUALI_MUTE = ("blue_", "yellow", "local_yellow", "traffic_",
@@ -117,6 +120,14 @@ class Engineer:
     # Bandiere/safe-release NON mutate (se la prova fosse condivisa = sicurezza;
     # se e' privata non scattano comunque).
     _LAW_PRACTICE_MUTE = ("opp_", "fast_class", "gap_", "traffic_")
+    # INCIDENTE (finestra crisi dopo botta forte) e GIALLA ATTIVA: passano
+    # SOLO questi prefissi (sicurezza, danni, stato pilota, bandiere).
+    _LAW_CRISIS_KEEP = ("contact_", "aero_", "susp_", "box_", "retire_",
+                        "driver_check", "tyre_flat", "damage", "yellow",
+                        "local_yellow", "blue_", "brakes_over", "tyres_over",
+                        "engine_", "wheel_", "pit_", "fuel_short",
+                        "green_restart", "race_start", "limits_", "tlimits_",
+                        "stopped_")
 
     def __init__(self, lang="it"):
         self.lang = lang if lang in self._LANGS else "it"
@@ -384,6 +395,21 @@ class Engineer:
             self._plan_sig = sig
             self._plan_laps = ld
         out = self._build_plan(raw, revise=self._planned)
+        # BRIEFING PRE-VERDE GARANTITO: in griglia/formazione (fase 1-4),
+        # se il piano completo non e' ancora calcolabile (serve il consumo),
+        # di' ALMENO la durata gara + "stima di partenza": il briefing va
+        # dato PRIMA del release, non al 2° giro (immersione).
+        if not out and not self._planned and not self._st.get("prelim_said"):
+            try:
+                ph = int(raw.get("game_phase") or 0)
+            except (TypeError, ValueError):
+                ph = 0
+            if ph in (1, 2, 3, 4):
+                laps = self._race_laps(raw)
+                if laps:
+                    self._st["prelim_said"] = True
+                    return [self.msg("briefing_laps", laps=int(laps)),
+                            self.msg("plan_prelim")]
         return out
 
     def _build_plan(self, raw, revise=False):
@@ -438,7 +464,8 @@ class Engineer:
             from core.engineer_learn import load as _learn_load
             prof = _learn_load(raw.get("track") or "",
                                class_tag(raw.get("car_class") or "")) or {}
-            cond = prof.get("wet" if self._wet_mounted(raw) else "dry") or {}
+            cond = (prof.get("cond") or {}).get(
+                "wet" if self._wet_mounted(raw) else "dry") or {}
             dv = [v for v in (cond.get("deg_front"), cond.get("deg_rear"))
                   if v]
             if dv:
@@ -676,15 +703,28 @@ class Engineer:
         return []
 
     def damage_call(self, raw):
-        """Danni GRAVI: ruota persa / foratura / carrozzeria seria =
-        chiamata di sicurezza. Una volta per danno, riarmo a pulito."""
+        """Danni GRAVI: ruota persa / foratura / carrozzeria con PERDITA VERA
+        di carico (aero) o piu' pannelli sfondati = chiamata di sicurezza.
+        Uno SFIORO (un pezzetto staccato, un solo bozzo) NON basta piu'.
+        Una volta per danno, riarmo a pulito."""
         raw = raw or {}
         woff = any(bool(x) for x in (raw.get("wheel_off") or []))
         flat = any(bool(x) for x in (raw.get("wheel_flat") or []))
-        parts = bool(raw.get("parts_off"))
-        dent = any(int(x or 0) >= 2 for x in (raw.get("dent_sev") or []))
+        # GRAVITA' come il widget LIST: integrita' carrozzeria (dent, su 24) e
+        # integrita' aero (1 - danno). box solo in ZONA ROSSA (<45% = grave),
+        # non per uno sfioro (che resta giallo, 90%+).
+        dent = raw.get("dent_sev") or []
+        body_integ = 100 - int(round(
+            sum(min(int(x or 0), 3) for x in dent) / 24.0 * 100)) \
+            if dent else 100
+        try:
+            aero = max(0.0, min(1.0, float(raw.get("aero") or 0.0)))
+        except (TypeError, ValueError):
+            aero = 0.0
+        aero_integ = int(round((1.0 - aero) * 100))
+        body_bad = body_integ < 45 or aero_integ < 45   # rosso = danno grave
         code = ("box_retire" if woff else "box_flat" if flat
-                else "box_damage" if (parts or dent) else None)
+                else "box_damage" if body_bad else None)
         if code is None:
             self._st.pop("dmg_code", None)
             return []
@@ -700,7 +740,17 @@ class Engineer:
         messaggi inutili. Una volta per sessione."""
         raw = raw or {}
         if self._st.get("term_said"):
-            return []
+            # RECUPERO: se la macchina e' chiaramente viva (motore sotto carico)
+            # era un FALSO ritiro -> sblocca e torna a parlare.
+            try:
+                if float(raw.get("rpm") or 0.0) > 3000.0:
+                    self._st.pop("term_said", None)
+                    self._st.pop("terminal", None)
+                    self._st.pop("term_t0", None)
+                else:
+                    return []
+            except (TypeError, ValueError):
+                return []
         now = _time.monotonic()
         try:
             rpm = float(raw.get("rpm") or 0.0)
@@ -745,10 +795,72 @@ class Engineer:
         return [self.msg(code)]
 
     def aero_call(self, raw):
-        """Danno AERO e SOSPENSIONI dai wearables LMU: informazione con
-        la conseguenza spiegata, la scelta e' del pilota."""
+        """MODULO DANNI (unico): CHECK CONTATTO ('contatto con X' all'urto) +
+        CHECK DANNO (aero % e sospensioni dai wearables LMU). Informazione, la
+        scelta e' del pilota. Il vecchio contact_call e' stato tolto: qui non
+        ci sono voci che si contraddicono."""
         raw = raw or {}
         out = []
+        # ── CHECK CONTATTO: chi hai toccato (una volta per urto, se accanto) ──
+        _et = float(raw.get("impact_et") or 0.0)
+        _mag = float(raw.get("impact_mag") or 0.0)
+        _prev_et = self._st.get("aero_imp_et")
+        self._st["aero_imp_et"] = _et
+        if _prev_et is not None and _et > _prev_et and _mag >= 200.0:
+            # CHI: auto piu' vicina lungo la pista, soglia stretta 6m (a 20m
+            # incolpava un pilota anche contro un muro). Il metodo 3D via
+            # mLastImpactPos e' piu' preciso ma il punto e' in coord LOCALI
+            # dell'auto: serve la matrice mOri per portarlo in mondo (TODO).
+            _nc = raw.get("nearest_car") or {}
+            try:
+                _near = abs(float(_nc.get("gap_m"))) <= 6.0
+            except (TypeError, ValueError):
+                _near = False
+            _who = (_nc.get("name") or None) if _near else None
+            _nowc = _time.monotonic()
+            # CORDOLO, NON CONTATTO: LMU conta il bump del cordolo come
+            # "urto" (verificato in variante). Se una ruota e' sul cordolo
+            # e nessuna auto e' accanto -> niente crisi/verdetto: e' un
+            # bump, ci pensa kerb_call.
+            try:
+                _srf = raw.get("surface_type") or []
+                _onk = any(int(s) == 5 for s in _srf if s is not None)
+            except (TypeError, ValueError):
+                _onk = False
+            if _onk and not _who and _mag < 700.0:
+                _prev_et = None            # classificato cordolo: ignora
+        if _prev_et is not None and _et > _prev_et and _mag >= 200.0:
+            if _mag >= 400.0:
+                # BOTTA FORTE: apre la finestra-incidente (sanity: per 12s
+                # passano solo sicurezza/danni, niente meteo/gap/coaching)
+                self._st["crisis_t"] = _nowc
+            # NIENTE annuncio immediato "contatto con X": parlava DUE volte
+            # (subito + verdetto). Ora parla SOLO il verdetto (~6s), che
+            # nomina il pilota e dice subito se ci sono danni o no.
+            if _mag >= 600.0 and not _who \
+                    and _nowc - self._st.get("drv_chk_t", 0.0) > 20.0:
+                # botta SERIA contro MURO/barriera o da solo (nessun pilota
+                # nell'urto): il muretto chiede come stai. Per i contatti di
+                # pista con un'altra auto NON ha senso — resta la frase contatto.
+                self._st["drv_chk_t"] = _nowc
+                out.append(self.msg("driver_check"))
+            # VALUTAZIONE DANNI post-impatto: fotografa lo stato attuale;
+            # tra ~6s (dati wearables aggiornati) arriva UN verdetto umano:
+            # "nessun danno" oppure "danno a X, vedi se riesci a continuare".
+            if not self._st.get("dmg_eval"):
+                try:
+                    _a0 = float(raw.get("aero") or 0.0)
+                except (TypeError, ValueError):
+                    _a0 = 0.0
+                _su = raw.get("susp")
+                _s0 = tuple(float(x or 0.0) for x in _su[:4]) \
+                    if isinstance(_su, (list, tuple)) and len(_su) >= 4 \
+                    else (0.0, 0.0, 0.0, 0.0)
+                self._st["dmg_eval"] = {"t": _nowc, "who": _who,
+                                        "aero": _a0, "susp": _s0}
+            elif _who and not self._st["dmg_eval"].get("who"):
+                self._st["dmg_eval"]["who"] = _who
+        # ── CHECK DANNO ──
         a = raw.get("aero")
         try:
             a = float(a) if a is not None else None
@@ -759,7 +871,9 @@ class Engineer:
             prev = self._st.get("aero_lvl", 0)
             if lvl == 0:
                 self._st["aero_lvl"] = 0
-            elif lvl > prev:
+            elif lvl > prev and not self._st.get("dmg_eval"):
+                # (durante la valutazione post-impatto tace: il verdetto
+                # unico copre il danno, niente doppio annuncio)
                 self._st["aero_lvl"] = lvl
                 code = ("aero_heavy" if lvl == 3
                         else "aero_mid" if lvl == 2 else "aero_light")
@@ -780,12 +894,63 @@ class Engineer:
                     v = float(su[i] or 0.0)
                 except (TypeError, ValueError):
                     continue
-                if v >= 0.10 and i not in said:
+                if v >= 0.10 and i not in said \
+                        and not self._st.get("dmg_eval"):
                     said.add(i)
                     out.append(self.msg("susp_damage", ruota=W[i],
                                         pct=int(round(v * 100))))
                 elif v < 0.05 and i in said:
                     said.discard(i)
+        # ── VERDETTO post-impatto (UN report umano, ~6s dopo la botta) ──
+        ev = self._st.get("dmg_eval")
+        if ev and _time.monotonic() - ev["t"] >= 6.0:
+            self._st.pop("dmg_eval", None)
+            try:
+                a1 = float(raw.get("aero") or 0.0)
+            except (TypeError, ValueError):
+                a1 = 0.0
+            _su1 = raw.get("susp")
+            s1 = tuple(float(x or 0.0) for x in _su1[:4]) \
+                if isinstance(_su1, (list, tuple)) and len(_su1) >= 4 \
+                else ev["susp"]
+            _WN = (self._L("la sospensione anteriore sinistra",
+                           "front left suspension",
+                           "la suspension delantera izquierda",
+                           "la suspension avant gauche"),
+                   self._L("la sospensione anteriore destra",
+                           "front right suspension",
+                           "la suspension delantera derecha",
+                           "la suspension avant droite"),
+                   self._L("la sospensione posteriore sinistra",
+                           "rear left suspension",
+                           "la suspension trasera izquierda",
+                           "la suspension arriere gauche"),
+                   self._L("la sospensione posteriore destra",
+                           "rear right suspension",
+                           "la suspension trasera derecha",
+                           "la suspension arriere droite"))
+            parts = []
+            if a1 - ev["aero"] >= 0.03:
+                parts.append(self._L("l'aerodinamica", "the aero",
+                                     "la aerodinamica", "l'aero"))
+                lvl1 = 3 if a1 >= 0.30 else 2 if a1 >= 0.15 \
+                    else 1 if a1 >= 0.05 else 0
+                self._st["aero_lvl"] = max(self._st.get("aero_lvl", 0), lvl1)
+            _sd = self._st.setdefault("susp_said", set())
+            for i in range(4):
+                if s1[i] - ev["susp"][i] >= 0.08:
+                    parts.append(_WN[i])
+                    _sd.add(i)                   # niente doppio annuncio
+            who = ev.get("who")
+            if parts:
+                _e = self._L(" e ", " and ", " y ", " et ")
+                _pl = _e.join(parts) if len(parts) <= 2 else \
+                    ", ".join(parts[:-1]) + _e + parts[-1]
+                code = "contact_damage_who" if who else "contact_damage"
+                out.append(self.msg(code, name=who or "", parts=_pl))
+            else:
+                out.append(self.msg("contact_ok_who", name=who)
+                           if who else self.msg("contact_ok"))
         return [m for m in out if m]
 
     def contact_call(self, raw):
@@ -809,6 +974,8 @@ class Engineer:
             self._st["imp_pend"] = {
                 "t": now, "aero": float(raw.get("aero") or 0.0),
                 "dent": sum(int(x or 0) for x in (raw.get("dent_sev") or [])),
+                "susp": max([float(x) for x in (raw.get("susp") or [0.0])]
+                            or [0.0]),
                 "who": (_nc.get("name") or None) if _near else None,
                 "zone": self._impact_zone(raw)}     # QUALE parte tocca
             return []
@@ -816,26 +983,35 @@ class Engineer:
             self._st.pop("imp_pend", None)
             if now - self._st.get("imp_said_t", 0.0) < 30.0:
                 return []
-            clean = (float(raw.get("aero") or 0.0) <= pend["aero"] + 0.005
-                     and sum(int(x or 0) for x in (raw.get("dent_sev") or []))
-                     <= pend["dent"]
-                     and not any(bool(x) for x in (raw.get("wheel_off") or []))
-                     and not any(bool(x) for x in (raw.get("wheel_flat") or []))
-                     and not raw.get("parts_off"))
+            # COMPONENTI danneggiati (info, separati dalla chiamata box):
+            # aero, sospensione, carrozzeria, ruota. Confronto pre/post urto.
+            _aero = float(raw.get("aero") or 0.0)
+            _dent = sum(int(x or 0) for x in (raw.get("dent_sev") or []))
+            _susp = max([float(x) for x in (raw.get("susp") or [0.0])] or [0.0])
+            _woff = any(bool(x) for x in (raw.get("wheel_off") or []))
+            _wflat = any(bool(x) for x in (raw.get("wheel_flat") or []))
+            parts = []
+            if _woff:
+                parts.append(self._L("ruota", "wheel", "rueda", "roue"))
+            elif _wflat:
+                parts.append(self._L("gomma", "tyre", "neumatico", "pneu"))
+            if _susp > pend.get("susp", 0.0) + 0.02:
+                parts.append(self._L("sospensione", "suspension",
+                                     "suspension", "suspension"))
+            if _aero > pend["aero"] + 0.02:
+                parts.append(self._L("aerodinamica", "aero", "aero", "aero"))
+            if _dent > pend["dent"] or raw.get("parts_off"):
+                parts.append(self._L("carrozzeria", "bodywork",
+                                     "carroceria", "carrosserie"))
             who = pend.get("who")
-            zone = pend.get("zone")
-            if clean:
-                self._st["imp_said_t"] = now
+            self._st["imp_said_t"] = now
+            if not parts:                        # nessun componente peggiorato
                 return [self.msg("contact_ok_who", name=who) if who
                         else self.msg("contact_ok")]
-            # danno vero: dico DOVE hai toccato (parte auto) + con chi se lo so
-            self._st["imp_said_t"] = now
-            if zone and who:
-                return [self.msg("contact_where_who", dove=zone, name=who)]
-            if zone:
-                return [self.msg("contact_where", dove=zone)]
+            _pt = ", ".join(parts)
             if who:
-                return [self.msg("contact_who", name=who)]
+                return [self.msg("contact_damage_who", parts=_pt, name=who)]
+            return [self.msg("contact_damage", parts=_pt)]
         return []
 
     _IMPACT_FRONT_SIGN = 1     # se in pista davanti/dietro risulta invertito -> -1
@@ -886,6 +1062,9 @@ class Engineer:
             self._st["self_yellow_t"] = _time.monotonic()
         own = (_time.monotonic()
                - self._st.get("self_yellow_t", -999.0)) < 20.0
+        # VOCE gialla: SOLO i 500 metri davanti (ydist), MAI i settori
+        # (richiesta utente 23/07: la chiamata settore resta solo nel
+        # banner Race Control; la legge anti-chiacchiera sotto gialla resta).
         if ydist is not None and self._st.get("flag_state") != "yellow":
             self._st["flag_state"] = "yellow"
             if not own:
@@ -895,19 +1074,35 @@ class Engineer:
             self._st["flag_state"] = None
         n_blue = int(fl.get("blue_count")
                      or (1 if fl.get("blue_class") else 0))
-        if n_blue > 0 and not self._st.get("blue_on"):
+        if n_blue > 0:
             now = _time.monotonic()
-            if now - self._st.get("blue_t", 0.0) >= 20.0:
+            if n_blue < int(self._st.get("blue_n", 0)):
+                self._st["blue_n"] = n_blue      # auto USCITE: abbassa la base
+            _new = not self._st.get("blue_on")               # gruppo nuovo
+            _grew = n_blue > int(self._st.get("blue_n", 0))  # ARRIVANO altre auto
+            # SAFETY: annuncia il gruppo nuovo O l'arrivo di ALTRE auto dietro
+            # (non aspettare che il gruppo si svuoti: chi ti doppia va detto
+            # subito). Cooldown breve 5s; blue_on evita di ridire il gruppo
+            # stabile che non cambia.
+            if (_new or _grew) and now - self._st.get("blue_t", 0.0) >= 5.0:
                 self._st["blue_on"] = True
                 self._st["blue_t"] = now
+                self._st["blue_n"] = n_blue      # base = conteggio ANNUNCIATO
                 my = (class_tag(raw.get("car_class") or "")
                       or self._cat or "").upper()
                 bt = (class_tag(str(fl.get("blue_class") or "")) or "").upper()
                 # nome PRONUNCIABILE: "HY" detto dalla voce diventa
                 # "acca ipsilon" — si parla per nome classe
-                _spk = {"HY": "Hypercar", "P2": "LMP2",
-                        "P3": "LMP3", "GTE": "GTE"}.get(bt, bt)
-                if n_blue > 1:
+                _NAME = {"HY": "Hypercar", "P2": "LMP2", "P3": "LMP3",
+                         "GTE": "GTE", "GT3": "GT3", "GT": "GT"}
+                _spk = _NAME.get(bt, bt)
+                _bcl = fl.get("blue_classes") or []
+                if n_blue > 1 and _bcl:
+                    # ripartizione VERA per classe: "2 Hypercar, 1 GT"
+                    _lista = ", ".join("%d %s" % (cnt, _NAME.get(tg, tg))
+                                       for tg, cnt in _bcl)
+                    out.append(self.msg("blue_flag_train", lista=_lista))
+                elif n_blue > 1:
                     out.append(self.msg("blue_flag_multi", n=n_blue,
                                         classe=_spk if bt else ""))
                 elif bt and bt != my:
@@ -916,6 +1111,7 @@ class Engineer:
                     out.append(self.msg("blue_flag_simple"))
         elif n_blue == 0:
             self._st["blue_on"] = False
+            self._st["blue_n"] = 0
         return [m for m in out if m]
 
     def gap_call(self, raw, laps_done):
@@ -1099,15 +1295,30 @@ class Engineer:
             return []
         prev = self._st.get("grip_said")
         self._st["grip_said"] = g
-        names = {0: self._L("verde", "green", "verde", "verte"),
-                 1: self._L("poco gommata", "low on rubber",
-                            "con poca goma", "peu gommee"),
-                 2: self._L("mediamente gommata", "medium rubbered",
-                            "con goma media", "moyennement gommee"),
-                 3: self._L("ben gommata", "well rubbered-in",
-                            "bien engomada", "bien gommee"),
-                 4: self._L("satura di gomma", "saturated with rubber",
-                            "saturada de goma", "saturee de gomme")}
+        # in PAROLE SEMPLICI: il pilota deve capire subito cosa cambia
+        names = {0: self._L("verde, cioè senza gomma a terra: aderenza bassa",
+                            "green, no rubber down: low grip",
+                            "verde, sin goma: poco agarre",
+                            "verte, sans gomme : peu de grip"),
+                 1: self._L("con poca gomma: aderenza ancora scarsa",
+                            "low on rubber: still poor grip",
+                            "con poca goma: agarre escaso",
+                            "peu gommee : grip encore faible"),
+                 2: self._L("mediamente gommata: aderenza normale",
+                            "medium rubbered: normal grip",
+                            "con goma media: agarre normal",
+                            "moyennement gommee : grip normal"),
+                 3: self._L("ben gommata: tanta aderenza sulla traiettoria",
+                            "well rubbered-in: strong grip on the line",
+                            "bien engomada: mucho agarre en la trazada",
+                            "bien gommee : beaucoup de grip sur la ligne"),
+                 4: self._L("satura di gomma: massima aderenza sulla linea, "
+                            "ma fuori traiettoria è sporco di biglie",
+                            "saturated: maximum grip on line, marbles off it",
+                            "saturada: agarre maximo en la linea, canicas "
+                            "fuera",
+                            "saturee : grip maximum sur la ligne, billes "
+                            "en dehors")}
         if prev is None:
             return [self.msg("grip_status", stato=names[g])]
         return [self.msg("grip_up" if g > prev else "grip_down",
@@ -1120,7 +1331,8 @@ class Engineer:
             from core.engineer_learn import load as _ll
             prof = _ll(raw.get("track") or "",
                        class_tag(raw.get("car_class") or "")) or {}
-            secs = ((prof.get("dry") or {}).get("sectors")) or []
+            secs = (((prof.get("cond") or {}).get("dry") or {})
+                    .get("sectors")) or []
             if isinstance(secs, list) and len(secs) == 3 \
                     and all(isinstance(x, (int, float)) and x > 0 for x in secs):
                 return [float(secs[0]), float(secs[1]), float(secs[2])]
@@ -1294,6 +1506,32 @@ class Engineer:
         if (not in_box) and spd > 60.0:
             self._st.pop("gb_said", None)
             self._st.pop("gb_wrong", None)
+        # ── ROUTINE PRE-USCITA (prova lunga, motore SPENTO in garage):
+        # come un muretto vero — "dammi due minuti, controllo la macchina
+        # e decidiamo il programma". Se accendi subito: "ok, te lo dico
+        # per strada". Una volta per visita al garage.
+        try:
+            _rem = float(raw.get("race_remaining") or 0.0)
+        except (TypeError, ValueError):
+            _rem = 0.0
+        if in_box and session_kind(raw.get("session_type")) == "practice" \
+                and _rem > 600.0:
+            _nowg = _time.monotonic()
+            if rpm < 300.0 and not self._st.get("gp_said") \
+                    and spd < 2.0:
+                self._st["gp_said"] = True
+                self._st["gp_t"] = _nowg
+                return [self.msg("garage_prep")]
+            if rpm >= 300.0 and self._st.get("gp_said") \
+                    and not self._st.get("gp_go") \
+                    and _nowg - self._st.get("gp_t", 0.0) < 180.0:
+                self._st["gp_go"] = True
+                # motore acceso prima del check: si fa per strada
+                if _nowg - self._st.get("gp_t", 0.0) < 100.0:
+                    return [self.msg("garage_prep_go")]
+        if not in_box:
+            self._st.pop("gp_said", None)
+            self._st.pop("gp_go", None)
         if not in_box or rpm < 300.0 or spd > 25.0:
             return []
         out = []
@@ -1318,15 +1556,39 @@ class Engineer:
         if not self._st.get("gb_said") \
                 and _time.monotonic() - born >= 5.5:
             self._st["gb_said"] = True
-            grip = self._grip_word(raw)
             gomme = self._tyre_word(raw)
             try:
                 tt = int(round(float(raw.get("track_temp") or 0.0)))
             except (TypeError, ValueError):
                 tt = 0
-            if grip and gomme and tt > 0:
-                out.append(self.msg("garage_brief", grip=grip, temp=tt,
-                                    gomme=gomme))
+            # SITUAZIONE VERA del treno: nuova/usata (usura) e
+            # fredda/calda (carcassa) -> frase umana col consiglio giusto
+            new = None
+            try:
+                tw = [float(x) for x in (raw.get("tyre_wear") or [])
+                      if x is not None]
+                if tw:
+                    new = min(tw) >= 97.0
+            except (TypeError, ValueError):
+                new = None
+            warm = None
+            try:
+                tc = [float(x) for x in (raw.get("tyre_carcass") or [])
+                      if x is not None]
+                if tc:
+                    warm = (sum(tc) / len(tc)) >= 55.0
+            except (TypeError, ValueError):
+                warm = None
+            if gomme and tt > 0 and new is not None and warm is not None:
+                code = "garage_out_%s_%s" % (
+                    "new" if new else "used",
+                    "warm" if warm else "cold")
+                out.append(self.msg(code, gomme=gomme, temp=tt))
+            elif gomme and tt > 0:
+                grip = self._grip_word(raw)
+                if grip:
+                    out.append(self.msg("garage_brief", grip=grip,
+                                        temp=tt, gomme=gomme))
         return [m for m in out if m]
 
     def _grip_word(self, raw):
@@ -1442,9 +1704,14 @@ class Engineer:
             ps = int(raw.get("pit_state") or 0)
         except (TypeError, ValueError):
             ps = 0
-        if ps == 0:                                # nessuna richiesta: riarma
+        # SOLO in pista con la RICHIESTA attiva (ps==1). In garage/corsia
+        # pit_state risulta >=1 (sei fermo in piazzola!) e diceva "pronti
+        # per la sosta" dal garage: nonsense.
+        if ps != 1 or raw.get("garage") or raw.get("in_pits") \
+                or raw.get("in_pitlane"):
             self._st.pop("pr_t0", None)
-            self._st.pop("pr_said", None)
+            if ps == 0:
+                self._st.pop("pr_said", None)      # richiesta chiusa: riarma
             return []
         now = _time.monotonic()
         t0 = self._st.get("pr_t0")
@@ -1581,13 +1848,508 @@ class Engineer:
             return []
         prev = self._st.get("ot_place")
         self._st["ot_place"] = cp
-        if prev is None or cp >= prev:
-            return []                       # nessun guadagno (o subito): niente
         now = _time.monotonic()
+        # SOLO 1-vs-1 PULITO: complimenti quando il superato e' ad almeno
+        # 1s dietro. In un gruppo la posizione balla -> rischio complimento
+        # sbagliato: il guadagno resta in sospeso (15s) finche' il gap non
+        # si apre; se la posizione si riperde, si scarta in silenzio.
+        if prev is not None and cp < prev:
+            self._st["ot_pend"] = {"cp": cp, "t": now}
+        pend = self._st.get("ot_pend")
+        if not pend:
+            return []
+        if cp > pend["cp"] or now - pend["t"] > 15.0:
+            self._st.pop("ot_pend", None)
+            return []
+        try:
+            gb = float(riv.get("gap_behind"))
+        except (TypeError, ValueError):
+            return []
+        if gb < 1.0:
+            return []                       # ancora in lotta/gruppo: aspetta
+        self._st.pop("ot_pend", None)
         if now - self._st.get("ot_t", 0.0) < 8.0:
             return []
         self._st["ot_t"] = now
         return [self.msg("overtake_done", pos=cp)]
+
+    def attack_defend_call(self, raw, laps_done):
+        """LOTTA A TIRO (gara): davanti sotto il secondo -> "lo stai
+        prendendo, prova l'attacco"; dietro sotto il secondo -> "ti
+        attacca, difenditi". Una volta per avvicinamento; si riarma
+        quando il gap risale sopra 2.5s."""
+        raw = raw or {}
+        if session_kind(raw.get("session_type")) != "race" \
+                or (laps_done or 0) < 1:
+            return []
+        if raw.get("in_pits") or raw.get("garage"):
+            return []
+        riv = raw.get("rivals") or {}
+        out = []
+        try:
+            ga = float(riv.get("gap_ahead"))
+        except (TypeError, ValueError):
+            ga = None
+        if ga is None or ga > 2.5:
+            self._st.pop("atk_on", None)
+        elif ga <= 1.0 and not self._st.get("atk_on"):
+            self._st["atk_on"] = True
+            nm = self._rival_name(riv.get("name_ahead") or "")
+            out.append(self.msg("gap_attack", name=nm) if nm
+                       else self.msg("gap_attack_simple"))
+        try:
+            gb = float(riv.get("gap_behind"))
+        except (TypeError, ValueError):
+            gb = None
+        if gb is None or gb > 2.5:
+            self._st.pop("dfd_on", None)
+        elif gb <= 1.0 and not self._st.get("dfd_on"):
+            self._st["dfd_on"] = True
+            nm = self._rival_name(riv.get("name_behind") or "")
+            out.append(self.msg("gap_defend", name=nm) if nm
+                       else self.msg("gap_defend_simple"))
+        return out
+
+    def slide_call(self, raw, laps_done):
+        """'STAI SCIVOLANDO': slide laterale SOSTENUTO (slip_lat medio alto
+        su piu' letture consecutive), non il singolo scodata. Un avviso,
+        poi 60s di silenzio. Muto sul bagnato (li' scivolare e' normale
+        e ci pensano i moduli pioggia)."""
+        raw = raw or {}
+        try:
+            if float(raw.get("raining") or 0.0) >= 0.15 \
+                    or self._wet_mounted(raw):
+                self._st["slide_n"] = 0
+                return []
+            spd = float(raw.get("speed") or 0.0)
+        except (TypeError, ValueError):
+            return []
+        sl = raw.get("slip_lat")
+        if not isinstance(sl, (list, tuple)) or len(sl) < 4 or spd < 12.0:
+            self._st["slide_n"] = 0
+            return []
+        try:
+            m = sum(abs(float(x or 0.0)) for x in sl) / len(sl)
+        except (TypeError, ValueError):
+            return []
+        if m >= 3.5:
+            self._st["slide_n"] = self._st.get("slide_n", 0) + 1
+        else:
+            self._st["slide_n"] = 0
+        now = _time.monotonic()
+        if self._st.get("slide_n", 0) >= 5 \
+                and now - self._st.get("slide_t", 0.0) > 60.0:
+            self._st["slide_t"] = now
+            self._st["slide_n"] = 0
+            return [self.msg("car_sliding")]
+        return []
+
+    def stopped_check_call(self, raw, laps_done):
+        """FERMO IN PISTA (>=5s, non box, non pre-via): il muretto
+        controlla — motore spento? danni? — e conferma la ripartenza.
+        + SPIA MOTORE (mOverheating, quella vera di LMU): sostenuta 3s
+        -> avviso critico (dopo la spia il motore puo' MORIRE)."""
+        raw = raw or {}
+        try:
+            spd = float(raw.get("speed") or 0.0)
+            rpm = float(raw.get("rpm") or 0.0)
+            ph = int(raw.get("game_phase") or 0)
+        except (TypeError, ValueError):
+            return []
+        _race = session_kind(raw.get("session_type")) == "race"
+        in_box = bool(raw.get("garage") or raw.get("in_pits")
+                      or raw.get("in_pitlane"))
+        now = _time.monotonic()
+        out = []
+        # ── SPIA MOTORE ──
+        if bool(raw.get("overheating")) and not in_box:
+            t0 = self._st.get("ov_t0")
+            if t0 is None:
+                self._st["ov_t0"] = now
+            elif now - t0 >= 3.0 \
+                    and now - self._st.get("ov_said_t", 0.0) > 45.0:
+                self._st["ov_said_t"] = now
+                out.append(self.msg("engine_over"))
+        else:
+            self._st.pop("ov_t0", None)
+        # ── RIPARTENZA dopo stallo ──
+        if self._st.get("stall_said") and rpm > 3000.0:
+            self._st.pop("stall_said", None)
+            out.append(self.msg("engine_restart"))
+        # ── FERMO IN PISTA ──
+        if in_box or (_race and ph in (1, 2, 3, 4)):
+            self._st.pop("stop_t0", None)
+            self._st.pop("stop_said", None)
+            return out
+        if spd < 1.0:
+            t0 = self._st.get("stop_t0")
+            if t0 is None:
+                self._st["stop_t0"] = now
+            elif now - t0 >= 5.0 and not self._st.get("stop_said"):
+                self._st["stop_said"] = True
+                if rpm < 200.0:
+                    self._st["stall_said"] = True
+                    out.append(self.msg("engine_stall"))
+                else:
+                    dmg = False
+                    try:
+                        a = float(raw.get("aero") or 0.0)
+                        su = raw.get("susp") or []
+                        dmg = a >= 0.05 or any(
+                            float(x or 0.0) >= 0.10
+                            for x in list(su)[:4])
+                    except (TypeError, ValueError):
+                        dmg = False
+                    out.append(self.msg("stopped_check_dmg" if dmg
+                                        else "stopped_check"))
+        elif spd > 5.0:
+            self._st.pop("stop_t0", None)
+            self._st.pop("stop_said", None)
+        return out
+
+    def outlap_tech_call(self, raw, laps_done):
+        """OUT-LAP TECNICO PER CLASSE (solo PROVA): all'uscita dai box la
+        procedura vera da muretto — GT3 dischi in acciaio (scaldi tu, il
+        calore freni entra nella gomma), Hypercar carbonio + gestione SOC
+        (batteria satura = brake-by-wire che taglia un asse), P2/P3
+        carbonio e gomma che vuole due giri. Una volta per stint."""
+        raw = raw or {}
+        if session_kind(raw.get("session_type")) != "practice":
+            return []
+        in_box = bool(raw.get("garage") or raw.get("in_pits")
+                      or raw.get("in_pitlane"))
+        if in_box:
+            self._st["ol_armed"] = True      # prossima uscita = out-lap
+            return []
+        if not self._st.get("ol_armed"):
+            return []
+        try:
+            spd = float(raw.get("speed") or 0.0)
+        except (TypeError, ValueError):
+            return []
+        if spd < 15.0:
+            return []
+        self._st["ol_armed"] = False
+        tag = class_tag(raw.get("car_class") or "")
+        code = {"GT3": "outlap_gt3", "GTE": "outlap_gt3",
+                "HY": "outlap_hy", "P2": "outlap_p2",
+                "P3": "outlap_p3"}.get(tag)
+        return [self.msg(code)] if code else []
+
+    def stint_findings_call(self, raw, laps_done):
+        """ANALISI STINT (docs/ingegneria_telemetria.md): in pista campiona
+        il bilancio sotto/sovrasterzo PER CURVA e l'usura per ruota; al
+        rientro in garage dice i FINDINGS tecnici da ingegnere:
+        "in curva 2 c'è troppo sottosterzo", "abbiamo consumato soprattutto
+        la posteriore destra". + FLAT SPOT confermato dal gioco (mFlat)."""
+        raw = raw or {}
+        st = self._st
+        out = []
+        # FLAT SPOT dal gioco (conferma vera, non inferenza)
+        wf = raw.get("wheel_flat")
+        if isinstance(wf, (list, tuple)) and len(wf) >= 4:
+            W = (self._L("anteriore sinistra", "front left",
+                         "delantera izquierda", "avant gauche"),
+                 self._L("anteriore destra", "front right",
+                         "delantera derecha", "avant droite"),
+                 self._L("posteriore sinistra", "rear left",
+                         "trasera izquierda", "arriere gauche"),
+                 self._L("posteriore destra", "rear right",
+                         "trasera derecha", "arriere droite"))
+            fsaid = st.setdefault("flat_conf", set())
+            for i in range(4):
+                if bool(wf[i]) and i not in fsaid:
+                    fsaid.add(i)
+                    out.append(self.msg("flatspot_confirmed", ruota=W[i]))
+                elif not wf[i]:
+                    fsaid.discard(i)
+        in_box = bool(raw.get("garage") or raw.get("in_pits")
+                      or raw.get("in_pitlane"))
+        if not in_box:
+            try:
+                spd = float(raw.get("speed") or 0.0)
+                ld = float(raw.get("lapdist") or -1.0)
+            except (TypeError, ValueError):
+                return out
+            if spd < 12.0 or ld < 0:
+                return out
+            st["an_on"] = True
+            if "an_w0" not in st:
+                tw = raw.get("tyre_wear")
+                if isinstance(tw, (list, tuple)) and len(tw) >= 4:
+                    try:
+                        st["an_w0"] = [float(x) for x in tw[:4]]
+                    except (TypeError, ValueError):
+                        pass
+            sl = raw.get("slip_lat")
+            if isinstance(sl, (list, tuple)) and len(sl) >= 4:
+                try:
+                    fa = (abs(float(sl[0] or 0))
+                          + abs(float(sl[1] or 0))) / 2.0
+                    ra = (abs(float(sl[2] or 0))
+                          + abs(float(sl[3] or 0))) / 2.0
+                except (TypeError, ValueError):
+                    return out
+                if fa > 0.4 or ra > 0.4:
+                    near, ndd = None, 70.0
+                    for c in self._learned_corners(raw):
+                        try:
+                            cd = float(c.get("d"))
+                        except (TypeError, ValueError):
+                            continue
+                        if c.get("n") is None:
+                            continue
+                        gap = abs(cd - ld)
+                        if gap < ndd:
+                            near, ndd = c.get("n"), gap
+                    if near is not None:
+                        acc = st.setdefault("an_c", {}) \
+                            .setdefault(near, [0.0, 0.0, 0])
+                        acc[0] += fa
+                        acc[1] += ra
+                        acc[2] += 1
+            return out
+        # ── IN GARAGE: findings, una volta per stint analizzato ──
+        if not st.pop("an_on", None):
+            return out
+        data = st.pop("an_c", {}) or {}
+        cand = []
+        for n, (fs, rs, c) in data.items():
+            if c < 8:
+                continue
+            fm, rm = fs / c, rs / c
+            if fm >= 0.8 and rm > 0.05 and fm / rm >= 1.4:
+                cand.append((fm / rm, n, "u"))
+            elif rm >= 0.8 and fm > 0.05 and rm / fm >= 1.4:
+                cand.append((rm / fm, n, "o"))
+        if cand:
+            cand.sort(reverse=True)
+            _, n, kind = cand[0]
+            out.append(self.msg("debrief_balance_us" if kind == "u"
+                                else "debrief_balance_os", turn=n))
+        w0 = st.pop("an_w0", None)
+        tw = raw.get("tyre_wear")
+        if w0 and isinstance(tw, (list, tuple)) and len(tw) >= 4:
+            try:
+                dw = [max(0.0, w0[i] - float(tw[i])) for i in range(4)]
+            except (TypeError, ValueError):
+                dw = None
+            if dw and max(dw) > 0.8 \
+                    and max(dw) - min(dw) >= 0.35 * max(dw):
+                W = (self._L("anteriore sinistra", "front left",
+                             "delantera izquierda", "avant gauche"),
+                     self._L("anteriore destra", "front right",
+                             "delantera derecha", "avant droite"),
+                     self._L("posteriore sinistra", "rear left",
+                             "trasera izquierda", "arriere gauche"),
+                     self._L("posteriore destra", "rear right",
+                             "trasera derecha", "arriere droite"))
+                mi = max(range(4), key=lambda i: dw[i])
+                out.append(self.msg("debrief_wear_wheel", ruota=W[mi]))
+        return out
+
+    def corner_coach_call(self, raw, laps_done):
+        """COACH PER CURVA (solo PROVA, pista appresa):
+        - STACCATE: confronta il tuo punto di frenata col riferimento
+          appreso (brake_d per curva). Se stacchi >=15m PRIMA del tuo
+          best per 2 volte nella stessa curva -> "puoi frenare più tardi
+          in curva X di N metri". Una volta per curva a sessione.
+        - PATTINAMENTO: slide posteriore col gas aperto in uscita curva
+          ripetuto -> "dosa il gas in uscita dalla curva X"."""
+        raw = raw or {}
+        if session_kind(raw.get("session_type")) != "practice":
+            return []
+        corners = self._learned_corners(raw)
+        if not corners:
+            return []
+        out = []
+        # ── STACCATE vs riferimento ──
+        evs = raw.get("brake_events") or []
+        last_t = self._st.get("cc_t", 0.0)
+        said = self._st.setdefault("cc_said", set())
+        cnt = self._st.setdefault("cc_cnt", {})
+        for ev in evs:
+            try:
+                t, ld = float(ev[0]), float(ev[1])
+            except (TypeError, ValueError, IndexError):
+                continue
+            if t <= last_t:
+                continue
+            self._st["cc_t"] = t
+            best, bd = None, 1e9
+            for c in corners:
+                try:
+                    cd = float(c.get("d")); bk = float(c.get("brake_d") or 0)
+                except (TypeError, ValueError):
+                    continue
+                if bk <= 0 or c.get("n") is None:
+                    continue
+                ref = cd - bk               # dove stacca il tuo best
+                gap = ld - ref
+                if -120.0 <= gap <= 120.0 and abs(gap) < abs(bd):
+                    best, bd = c, gap
+            if best is None:
+                continue
+            n = best.get("n")
+            if bd <= -15.0 and n not in said:
+                cnt[n] = cnt.get(n, 0) + 1
+                if cnt[n] >= 2:
+                    said.add(n)
+                    out.append(self.msg("brake_later", turn=n,
+                                        meters=int(round(-bd / 5.0) * 5)))
+        # ── PATTINAMENTO in uscita ──
+        try:
+            thr = float(raw.get("throttle") or 0.0)
+            sl = raw.get("slip_lat") or []
+            spd = float(raw.get("speed") or 0.0)
+            ld = float(raw.get("lapdist") or -1.0)
+            rear = (abs(float(sl[2] or 0)) + abs(float(sl[3] or 0))) / 2.0 \
+                if len(sl) >= 4 else 0.0
+        except (TypeError, ValueError):
+            return out
+        if thr > 0.7 and rear >= 2.0 and 8.0 < spd < 45.0 and ld >= 0:
+            wsc = self._st.setdefault("ws_cnt", {})
+            wsaid = self._st.setdefault("ws_said", set())
+            for c in corners:
+                try:
+                    cd = float(c.get("d"))
+                except (TypeError, ValueError):
+                    continue
+                n = c.get("n")
+                if n is None or n in wsaid:
+                    continue
+                if cd <= ld <= cd + 200.0:
+                    wsc[n] = wsc.get(n, 0) + 1
+                    if wsc[n] >= 3:
+                        wsaid.add(n)
+                        out.append(self.msg("wheelspin", turn=n))
+                    break
+        return out
+
+    def kerb_call(self, raw, laps_done):
+        """CORDOLI VIOLENTI: colpi secchi ripetuti nella stessa zona (dal
+        rilevatore 5Hz: ruota sul cordolo + botta di sospensione). Avviso
+        tecnico: scomponi la macchina e stressi le sospensioni. Cluster
+        +-60m, >=3 colpi, una zona per sessione."""
+        raw = raw or {}
+        evs = raw.get("kerb_events") or []
+        if len(evs) < 3:
+            return []
+        pts = []
+        for e in evs:
+            try:
+                pts.append(float(e))
+            except (TypeError, ValueError):
+                continue
+        pts.sort()
+        clusters = []
+        for ld in pts:
+            if clusters and abs(ld - clusters[-1]["d"]) <= 60.0:
+                c = clusters[-1]
+                c["d"] = (c["d"] * c["n"] + ld) / (c["n"] + 1)
+                c["n"] += 1
+            else:
+                clusters.append({"d": ld, "n": 1})
+        said = self._st.setdefault("kerb_zones", set())
+        corners = self._learned_corners(raw)
+        for c in clusters:
+            if c["n"] < 3:
+                continue
+            zid = int(c["d"] // 120)
+            if zid in said:
+                continue
+            said.add(zid)
+            cn = self._corner_name(corners, c["d"])
+            if cn:
+                return [self.msg("kerb_zone_corner", n=cn)]
+            return [self.msg("kerb_zone")]
+        return []
+
+    def setup_coach(self, raw, laps_done):
+        """SOLO PROVA: consigli d'ASSETTO dalla telemetria dei giri —
+        pressioni sotto la finestra vera (docs/dati_lmu.md), squilibrio
+        termico tra assali (sottosterzo/sovrasterzo in arrivo), gomma
+        singola troppo calda. Un consiglio ogni 4 giri, mai in gara
+        (li' si toccano solo elettronica e bias, gia' coperti)."""
+        raw = raw or {}
+        if session_kind(raw.get("session_type")) != "practice":
+            return []
+        # CAMPIONA sempre l'equilibrio di slide davanti/dietro (in curva):
+        # e' la base del giudizio "fai fatica a inserire" (sottosterzo)
+        # vs "il posteriore scappa" (sovrasterzo).
+        sl = raw.get("slip_lat")
+        try:
+            spd = float(raw.get("speed") or 0.0)
+        except (TypeError, ValueError):
+            spd = 0.0
+        if isinstance(sl, (list, tuple)) and len(sl) >= 4 and spd > 15.0 \
+                and not raw.get("in_pits") and not raw.get("garage"):
+            try:
+                fa_s = (abs(float(sl[0] or 0)) + abs(float(sl[1] or 0))) / 2.0
+                ra_s = (abs(float(sl[2] or 0)) + abs(float(sl[3] or 0))) / 2.0
+                if fa_s > 0.4 or ra_s > 0.4:          # solo in appoggio
+                    self._st["sc_fa"] = self._st.get("sc_fa", 0.0) + fa_s
+                    self._st["sc_ra"] = self._st.get("sc_ra", 0.0) + ra_s
+                    self._st["sc_ns"] = self._st.get("sc_ns", 0) + 1
+            except (TypeError, ValueError):
+                pass
+        if (laps_done or 0) < 4 or raw.get("in_pits") or raw.get("garage"):
+            return []
+        if laps_done - self._st.get("sc_lap", -9) < 4:
+            return []
+        W = (self._L("anteriore sinistra", "front left",
+                     "delantera izquierda", "avant gauche"),
+             self._L("anteriore destra", "front right",
+                     "delantera derecha", "avant droite"),
+             self._L("posteriore sinistra", "rear left",
+                     "trasera izquierda", "arriere gauche"),
+             self._L("posteriore destra", "rear right",
+                     "trasera derecha", "arriere droite"))
+        # pressione minima A CALDO (kPa) dalle finestre vere per classe
+        gt = class_tag(raw.get("car_class") or "") in ("GT3", "GTE")
+        pmin = 190.0 if gt else 180.0
+        try:
+            plist = [float(x or 0.0) for x in (raw.get("tyre_press")
+                                               or [])[:4]]
+        except (TypeError, ValueError):
+            plist = []
+        for i, p in enumerate(plist):
+            if 50.0 < p < pmin:
+                self._st["sc_lap"] = laps_done
+                return [self.msg("tyre_press_lo", tyre=W[i])]
+        try:
+            ti = [float(x or 0.0) for x in (raw.get("tyre_inner")
+                                            or [])[:4]]
+        except (TypeError, ValueError):
+            ti = []
+        if len(ti) == 4 and all(t > 30.0 for t in ti):
+            fa = (ti[0] + ti[1]) / 2.0
+            ra = (ti[2] + ti[3]) / 2.0
+            d = fa - ra
+            if abs(d) >= 8.0:
+                self._st["sc_lap"] = laps_done
+                return [self.msg("tyres_axle_front" if d > 0
+                                 else "tyres_axle_rear",
+                                 d=int(round(abs(d))))]
+            mx = max(range(4), key=lambda k: ti[k])
+            if ti[mx] - min(ti) >= 12.0:
+                self._st["sc_lap"] = laps_done
+                return [self.msg("tyre_imbalance", tyre=W[mx])]
+        # EQUILIBRIO INSERIMENTO dai campioni di slide (40+ letture):
+        # davanti che scivola molto piu' del dietro = sottosterzo (fai
+        # fatica a inserire) -> consiglio d'assetto; viceversa sovrasterzo.
+        ns = self._st.get("sc_ns", 0)
+        if ns >= 40:
+            fa_m = self._st.pop("sc_fa", 0.0) / ns
+            ra_m = self._st.pop("sc_ra", 0.0) / ns
+            self._st["sc_ns"] = 0
+            if fa_m > ra_m * 1.5 and fa_m >= 0.8:
+                self._st["sc_lap"] = laps_done
+                return [self.msg("setup_understeer")]
+            if ra_m > fa_m * 1.5 and ra_m >= 0.8:
+                self._st["sc_lap"] = laps_done
+                return [self.msg("setup_oversteer")]
+        return []
 
     def stint_debrief(self, raw, laps_done):
         """DEBRIEF di stint (a voce, in garage a fine stint): giri, miglior giro,
@@ -1697,6 +2459,15 @@ class Engineer:
         per settore mentre giri; a fine giro, se un settore e' nettamente piu'
         bagnato degli altri, te lo dice. (v2)"""
         raw = raw or {}
+        # PISTA ASCIUTTA E NIENTE PIOGGIA: la mappa NON parla (i codici
+        # superficie da soli davano "settore piu' bagnato" sull'asciutto)
+        try:
+            if float(raw.get("raining") or 0.0) < 0.05 \
+                    and float(raw.get("wetness") or 0.0) < 0.10:
+                self._sec_wet = [[0, 0], [0, 0], [0, 0]]
+                return []
+        except (TypeError, ValueError):
+            return []
         sw = getattr(self, "_sec_wet", None)
         if not isinstance(sw, list):
             sw = self._sec_wet = [[0, 0], [0, 0], [0, 0]]
@@ -1746,7 +2517,7 @@ class Engineer:
                 wet = float(raw.get("wetness") or 0.0) > 0.25
             except (TypeError, ValueError):
                 pass
-            cond = prof.get("wet" if wet else "dry") or {}
+            cond = (prof.get("cond") or {}).get("wet" if wet else "dry") or {}
             corners = cond.get("corners") or []
             if not corners:
                 # la geometria non cambia con la pioggia: se solo
@@ -1823,6 +2594,11 @@ class Engineer:
                 # solo il consiglio sulla gomma che blocca
                 out.append(self.msg("lock_wheel_bias",
                                     gomma=dwn[wi % 4]))
+            # SPIATTELLAMENTO (LMU lo modella e RESTA sul treno): dopo
+            # bloccaggi ripetuti, invita a sentire la vibrazione
+            if not self._st.get("flat_said"):
+                self._st["flat_said"] = True
+                out.append(self.msg("flatspot_check"))
             break
         if not self._st.get("lock_bias") and len(pts) >= 5:
             cnt = {}
@@ -1984,19 +2760,60 @@ class Engineer:
         return [m for m in out if m]
 
     def session_end(self, raw):
-        """Fine sessione: una volta, al TUO traguardo (gara) o tempo zero."""
+        """Fine sessione, una volta. In GARA il muretto saluta col
+        PIAZZAMENTO a tre voci (ingegnere, stratega, spotter — v2);
+        in QUALI la POLE se e' tua; altrimenti il saluto semplice."""
         raw = raw or {}
         if self._st.get("end_said"):
             return []
         fl = raw.get("flags") or {}
         phase = int(raw.get("game_phase") or 0)
-        is_race = session_kind(raw.get("session_type")) == "race"
+        kind = session_kind(raw.get("session_type"))
+        is_race = kind == "race"
         ended = bool(fl.get("finished")) and phase >= 5 if is_race else \
             (bool(fl.get("checkered")) and phase >= 5)
         if not ended:
             return []
         self._st["end_said"] = True
+        riv = raw.get("rivals") or {}
+        try:
+            pos = int(riv.get("class_place") or 0)
+        except (TypeError, ValueError):
+            pos = 0
+        if is_race and pos > 0:
+            good = pos <= 3
+            p = "P%d" % pos
+            return [self.msg("fin_eng_good" if good else "fin_eng_ok",
+                             pos=p),
+                    self.msg("fin_strat_good" if good else "fin_strat_ok",
+                             pos=p),
+                    self.msg("fin_spot_good" if good else "fin_spot_ok",
+                             pos=p)]
+        if kind == "qualy" and pos == 1:
+            return [self.msg("pole_pos"), self.msg("session_end")]
         return [self.msg("session_end")]
+
+    def welcome_call(self, raw):
+        """BENVENUTO in pista (una volta per sessione, v2): canali radio
+        aperti, siamo con te. Parte alla prima uscita vera."""
+        raw = raw or {}
+        sig = (raw.get("track"), raw.get("session_type"))
+        if self._st.get("wc_sig") == sig:
+            return []
+        try:
+            spd = float(raw.get("speed") or 0.0)
+        except (TypeError, ValueError):
+            return []
+        if spd < 10.0 or raw.get("garage") or raw.get("in_pits"):
+            return []
+        self._st["wc_sig"] = sig
+        try:
+            from telemetry.db import _short_track
+            pista = _short_track(raw.get("track") or "") or "pista"
+        except Exception:
+            pista = str(raw.get("track") or "pista")
+        nome = self._rival_name(raw.get("driver") or "") or ""
+        return [self.msg("brief_spot", nome=nome, pista=pista)]
 
     def pit_ack(self, raw, laps_done):
         """Sosta FATTA: presa d'atto + ricalibrazione (una per sosta)."""
@@ -2247,11 +3064,21 @@ class Engineer:
                 self._st["bk_st"] = "cold" if bmin < b_cold else "ok"
                 if self._st["bk_st"] == "cold":
                     out.append(self.msg("brakes_cold"))
-            if bmax > b_over and not self._st.get("bk_hot"):
-                self._st["bk_hot"] = True
-                out.append(self.msg("brakes_hot"))
-            elif bmax < b_over - 30.0:
-                self._st.pop("bk_hot", None)
+            # SOSTENUTO: "freni caldi" solo se restano sopra soglia per >= 4s
+            # DI FILA (un picco di staccata non basta; se si raffreddano tra le
+            # curve il timer riparte). Surriscaldamento VERO, non il picco.
+            if bmax > b_over:
+                _t0 = self._st.get("bk_over_t0")
+                if _t0 is None:
+                    self._st["bk_over_t0"] = _time.monotonic()
+                elif _time.monotonic() - _t0 >= 4.0 \
+                        and not self._st.get("bk_hot"):
+                    self._st["bk_hot"] = True
+                    out.append(self.msg("brakes_hot"))
+            else:
+                self._st.pop("bk_over_t0", None)      # sceso: riparte il timer
+                if bmax < b_over - 30.0:
+                    self._st.pop("bk_hot", None)
         return [m for m in out if m]
 
     def battery_check(self, raw, laps_done):
@@ -2305,9 +3132,16 @@ class Engineer:
 
     def status_update(self, raw, laps_done):
         """GARA: quadro periodico ogni 5 giri (gomme o carburante,
-        alternati). Info budgetate dall'arbitro."""
+        alternati). Il PRIMO report arriva dopo 5 giri VERI (al giro 1
+        un "check gomme" non ha senso) e le gomme si commentano solo
+        quando c'e' usura da commentare."""
         raw = raw or {}
-        if not laps_done or laps_done - self._st.get("su_lap", -9) < 5:
+        if not laps_done:
+            return []
+        if self._st.get("su_lap") is None:
+            self._st["su_lap"] = laps_done       # ancora: conta da QUI
+            return []
+        if laps_done - self._st["su_lap"] < 5:
             return []
         self._st["su_lap"] = laps_done
         flip = self._st["su_flip"] = not self._st.get("su_flip", False)
@@ -2317,6 +3151,8 @@ class Engineer:
                 worst = min(float(x) for x in (tw or []) if x is not None)
             except (TypeError, ValueError):
                 return []
+            if worst > 93.0:
+                return []                        # gomme fresche: nulla da dire
             return [self.msg("status_tyre", gomme=int(round(worst)))]
         per = 0.0
         try:
@@ -2469,14 +3305,43 @@ class Engineer:
         self._st["pos_prev"] = pos
         if prev is None or pos == prev:
             return []
-        _q = session_kind(raw.get("session_type")) == "qualy"
+        _kind = session_kind(raw.get("session_type"))
+        if _kind != "race":
+            # PROVA/QUALI: mai "guadagno/ti hanno passato", solo posizione attuale
+            if _kind == "qualy" and pos == 1:
+                return [self.msg("pos_pole", pos="P%d" % pos)]
+            return [self.msg("pos_now", pos="P%d" % pos)]
         if pos == 1:
-            code = "pos_pole" if _q else "pos_lead"
+            code = "pos_lead"
         elif pos < prev:
             code = "pos_gain"
         else:
             code = "pos_loss"
         return [self.msg(code, pos="P%d" % pos, prev="P%d" % prev)]
+
+    def run_abort_call(self, raw):
+        """PROVA/QUALI: annuncia 'ok run abortito, raffredda' NEL MOMENTO in cui
+        sul dash appare ABORTED (delta > soglia a meta' giro), non a giro chiuso.
+        Il dash scrive l'evento in dash_abort.json; qui lo leggo. Una volta per
+        evento; muto in pit/garage."""
+        raw = raw or {}
+        if session_kind(raw.get("session_type")) == "race":
+            return []
+        try:
+            from core.paths import USER_DIR
+            p = USER_DIR / "dash_abort.json"
+            if not p.exists():
+                return []
+            ev = _json.loads(p.read_text(encoding="utf-8"))
+            t = float(ev.get("t") or 0.0)
+        except Exception:
+            return []
+        if t <= self._st.get("ab_dash_t", 0.0):  # gia' annunciato questo abort
+            return []
+        self._st["ab_dash_t"] = t
+        if raw.get("in_pits") or raw.get("in_pitlane") or raw.get("garage"):
+            return []
+        return [self.msg("run_aborted")]
 
     def strategy_check(self, raw, pace=None, laps_done=0):
         """COACHING CONSUMO vs TARGET (il cuore endurance): ogni 4 giri
@@ -2696,6 +3561,72 @@ class Engineer:
                 best[cid] = last
         return out
 
+    def limits_review_call(self, raw):
+        """TRACK LIMITS, ciclo VERO dal trace (race_control, non piu'
+        mCountLapFlag rumoroso): annuncia l'apertura dell'esame ("taglio
+        sotto esame, restituisci"), poi l'ESITO — perdonato (limits_clear),
+        warning in gara (limits_warning) o giro cancellato in prova/quali
+        (tlimits_lap). La penalita' DT arriva dal flusso penalita'."""
+        raw = raw or {}
+        try:
+            from core.race_control import track_limits_state
+            st = track_limits_state()
+        except Exception:
+            return []
+        # SOLO la POSIZIONE DA RIDARE (sorpasso tagliando, dal trace: e'
+        # l'unico dato che la shared memory non ha). Tutto il resto —
+        # "track preso", conto punti, giro cancellato — lo annuncia
+        # tlimits_call dagli STEPS (istantanei). Niente doppioni.
+        if st.get("review"):
+            try:
+                _pd = float(st.get("placediff") or 0.0)
+            except (TypeError, ValueError):
+                _pd = 0.0
+            if session_kind(raw.get("session_type")) == "race" \
+                    and _pd > 0 and not self._st.get("lim_pos_said"):
+                self._st["lim_pos_said"] = True
+                return [self.msg("limits_review_pos")]
+            return []
+        self._st.pop("lim_pos_said", None)
+        return []
+
+    def community_spotter(self, raw):
+        """SPOTTER COMMUNITY: quando in pista c'e' un pilota noto ai ref online
+        lo annuncia UNA volta a sessione, col suo tempo di riferimento su
+        QUESTA pista (classe che sta guidando) oppure 'non ha ancora un tempo
+        qui'. Chi e' stato detto viene congelato; i nuovi che arrivano vengono
+        annunciati a loro volta. Uno per tick (niente raffiche). Per ORA non
+        esclude il giocatore (serve a verificarne il funzionamento da soli)."""
+        raw = raw or {}
+        field = raw.get("field") or {}
+        comm = raw.get("comm") or {}
+        times = comm.get("times") or {}
+        known = comm.get("known") or set()
+        if not field or (not times and not known):
+            return []                       # dati community non pronti: aspetta
+        sig = (raw.get("track"), raw.get("session_type"))
+        if self._st.get("comm_sig") != sig:  # nuova sessione: ri-annuncia tutti
+            self._st["comm_sig"] = sig
+            self._st["comm_said"] = set()
+        said = self._st.setdefault("comm_said", set())
+        for _cid, c in field.items():
+            nm = (c.get("name") or "").strip()
+            if not nm:
+                continue
+            low = nm.lower()
+            if low in said:
+                continue                    # gia' annunciato: congelato
+            tag = class_tag(c.get("cls") or "")
+            ms = times.get((low, tag))
+            if not (low in known or ms is not None):
+                continue                    # non e' un pilota community: salta
+            said.add(low)                   # freeze: una sola volta a sessione
+            if ms:
+                return [self.msg("community_seen", name=nm,
+                                 time=_fmt_lap_round(ms / 1000.0))]
+            return [self.msg("community_seen_notime", name=nm)]
+        return []
+
     def rain_pace_loss(self, raw, laps_done):
         """SU SLICK COL BAGNATO: tiene il tuo passo ASCIUTTO come riferimento;
         se ora il giro crolla oltre soglia (stai scivolando) suggerisce le wet.
@@ -2759,6 +3690,29 @@ class Engineer:
             return [self.msg("weather_dry", pista=pista)]
         return [self.msg("weather_wet", pista=pista)]
 
+    def green_call(self, raw):
+        """VIA / RIPARTENZA in gara. Al passaggio a bandiera verde
+        (mGamePhase -> 5): dalla formazione/countdown = 'Verde, vai!'
+        (race_start); da gialla/stop = 'Verde, si riparte.' (green_restart).
+        Una volta per transizione (solo GARA)."""
+        raw = raw or {}
+        try:
+            styp = int(raw.get("session_type") or 0)
+            phase = int(raw.get("game_phase") or 0)
+        except (TypeError, ValueError):
+            return []
+        prev = self._st.get("grn_prev")
+        self._st["grn_prev"] = phase
+        if styp < 10:                        # solo GARA
+            return []
+        if prev is None or phase != 5 or prev == 5:
+            return []                        # nessuna transizione VERSO il verde
+        if prev in (0, 1, 2, 3, 4):          # da formazione/countdown = VIA
+            return [self.msg("race_start")]
+        if prev in (6, 7):                   # da gialla/stop = RIPARTENZA
+            return [self.msg("green_restart")]
+        return []
+
     def briefing(self, raw):
         """PROVA: briefing APPRESO — se conosco gia' la pista dai tuoi
         giri passati, lo dico (best, curve mappate). Una volta."""
@@ -2769,7 +3723,7 @@ class Engineer:
             from core.engineer_learn import load as _learn_load
             prof = _learn_load(raw.get("track") or "",
                                class_tag(raw.get("car_class") or "")) or {}
-            cond = prof.get("dry") or {}
+            cond = (prof.get("cond") or {}).get("dry") or {}
             best = cond.get("best_lap")
             n = int(cond.get("samples") or 0)
             fpl = cond.get("fuel_per_lap")
@@ -2810,21 +3764,75 @@ class Engineer:
             return []
         self._st["tl_steps"] = steps
         if steps < ps:
+            self._st.pop("tl_half", None)    # conto azzerato: riarma
+            self._st.pop("tl_corners", None)
             return []       # azzerato (penalita' scontata o reset sessione)
-        # steps AUMENTATI. pen (mTrackLimitsStepsPerPenalty) e' la SOGLIA:
-        # penalita' quando steps >= pen; 'left' = punti che restano.
-        turn = self._corner_at(raw)          # quale curva (se pista appresa)
-        if pen > 0:
+        # steps AUMENTATI = TRACK PRESO, ADESSO (la shared memory scatta
+        # all'istante, verificato col log di calibrazione — il trace invece
+        # arriva a blocchi in ritardo e perdeva gli esiti). Mappa verificata:
+        # 1 punto = per_point steps (4), penalita' a per_penalty steps (20).
+        turn = self._corner_at(raw)          # curva ESATTA (siamo sul posto)
+        try:
+            _pp = int(raw.get("tl_point") or 0)
+        except (TypeError, ValueError):
+            _pp = 0
+        out = []
+        _race = session_kind(raw.get("session_type")) == "race"
+        if not _race:
+            # prova/quali: niente punti, il taglio costa il GIRO
+            out.append(self.msg("tlimits_lap"))
+        elif _pp > 0 and pen > 0:
+            _q, _r = divmod(steps, _pp)
+            _half = _r != 0 and abs(_r * 2 - _pp) <= 1
+            if _r == 0:
+                _tot = self._L("un punto", "one point", "un punto",
+                               "un point") if _q == 1 \
+                    else self._L("%d punti" % _q, "%d points" % _q,
+                                 "%d puntos" % _q, "%d points" % _q)
+            elif _half and _q == 0:
+                _tot = self._L("mezzo punto", "half a point",
+                               "medio punto", "un demi-point")
+            elif _half and _q == 1:
+                _tot = self._L("un punto e mezzo", "one and a half points",
+                               "un punto y medio", "un point et demi")
+            elif _half:
+                _tot = self._L("%d punti e mezzo" % _q,
+                               "%d and a half points" % _q,
+                               "%d puntos y medio" % _q,
+                               "%d points et demi" % _q)
+            else:
+                _tot = self._L(
+                    ("%.1f punti" % (steps / float(_pp))).replace(".", ","),
+                    "%.1f points" % (steps / float(_pp)),
+                    ("%.1f puntos" % (steps / float(_pp))).replace(".", ","),
+                    ("%.1f points" % (steps / float(_pp))).replace(".", ","))
+            out.append(self.msg("limits_warning_n", tot=_tot,
+                                max=int(round(pen / float(_pp)))))
+        else:
+            out.append(self.msg("limits_warning"))
+        # conto PER CURVA: dal 2° taglio nella stessa curva
+        if turn is not None:
+            tc = self._st.setdefault("tl_corners", {})
+            tc[turn] = tc.get(turn, 0) + 1
+            if tc[turn] >= 2:
+                out.append(self.msg("tlimits_repeat", turn=turn,
+                                    count=tc[turn]))
+        if pen > 0 and _race:
             left = pen - steps
+            left_say = max(1, int(round(left / float(_pp)))) if _pp > 0 \
+                else left
             if left <= 0:
-                if turn:
-                    return [self.msg("tlimits_pen_where", turn=turn)]
-                return [self.msg("tlimits_pen")]
-            if left <= 2:
-                if turn:
-                    return [self.msg("tlimits_warn_where", left=left, turn=turn)]
-                return [self.msg("tlimits_warn", left=left)]
-        return []
+                out.append(self.msg("tlimits_pen_where", turn=turn)
+                           if turn else self.msg("tlimits_pen"))
+            elif (left <= _pp * 1.5 if _pp > 0 else left <= 2):
+                out.append(self.msg("tlimits_warn_where", left=left_say,
+                                    turn=turn)
+                           if turn else self.msg("tlimits_warn",
+                                                 left=left_say))
+            elif steps >= pen * 0.5 and not self._st.get("tl_half"):
+                self._st["tl_half"] = True
+                out.append(self.msg("tlimits_warn", left=left_say))
+        return out
 
     def _corner_at(self, raw):
         """Numero della curva APPRESA piu' vicina alla posizione attuale, o
@@ -3026,17 +4034,35 @@ class Engineer:
         # MACCHINA ANDATA (ritiro dichiarato): silenzio tutto tranne il ritiro
         if self._st.get("terminal") and not code.startswith("retire_"):
             return False, "terminale: silenzio (macchina andata)"
+        # LEGGE INCIDENTE: dopo una botta forte, per 12s la radio parla SOLO
+        # di sicurezza/danni/stato pilota — meteo, gap e coaching in quel
+        # momento suonano scollegati dalla realta' (immersione).
+        _cri = self._st.get("crisis_t")
+        if _cri and _time.monotonic() - _cri < 12.0 \
+                and (m or {}).get("level") != "critical" \
+                and not code.startswith(self._LAW_CRISIS_KEEP):
+            return False, "incidente in corso: solo sicurezza/danni (12s)"
+        # GIALLA ATTIVA (SOLO i 500m davanti, mai i settori): niente
+        # small-talk di strategia/meteo/coaching finche' il pericolo
+        # e' davanti — la radio parla di sicurezza, come un muretto vero.
+        _flw = raw.get("flags") or {}
+        if _flw.get("yellow_dist") is not None \
+                and (m or {}).get("level") != "critical" \
+                and not code.startswith(self._LAW_CRISIS_KEEP):
+            return False, "gialla attiva: solo sicurezza/bandiere"
         # LEGGE CENTRALE DI STATO — prima di ogni logica di modulo
         in_lane = bool(raw.get("in_pits") or raw.get("in_pitlane")
                        or raw.get("garage"))
-        if in_lane and code.startswith(self._LAW_PIT_MUTE):
-            return False, "legge stato: player in corsia/box"
+        if in_lane and (m or {}).get("level") != "critical" \
+                and not code.startswith(self._LAW_PIT_KEEP):
+            return False, "in corsia/box: solo pit, sicurezza e debrief"
         try:
             inbound = int(raw.get("pit_state") or 0) != 0
         except (TypeError, ValueError):
             inbound = False
-        if inbound and code.startswith(self._LAW_INBOUND_MUTE):
-            return False, "legge stato: pit chiamato"
+        if inbound and (m or {}).get("level") != "critical" \
+                and not code.startswith(self._LAW_PIT_KEEP):
+            return False, "pit chiamato: solo pit e sicurezza"
         # TIPO SESSIONE: in quali sei solo (niente bandiere/traffico dallo
         # spotter); il traffico di rientro pit ha senso SOLO in gara.
         _kind = session_kind(raw.get("session_type"))
@@ -3046,6 +4072,15 @@ class Engineer:
             return False, "prova privata: niente riferimenti agli altri"
         if _kind != "race" and code.startswith(("pit_exit",)):
             return False, "pit-exit traffic: solo in gara"
+        # BRIEFING SOLO PRE-VIA (gara): i briefing si dicono nella rolling
+        # start; dal 1° giro completato in poi non escono piu' (distraggono).
+        if _kind == "race" and code in self._ARB_BRIEFING:
+            try:
+                if int(raw.get("game_phase") or 0) >= 5 \
+                        and int(raw.get("laps_completed") or 0) >= 1:
+                    return False, "briefing: solo alla rolling start (pre-verde)"
+            except (TypeError, ValueError):
+                pass
         riv = raw.get("rivals") or {}
 
         def _gok(v):
@@ -3075,7 +4110,8 @@ class Engineer:
 
     _ARB_LVL = {"critical": 3, "warn": 2, "info": 1}
     _ARB_BRIEFING = ("briefing_plan", "plan_wx_arc", "plan_model_stops",
-                     "plan_prelim")
+                     "plan_prelim", "briefing_laps", "briefing_strat",
+                     "briefing_manage", "briefing_push", "briefing_save")
 
     def _arbiter(self, msgs):
         """Coerenza TRA frasi: budget sui periodici, briefing atomico."""

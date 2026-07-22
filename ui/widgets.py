@@ -393,7 +393,7 @@ def _abbr_num(n):
 def _chip(text, bg, fg="#ffffff"):
     lab = QLabel(text)
     lab.setStyleSheet(
-        f"QLabel {{ background:{bg}; color:{fg}; font-family:'Heebo';"
+        f"QLabel {{ background:{bg}; color:{fg}; font-family:'Archivo SemiExpanded';"
         f" font-weight:700; font-size:10px; border-radius:7px; padding:2px 8px; }}"
     )
     return lab

@@ -302,6 +302,62 @@ class SharedMemory:
         except Exception:
             return None
 
+    def contact_driver(self, max_dist=4.5):
+        """Chi hai TOCCATO davvero, dal PUNTO d'urto 3D (mLastImpactPos del
+        player) + le posizioni 3D di tutte le auto (mPos). L'auto piu' vicina
+        al punto d'urto entro max_dist = il contatto; nessuna auto vicina =
+        MURO/cordolo -> None. LMU non espone 'con chi': lo ricaviamo dal punto
+        d'urto (stesso principio dei replay di LMU Steward). Ritorna
+        {name, cls, dist, et} o None."""
+        try:
+            sim = self._get_sim()
+            if not sim or not sim.telemetry:
+                return None
+            si = sim.scoring.scoringInfo
+            num = int(si.mNumVehicles)
+            pid = None
+            for i in range(min(num, _MAX_VEH)):
+                if int(sim.scoring.vehScoringInfo[i].mIsPlayer) == 1:
+                    pid = int(sim.scoring.vehScoringInfo[i].mID)
+                    break
+            if pid is None:
+                return None
+            ptel = None
+            for i in range(min(num, _MAX_VEH)):
+                t = sim.telemetry.telemInfo[i]
+                if int(t.mID) == pid:
+                    ptel = t
+                    break
+            if ptel is None:
+                return None
+            ip = ptel.mLastImpactPos
+            et = float(ptel.mLastImpactET)
+            best = None
+            for i in range(min(num, _MAX_VEH)):
+                v = sim.scoring.vehScoringInfo[i]
+                if int(v.mIsPlayer) == 1 or bool(v.mInPits):
+                    continue
+                dx = float(v.mPos.x) - float(ip.x)
+                dy = float(v.mPos.y) - float(ip.y)
+                dz = float(v.mPos.z) - float(ip.z)
+                d = (dx * dx + dy * dy + dz * dz) ** 0.5
+                if best is None or d < best[0]:
+                    try:
+                        nm = v.mDriverName.decode("utf-8", "ignore").strip("\x00 ").strip()
+                    except Exception:
+                        nm = ""
+                    try:
+                        cl = v.mVehicleClass.decode("utf-8", "ignore").strip("\x00 ").strip()
+                    except Exception:
+                        cl = ""
+                    best = (d, nm, cl)
+            if best is None or best[0] > max_dist:
+                return None            # nessuna auto nel punto d'urto = muro
+            return {"name": best[1], "cls": best[2],
+                    "dist": round(best[0], 1), "et": et}
+        except Exception:
+            return None
+
     def rivals(self):
         """Dati rivali IN CLASSE, robusti in multiclass: posizione di classe e
         davanti/dietro dall'ORDINE DI MARCIA reale (giri completati + distanza
@@ -547,6 +603,36 @@ class SharedMemory:
         except Exception:
             return {}
 
+    def field_drivers(self):
+        """TUTTI i piloti in pista (player INCLUSO): {id: {name, cls, is_player,
+        best}}. Serve allo spotter community per riconoscere i nomi. A differenza
+        di car_states() NON salta il giocatore (per ora vogliamo leggere anche
+        noi stessi; il filtro self si aggiunge dopo). {} se non disponibile."""
+        try:
+            sim = self._get_sim()
+            if not sim:
+                return {}
+            from pyLMUSharedMemory.lmu_data import MAX_MAPPED_VEHICLES as _MX
+            si = sim.scoring.scoringInfo
+            num = int(si.mNumVehicles)
+            out = {}
+            for i in range(min(num, _MX)):
+                v = sim.scoring.vehScoringInfo[i]
+                nm = bytes(v.mDriverName).split(b"\x00")[0]\
+                    .decode("utf-8", "ignore").strip()
+                if not nm:
+                    continue
+                cls = bytes(v.mVehicleClass).split(b"\x00")[0]\
+                    .decode("utf-8", "ignore").strip()
+                out[int(v.mID)] = {
+                    "name": nm, "cls": cls,
+                    "is_player": bool(int(getattr(v, "mIsPlayer", 0))),
+                    "best": float(getattr(v, "mBestLapTime", -1) or -1),
+                }
+            return out
+        except Exception:
+            return {}
+
     def pit_scan(self):
         """SAFE RELEASE / uscita box: come la mappa, ogni auto con
         lapdist + in_pits + garage + velocita'. Serve al muretto per capire,
@@ -622,6 +708,9 @@ class SharedMemory:
                    "yellow_dist": None, "yellow_class": None, "blue_class": None}
             sf = si.mSectorFlag
             yellow_active = any(int(sf[k]) == 1 for k in range(3))
+            # settori in giallo esposti (il muretto chiama la gialla di
+            # settore anche senza auto lenta nei 500m)
+            out["yellow_sectors"] = [int(sf[k]) == 1 for k in range(3)]
             under_blue = (int(vp.mFlag) == 6)
 
             def car_speed(v):
@@ -642,6 +731,7 @@ class SharedMemory:
             nb_name = ""
             nb_car = ""
             nb_cand = []            # (rd, spd, classe, vettura) nei 300 m
+            nb_classes = []         # [(tag, count)] ripartizione per classe
             # NON auto-segnalarti: se sei TU quello lento sotto gialla
             # (testacoda/fermo), il pericolo sei tu e non serve dirtelo.
             # Esporto il flag: l'ingegnere lo usa per tacere anche subito dopo.
@@ -686,18 +776,32 @@ class SharedMemory:
                 except Exception:
                     nb_car = ""
                 _prev = nb_cand[0]
+                _chain = [nb_cand[0]]
                 for _c in nb_cand[1:]:
                     _sp = 0.5 * ((_prev[1] or 0.0) + (_c[1] or 0.0))
                     _sp = max(25.0, min(100.0, _sp))
                     if (_prev[0] - _c[0]) / _sp <= 1.0:
                         nb_count += 1
+                        _chain.append(_c)
                         _prev = _c
                     else:
                         break
+                # ripartizione per CLASSE (tag) della catena, in ordine di vicinanza
+                for _cc in _chain:
+                    _tg = (class_tag(_cc[2]) or _cc[2] or "").upper()
+                    _hit = False
+                    for _k in range(len(nb_classes)):
+                        if nb_classes[_k][0] == _tg:
+                            nb_classes[_k] = (_tg, nb_classes[_k][1] + 1)
+                            _hit = True
+                            break
+                    if not _hit:
+                        nb_classes.append((_tg, 1))
             out["yellow_dist"] = ny
             out["yellow_class"] = ny_cls
             out["blue_class"] = nb_cls
             out["blue_count"] = nb_count
+            out["blue_classes"] = nb_classes
             out["blue_dist"] = (round(-nb_dist) if nb_dist is not None else None)
             out["blue_name"] = nb_name
             out["blue_car"] = nb_car
@@ -1026,6 +1130,23 @@ class SharedMemory:
             return out
         except Exception:
             return {}
+
+    def player_limits_review(self) -> bool:
+        """True quando la DIREZIONE GARA sta valutando il taglio del GIOCATORE:
+        mCountLapFlag == 1 (giro conta ma NON il tempo). E' la finestra prima
+        della penalita' vera: se alzi/restituisci sparisce."""
+        try:
+            sim = self._get_sim()
+            if not sim:
+                return False
+            num = int(sim.scoring.scoringInfo.mNumVehicles)
+            for i in range(min(num, _MAX_VEH)):
+                v = sim.scoring.vehScoringInfo[i]
+                if int(getattr(v, "mIsPlayer", 0)):
+                    return int(getattr(v, "mCountLapFlag", 2)) == 1
+            return False
+        except Exception:
+            return False
 
     @_ttl_cache(0.5)
     def get_compounds_4(self) -> dict:

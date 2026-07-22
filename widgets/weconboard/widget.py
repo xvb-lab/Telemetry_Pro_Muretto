@@ -31,7 +31,7 @@ _MAIN = 108                              # altezza barra principale
 _CLS_COL = {"HY": QColor("#C3122A"), "P2": QColor("#2A6BB5"),
             "P3": QColor("#9038D6"), "GT3": QColor("#F58021"),
             "GTE": QColor("#168749")}
-_NAVY = QColor(16, 12, 66, 245)          # navy blocco centrale
+_NAVY = QColor(85, 74, 146, 245)         # #554A92 navy blocco centrale
 _NAVY_D = QColor(8, 4, 40, 250)
 
 _LMU_API = "http://localhost:6397"
@@ -241,7 +241,7 @@ class WecOnboardOverlay(QWidget):
                 self._logo = None
         if self._logo:
             self._logo.render(p, QRectF(10, (_MAIN - 44) / 2.0, 44, 44))
-        f_num = QFont("Druk Wide Cy TT", 40)
+        f_num = QFont("Archivo SemiExpanded", 40)
         f_num.setWeight(QFont.Black)
         p.setFont(f_num)
         fn = QFontMetricsF(f_num)
@@ -286,7 +286,7 @@ class WecOnboardOverlay(QWidget):
                     col = QColor(255, 255, 255, 45)
                 p.setBrush(col)
                 p.drawRect(QRectF(bx + i * (segw + gap), ey, segw, eh))
-            f_pct = QFont("Druk Wide Cy TT", 15)
+            f_pct = QFont("Archivo SemiExpanded", 15)
             f_pct.setWeight(QFont.Black)
             f_pct.setItalic(True)
             p.setFont(f_pct)
@@ -295,7 +295,7 @@ class WecOnboardOverlay(QWidget):
             p.setPen(QColor(255, 255, 255, 250))
             p.drawText(QPointF(bx + bw - fp.horizontalAdvance(pct),
                                ey + (eh + fp.ascent()) / 2.0 - 2), pct)
-            f_lab = QFont("Druk Wide Cy TT", 8)
+            f_lab = QFont("Archivo SemiExpanded", 8)
             f_lab.setWeight(QFont.Bold)
             f_lab.setLetterSpacing(QFont.AbsoluteSpacing, 1.0)
             p.setFont(f_lab)
@@ -307,12 +307,12 @@ class WecOnboardOverlay(QWidget):
         p.setPen(Qt.NoPen)
         p.setBrush(_NAVY)
         p.drawRect(QRectF(LB + MB, 0, RB, _MAIN))
-        f_spd = QFont("Druk Wide Cy TT", 34)
+        f_spd = QFont("Archivo SemiExpanded", 34)
         f_spd.setWeight(QFont.Black)
         p.setFont(f_spd)
         fs = QFontMetricsF(f_spd)
         kmh = "%d" % int(round(self._speed))
-        f_u = QFont("Druk Wide Cy TT", 12)
+        f_u = QFont("Archivo SemiExpanded", 12)
         f_u.setWeight(QFont.ExtraBold)
         fu = QFontMetricsF(f_u)
         tot = fs.horizontalAdvance(kmh) + 6 + fu.horizontalAdvance("KMH")
@@ -321,7 +321,7 @@ class WecOnboardOverlay(QWidget):
         p.drawText(QPointF(x0, 56), kmh)
         p.setFont(f_u)
         p.drawText(QPointF(x0 + fs.horizontalAdvance(kmh) + 6, 56), "KMH")
-        f_mph = QFont("Druk Wide Cy TT", 13)
+        f_mph = QFont("Archivo SemiExpanded", 13)
         f_mph.setWeight(QFont.DemiBold)
         p.setFont(f_mph)
         fm2 = QFontMetricsF(f_mph)
@@ -333,7 +333,7 @@ class WecOnboardOverlay(QWidget):
         p.setPen(Qt.NoPen)
         p.setBrush(_NAVY_D)
         p.drawRect(QRectF(0, _MAIN, _W, _H - _MAIN))
-        f_t = QFont("Druk Wide Cy TT", 10)
+        f_t = QFont("Archivo SemiExpanded", 10)
         f_t.setWeight(QFont.Black)
         f_t.setLetterSpacing(QFont.AbsoluteSpacing, 3.0)
         p.setFont(f_t)

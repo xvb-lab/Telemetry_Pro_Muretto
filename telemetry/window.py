@@ -793,7 +793,7 @@ class _LegacyWindow(QMainWindow):
         self.live = None
 
         self.setStyleSheet(
-            f"QMainWindow,QWidget{{background:{_BG};color:{_FG};font-family:'Heebo';}}"
+            f"QMainWindow,QWidget{{background:{_BG};color:{_FG};font-family:'Archivo SemiExpanded';}}"
             f"QComboBox,QPushButton{{background:#1d1f24;color:{_FG};border:none;"
             f"padding:5px 10px;border-radius:6px;}}"
             f"QComboBox:hover,QPushButton:hover{{border-color:#3a3d43;}}"
@@ -2631,7 +2631,7 @@ class _Card(QFrame):
         super().__init__(parent)
         from PySide6.QtWidgets import QGraphicsOpacityEffect
         self._idx = idx
-        self._name = name if show_name else None
+        self._name = (name.upper() if name else name) if show_name else None
         self.on_click = None
         self._selected = False
         self._hover = 0.0          # progresso hover 0..1 (per il fade)
@@ -2740,7 +2740,7 @@ class _Card(QFrame):
             g.setColorAt(1.0, QColor(0, 0, 0, int(185 * _nf)))
             p.fillRect(0, h - band, self.width(), band, QBrush(g))
             from PySide6.QtGui import QFontMetrics
-            f = QFont("Heebo")
+            f = QFont("Archivo SemiExpanded")
             f.setWeight(QFont.Medium)
             avail = self.width() - 16
             size = max(11, int(self.width() * 0.115))
@@ -2961,7 +2961,7 @@ class _CatCard(QFrame):
             g.setColorAt(0.0, QColor(0, 0, 0, 0))
             g.setColorAt(1.0, QColor(0, 0, 0, int(185 * _nf)))
             p.fillRect(0, h - band, self.width(), band, QBrush(g))
-            f = QFont("Heebo")
+            f = QFont("Archivo SemiExpanded")
             f.setWeight(QFont.Medium)
             f.setPixelSize(max(11, int(self.width() * 0.115)))
             p.setFont(f)
@@ -3431,11 +3431,11 @@ class _MenuHeader(QFrame):
         self.setFixedHeight(126)
         self.setStyleSheet(
             "#menuHdr{background:rgba(255,255,255,0.07);border:none;border-radius:14px;}"
-            "#mhCap{color:#9fb0c8;font-family:'Heebo';font-size:10px;font-weight:700;"
+            "#mhCap{color:#9fb0c8;font-family:'Archivo SemiExpanded';font-size:10px;font-weight:700;"
             "letter-spacing:2px;background:transparent;}"
-            "#mhVal{color:#ffffff;font-family:'Heebo';font-size:20px;font-weight:700;"
+            "#mhVal{color:#ffffff;font-family:'Archivo SemiExpanded';font-size:20px;font-weight:700;"
             "background:transparent;}"
-            "#mhTeam{color:#ffffff;font-family:'Heebo';font-size:18px;font-weight:600;"
+            "#mhTeam{color:#ffffff;font-family:'Archivo SemiExpanded';font-size:18px;font-weight:600;"
             "background:rgba(0,0,0,0.22);border:1px solid rgba(255,255,255,0.18);"
             "border-radius:8px;padding:6px 12px;}"
             "#mhTeam:focus{border:1px solid #ff1d43;}")
@@ -3469,7 +3469,7 @@ class _MenuHeader(QFrame):
         # team in SOLA LETTURA (piccolo): si modifica dalle OPTIONS
         self.lb_team = QLabel("—")
         self.lb_team.setStyleSheet(
-            "color:#e8ebf2;font-family:'Heebo';font-size:14px;"
+            "color:#e8ebf2;font-family:'Archivo SemiExpanded';font-size:14px;"
             "font-weight:600;background:transparent;")
         c1.addWidget(self.lb_team)
         h.addWidget(c1w, 0, Qt.AlignVCenter)
@@ -3482,7 +3482,7 @@ class _MenuHeader(QFrame):
         c3.addWidget(self.lb_sess)
         cap = QLabel("MY SESSIONS")
         cap.setAlignment(Qt.AlignHCenter)
-        cap.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:13px;"
+        cap.setStyleSheet("color:#ffffff;font-family:'Archivo SemiExpanded';font-size:13px;"
                           "font-weight:600;letter-spacing:1px;background:transparent;")
         c3.addWidget(cap)
         h.addWidget(c3w, 0, Qt.AlignVCenter)
@@ -3495,7 +3495,7 @@ class _MenuHeader(QFrame):
         c4.addWidget(self.lb_drivers)
         cap2 = QLabel("DRIVERS")
         cap2.setAlignment(Qt.AlignHCenter)
-        cap2.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:13px;"
+        cap2.setStyleSheet("color:#ffffff;font-family:'Archivo SemiExpanded';font-size:13px;"
                            "font-weight:600;letter-spacing:1px;background:transparent;")
         c4.addWidget(cap2)
 
@@ -3507,7 +3507,7 @@ class _MenuHeader(QFrame):
         c5.addWidget(self.lb_ctimes)
         cap3 = QLabel("REF TIMES")
         cap3.setAlignment(Qt.AlignHCenter)
-        cap3.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:13px;"
+        cap3.setStyleSheet("color:#ffffff;font-family:'Archivo SemiExpanded';font-size:13px;"
                            "font-weight:600;letter-spacing:1px;background:transparent;")
         c5.addWidget(cap3)
 
@@ -3520,7 +3520,7 @@ class _MenuHeader(QFrame):
             _lb.setAlignment(Qt.AlignHCenter)
             _v.addWidget(_lb)
             _c = QLabel(cap); _c.setAlignment(Qt.AlignHCenter)
-            _c.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:12px;"
+            _c.setStyleSheet("color:#ffffff;font-family:'Archivo SemiExpanded';font-size:12px;"
                              "font-weight:600;letter-spacing:1px;"
                              "background:transparent;")
             _v.addWidget(_c)
@@ -3566,7 +3566,7 @@ class _MenuHeader(QFrame):
             m = QMenu(self)
             m.setStyleSheet(
                 "QMenu{background:#16181c;color:#f2f4f7;border:1px solid "
-                "#2a2c30;font-family:Heebo;font-size:12px;}"
+                "#2a2c30;font-family:Archivo SemiExpanded;font-size:12px;}"
                 "QMenu::item{padding:4px 14px;}"
                 "QMenu::item:selected{background:rgba(255,29,67,0.45);}")
 
@@ -3770,7 +3770,7 @@ class _RootCanvas(QWidget):
         # scritta BACK accanto alla freccia
         self._navback_lbl = QLabel("BACK")
         self._navback_lbl.setStyleSheet(
-            "color:#ffffff;font-family:'Heebo';font-size:13px;font-weight:700;"
+            "color:#ffffff;font-family:'Archivo SemiExpanded';font-size:13px;font-weight:700;"
             "letter-spacing:1px;background:transparent;")
         self._navback_lbl.setVisible(False)
         lay.addWidget(self._navback_lbl, 0, Qt.AlignVCenter)
@@ -3787,7 +3787,7 @@ class _RootCanvas(QWidget):
             b.setCursor(Qt.PointingHandCursor)
             b.setStyleSheet(
                 "QPushButton{background:transparent;color:#ffffff;"
-                "font-family:'Heebo';font-size:13px;font-weight:700;"
+                "font-family:'Archivo SemiExpanded';font-size:13px;font-weight:700;"
                 "letter-spacing:1px;border:1px solid rgba(255,255,255,0.30);"
                 "border-radius:6px;padding:7px 18px;}"
                 "QPushButton:hover{background:rgba(255,255,255,0.12);"
@@ -3961,11 +3961,11 @@ class _IntroPage(QWidget):
         # tasto Skip come overlay nella scena (z sopra al video)
         self._skip = QPushButton("Skip  \u203a")
         self._skip.setCursor(Qt.PointingHandCursor)
-        f = QFont("Heebo")
+        f = QFont("Archivo SemiExpanded")
         f.setPixelSize(15)
         self._skip.setFont(f)
         self._skip.setStyleSheet(
-            "QPushButton { color:#ffffff; font-family:'Heebo'; font-size:15px;"
+            "QPushButton { color:#ffffff; font-family:'Archivo SemiExpanded'; font-size:15px;"
             " background:transparent;"
             " border:1px solid rgba(255,255,255,0.55); border-radius:18px;"
             " padding:8px 18px; }"
@@ -4001,11 +4001,11 @@ class _IntroPage(QWidget):
         self._bg_anim.setStartValue(0.0)
         self._bg_anim.setEndValue(1.0)
 
-        # titolo (Heebo Bold) + tasto ENTRA (Heebo Regular): appaiono in fade dopo 3s
+        # titolo (Archivo SemiExpanded) + tasto ENTRA (Archivo SemiExpanded Regular): appaiono in fade dopo 3s
         self._title = QLabel("LMU Telemetry Pro")
         self._title.setAlignment(Qt.AlignCenter)
         self._title.setStyleSheet(
-            "QLabel { font-family:'Heebo'; font-weight:700; font-size:46px;"
+            "QLabel { font-family:'Archivo SemiExpanded'; font-weight:700; font-size:46px;"
             " color:#ffffff; background:transparent; }"
         )
         self._title_proxy = self._scene.addWidget(self._title)
@@ -4017,9 +4017,9 @@ class _IntroPage(QWidget):
         self._subtitle = QLabel("MURETTO")
         self._subtitle.setAlignment(Qt.AlignCenter)
         self._subtitle.setStyleSheet(
-            "QLabel { font-family:'Druk Wide Cy TT', 'Archivo SemiExpanded'; font-style:italic;"
+            "QLabel { font-family:'Archivo SemiExpanded'; font-style:normal;"
             " font-weight:900; font-size:58px; letter-spacing:4px;"
-            " color:#FF1D43; background:transparent; }"
+            " color:#ff2800; background:transparent; }"
         )
         self._subtitle_proxy = self._scene.addWidget(self._subtitle)
         self._subtitle_proxy.setZValue(9)
@@ -4029,7 +4029,7 @@ class _IntroPage(QWidget):
         self._version = QLabel("v.0.3 beta")
         self._version.setAlignment(Qt.AlignCenter)
         self._version.setStyleSheet(
-            "QLabel { font-family:'Heebo'; font-weight:400; font-size:15px;"
+            "QLabel { font-family:'Archivo SemiExpanded'; font-weight:400; font-size:15px;"
             " letter-spacing:2px; color:rgba(255,255,255,0.55);"
             " background:transparent; }"
         )
@@ -4040,7 +4040,7 @@ class _IntroPage(QWidget):
         self._enter = QPushButton("ENTER")
         self._enter.setCursor(Qt.PointingHandCursor)
         self._enter.setStyleSheet(
-            "QPushButton { font-family:'Heebo'; font-weight:400; font-size:18px;"
+            "QPushButton { font-family:'Archivo SemiExpanded'; font-weight:400; font-size:18px;"
             " color:#ffffff; background:transparent;"
             " border:1px solid rgba(255,255,255,0.70); border-radius:22px;"
             " padding:10px 34px; }"
@@ -4491,12 +4491,12 @@ class _SessionCard(QFrame):
             self._on_delete(self._file)
 
     def _apply_text(self):
-        self._lab_drv.setStyleSheet("color:#ffffff; font-family:'Heebo';"
+        self._lab_drv.setStyleSheet("color:#ffffff; font-family:'Archivo SemiExpanded';"
                                     " font-weight:700; font-size:15px;"
                                     " background:transparent; border:none;")
-        self._lab_car.setStyleSheet("color:#cfd6e2; font-family:'Heebo';"
+        self._lab_car.setStyleSheet("color:#cfd6e2; font-family:'Archivo SemiExpanded';"
                                     " font-size:13px; background:transparent; border:none;")
-        self._lab_sub.setStyleSheet("color:#aeb6c4; font-family:'Heebo';"
+        self._lab_sub.setStyleSheet("color:#aeb6c4; font-family:'Archivo SemiExpanded';"
                                     " font-size:12px; background:transparent; border:none;")
 
     def setSelected(self, on):
@@ -4534,28 +4534,28 @@ class _AppPage(QWidget):
     basso a destra. Sfondo radiale come il menu."""
 
     _TAB_OFF = ("QPushButton{background:rgba(255,255,255,0.07);color:#aeb6c4;"
-                "font-family:'Heebo';font-weight:700;font-size:11px;letter-spacing:.5px;"
+                "font-family:'Archivo SemiExpanded';font-weight:700;font-size:11px;letter-spacing:.5px;"
                 "border:none;border-radius:8px;padding:6px 13px;}"
                 "QPushButton:hover{background:rgba(255,255,255,0.13);color:#e8eaee;}")
     _TAB_ON = ("QPushButton{background:rgba(255,255,255,0.20);color:#ffffff;"
-               "font-family:'Heebo';font-weight:700;font-size:11px;letter-spacing:.5px;"
+               "font-family:'Archivo SemiExpanded';font-weight:700;font-size:11px;letter-spacing:.5px;"
                "border:none;border-left:2px solid #ff1d43;border-radius:8px;padding:6px 13px;}")
     _SUB_ON = ("QPushButton{background:rgba(255,255,255,0.20);color:#ffffff;"
-               "font-family:'Heebo';font-weight:700;font-size:11px;letter-spacing:.5px;"
+               "font-family:'Archivo SemiExpanded';font-weight:700;font-size:11px;letter-spacing:.5px;"
                "border:none;border-bottom:2px solid #ff1d43;border-radius:8px;padding:6px 13px;}")
     _CHIP_OFF = ("QPushButton{background:rgba(255,255,255,0.07);color:#aeb6c4;"
-                 "font-family:'Heebo';font-weight:700;font-size:11px;letter-spacing:.5px;"
+                 "font-family:'Archivo SemiExpanded';font-weight:700;font-size:11px;letter-spacing:.5px;"
                  "border:none;border-radius:8px;padding:5px 11px;}"
                  "QPushButton:hover{background:rgba(255,255,255,0.13);color:#e8eaee;}")
     _CHIP_ON = ("QPushButton{background:rgba(255,255,255,0.20);color:#ffffff;"
-                "font-family:'Heebo';font-weight:700;font-size:11px;letter-spacing:.5px;"
+                "font-family:'Archivo SemiExpanded';font-weight:700;font-size:11px;letter-spacing:.5px;"
                 "border:none;border-bottom:2px solid #ff1d43;border-radius:8px;padding:5px 11px;}")
-    _BTN_START = ("QPushButton{background:#ff1d43;color:#ffffff;font-family:'Heebo';"
+    _BTN_START = ("QPushButton{background:#ff1d43;color:#ffffff;font-family:'Archivo SemiExpanded';"
                   "font-weight:800;font-size:15px;letter-spacing:1px;border:none;"
                   "border-radius:10px;padding:0 24px;}"
                   "QPushButton:hover{background:#ff3b5d;}")
     _BTN_STOP = ("QPushButton{background:rgba(255,255,255,0.16);color:#ffffff;"
-                 "font-family:'Heebo';font-weight:800;font-size:15px;letter-spacing:1px;"
+                 "font-family:'Archivo SemiExpanded';font-weight:800;font-size:15px;letter-spacing:1px;"
                  "border:none;border-radius:10px;padding:0 24px;}"
                  "QPushButton:hover{background:rgba(255,255,255,0.24);}")
 
@@ -4565,16 +4565,16 @@ class _AppPage(QWidget):
     def _build_guide(self):
         """Tab Guide: documentazione approfondita e scrollabile (IT + EN)."""
         from PySide6.QtWidgets import QScrollArea
-        html = '<h1 style="font-family:\'Heebo\';color:#f5c542;font-size:27px;font-weight:800;margin:0 0 2px;">LMU Telemetry Pro &mdash; Guide</h1><p style="font-family:\'Heebo\';color:#8a90a0;font-size:14px;margin:0 0 18px;">Guida d\'uso completa &middot; Full user guide</p>\n<h2 style="font-family:\'Heebo\';color:#f5c542;font-size:20px;font-weight:800;margin:24px 0 8px;border-bottom:1px solid #283246;padding-bottom:4px;">🇮🇹 Guida completa</h2>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">1 · Avvio automatico</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Avvia <b>Le Mans Ultimate</b> e vai in pista come al solito. Non serve premere niente: l\'app rileva la sessione, la <b>crea e apre da sola</b> e ti porta dentro la sessione live giusta (pista, layout e classe corretti). Lo sfondo mostra la <b>foto del circuito</b> corrente.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Mentre giri, ogni giro completato compare nel board con tempo, settori e validità. I giri non validi (outlap, rientro box, track limits) non entrano in telemetria.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">2 · Menu circuiti</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Dalla home scegli <b>pista e layout</b>: ogni card mostra la foto del tracciato. La lista è scrollabile. Se hai già sessioni su quella pista le ritrovi qui.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">3 · Overview — sessioni e board</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">A <b>sinistra</b> le tue <b>sessioni</b>: ogni card ha le <b>5 icone meteo previste</b> (dalla partenza al traguardo), auto, classe e tempo migliore. Le card si filtrano per pista, layout e classe.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">A <b>destra</b> il <b>board</b>: stint, giri e tempi. <b>Clicca il cerchietto di un giro</b> per selezionarlo (SEL): la telemetria si carica su quel giro. Seleziona un <b>secondo giro</b> come confronto (CMP): viene sovrapposto.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Wet/Dry</b>: quando selezioni un giro, i giri di condizione opposta (asciutto↔bagnato) si <b>oscurano</b> e non sono selezionabili, così confronti solo condizioni omogenee.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">4 · Telemetry — i grafici</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">In alto la barra dei <b>sotto-tab</b>: <b>Worksheet</b> (più canali insieme), <b>Speed / Steering / Gear / RPM</b>, <b>Tyres</b>, <b>Brakes</b>, <b>Suspension</b>, <b>Pedals</b>, <b>G-G</b>, <b>Aids</b> (TC/ABS/bias), <b>Delta</b>, e i consumi <b>VE / Fuel / Hybrid</b>.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Scrub</b>: muovi il mouse <b>sopra un grafico</b> (o sulla mappa) → una linea verticale segue il puntatore, la <b>mappa evidenzia il punto</b> e leggi i <b>valori esatti</b> in quel punto del giro.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Cursori A/B (shift-click)</b>: <b>shift-click</b> sul grafico piazza il cursore <span style=\'color:#f0a23a\'><b>A</b></span> (arancione), un secondo shift-click il cursore <span style=\'color:#36c5d0\'><b>B</b></span> (ciano). In alto a destra compaiono <b>ΔX</b> (distanza in metri tra A e B) e <b>Δ valore</b> nel canale (es. Δkm/h, Δ°C). I cursori A/B e lo <b>zoom</b> sono <b>sincronizzati su tutti i grafici</b> contemporaneamente.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Legenda cliccabile</b>: i pallini SEL/CMP/REF in alto al grafico cambiano colore della traccia. Il giro più veloce è evidenziato.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">5 · Tyres — gomme per ruota</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Scegli la <b>ruota</b> (FL/FR/RL/RR) cliccando l\'angolo, e lo <b>strato</b> con i tab <b>Surface / Carcass / Inner / Press / Wear</b>. Il grafico mostra il canale scelto lungo il giro per quella ruota.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Sotto trovi i due grafici meteo continui <b>Asfalto °C</b> e <b>Rain %</b> (stessa larghezza e altezza): temperatura pista e pioggia lungo il giro.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">6 · G-G e mappa</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>G-G</b>: il diagramma delle accelerazioni laterali/longitudinali (quanto stai sfruttando il grip). La <b>mappa</b> a destra mostra il tracciato col punto evidenziato dallo scrub e il confronto SEL vs CMP.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">7 · REF — riferimento</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Confronta il giro selezionato con un <b>riferimento</b>: il tuo miglior giro <b>LOCAL</b> oppure la <b>community ONLINE</b>, abbinato per <b>classe + pista + condizione</b>. Colori: <span style=\'color:#f5c542\'><b>oro = asciutto</b></span>, <span style=\'color:#4aa3df\'><b>blu = bagnato</b></span>. Se l\'online coincide col tuo tempo, la card doppia viene nascosta.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">8 · Community · Team · Engineer</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Community</b>: tempi di riferimento per pista e classe. <b>Team</b>: <b>esporta/importa</b> sessioni in un file zip per condividerle con la squadra. <b>Engineer</b>: ingegnere di pista assistito.</p>\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:18px 0 3px;font-weight:700;">9 · Engineer — l\'ingegnere di gara</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">L\'<b>Engineer</b> e\' un ingegnere di pista a voce: guarda la tua telemetria in tempo reale e ti parla via radio durante la gara, come un vero muretto. Parla in italiano. Funziona in <b>gara</b> (in prova/qualifica ti da i riferimenti sui settori).</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Briefing iniziale</b>: a inizio gara calcola la <b>strategia</b> &mdash; giri totali, stint, numero di soste, autonomia di benzina o energia. Sulle GT3 il consumo lo ricava dal <b>consumo reale</b> della tua macchina, non da stime.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Durante la gara</b>: controllo passo e consumi, <b>dove perdi</b> (settori rispetto al tuo miglior tempo), <b>report di gestione periodico</b> (gomme, carburante), e <b>chiamata box intelligente</b> &mdash; gomme al 65%, foratura, benzina in esaurimento, penalita\', danni.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Pioggia</b> (dove serve davvero): ti avvisa appena inizia, ti chiama dentro per le wet in base a <b>quanto e\' bagnata la pista sotto le ruote</b>, ti dice quanta benzina mettere alla sosta, gestisce la temperatura delle wet, ti segnala il <b>settore piu\' bagnato</b> e la <b>finestra per le slick</b> quando si forma la linea asciutta.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Raccomandazione gomme</b>: costruita dalla superficie sotto le tue ruote &mdash; linea asciutta &rarr; slick, bagnato &rarr; wet. Se decidi di <b>restare fuori</b> con le wet che asciugano, l\'ingegnere prende atto della tua scelta e smette di insistere, passando a supportarti.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Gap e bandiere</b>: distacco su chi e\' davanti e dietro, segnale di <b>undercut</b> quando il rivale rientra ai box, bandiere gialle e full course yellow.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Impara dalle tue sessioni</b>: per ogni pista e classe, separando asciutto e bagnato, memorizza <b>consumo per giro</b>, <b>degrado gomme</b>, <b>miglior tempo e settori</b>. Piu\' giri puliti accumuli, piu\' diventa preciso: sa gia\' come si comporta la pista <i>per te</i>, e affina coi dati della gara in corso.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Ritmo radio</b>: aggiornamenti regolari senza martellare, e le chiamate critiche (box, gialla) hanno sempre la precedenza.</p>\n<hr style="border:none;border-top:1px solid #283246;margin:26px 0;">\n<h2 style="font-family:\'Heebo\';color:#f5c542;font-size:20px;font-weight:800;margin:24px 0 8px;border-bottom:1px solid #283246;padding-bottom:4px;">🇬🇧 Full guide</h2>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">1 · Auto start</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Launch <b>Le Mans Ultimate</b> and go on track as usual. No buttons needed: the app detects the session, <b>creates and opens it automatically</b> and focuses the right live session (track, layout and class). The background shows the current <b>circuit photo</b>.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">As you drive, each completed lap appears on the board with time, sectors and validity. Invalid laps (outlap, pit return, track limits) are excluded from telemetry.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">2 · Circuit menu</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">From the home screen pick <b>track and layout</b>: each card shows the circuit photo. The list scrolls. Existing sessions for that track show up here.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">3 · Overview — sessions & board</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Left</b>: your <b>sessions</b>. Each card has the <b>5 forecast icons</b> (start to finish), car, class and best time, filtered by track, layout and class.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Right</b>: the <b>board</b> with stints, laps and times. <b>Click a lap\'s circle</b> to select it (SEL): telemetry loads for that lap. Pick a <b>second lap</b> as compare (CMP) to overlay it.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Wet/Dry</b>: when a lap is selected, laps of the opposite condition (dry↔wet) are <b>dimmed</b> and not selectable, so you only compare like-for-like.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">4 · Telemetry — the charts</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Top <b>sub-tabs</b>: <b>Worksheet</b> (several channels at once), <b>Speed / Steering / Gear / RPM</b>, <b>Tyres</b>, <b>Brakes</b>, <b>Suspension</b>, <b>Pedals</b>, <b>G-G</b>, <b>Aids</b> (TC/ABS/bias), <b>Delta</b>, plus <b>VE / Fuel / Hybrid</b>.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Scrub</b>: move the mouse <b>over a chart</b> (or the map) → a vertical line follows the pointer, the <b>map highlights the point</b> and you read the <b>exact values</b> at that spot on the lap.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>A/B cursors (shift-click)</b>: <b>shift-click</b> on a chart sets cursor <span style=\'color:#f0a23a\'><b>A</b></span> (orange), a second shift-click sets <span style=\'color:#36c5d0\'><b>B</b></span> (cyan). Top-right shows <b>ΔX</b> (distance in metres between A and B) and the <b>Δ value</b> in the channel (e.g. Δkm/h, Δ°C). A/B cursors and <b>zoom</b> are <b>synced across all charts</b> at once.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Clickable legend</b>: the SEL/CMP/REF dots above the chart recolour the traces. The fastest lap is highlighted.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">5 · Tyres — per wheel</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Pick the <b>wheel</b> (FL/FR/RL/RR) by clicking its corner, and the <b>layer</b> with the <b>Surface / Carcass / Inner / Press / Wear</b> tabs. The chart shows the chosen channel along the lap for that wheel.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Below are the two continuous weather charts <b>Track °C</b> and <b>Rain %</b> (same width and height): track temperature and rain along the lap.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">6 · G-G & map</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>G-G</b>: the lateral/longitudinal acceleration diagram (how much grip you\'re using). The <b>map</b> on the right shows the track with the scrub point and SEL vs CMP.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">7 · REF — reference</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Compare the selected lap with a <b>reference</b>: your best <b>LOCAL</b> lap or the <b>ONLINE community</b>, matched by <b>class + track + condition</b>. Colours: <span style=\'color:#f5c542\'><b>gold = dry</b></span>, <span style=\'color:#4aa3df\'><b>blue = wet</b></span>. If the online time equals yours, the duplicate card is hidden.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">8 · Community · Team · Engineer</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Community</b>: reference times by track and class. <b>Team</b>: <b>export/import</b> sessions as a zip to share with your team. <b>Engineer</b>: assisted race engineer.</p><h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:18px 0 3px;font-weight:700;">9 · Engineer — your race engineer</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">The <b>Engineer</b> is a voice race engineer: it watches your live telemetry and talks to you over the radio during the race, like a real pit wall. Works during the <b>race</b> (in practice/qualifying it gives you sector references).</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Opening briefing</b>: at race start it works out the <b>strategy</b> &mdash; total laps, stints, number of pit stops, fuel or energy range. On GT3s the consumption is taken from your car\'s <b>real fuel burn</b>, not from estimates.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>During the race</b>: pace and consumption checks, <b>where you\'re losing time</b> (sectors vs your best lap), a <b>periodic management report</b> (tyres, fuel), and <b>smart pit calls</b> &mdash; tyres at 65%, puncture, fuel running low, penalties, damage.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Rain</b> (where it really matters): it warns you as it starts, calls you in for wets based on <b>how wet the track is under your wheels</b>, tells you how much fuel to take at the stop, manages wet-tyre temperature, flags the <b>wettest sector</b> and the <b>slick window</b> as the dry line forms.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Tyre recommendation</b>: built from the surface under your wheels &mdash; dry line &rarr; slicks, wet &rarr; wets. If you choose to <b>stay out</b> on drying wets, the engineer acknowledges your call, stops nagging and switches to supporting you.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Gaps and flags</b>: gap to the car ahead and behind, an <b>undercut</b> prompt when a rival pits, yellow flags and full course yellow.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>It learns from your sessions</b>: per track and class, dry and wet kept separate, it stores <b>fuel per lap</b>, <b>tyre degradation</b>, <b>best lap and sectors</b>. The more clean laps you bank, the sharper it gets: it already knows how the track behaves <i>for you</i>, and refines with the current race data.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Radio rhythm</b>: regular updates without spamming, and critical calls (box, yellow) always take priority.</p>\n'
+        html = '<h1 style="font-family:\'Archivo SemiExpanded\';color:#f5c542;font-size:27px;font-weight:800;margin:0 0 2px;">LMU Telemetry Pro &mdash; Guide</h1><p style="font-family:\'Archivo SemiExpanded\';color:#8a90a0;font-size:14px;margin:0 0 18px;">Guida d\'uso completa &middot; Full user guide</p>\n<h2 style="font-family:\'Archivo SemiExpanded\';color:#f5c542;font-size:20px;font-weight:800;margin:24px 0 8px;border-bottom:1px solid #283246;padding-bottom:4px;">🇮🇹 Guida completa</h2>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">1 · Avvio automatico</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Avvia <b>Le Mans Ultimate</b> e vai in pista come al solito. Non serve premere niente: l\'app rileva la sessione, la <b>crea e apre da sola</b> e ti porta dentro la sessione live giusta (pista, layout e classe corretti). Lo sfondo mostra la <b>foto del circuito</b> corrente.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Mentre giri, ogni giro completato compare nel board con tempo, settori e validità. I giri non validi (outlap, rientro box, track limits) non entrano in telemetria.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">2 · Menu circuiti</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Dalla home scegli <b>pista e layout</b>: ogni card mostra la foto del tracciato. La lista è scrollabile. Se hai già sessioni su quella pista le ritrovi qui.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">3 · Overview — sessioni e board</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">A <b>sinistra</b> le tue <b>sessioni</b>: ogni card ha le <b>5 icone meteo previste</b> (dalla partenza al traguardo), auto, classe e tempo migliore. Le card si filtrano per pista, layout e classe.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">A <b>destra</b> il <b>board</b>: stint, giri e tempi. <b>Clicca il cerchietto di un giro</b> per selezionarlo (SEL): la telemetria si carica su quel giro. Seleziona un <b>secondo giro</b> come confronto (CMP): viene sovrapposto.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Wet/Dry</b>: quando selezioni un giro, i giri di condizione opposta (asciutto↔bagnato) si <b>oscurano</b> e non sono selezionabili, così confronti solo condizioni omogenee.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">4 · Telemetry — i grafici</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">In alto la barra dei <b>sotto-tab</b>: <b>Worksheet</b> (più canali insieme), <b>Speed / Steering / Gear / RPM</b>, <b>Tyres</b>, <b>Brakes</b>, <b>Suspension</b>, <b>Pedals</b>, <b>G-G</b>, <b>Aids</b> (TC/ABS/bias), <b>Delta</b>, e i consumi <b>VE / Fuel / Hybrid</b>.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Scrub</b>: muovi il mouse <b>sopra un grafico</b> (o sulla mappa) → una linea verticale segue il puntatore, la <b>mappa evidenzia il punto</b> e leggi i <b>valori esatti</b> in quel punto del giro.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Cursori A/B (shift-click)</b>: <b>shift-click</b> sul grafico piazza il cursore <span style=\'color:#f0a23a\'><b>A</b></span> (arancione), un secondo shift-click il cursore <span style=\'color:#36c5d0\'><b>B</b></span> (ciano). In alto a destra compaiono <b>ΔX</b> (distanza in metri tra A e B) e <b>Δ valore</b> nel canale (es. Δkm/h, Δ°C). I cursori A/B e lo <b>zoom</b> sono <b>sincronizzati su tutti i grafici</b> contemporaneamente.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Legenda cliccabile</b>: i pallini SEL/CMP/REF in alto al grafico cambiano colore della traccia. Il giro più veloce è evidenziato.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">5 · Tyres — gomme per ruota</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Scegli la <b>ruota</b> (FL/FR/RL/RR) cliccando l\'angolo, e lo <b>strato</b> con i tab <b>Surface / Carcass / Inner / Press / Wear</b>. Il grafico mostra il canale scelto lungo il giro per quella ruota.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Sotto trovi i due grafici meteo continui <b>Asfalto °C</b> e <b>Rain %</b> (stessa larghezza e altezza): temperatura pista e pioggia lungo il giro.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">6 · G-G e mappa</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>G-G</b>: il diagramma delle accelerazioni laterali/longitudinali (quanto stai sfruttando il grip). La <b>mappa</b> a destra mostra il tracciato col punto evidenziato dallo scrub e il confronto SEL vs CMP.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">7 · REF — riferimento</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Confronta il giro selezionato con un <b>riferimento</b>: il tuo miglior giro <b>LOCAL</b> oppure la <b>community ONLINE</b>, abbinato per <b>classe + pista + condizione</b>. Colori: <span style=\'color:#f5c542\'><b>oro = asciutto</b></span>, <span style=\'color:#4aa3df\'><b>blu = bagnato</b></span>. Se l\'online coincide col tuo tempo, la card doppia viene nascosta.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">8 · Community · Team · Engineer</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Community</b>: tempi di riferimento per pista e classe. <b>Team</b>: <b>esporta/importa</b> sessioni in un file zip per condividerle con la squadra. <b>Engineer</b>: ingegnere di pista assistito.</p>\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:18px 0 3px;font-weight:700;">9 · Engineer — l\'ingegnere di gara</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">L\'<b>Engineer</b> e\' un ingegnere di pista a voce: guarda la tua telemetria in tempo reale e ti parla via radio durante la gara, come un vero muretto. Parla in italiano. Funziona in <b>gara</b> (in prova/qualifica ti da i riferimenti sui settori).</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Briefing iniziale</b>: a inizio gara calcola la <b>strategia</b> &mdash; giri totali, stint, numero di soste, autonomia di benzina o energia. Sulle GT3 il consumo lo ricava dal <b>consumo reale</b> della tua macchina, non da stime.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Durante la gara</b>: controllo passo e consumi, <b>dove perdi</b> (settori rispetto al tuo miglior tempo), <b>report di gestione periodico</b> (gomme, carburante), e <b>chiamata box intelligente</b> &mdash; gomme al 65%, foratura, benzina in esaurimento, penalita\', danni.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Pioggia</b> (dove serve davvero): ti avvisa appena inizia, ti chiama dentro per le wet in base a <b>quanto e\' bagnata la pista sotto le ruote</b>, ti dice quanta benzina mettere alla sosta, gestisce la temperatura delle wet, ti segnala il <b>settore piu\' bagnato</b> e la <b>finestra per le slick</b> quando si forma la linea asciutta.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Raccomandazione gomme</b>: costruita dalla superficie sotto le tue ruote &mdash; linea asciutta &rarr; slick, bagnato &rarr; wet. Se decidi di <b>restare fuori</b> con le wet che asciugano, l\'ingegnere prende atto della tua scelta e smette di insistere, passando a supportarti.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Gap e bandiere</b>: distacco su chi e\' davanti e dietro, segnale di <b>undercut</b> quando il rivale rientra ai box, bandiere gialle e full course yellow.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Impara dalle tue sessioni</b>: per ogni pista e classe, separando asciutto e bagnato, memorizza <b>consumo per giro</b>, <b>degrado gomme</b>, <b>miglior tempo e settori</b>. Piu\' giri puliti accumuli, piu\' diventa preciso: sa gia\' come si comporta la pista <i>per te</i>, e affina coi dati della gara in corso.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Ritmo radio</b>: aggiornamenti regolari senza martellare, e le chiamate critiche (box, gialla) hanno sempre la precedenza.</p>\n<hr style="border:none;border-top:1px solid #283246;margin:26px 0;">\n<h2 style="font-family:\'Archivo SemiExpanded\';color:#f5c542;font-size:20px;font-weight:800;margin:24px 0 8px;border-bottom:1px solid #283246;padding-bottom:4px;">🇬🇧 Full guide</h2>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">1 · Auto start</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Launch <b>Le Mans Ultimate</b> and go on track as usual. No buttons needed: the app detects the session, <b>creates and opens it automatically</b> and focuses the right live session (track, layout and class). The background shows the current <b>circuit photo</b>.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">As you drive, each completed lap appears on the board with time, sectors and validity. Invalid laps (outlap, pit return, track limits) are excluded from telemetry.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">2 · Circuit menu</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">From the home screen pick <b>track and layout</b>: each card shows the circuit photo. The list scrolls. Existing sessions for that track show up here.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">3 · Overview — sessions & board</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Left</b>: your <b>sessions</b>. Each card has the <b>5 forecast icons</b> (start to finish), car, class and best time, filtered by track, layout and class.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Right</b>: the <b>board</b> with stints, laps and times. <b>Click a lap\'s circle</b> to select it (SEL): telemetry loads for that lap. Pick a <b>second lap</b> as compare (CMP) to overlay it.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Wet/Dry</b>: when a lap is selected, laps of the opposite condition (dry↔wet) are <b>dimmed</b> and not selectable, so you only compare like-for-like.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">4 · Telemetry — the charts</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Top <b>sub-tabs</b>: <b>Worksheet</b> (several channels at once), <b>Speed / Steering / Gear / RPM</b>, <b>Tyres</b>, <b>Brakes</b>, <b>Suspension</b>, <b>Pedals</b>, <b>G-G</b>, <b>Aids</b> (TC/ABS/bias), <b>Delta</b>, plus <b>VE / Fuel / Hybrid</b>.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Scrub</b>: move the mouse <b>over a chart</b> (or the map) → a vertical line follows the pointer, the <b>map highlights the point</b> and you read the <b>exact values</b> at that spot on the lap.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>A/B cursors (shift-click)</b>: <b>shift-click</b> on a chart sets cursor <span style=\'color:#f0a23a\'><b>A</b></span> (orange), a second shift-click sets <span style=\'color:#36c5d0\'><b>B</b></span> (cyan). Top-right shows <b>ΔX</b> (distance in metres between A and B) and the <b>Δ value</b> in the channel (e.g. Δkm/h, Δ°C). A/B cursors and <b>zoom</b> are <b>synced across all charts</b> at once.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Clickable legend</b>: the SEL/CMP/REF dots above the chart recolour the traces. The fastest lap is highlighted.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">5 · Tyres — per wheel</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Pick the <b>wheel</b> (FL/FR/RL/RR) by clicking its corner, and the <b>layer</b> with the <b>Surface / Carcass / Inner / Press / Wear</b> tabs. The chart shows the chosen channel along the lap for that wheel.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Below are the two continuous weather charts <b>Track °C</b> and <b>Rain %</b> (same width and height): track temperature and rain along the lap.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">6 · G-G & map</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>G-G</b>: the lateral/longitudinal acceleration diagram (how much grip you\'re using). The <b>map</b> on the right shows the track with the scrub point and SEL vs CMP.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">7 · REF — reference</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Compare the selected lap with a <b>reference</b>: your best <b>LOCAL</b> lap or the <b>ONLINE community</b>, matched by <b>class + track + condition</b>. Colours: <span style=\'color:#f5c542\'><b>gold = dry</b></span>, <span style=\'color:#4aa3df\'><b>blue = wet</b></span>. If the online time equals yours, the duplicate card is hidden.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">8 · Community · Team · Engineer</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Community</b>: reference times by track and class. <b>Team</b>: <b>export/import</b> sessions as a zip to share with your team. <b>Engineer</b>: assisted race engineer.</p><h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:18px 0 3px;font-weight:700;">9 · Engineer — your race engineer</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">The <b>Engineer</b> is a voice race engineer: it watches your live telemetry and talks to you over the radio during the race, like a real pit wall. Works during the <b>race</b> (in practice/qualifying it gives you sector references).</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Opening briefing</b>: at race start it works out the <b>strategy</b> &mdash; total laps, stints, number of pit stops, fuel or energy range. On GT3s the consumption is taken from your car\'s <b>real fuel burn</b>, not from estimates.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>During the race</b>: pace and consumption checks, <b>where you\'re losing time</b> (sectors vs your best lap), a <b>periodic management report</b> (tyres, fuel), and <b>smart pit calls</b> &mdash; tyres at 65%, puncture, fuel running low, penalties, damage.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Rain</b> (where it really matters): it warns you as it starts, calls you in for wets based on <b>how wet the track is under your wheels</b>, tells you how much fuel to take at the stop, manages wet-tyre temperature, flags the <b>wettest sector</b> and the <b>slick window</b> as the dry line forms.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Tyre recommendation</b>: built from the surface under your wheels &mdash; dry line &rarr; slicks, wet &rarr; wets. If you choose to <b>stay out</b> on drying wets, the engineer acknowledges your call, stops nagging and switches to supporting you.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Gaps and flags</b>: gap to the car ahead and behind, an <b>undercut</b> prompt when a rival pits, yellow flags and full course yellow.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>It learns from your sessions</b>: per track and class, dry and wet kept separate, it stores <b>fuel per lap</b>, <b>tyre degradation</b>, <b>best lap and sectors</b>. The more clean laps you bank, the sharper it gets: it already knows how the track behaves <i>for you</i>, and refines with the current race data.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Radio rhythm</b>: regular updates without spamming, and critical calls (box, yellow) always take priority.</p>\n'
         lab = QLabel(html)
-        lab.setFont(QFont("Heebo"))
+        lab.setFont(QFont("Archivo SemiExpanded"))
         lab.setTextFormat(Qt.RichText)
         lab.setWordWrap(True)
         lab.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         lab.setMaximumWidth(760)
         lab.setStyleSheet("background:#0c1320;border:1px solid #1e2940;"
                           "border-radius:14px;padding:28px 34px;color:#cdd2dc;"
-                          "font-family:'Heebo';")
+                          "font-family:'Archivo SemiExpanded';")
         host = QWidget(); host.setStyleSheet("background:transparent;")
         hl = QHBoxLayout(host); hl.setContentsMargins(20, 18, 20, 26)
         hl.addStretch(1); hl.addWidget(lab, 0, Qt.AlignTop); hl.addStretch(1)
@@ -4659,7 +4659,7 @@ class _AppPage(QWidget):
         self._title = QLabel("")
         # titoli pagina in ARCHIVO (font WEC originale), corsivo 900
         self._title.setStyleSheet(
-            "color:#ffffff; font-family:'Druk Wide Cy TT', 'Archivo SemiExpanded';"
+            "color:#ffffff; font-family:'Archivo SemiExpanded';"
             " font-style:italic; font-weight:900;"
             " font-size:26px; background:transparent;")
         head.addWidget(self._back, 0, Qt.AlignVCenter)
@@ -4693,7 +4693,7 @@ class _AppPage(QWidget):
         self._sess_time = QLabel("")
         self._sess_time.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self._sess_time.setStyleSheet(
-            "color:#ffffff; font-family:'Heebo'; font-weight:700; font-size:28px;"
+            "color:#ffffff; font-family:'Archivo SemiExpanded'; font-weight:700; font-size:28px;"
             " background:transparent;")
         self._sess_time.setVisible(False)
         head.addWidget(self._sess_time, 0, Qt.AlignVCenter)
@@ -4773,7 +4773,7 @@ class _AppPage(QWidget):
         left.addWidget(self._scroll, 1)
         self._empty = QLabel("Nessuna sessione per questo layout")
         self._empty.setAlignment(Qt.AlignCenter)
-        self._empty.setStyleSheet("color:#aeb6c4; font-family:'Heebo'; font-size:15px;"
+        self._empty.setStyleSheet("color:#aeb6c4; font-family:'Archivo SemiExpanded'; font-size:15px;"
                                   " background:transparent;")
         self._empty.hide()
         left.addWidget(self._empty)
@@ -4829,7 +4829,7 @@ class _AppPage(QWidget):
             pass
         self._board_hint = QLabel("Seleziona una sessione")
         self._board_hint.setAlignment(Qt.AlignCenter)
-        self._board_hint.setStyleSheet("color:#aeb6c4; font-family:'Heebo';"
+        self._board_hint.setStyleSheet("color:#aeb6c4; font-family:'Archivo SemiExpanded';"
                                        " font-size:15px; background:transparent;")
         self._board_box.setVisible(False)
         rl.addWidget(self._board_box, 1)
@@ -6137,7 +6137,7 @@ class _Card(QFrame):
         super().__init__(parent)
         from PySide6.QtWidgets import QGraphicsOpacityEffect
         self._idx = idx
-        self._name = name if show_name else None
+        self._name = (name.upper() if name else name) if show_name else None
         self.on_click = None
         self._selected = False
         self._hover = 0.0          # progresso hover 0..1 (per il fade)
@@ -6246,7 +6246,7 @@ class _Card(QFrame):
             g.setColorAt(1.0, QColor(0, 0, 0, int(185 * _nf)))
             p.fillRect(0, h - band, self.width(), band, QBrush(g))
             from PySide6.QtGui import QFontMetrics
-            f = QFont("Heebo")
+            f = QFont("Archivo SemiExpanded")
             f.setWeight(QFont.Medium)
             avail = self.width() - 16
             size = max(11, int(self.width() * 0.115))
@@ -6467,7 +6467,7 @@ class _CatCard(QFrame):
             g.setColorAt(0.0, QColor(0, 0, 0, 0))
             g.setColorAt(1.0, QColor(0, 0, 0, int(185 * _nf)))
             p.fillRect(0, h - band, self.width(), band, QBrush(g))
-            f = QFont("Heebo")
+            f = QFont("Archivo SemiExpanded")
             f.setWeight(QFont.Medium)
             f.setPixelSize(max(11, int(self.width() * 0.115)))
             p.setFont(f)
@@ -6881,11 +6881,11 @@ class _MenuHeader(QFrame):
         self.setFixedHeight(126)
         self.setStyleSheet(
             "#menuHdr{background:rgba(255,255,255,0.07);border:none;border-radius:14px;}"
-            "#mhCap{color:#9fb0c8;font-family:'Heebo';font-size:10px;font-weight:700;"
+            "#mhCap{color:#9fb0c8;font-family:'Archivo SemiExpanded';font-size:10px;font-weight:700;"
             "letter-spacing:2px;background:transparent;}"
-            "#mhVal{color:#ffffff;font-family:'Heebo';font-size:20px;font-weight:700;"
+            "#mhVal{color:#ffffff;font-family:'Archivo SemiExpanded';font-size:20px;font-weight:700;"
             "background:transparent;}"
-            "#mhTeam{color:#ffffff;font-family:'Heebo';font-size:18px;font-weight:600;"
+            "#mhTeam{color:#ffffff;font-family:'Archivo SemiExpanded';font-size:18px;font-weight:600;"
             "background:rgba(0,0,0,0.22);border:1px solid rgba(255,255,255,0.18);"
             "border-radius:8px;padding:6px 12px;}"
             "#mhTeam:focus{border:1px solid #ff1d43;}")
@@ -6919,7 +6919,7 @@ class _MenuHeader(QFrame):
         # team in SOLA LETTURA (piccolo): si modifica dalle OPTIONS
         self.lb_team = QLabel("—")
         self.lb_team.setStyleSheet(
-            "color:#e8ebf2;font-family:'Heebo';font-size:14px;"
+            "color:#e8ebf2;font-family:'Archivo SemiExpanded';font-size:14px;"
             "font-weight:600;background:transparent;")
         c1.addWidget(self.lb_team)
         h.addWidget(c1w, 0, Qt.AlignVCenter)
@@ -6932,7 +6932,7 @@ class _MenuHeader(QFrame):
         c3.addWidget(self.lb_sess)
         cap = QLabel("MY SESSIONS")
         cap.setAlignment(Qt.AlignHCenter)
-        cap.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:13px;"
+        cap.setStyleSheet("color:#ffffff;font-family:'Archivo SemiExpanded';font-size:13px;"
                           "font-weight:600;letter-spacing:1px;background:transparent;")
         c3.addWidget(cap)
         h.addWidget(c3w, 0, Qt.AlignVCenter)
@@ -6945,7 +6945,7 @@ class _MenuHeader(QFrame):
         c4.addWidget(self.lb_drivers)
         cap2 = QLabel("DRIVERS")
         cap2.setAlignment(Qt.AlignHCenter)
-        cap2.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:13px;"
+        cap2.setStyleSheet("color:#ffffff;font-family:'Archivo SemiExpanded';font-size:13px;"
                            "font-weight:600;letter-spacing:1px;background:transparent;")
         c4.addWidget(cap2)
 
@@ -6957,7 +6957,7 @@ class _MenuHeader(QFrame):
         c5.addWidget(self.lb_ctimes)
         cap3 = QLabel("REF TIMES")
         cap3.setAlignment(Qt.AlignHCenter)
-        cap3.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:13px;"
+        cap3.setStyleSheet("color:#ffffff;font-family:'Archivo SemiExpanded';font-size:13px;"
                            "font-weight:600;letter-spacing:1px;background:transparent;")
         c5.addWidget(cap3)
 
@@ -6970,7 +6970,7 @@ class _MenuHeader(QFrame):
             _lb.setAlignment(Qt.AlignHCenter)
             _v.addWidget(_lb)
             _c = QLabel(cap); _c.setAlignment(Qt.AlignHCenter)
-            _c.setStyleSheet("color:#ffffff;font-family:'Heebo';font-size:12px;"
+            _c.setStyleSheet("color:#ffffff;font-family:'Archivo SemiExpanded';font-size:12px;"
                              "font-weight:600;letter-spacing:1px;"
                              "background:transparent;")
             _v.addWidget(_c)
@@ -7016,7 +7016,7 @@ class _MenuHeader(QFrame):
             m = QMenu(self)
             m.setStyleSheet(
                 "QMenu{background:#16181c;color:#f2f4f7;border:1px solid "
-                "#2a2c30;font-family:Heebo;font-size:12px;}"
+                "#2a2c30;font-family:Archivo SemiExpanded;font-size:12px;}"
                 "QMenu::item{padding:4px 14px;}"
                 "QMenu::item:selected{background:rgba(255,29,67,0.45);}")
 
@@ -7220,7 +7220,7 @@ class _RootCanvas(QWidget):
         # scritta BACK accanto alla freccia
         self._navback_lbl = QLabel("BACK")
         self._navback_lbl.setStyleSheet(
-            "color:#ffffff;font-family:'Heebo';font-size:13px;font-weight:700;"
+            "color:#ffffff;font-family:'Archivo SemiExpanded';font-size:13px;font-weight:700;"
             "letter-spacing:1px;background:transparent;")
         self._navback_lbl.setVisible(False)
         lay.addWidget(self._navback_lbl, 0, Qt.AlignVCenter)
@@ -7237,7 +7237,7 @@ class _RootCanvas(QWidget):
             b.setCursor(Qt.PointingHandCursor)
             b.setStyleSheet(
                 "QPushButton{background:transparent;color:#ffffff;"
-                "font-family:'Heebo';font-size:13px;font-weight:700;"
+                "font-family:'Archivo SemiExpanded';font-size:13px;font-weight:700;"
                 "letter-spacing:1px;border:1px solid rgba(255,255,255,0.30);"
                 "border-radius:6px;padding:7px 18px;}"
                 "QPushButton:hover{background:rgba(255,255,255,0.12);"
@@ -7411,11 +7411,11 @@ class _IntroPage(QWidget):
         # tasto Skip come overlay nella scena (z sopra al video)
         self._skip = QPushButton("Skip  \u203a")
         self._skip.setCursor(Qt.PointingHandCursor)
-        f = QFont("Heebo")
+        f = QFont("Archivo SemiExpanded")
         f.setPixelSize(15)
         self._skip.setFont(f)
         self._skip.setStyleSheet(
-            "QPushButton { color:#ffffff; font-family:'Heebo'; font-size:15px;"
+            "QPushButton { color:#ffffff; font-family:'Archivo SemiExpanded'; font-size:15px;"
             " background:transparent;"
             " border:1px solid rgba(255,255,255,0.55); border-radius:18px;"
             " padding:8px 18px; }"
@@ -7451,11 +7451,11 @@ class _IntroPage(QWidget):
         self._bg_anim.setStartValue(0.0)
         self._bg_anim.setEndValue(1.0)
 
-        # titolo (Heebo Bold) + tasto ENTRA (Heebo Regular): appaiono in fade dopo 3s
+        # titolo (Archivo SemiExpanded) + tasto ENTRA (Archivo SemiExpanded Regular): appaiono in fade dopo 3s
         self._title = QLabel("LMU Telemetry Pro")
         self._title.setAlignment(Qt.AlignCenter)
         self._title.setStyleSheet(
-            "QLabel { font-family:'Heebo'; font-weight:700; font-size:46px;"
+            "QLabel { font-family:'Archivo SemiExpanded'; font-weight:700; font-size:46px;"
             " color:#ffffff; background:transparent; }"
         )
         self._title_proxy = self._scene.addWidget(self._title)
@@ -7467,9 +7467,9 @@ class _IntroPage(QWidget):
         self._subtitle = QLabel("MURETTO")
         self._subtitle.setAlignment(Qt.AlignCenter)
         self._subtitle.setStyleSheet(
-            "QLabel { font-family:'Druk Wide Cy TT', 'Archivo SemiExpanded'; font-style:italic;"
+            "QLabel { font-family:'Archivo SemiExpanded'; font-style:normal;"
             " font-weight:900; font-size:58px; letter-spacing:4px;"
-            " color:#FF1D43; background:transparent; }"
+            " color:#ff2800; background:transparent; }"
         )
         self._subtitle_proxy = self._scene.addWidget(self._subtitle)
         self._subtitle_proxy.setZValue(9)
@@ -7479,7 +7479,7 @@ class _IntroPage(QWidget):
         self._version = QLabel("v.0.3 beta")
         self._version.setAlignment(Qt.AlignCenter)
         self._version.setStyleSheet(
-            "QLabel { font-family:'Heebo'; font-weight:400; font-size:15px;"
+            "QLabel { font-family:'Archivo SemiExpanded'; font-weight:400; font-size:15px;"
             " letter-spacing:2px; color:rgba(255,255,255,0.55);"
             " background:transparent; }"
         )
@@ -7490,7 +7490,7 @@ class _IntroPage(QWidget):
         self._enter = QPushButton("ENTER")
         self._enter.setCursor(Qt.PointingHandCursor)
         self._enter.setStyleSheet(
-            "QPushButton { font-family:'Heebo'; font-weight:400; font-size:18px;"
+            "QPushButton { font-family:'Archivo SemiExpanded'; font-weight:400; font-size:18px;"
             " color:#ffffff; background:transparent;"
             " border:1px solid rgba(255,255,255,0.70); border-radius:22px;"
             " padding:10px 34px; }"
@@ -7941,12 +7941,12 @@ class _SessionCard(QFrame):
             self._on_delete(self._file)
 
     def _apply_text(self):
-        self._lab_drv.setStyleSheet("color:#ffffff; font-family:'Heebo';"
+        self._lab_drv.setStyleSheet("color:#ffffff; font-family:'Archivo SemiExpanded';"
                                     " font-weight:700; font-size:15px;"
                                     " background:transparent; border:none;")
-        self._lab_car.setStyleSheet("color:#cfd6e2; font-family:'Heebo';"
+        self._lab_car.setStyleSheet("color:#cfd6e2; font-family:'Archivo SemiExpanded';"
                                     " font-size:13px; background:transparent; border:none;")
-        self._lab_sub.setStyleSheet("color:#aeb6c4; font-family:'Heebo';"
+        self._lab_sub.setStyleSheet("color:#aeb6c4; font-family:'Archivo SemiExpanded';"
                                     " font-size:12px; background:transparent; border:none;")
 
     def setSelected(self, on):
@@ -7984,28 +7984,28 @@ class _AppPage(QWidget):
     basso a destra. Sfondo radiale come il menu."""
 
     _TAB_OFF = ("QPushButton{background:rgba(255,255,255,0.07);color:#aeb6c4;"
-                "font-family:'Heebo';font-weight:700;font-size:11px;letter-spacing:.5px;"
+                "font-family:'Archivo SemiExpanded';font-weight:700;font-size:11px;letter-spacing:.5px;"
                 "border:none;border-radius:8px;padding:6px 13px;}"
                 "QPushButton:hover{background:rgba(255,255,255,0.13);color:#e8eaee;}")
     _TAB_ON = ("QPushButton{background:rgba(255,255,255,0.20);color:#ffffff;"
-               "font-family:'Heebo';font-weight:700;font-size:11px;letter-spacing:.5px;"
+               "font-family:'Archivo SemiExpanded';font-weight:700;font-size:11px;letter-spacing:.5px;"
                "border:none;border-left:2px solid #ff1d43;border-radius:8px;padding:6px 13px;}")
     _SUB_ON = ("QPushButton{background:rgba(255,255,255,0.20);color:#ffffff;"
-               "font-family:'Heebo';font-weight:700;font-size:11px;letter-spacing:.5px;"
+               "font-family:'Archivo SemiExpanded';font-weight:700;font-size:11px;letter-spacing:.5px;"
                "border:none;border-bottom:2px solid #ff1d43;border-radius:8px;padding:6px 13px;}")
     _CHIP_OFF = ("QPushButton{background:rgba(255,255,255,0.07);color:#aeb6c4;"
-                 "font-family:'Heebo';font-weight:700;font-size:11px;letter-spacing:.5px;"
+                 "font-family:'Archivo SemiExpanded';font-weight:700;font-size:11px;letter-spacing:.5px;"
                  "border:none;border-radius:8px;padding:5px 11px;}"
                  "QPushButton:hover{background:rgba(255,255,255,0.13);color:#e8eaee;}")
     _CHIP_ON = ("QPushButton{background:rgba(255,255,255,0.20);color:#ffffff;"
-                "font-family:'Heebo';font-weight:700;font-size:11px;letter-spacing:.5px;"
+                "font-family:'Archivo SemiExpanded';font-weight:700;font-size:11px;letter-spacing:.5px;"
                 "border:none;border-bottom:2px solid #ff1d43;border-radius:8px;padding:5px 11px;}")
-    _BTN_START = ("QPushButton{background:#ff1d43;color:#ffffff;font-family:'Heebo';"
+    _BTN_START = ("QPushButton{background:#ff1d43;color:#ffffff;font-family:'Archivo SemiExpanded';"
                   "font-weight:800;font-size:15px;letter-spacing:1px;border:none;"
                   "border-radius:10px;padding:0 24px;}"
                   "QPushButton:hover{background:#ff3b5d;}")
     _BTN_STOP = ("QPushButton{background:rgba(255,255,255,0.16);color:#ffffff;"
-                 "font-family:'Heebo';font-weight:800;font-size:15px;letter-spacing:1px;"
+                 "font-family:'Archivo SemiExpanded';font-weight:800;font-size:15px;letter-spacing:1px;"
                  "border:none;border-radius:10px;padding:0 24px;}"
                  "QPushButton:hover{background:rgba(255,255,255,0.24);}")
 
@@ -8015,16 +8015,16 @@ class _AppPage(QWidget):
     def _build_guide(self):
         """Tab Guide: documentazione approfondita e scrollabile (IT + EN)."""
         from PySide6.QtWidgets import QScrollArea
-        html = '<h1 style="font-family:\'Heebo\';color:#f5c542;font-size:27px;font-weight:800;margin:0 0 2px;">LMU Telemetry Pro &mdash; Guide</h1><p style="font-family:\'Heebo\';color:#8a90a0;font-size:14px;margin:0 0 18px;">Guida d\'uso completa &middot; Full user guide</p>\n<h2 style="font-family:\'Heebo\';color:#f5c542;font-size:20px;font-weight:800;margin:24px 0 8px;border-bottom:1px solid #283246;padding-bottom:4px;">🇮🇹 Guida completa</h2>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">1 · Avvio automatico</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Avvia <b>Le Mans Ultimate</b> e vai in pista come al solito. Non serve premere niente: l\'app rileva la sessione, la <b>crea e apre da sola</b> e ti porta dentro la sessione live giusta (pista, layout e classe corretti). Lo sfondo mostra la <b>foto del circuito</b> corrente.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Mentre giri, ogni giro completato compare nel board con tempo, settori e validità. I giri non validi (outlap, rientro box, track limits) non entrano in telemetria.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">2 · Menu circuiti</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Dalla home scegli <b>pista e layout</b>: ogni card mostra la foto del tracciato. La lista è scrollabile. Se hai già sessioni su quella pista le ritrovi qui.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">3 · Overview — sessioni e board</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">A <b>sinistra</b> le tue <b>sessioni</b>: ogni card ha le <b>5 icone meteo previste</b> (dalla partenza al traguardo), auto, classe e tempo migliore. Le card si filtrano per pista, layout e classe.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">A <b>destra</b> il <b>board</b>: stint, giri e tempi. <b>Clicca il cerchietto di un giro</b> per selezionarlo (SEL): la telemetria si carica su quel giro. Seleziona un <b>secondo giro</b> come confronto (CMP): viene sovrapposto.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Wet/Dry</b>: quando selezioni un giro, i giri di condizione opposta (asciutto↔bagnato) si <b>oscurano</b> e non sono selezionabili, così confronti solo condizioni omogenee.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">4 · Telemetry — i grafici</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">In alto la barra dei <b>sotto-tab</b>: <b>Worksheet</b> (più canali insieme), <b>Speed / Steering / Gear / RPM</b>, <b>Tyres</b>, <b>Brakes</b>, <b>Suspension</b>, <b>Pedals</b>, <b>G-G</b>, <b>Aids</b> (TC/ABS/bias), <b>Delta</b>, e i consumi <b>VE / Fuel / Hybrid</b>.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Scrub</b>: muovi il mouse <b>sopra un grafico</b> (o sulla mappa) → una linea verticale segue il puntatore, la <b>mappa evidenzia il punto</b> e leggi i <b>valori esatti</b> in quel punto del giro.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Cursori A/B (shift-click)</b>: <b>shift-click</b> sul grafico piazza il cursore <span style=\'color:#f0a23a\'><b>A</b></span> (arancione), un secondo shift-click il cursore <span style=\'color:#36c5d0\'><b>B</b></span> (ciano). In alto a destra compaiono <b>ΔX</b> (distanza in metri tra A e B) e <b>Δ valore</b> nel canale (es. Δkm/h, Δ°C). I cursori A/B e lo <b>zoom</b> sono <b>sincronizzati su tutti i grafici</b> contemporaneamente.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Legenda cliccabile</b>: i pallini SEL/CMP/REF in alto al grafico cambiano colore della traccia. Il giro più veloce è evidenziato.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">5 · Tyres — gomme per ruota</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Scegli la <b>ruota</b> (FL/FR/RL/RR) cliccando l\'angolo, e lo <b>strato</b> con i tab <b>Surface / Carcass / Inner / Press / Wear</b>. Il grafico mostra il canale scelto lungo il giro per quella ruota.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Sotto trovi i due grafici meteo continui <b>Asfalto °C</b> e <b>Rain %</b> (stessa larghezza e altezza): temperatura pista e pioggia lungo il giro.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">6 · G-G e mappa</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>G-G</b>: il diagramma delle accelerazioni laterali/longitudinali (quanto stai sfruttando il grip). La <b>mappa</b> a destra mostra il tracciato col punto evidenziato dallo scrub e il confronto SEL vs CMP.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">7 · REF — riferimento</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Confronta il giro selezionato con un <b>riferimento</b>: il tuo miglior giro <b>LOCAL</b> oppure la <b>community ONLINE</b>, abbinato per <b>classe + pista + condizione</b>. Colori: <span style=\'color:#f5c542\'><b>oro = asciutto</b></span>, <span style=\'color:#4aa3df\'><b>blu = bagnato</b></span>. Se l\'online coincide col tuo tempo, la card doppia viene nascosta.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">8 · Community · Team · Engineer</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Community</b>: tempi di riferimento per pista e classe. <b>Team</b>: <b>esporta/importa</b> sessioni in un file zip per condividerle con la squadra. <b>Engineer</b>: ingegnere di pista assistito.</p>\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:18px 0 3px;font-weight:700;">9 · Engineer — l\'ingegnere di gara</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">L\'<b>Engineer</b> e\' un ingegnere di pista a voce: guarda la tua telemetria in tempo reale e ti parla via radio durante la gara, come un vero muretto. Parla in italiano. Funziona in <b>gara</b> (in prova/qualifica ti da i riferimenti sui settori).</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Briefing iniziale</b>: a inizio gara calcola la <b>strategia</b> &mdash; giri totali, stint, numero di soste, autonomia di benzina o energia. Sulle GT3 il consumo lo ricava dal <b>consumo reale</b> della tua macchina, non da stime.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Durante la gara</b>: controllo passo e consumi, <b>dove perdi</b> (settori rispetto al tuo miglior tempo), <b>report di gestione periodico</b> (gomme, carburante), e <b>chiamata box intelligente</b> &mdash; gomme al 65%, foratura, benzina in esaurimento, penalita\', danni.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Pioggia</b> (dove serve davvero): ti avvisa appena inizia, ti chiama dentro per le wet in base a <b>quanto e\' bagnata la pista sotto le ruote</b>, ti dice quanta benzina mettere alla sosta, gestisce la temperatura delle wet, ti segnala il <b>settore piu\' bagnato</b> e la <b>finestra per le slick</b> quando si forma la linea asciutta.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Raccomandazione gomme</b>: costruita dalla superficie sotto le tue ruote &mdash; linea asciutta &rarr; slick, bagnato &rarr; wet. Se decidi di <b>restare fuori</b> con le wet che asciugano, l\'ingegnere prende atto della tua scelta e smette di insistere, passando a supportarti.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Gap e bandiere</b>: distacco su chi e\' davanti e dietro, segnale di <b>undercut</b> quando il rivale rientra ai box, bandiere gialle e full course yellow.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Impara dalle tue sessioni</b>: per ogni pista e classe, separando asciutto e bagnato, memorizza <b>consumo per giro</b>, <b>degrado gomme</b>, <b>miglior tempo e settori</b>. Piu\' giri puliti accumuli, piu\' diventa preciso: sa gia\' come si comporta la pista <i>per te</i>, e affina coi dati della gara in corso.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Ritmo radio</b>: aggiornamenti regolari senza martellare, e le chiamate critiche (box, gialla) hanno sempre la precedenza.</p>\n<hr style="border:none;border-top:1px solid #283246;margin:26px 0;">\n<h2 style="font-family:\'Heebo\';color:#f5c542;font-size:20px;font-weight:800;margin:24px 0 8px;border-bottom:1px solid #283246;padding-bottom:4px;">🇬🇧 Full guide</h2>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">1 · Auto start</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Launch <b>Le Mans Ultimate</b> and go on track as usual. No buttons needed: the app detects the session, <b>creates and opens it automatically</b> and focuses the right live session (track, layout and class). The background shows the current <b>circuit photo</b>.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">As you drive, each completed lap appears on the board with time, sectors and validity. Invalid laps (outlap, pit return, track limits) are excluded from telemetry.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">2 · Circuit menu</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">From the home screen pick <b>track and layout</b>: each card shows the circuit photo. The list scrolls. Existing sessions for that track show up here.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">3 · Overview — sessions & board</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Left</b>: your <b>sessions</b>. Each card has the <b>5 forecast icons</b> (start to finish), car, class and best time, filtered by track, layout and class.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Right</b>: the <b>board</b> with stints, laps and times. <b>Click a lap\'s circle</b> to select it (SEL): telemetry loads for that lap. Pick a <b>second lap</b> as compare (CMP) to overlay it.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Wet/Dry</b>: when a lap is selected, laps of the opposite condition (dry↔wet) are <b>dimmed</b> and not selectable, so you only compare like-for-like.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">4 · Telemetry — the charts</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Top <b>sub-tabs</b>: <b>Worksheet</b> (several channels at once), <b>Speed / Steering / Gear / RPM</b>, <b>Tyres</b>, <b>Brakes</b>, <b>Suspension</b>, <b>Pedals</b>, <b>G-G</b>, <b>Aids</b> (TC/ABS/bias), <b>Delta</b>, plus <b>VE / Fuel / Hybrid</b>.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Scrub</b>: move the mouse <b>over a chart</b> (or the map) → a vertical line follows the pointer, the <b>map highlights the point</b> and you read the <b>exact values</b> at that spot on the lap.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>A/B cursors (shift-click)</b>: <b>shift-click</b> on a chart sets cursor <span style=\'color:#f0a23a\'><b>A</b></span> (orange), a second shift-click sets <span style=\'color:#36c5d0\'><b>B</b></span> (cyan). Top-right shows <b>ΔX</b> (distance in metres between A and B) and the <b>Δ value</b> in the channel (e.g. Δkm/h, Δ°C). A/B cursors and <b>zoom</b> are <b>synced across all charts</b> at once.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Clickable legend</b>: the SEL/CMP/REF dots above the chart recolour the traces. The fastest lap is highlighted.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">5 · Tyres — per wheel</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Pick the <b>wheel</b> (FL/FR/RL/RR) by clicking its corner, and the <b>layer</b> with the <b>Surface / Carcass / Inner / Press / Wear</b> tabs. The chart shows the chosen channel along the lap for that wheel.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Below are the two continuous weather charts <b>Track °C</b> and <b>Rain %</b> (same width and height): track temperature and rain along the lap.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">6 · G-G & map</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>G-G</b>: the lateral/longitudinal acceleration diagram (how much grip you\'re using). The <b>map</b> on the right shows the track with the scrub point and SEL vs CMP.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">7 · REF — reference</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Compare the selected lap with a <b>reference</b>: your best <b>LOCAL</b> lap or the <b>ONLINE community</b>, matched by <b>class + track + condition</b>. Colours: <span style=\'color:#f5c542\'><b>gold = dry</b></span>, <span style=\'color:#4aa3df\'><b>blue = wet</b></span>. If the online time equals yours, the duplicate card is hidden.</p>\n\n<h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">8 · Community · Team · Engineer</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Community</b>: reference times by track and class. <b>Team</b>: <b>export/import</b> sessions as a zip to share with your team. <b>Engineer</b>: assisted race engineer.</p><h3 style="font-family:\'Heebo\';color:#eef1f6;font-size:16px;margin:18px 0 3px;font-weight:700;">9 · Engineer — your race engineer</h3><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">The <b>Engineer</b> is a voice race engineer: it watches your live telemetry and talks to you over the radio during the race, like a real pit wall. Works during the <b>race</b> (in practice/qualifying it gives you sector references).</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Opening briefing</b>: at race start it works out the <b>strategy</b> &mdash; total laps, stints, number of pit stops, fuel or energy range. On GT3s the consumption is taken from your car\'s <b>real fuel burn</b>, not from estimates.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>During the race</b>: pace and consumption checks, <b>where you\'re losing time</b> (sectors vs your best lap), a <b>periodic management report</b> (tyres, fuel), and <b>smart pit calls</b> &mdash; tyres at 65%, puncture, fuel running low, penalties, damage.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Rain</b> (where it really matters): it warns you as it starts, calls you in for wets based on <b>how wet the track is under your wheels</b>, tells you how much fuel to take at the stop, manages wet-tyre temperature, flags the <b>wettest sector</b> and the <b>slick window</b> as the dry line forms.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Tyre recommendation</b>: built from the surface under your wheels &mdash; dry line &rarr; slicks, wet &rarr; wets. If you choose to <b>stay out</b> on drying wets, the engineer acknowledges your call, stops nagging and switches to supporting you.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Gaps and flags</b>: gap to the car ahead and behind, an <b>undercut</b> prompt when a rival pits, yellow flags and full course yellow.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>It learns from your sessions</b>: per track and class, dry and wet kept separate, it stores <b>fuel per lap</b>, <b>tyre degradation</b>, <b>best lap and sectors</b>. The more clean laps you bank, the sharper it gets: it already knows how the track behaves <i>for you</i>, and refines with the current race data.</p><p style="font-family:\'Heebo\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Radio rhythm</b>: regular updates without spamming, and critical calls (box, yellow) always take priority.</p>\n'
+        html = '<h1 style="font-family:\'Archivo SemiExpanded\';color:#f5c542;font-size:27px;font-weight:800;margin:0 0 2px;">LMU Telemetry Pro &mdash; Guide</h1><p style="font-family:\'Archivo SemiExpanded\';color:#8a90a0;font-size:14px;margin:0 0 18px;">Guida d\'uso completa &middot; Full user guide</p>\n<h2 style="font-family:\'Archivo SemiExpanded\';color:#f5c542;font-size:20px;font-weight:800;margin:24px 0 8px;border-bottom:1px solid #283246;padding-bottom:4px;">🇮🇹 Guida completa</h2>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">1 · Avvio automatico</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Avvia <b>Le Mans Ultimate</b> e vai in pista come al solito. Non serve premere niente: l\'app rileva la sessione, la <b>crea e apre da sola</b> e ti porta dentro la sessione live giusta (pista, layout e classe corretti). Lo sfondo mostra la <b>foto del circuito</b> corrente.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Mentre giri, ogni giro completato compare nel board con tempo, settori e validità. I giri non validi (outlap, rientro box, track limits) non entrano in telemetria.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">2 · Menu circuiti</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Dalla home scegli <b>pista e layout</b>: ogni card mostra la foto del tracciato. La lista è scrollabile. Se hai già sessioni su quella pista le ritrovi qui.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">3 · Overview — sessioni e board</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">A <b>sinistra</b> le tue <b>sessioni</b>: ogni card ha le <b>5 icone meteo previste</b> (dalla partenza al traguardo), auto, classe e tempo migliore. Le card si filtrano per pista, layout e classe.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">A <b>destra</b> il <b>board</b>: stint, giri e tempi. <b>Clicca il cerchietto di un giro</b> per selezionarlo (SEL): la telemetria si carica su quel giro. Seleziona un <b>secondo giro</b> come confronto (CMP): viene sovrapposto.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Wet/Dry</b>: quando selezioni un giro, i giri di condizione opposta (asciutto↔bagnato) si <b>oscurano</b> e non sono selezionabili, così confronti solo condizioni omogenee.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">4 · Telemetry — i grafici</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">In alto la barra dei <b>sotto-tab</b>: <b>Worksheet</b> (più canali insieme), <b>Speed / Steering / Gear / RPM</b>, <b>Tyres</b>, <b>Brakes</b>, <b>Suspension</b>, <b>Pedals</b>, <b>G-G</b>, <b>Aids</b> (TC/ABS/bias), <b>Delta</b>, e i consumi <b>VE / Fuel / Hybrid</b>.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Scrub</b>: muovi il mouse <b>sopra un grafico</b> (o sulla mappa) → una linea verticale segue il puntatore, la <b>mappa evidenzia il punto</b> e leggi i <b>valori esatti</b> in quel punto del giro.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Cursori A/B (shift-click)</b>: <b>shift-click</b> sul grafico piazza il cursore <span style=\'color:#f0a23a\'><b>A</b></span> (arancione), un secondo shift-click il cursore <span style=\'color:#36c5d0\'><b>B</b></span> (ciano). In alto a destra compaiono <b>ΔX</b> (distanza in metri tra A e B) e <b>Δ valore</b> nel canale (es. Δkm/h, Δ°C). I cursori A/B e lo <b>zoom</b> sono <b>sincronizzati su tutti i grafici</b> contemporaneamente.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Legenda cliccabile</b>: i pallini SEL/CMP/REF in alto al grafico cambiano colore della traccia. Il giro più veloce è evidenziato.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">5 · Tyres — gomme per ruota</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Scegli la <b>ruota</b> (FL/FR/RL/RR) cliccando l\'angolo, e lo <b>strato</b> con i tab <b>Surface / Carcass / Inner / Press / Wear</b>. Il grafico mostra il canale scelto lungo il giro per quella ruota.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Sotto trovi i due grafici meteo continui <b>Asfalto °C</b> e <b>Rain %</b> (stessa larghezza e altezza): temperatura pista e pioggia lungo il giro.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">6 · G-G e mappa</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>G-G</b>: il diagramma delle accelerazioni laterali/longitudinali (quanto stai sfruttando il grip). La <b>mappa</b> a destra mostra il tracciato col punto evidenziato dallo scrub e il confronto SEL vs CMP.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">7 · REF — riferimento</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Confronta il giro selezionato con un <b>riferimento</b>: il tuo miglior giro <b>LOCAL</b> oppure la <b>community ONLINE</b>, abbinato per <b>classe + pista + condizione</b>. Colori: <span style=\'color:#f5c542\'><b>oro = asciutto</b></span>, <span style=\'color:#4aa3df\'><b>blu = bagnato</b></span>. Se l\'online coincide col tuo tempo, la card doppia viene nascosta.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">8 · Community · Team · Engineer</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Community</b>: tempi di riferimento per pista e classe. <b>Team</b>: <b>esporta/importa</b> sessioni in un file zip per condividerle con la squadra. <b>Engineer</b>: ingegnere di pista assistito.</p>\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:18px 0 3px;font-weight:700;">9 · Engineer — l\'ingegnere di gara</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">L\'<b>Engineer</b> e\' un ingegnere di pista a voce: guarda la tua telemetria in tempo reale e ti parla via radio durante la gara, come un vero muretto. Parla in italiano. Funziona in <b>gara</b> (in prova/qualifica ti da i riferimenti sui settori).</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Briefing iniziale</b>: a inizio gara calcola la <b>strategia</b> &mdash; giri totali, stint, numero di soste, autonomia di benzina o energia. Sulle GT3 il consumo lo ricava dal <b>consumo reale</b> della tua macchina, non da stime.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Durante la gara</b>: controllo passo e consumi, <b>dove perdi</b> (settori rispetto al tuo miglior tempo), <b>report di gestione periodico</b> (gomme, carburante), e <b>chiamata box intelligente</b> &mdash; gomme al 65%, foratura, benzina in esaurimento, penalita\', danni.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Pioggia</b> (dove serve davvero): ti avvisa appena inizia, ti chiama dentro per le wet in base a <b>quanto e\' bagnata la pista sotto le ruote</b>, ti dice quanta benzina mettere alla sosta, gestisce la temperatura delle wet, ti segnala il <b>settore piu\' bagnato</b> e la <b>finestra per le slick</b> quando si forma la linea asciutta.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Raccomandazione gomme</b>: costruita dalla superficie sotto le tue ruote &mdash; linea asciutta &rarr; slick, bagnato &rarr; wet. Se decidi di <b>restare fuori</b> con le wet che asciugano, l\'ingegnere prende atto della tua scelta e smette di insistere, passando a supportarti.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Gap e bandiere</b>: distacco su chi e\' davanti e dietro, segnale di <b>undercut</b> quando il rivale rientra ai box, bandiere gialle e full course yellow.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Impara dalle tue sessioni</b>: per ogni pista e classe, separando asciutto e bagnato, memorizza <b>consumo per giro</b>, <b>degrado gomme</b>, <b>miglior tempo e settori</b>. Piu\' giri puliti accumuli, piu\' diventa preciso: sa gia\' come si comporta la pista <i>per te</i>, e affina coi dati della gara in corso.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Ritmo radio</b>: aggiornamenti regolari senza martellare, e le chiamate critiche (box, gialla) hanno sempre la precedenza.</p>\n<hr style="border:none;border-top:1px solid #283246;margin:26px 0;">\n<h2 style="font-family:\'Archivo SemiExpanded\';color:#f5c542;font-size:20px;font-weight:800;margin:24px 0 8px;border-bottom:1px solid #283246;padding-bottom:4px;">🇬🇧 Full guide</h2>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">1 · Auto start</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Launch <b>Le Mans Ultimate</b> and go on track as usual. No buttons needed: the app detects the session, <b>creates and opens it automatically</b> and focuses the right live session (track, layout and class). The background shows the current <b>circuit photo</b>.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">As you drive, each completed lap appears on the board with time, sectors and validity. Invalid laps (outlap, pit return, track limits) are excluded from telemetry.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">2 · Circuit menu</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">From the home screen pick <b>track and layout</b>: each card shows the circuit photo. The list scrolls. Existing sessions for that track show up here.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">3 · Overview — sessions & board</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Left</b>: your <b>sessions</b>. Each card has the <b>5 forecast icons</b> (start to finish), car, class and best time, filtered by track, layout and class.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Right</b>: the <b>board</b> with stints, laps and times. <b>Click a lap\'s circle</b> to select it (SEL): telemetry loads for that lap. Pick a <b>second lap</b> as compare (CMP) to overlay it.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Wet/Dry</b>: when a lap is selected, laps of the opposite condition (dry↔wet) are <b>dimmed</b> and not selectable, so you only compare like-for-like.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">4 · Telemetry — the charts</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Top <b>sub-tabs</b>: <b>Worksheet</b> (several channels at once), <b>Speed / Steering / Gear / RPM</b>, <b>Tyres</b>, <b>Brakes</b>, <b>Suspension</b>, <b>Pedals</b>, <b>G-G</b>, <b>Aids</b> (TC/ABS/bias), <b>Delta</b>, plus <b>VE / Fuel / Hybrid</b>.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Scrub</b>: move the mouse <b>over a chart</b> (or the map) → a vertical line follows the pointer, the <b>map highlights the point</b> and you read the <b>exact values</b> at that spot on the lap.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>A/B cursors (shift-click)</b>: <b>shift-click</b> on a chart sets cursor <span style=\'color:#f0a23a\'><b>A</b></span> (orange), a second shift-click sets <span style=\'color:#36c5d0\'><b>B</b></span> (cyan). Top-right shows <b>ΔX</b> (distance in metres between A and B) and the <b>Δ value</b> in the channel (e.g. Δkm/h, Δ°C). A/B cursors and <b>zoom</b> are <b>synced across all charts</b> at once.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Clickable legend</b>: the SEL/CMP/REF dots above the chart recolour the traces. The fastest lap is highlighted.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">5 · Tyres — per wheel</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Pick the <b>wheel</b> (FL/FR/RL/RR) by clicking its corner, and the <b>layer</b> with the <b>Surface / Carcass / Inner / Press / Wear</b> tabs. The chart shows the chosen channel along the lap for that wheel.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Below are the two continuous weather charts <b>Track °C</b> and <b>Rain %</b> (same width and height): track temperature and rain along the lap.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">6 · G-G & map</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>G-G</b>: the lateral/longitudinal acceleration diagram (how much grip you\'re using). The <b>map</b> on the right shows the track with the scrub point and SEL vs CMP.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">7 · REF — reference</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">Compare the selected lap with a <b>reference</b>: your best <b>LOCAL</b> lap or the <b>ONLINE community</b>, matched by <b>class + track + condition</b>. Colours: <span style=\'color:#f5c542\'><b>gold = dry</b></span>, <span style=\'color:#4aa3df\'><b>blue = wet</b></span>. If the online time equals yours, the duplicate card is hidden.</p>\n\n<h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:16px 0 3px;font-weight:700;">8 · Community · Team · Engineer</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Community</b>: reference times by track and class. <b>Team</b>: <b>export/import</b> sessions as a zip to share with your team. <b>Engineer</b>: assisted race engineer.</p><h3 style="font-family:\'Archivo SemiExpanded\';color:#eef1f6;font-size:16px;margin:18px 0 3px;font-weight:700;">9 · Engineer — your race engineer</h3><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;">The <b>Engineer</b> is a voice race engineer: it watches your live telemetry and talks to you over the radio during the race, like a real pit wall. Works during the <b>race</b> (in practice/qualifying it gives you sector references).</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Opening briefing</b>: at race start it works out the <b>strategy</b> &mdash; total laps, stints, number of pit stops, fuel or energy range. On GT3s the consumption is taken from your car\'s <b>real fuel burn</b>, not from estimates.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>During the race</b>: pace and consumption checks, <b>where you\'re losing time</b> (sectors vs your best lap), a <b>periodic management report</b> (tyres, fuel), and <b>smart pit calls</b> &mdash; tyres at 65%, puncture, fuel running low, penalties, damage.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Rain</b> (where it really matters): it warns you as it starts, calls you in for wets based on <b>how wet the track is under your wheels</b>, tells you how much fuel to take at the stop, manages wet-tyre temperature, flags the <b>wettest sector</b> and the <b>slick window</b> as the dry line forms.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Tyre recommendation</b>: built from the surface under your wheels &mdash; dry line &rarr; slicks, wet &rarr; wets. If you choose to <b>stay out</b> on drying wets, the engineer acknowledges your call, stops nagging and switches to supporting you.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Gaps and flags</b>: gap to the car ahead and behind, an <b>undercut</b> prompt when a rival pits, yellow flags and full course yellow.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>It learns from your sessions</b>: per track and class, dry and wet kept separate, it stores <b>fuel per lap</b>, <b>tyre degradation</b>, <b>best lap and sectors</b>. The more clean laps you bank, the sharper it gets: it already knows how the track behaves <i>for you</i>, and refines with the current race data.</p><p style="font-family:\'Archivo SemiExpanded\';color:#cdd2dc;font-size:15px;line-height:1.6;margin:0 0 9px;"><b>Radio rhythm</b>: regular updates without spamming, and critical calls (box, yellow) always take priority.</p>\n'
         lab = QLabel(html)
-        lab.setFont(QFont("Heebo"))
+        lab.setFont(QFont("Archivo SemiExpanded"))
         lab.setTextFormat(Qt.RichText)
         lab.setWordWrap(True)
         lab.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         lab.setMaximumWidth(760)
         lab.setStyleSheet("background:#0c1320;border:1px solid #1e2940;"
                           "border-radius:14px;padding:28px 34px;color:#cdd2dc;"
-                          "font-family:'Heebo';")
+                          "font-family:'Archivo SemiExpanded';")
         host = QWidget(); host.setStyleSheet("background:transparent;")
         hl = QHBoxLayout(host); hl.setContentsMargins(20, 18, 20, 26)
         hl.addStretch(1); hl.addWidget(lab, 0, Qt.AlignTop); hl.addStretch(1)
@@ -8109,7 +8109,7 @@ class _AppPage(QWidget):
         self._title = QLabel("")
         # titoli pagina in ARCHIVO (font WEC originale), corsivo 900
         self._title.setStyleSheet(
-            "color:#ffffff; font-family:'Druk Wide Cy TT', 'Archivo SemiExpanded';"
+            "color:#ffffff; font-family:'Archivo SemiExpanded';"
             " font-style:italic; font-weight:900;"
             " font-size:26px; background:transparent;")
         head.addWidget(self._back, 0, Qt.AlignVCenter)
@@ -8143,7 +8143,7 @@ class _AppPage(QWidget):
         self._sess_time = QLabel("")
         self._sess_time.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self._sess_time.setStyleSheet(
-            "color:#ffffff; font-family:'Heebo'; font-weight:700; font-size:28px;"
+            "color:#ffffff; font-family:'Archivo SemiExpanded'; font-weight:700; font-size:28px;"
             " background:transparent;")
         self._sess_time.setVisible(False)
         head.addWidget(self._sess_time, 0, Qt.AlignVCenter)
@@ -8223,7 +8223,7 @@ class _AppPage(QWidget):
         left.addWidget(self._scroll, 1)
         self._empty = QLabel("Nessuna sessione per questo layout")
         self._empty.setAlignment(Qt.AlignCenter)
-        self._empty.setStyleSheet("color:#aeb6c4; font-family:'Heebo'; font-size:15px;"
+        self._empty.setStyleSheet("color:#aeb6c4; font-family:'Archivo SemiExpanded'; font-size:15px;"
                                   " background:transparent;")
         self._empty.hide()
         left.addWidget(self._empty)
@@ -8279,7 +8279,7 @@ class _AppPage(QWidget):
             pass
         self._board_hint = QLabel("Seleziona una sessione")
         self._board_hint.setAlignment(Qt.AlignCenter)
-        self._board_hint.setStyleSheet("color:#aeb6c4; font-family:'Heebo';"
+        self._board_hint.setStyleSheet("color:#aeb6c4; font-family:'Archivo SemiExpanded';"
                                        " font-size:15px; background:transparent;")
         self._board_box.setVisible(False)
         rl.addWidget(self._board_box, 1)
@@ -9125,7 +9125,7 @@ class _PillButton(QPushButton):
         from PySide6.QtGui import QFont
         self.setCursor(Qt.PointingHandCursor)
         self._hover = False
-        f = QFont("Heebo"); f.setPixelSize(px); f.setBold(True)
+        f = QFont("Archivo SemiExpanded"); f.setPixelSize(px); f.setBold(True)
         try:
             f.setLetterSpacing(QFont.AbsoluteSpacing, 1.0)
         except Exception:
@@ -9222,7 +9222,7 @@ class _TrackPage(QWidget):
 
     def __init__(self, on_sessions=None, on_back=None, parent=None):
         super().__init__(parent)
-        self.setStyleSheet("QWidget{font-family:'Heebo';}")   # default pagina
+        self.setStyleSheet("QWidget{font-family:'Archivo SemiExpanded';}")   # default pagina
         self._idx = None
         self._rank_token = 0
         self._rank_ready.connect(self._render_rank)
@@ -9247,7 +9247,7 @@ class _TrackPage(QWidget):
         self._flag.setStyleSheet("background:transparent;")
         top.addWidget(self._flag, 0, Qt.AlignVCenter)
         self._title = QLabel("")
-        self._title.setStyleSheet("color:#f2f4f7;font-family:'Heebo';"
+        self._title.setStyleSheet("color:#f2f4f7;font-family:'Archivo SemiExpanded';"
                                   "font-size:24px;font-weight:800;"
                                   "background:transparent;")
         top.addWidget(self._title, 0, Qt.AlignVCenter)
@@ -9316,10 +9316,10 @@ class _TrackPage(QWidget):
         w = QWidget(); w.setStyleSheet("background:transparent;")
         h = QHBoxLayout(w); h.setContentsMargins(0, 0, 0, 0)
         cap = QLabel(label)
-        cap.setStyleSheet("color:#8a90a0;font-family:'Heebo';font-size:12px;"
+        cap.setStyleSheet("color:#8a90a0;font-family:'Archivo SemiExpanded';font-size:12px;"
                           "font-weight:700;letter-spacing:1px;background:transparent;")
         val = QLabel("—")
-        val.setStyleSheet("color:#f2f4f7;font-family:'Heebo';font-size:16px;"
+        val.setStyleSheet("color:#f2f4f7;font-family:'Archivo SemiExpanded';font-size:16px;"
                           "font-weight:800;background:transparent;")
         h.addWidget(cap); h.addStretch(1); h.addWidget(val)
         lay.addWidget(w)
@@ -9657,10 +9657,10 @@ class _SessionCard(QFrame):
         dt = self._fmt_dt(s.get("started_at"))
         dcol = QVBoxLayout(); dcol.setSpacing(1); dcol.setContentsMargins(0, 0, 0, 0)
         d1 = QLabel(dt[0]); d1.setStyleSheet(
-            "color:#ffffff;font-family:'Heebo';font-size:14px;font-weight:800;"
+            "color:#ffffff;font-family:'Archivo SemiExpanded';font-size:14px;font-weight:800;"
             "background:transparent;")
         d2 = QLabel(dt[1]); d2.setStyleSheet(
-            "color:#a79fb0;font-family:'Heebo';font-size:11px;font-weight:600;"
+            "color:#a79fb0;font-family:'Archivo SemiExpanded';font-size:11px;font-weight:600;"
             "background:transparent;")
         dcol.addWidget(d1); dcol.addWidget(d2)
         dcw = QWidget(); dcw.setLayout(dcol); dcw.setFixedWidth(64)
@@ -9677,16 +9677,16 @@ class _SessionCard(QFrame):
         # pilota + auto + tipo
         ncol = QVBoxLayout(); ncol.setSpacing(1); ncol.setContentsMargins(0, 0, 0, 0)
         nm = QLabel((str(s.get("driver") or "—")).upper())
-        nm.setStyleSheet("color:#eef0f4;font-family:'Heebo';font-size:15px;"
+        nm.setStyleSheet("color:#eef0f4;font-family:'Archivo SemiExpanded';font-size:15px;"
                          "font-weight:800;background:transparent;")
         cr = QLabel(str(s.get("vehicle") or "—"))
-        cr.setStyleSheet("color:%s;font-family:'Heebo';font-size:12px;"
+        cr.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:12px;"
                          "font-weight:700;background:transparent;" % bord)
         # nome sessione come nelle card vecchie: tipo + durata (es. "RACE 60m")
         _styp = _ov_session_label(s.get("session_type"))
         _slen = _fmt_session_len(s.get("session_len"))
         ty = QLabel(_styp + ((" " + _slen) if _slen else ""))
-        ty.setStyleSheet("color:#a79fb0;font-family:'Heebo';font-size:12px;"
+        ty.setStyleSheet("color:#a79fb0;font-family:'Archivo SemiExpanded';font-size:12px;"
                          "font-weight:600;background:transparent;")
         ncol.addWidget(nm); ncol.addWidget(cr); ncol.addWidget(ty)
         ncw = QWidget(); ncw.setLayout(ncol); ncw.setMinimumWidth(200)
@@ -9738,12 +9738,12 @@ class _SessionCard(QFrame):
                 _fcw.deleteLater()
         # best lap + n giri
         bl = QLabel(_sess_fmt_lap(s.get("best_lap")))
-        bl.setStyleSheet("color:#f2f4f7;font-family:'Heebo';font-size:19px;"
+        bl.setStyleSheet("color:#f2f4f7;font-family:'Archivo SemiExpanded';font-size:19px;"
                          "font-weight:800;background:transparent;")
         bl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         h.addWidget(bl); h.addSpacing(12)
         lp = QLabel("%d laps" % int(s.get("laps") or 0))
-        lp.setStyleSheet("color:#8a90a0;font-family:'Heebo';font-size:12px;"
+        lp.setStyleSheet("color:#8a90a0;font-family:'Archivo SemiExpanded';font-size:12px;"
                          "font-weight:700;background:transparent;")
         lp.setFixedWidth(64); lp.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         h.addWidget(lp)
@@ -9945,7 +9945,7 @@ class _StintPage(_TrackPage):
         try:
             self._clock = QLabel("")
             self._clock.setStyleSheet(
-                "color:#ffffff;font-family:'Heebo';font-size:24px;"
+                "color:#ffffff;font-family:'Archivo SemiExpanded';font-size:24px;"
                 "font-weight:800;background:transparent;")
             self._clock.setVisible(False)
             _top = self.layout().itemAt(0).layout()
@@ -9956,7 +9956,7 @@ class _StintPage(_TrackPage):
         # STESSE funzioni del board, GRAFICA della pagina nuova: righe giro =
         # card blu (come Sessions/community), testi bianchi, accenti invariati.
         self.setStyleSheet(
-            "QWidget{font-family:'Heebo';}"
+            "QWidget{font-family:'Archivo SemiExpanded';}"
             "#ovColCap{color:#8a90a0;font-size:10px;font-weight:700;"
             "letter-spacing:1px;background:transparent;}"
             "#ovStintSum{color:#c9cede;font-size:12px;background:transparent;}"
@@ -10351,11 +10351,11 @@ class _DriverPage(_OptionsPage):
 
 
 class TelemetryWindow(QMainWindow):
-    _BTN_IDLE = ("QPushButton{background:#ececed;color:#15151a;font-family:'Heebo Medium','Heebo';"
+    _BTN_IDLE = ("QPushButton{background:#ececed;color:#15151a;font-family:'Archivo SemiExpanded';"
                  "font-weight:500;font-size:12px;letter-spacing:1px;border:none;"
                  "border-radius:5px;padding:0 12px;}"
                  "QPushButton:hover{color:#ff1d43;}")
-    _BTN_REC = ("QPushButton{background:#ff1d43;color:#ffffff;font-family:'Heebo Medium','Heebo';"
+    _BTN_REC = ("QPushButton{background:#ff1d43;color:#ffffff;font-family:'Archivo SemiExpanded';"
                 "font-weight:500;font-size:12px;letter-spacing:1px;border:none;"
                 "border-radius:5px;padding:0 12px;}"
                 "QPushButton:hover{background:#ff3b5d;}")
@@ -10422,8 +10422,8 @@ class TelemetryWindow(QMainWindow):
         # logo "MURETTO" per PRIMO a sinistra (stile intro: Archivo corsivo, rosso LMU)
         _mlab = QLabel("MURETTO")
         _mlab.setStyleSheet(
-            "QLabel{font-family:'Druk Wide Cy TT', 'Archivo SemiExpanded','Archivo';"
-            "font-style:italic;font-weight:800;color:#ff1d43;font-size:15px;"
+            "QLabel{font-family:'Archivo SemiExpanded','Archivo';"
+            "font-style:normal;font-weight:800;color:#ff2800;font-size:20px;"
             "letter-spacing:1px;background:transparent;}")
         fl.addWidget(_mlab, 0, Qt.AlignVCenter)
         fl.addSpacing(10)
@@ -10808,7 +10808,7 @@ class TelemetryWindow(QMainWindow):
         _fgv.setSpacing(2)
         _fgcap = QLabel("OPTIONS")
         _fgcap.setStyleSheet(
-            "color:#ffffff;font-family:'Heebo';font-size:13px;"
+            "color:#ffffff;font-family:'Archivo SemiExpanded';font-size:13px;"
             "font-weight:600;letter-spacing:1px;background:transparent;")
         _fgcap.setMaximumWidth(0)                # ritratta a riposo
         _fgv.addWidget(_fgcap, 0, Qt.AlignVCenter)

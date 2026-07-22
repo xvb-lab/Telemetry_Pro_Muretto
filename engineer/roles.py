@@ -18,8 +18,8 @@ def _role(codes, r):
 
 _role(["fast_class_close", "fast_class_now", "opp_penalty", "opp_slow",
        "gap_ahead", "gap_behind", "gap_both", "gap_undercut", "blue_flag",
-       "blue_flag_multi", "blue_flag_simple", "traffic_ahead",
-       "local_yellow", "yellow_flag", "yellow_pit"], "spotter")
+       "blue_flag_multi", "blue_flag_simple", "blue_flag_train", "traffic_ahead",
+       "local_yellow", "yellow_flag", "yellow_pit", "yellow_sector"], "spotter")
 _role(["brief_strat_data", "brief_strat_new",
        "weather_dry", "weather_wet", "rain_box_pace",
        "briefing_save", "briefing_manage", "briefing_push",
@@ -27,7 +27,10 @@ _role(["brief_strat_data", "brief_strat_new",
 _role(["brief_spot", "pit_exit_clean", "pit_exit_fast", "pit_exit_hole",
        "pit_exit_traffic", "pit_release_wait", "pit_release_clear"], "spotter")
 _role(["contact_ok", "contact_who", "contact_ok_who",
-       "contact_where", "contact_where_who"], "spotter")
+       "contact_where", "contact_where_who", "driver_check",
+       "contact_damage", "contact_damage_who"], "engineer")
+_role(["gap_attack", "gap_attack_simple", "gap_defend",
+       "gap_defend_simple"], "spotter")
 _role(["lap_fast", "lap_fast_clean", "lap_slow", "sector_loss",
        "perf_report", "ref_pace", "under_pace", "on_pace", "pace_margin",
        "lap_time_call", "quali_pole_gap", "quali_pole_lead",

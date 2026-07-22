@@ -5,6 +5,76 @@ perché. Si aggiorna a ogni intervento, insieme alla bibbia (`docs/bibbia.md`).
 
 ---
 
+## 2026-07-22 — Race Control FIA (wec26flag): design bandiere, messaggi, priorità
+
+**Ambito Race Control: SOLO player.** Deciso di NON mostrare investigation/penalità
+degli altri piloti (troppa roba → il pilota si distrae). Le **penalità degli altri**
+andranno nel **futuro Standings overlay**, non qui.
+
+**Bandiere decise (bandiera = STATO, resta finché la condizione è vera).**
+- Con immagine FIA (PNG in `assets/racecontrol/`): GREEN, BLUE, CHEQUERED, BLACK.
+- Disegnate stile FIA (head `rc_head.png` + striscia colorata): RED FLAG, RED
+  "PITS CLOSED", YELLOW SECTOR (solo se giallo locale entro **500m** davanti,
+  come la dash). FCY rimossa (in LMU **non esiste** la full course yellow).
+
+**Track limits del player — 5 livelli a COLORE (LMU color-coding).** L'utente è
+"abituato ai colori" di LMU, quindi due **quadri colorati** (niente "!"):
+- 🟩 verde = sotto warning (ok) · 🟨 giallo / 🟧 arancio / 🟥 rosso =
+  **"TRACK LIMITS UNDER REVIEW"** (il colore sale con la vicinanza alla penalità) ·
+  🟪 viola = **"TRACK OFF"** (strict limits: 4 ruote oltre la linea → giro
+  cancellato all'istante).
+- Soglie dai dati veri: `mTrackLimitsSteps` / `StepsPerPoint` / `StepsPerPenalty`.
+
+**Penalità del player — frasi stile direttore di gara (EN/FIA).** Box **rosso,
+testo bianco**. Motivo LMU **verbatim** + "FOR", es. `DRIVE-THROUGH FOR OUT OF
+POSITION`, `10s STOP & GO FOR PIT LANE SPEEDING`.
+
+**Scoperta dati penalità (dal trace `UserData/Log/trace*.txt`).** Verificato il
+formato vero: `Local penalty et=<t> <n0> <n1> <n2> <n3> "MOTIVO"`.
+- **n0** = DRIVE THROUGH · **n1** = STOP & GO (secondi) · **n2/n3** = +secondi
+  (tempo aggiunto, es. rolling start).
+- **L'"out line" NON ha stringa propria**: in LMU è loggata come motivo
+  **`"Out of position"`** (`1 0 0 0` = drive through) — è quella che la nostra
+  Race Control ha già catturato in gara. Motivi reali catalogati: `Track Limits`,
+  `Speeding`, `Speeding In Pitlane`, `Exiting Pits Under Red`, `Driving Too Slow`,
+  `Out of position`, `Erratic driving`, `Unsportsmanlike Driving`, `Exceeded
+  energy allowance limit`. `core/race_control.py` decodifica già i 4 campi così.
+
+**PRIORITÀ (alto = vince) e regole di coda.**
+1. RED/PITS CLOSED · 2. CHEQUERED · 3. BLACK · 4. BLUE · 5. YELLOW SECTOR ·
+   6. GREEN · 7. Penalità · 8. Track limits · 9. Slow car in sector.
+- Bandiere = **stati** con precedenza sui messaggi. Messaggi = **eventi** in coda,
+  mostrati **uno dopo l'altro per priorità**, ognuno **10s** (deciso 22/07).
+- **Se arriva GIALLO o BLU mentre un messaggio è a schermo → il messaggio torna
+  in coda (timer azzerato, riparte da 10s pieni)** e la bandiera prende il banner;
+  a bandiera spenta la coda riparte. A pari livello: ordine d'arrivo.
+- **GREEN FLAG**: appare **5s** una volta (se non sostituita nel frattempo); tanto
+  LMU la richiama. Track limits: i 5 livelli a colore sono **definitivi** (nessun
+  messaggio "conferma" extra).
+
+**Rolling start / auto-pit — ricerca dati (per piloti SENZA HUD LMU).**
+- **Non esiste** un flag "rolling vs standing" né uno "speed limit di formazione"
+  nella shared memory. Disponibili: fasi `mGamePhase` (3=formazione, 4=countdown
+  luci, 5=verde), `mIndividualPhase` (9=after formation), `mStartLight`/
+  `mNumRedLights`; **allineamento** solo via `mTimeGapCarAhead` (gap davanti).
+- **Auto-pit** = due assist distinti: **Auto pitlane** (guida in corsia) e **Auto
+  Pit Speed Limiter** (inserisce il limitatore alla linea, NON frena in ingresso)
+  → si riflettono su `mSpeedLimiter`/`mSpeedLimiterActive` (solo box, non formazione).
+
+**Dev windows (scratchpad, per iterare la grafica prima di portarla nel widget):**
+`rc_dev.py` (bandiere, ←/→) e `rc_msg_dev.py` (messaggi direzione: logo FIA a
+sinistra + box bianco a larghezza variabile, una riga font pieno 28px, quadri
+colore per i track limits, box rosso per le penalità).
+
+**Da fare (Race Control).**
+- Chiudere il testo dei messaggi "di conferma" track limits (viola/giallo/rosso).
+- Portare la grafica approvata nel widget vero `widgets/wec26flag/widget.py` +
+  cablare i dati (mSectorFlag 500m, mTrackLimitsSteps per il colore, race_control
+  per le penalità) e implementare priorità+coda (≥20s, giallo/blu rimette in coda).
+- Pannello Python con **bottoni** per triggerare bandiere/messaggi nel widget reale.
+
+---
+
 ## 2026-07-21 — Safe release, briefing box, regole sessione, fix
 
 **FIX pill "Garage · waiting for stint 1" incollata nel menu.**

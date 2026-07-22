@@ -273,6 +273,14 @@ class ConfigWindow(QDialog):
                 grid.addWidget(QLabel("No lapped"), row_i, 0)
                 grid.addWidget(self._make_toggle("pos_only"), row_i, 1)
                 row_i += 1
+            if self._key == "wec26flag":
+                # Race Control: 3 zone indipendenti on/off (default ON)
+                for _lab, _k in (("Flag", "show_flags"),
+                                 ("Penalità / Track", "show_penalties"),
+                                 ("Messaggi gara", "show_messages")):
+                    grid.addWidget(QLabel(_lab), row_i, 0)
+                    grid.addWidget(self._make_toggle(_k), row_i, 1)
+                    row_i += 1
             grid.addWidget(QLabel("Preview"), row_i, 0)
             grid.addWidget(self._make_toggle("preview"), row_i, 1)
             row_i += 1
@@ -456,6 +464,9 @@ class ConfigWindow(QDialog):
                                  bool(cfg.get("class_only", False)))
                 self._set_toggle("pos_only",
                                  bool(cfg.get("pos_only", False)))
+            if self._key == "wec26flag":
+                for _k in ("show_flags", "show_penalties", "show_messages"):
+                    self._set_toggle(_k, bool(cfg.get(_k, True)))
             self._set_toggle("preview", bool(cfg.get("preview", False)))
 
     def _make_tyre_combo(self):
@@ -725,6 +736,10 @@ class ConfigWindow(QDialog):
                 self._config.set_value(self._key, "pos_only",
                                        bool(self._toggle_state.get(
                                            "pos_only", False)))
+            if self._key == "wec26flag":
+                for _k in ("show_flags", "show_penalties", "show_messages"):
+                    self._config.set_value(
+                        self._key, _k, bool(self._toggle_state.get(_k, True)))
             self._config.set_value(self._key, "preview",
                                    bool(self._toggle_state.get("preview",
                                                                False)))
@@ -744,10 +759,10 @@ class ConfigWindow(QDialog):
 _CFG_QSS = """
 QDialog { background: transparent; }
 #cfgBack { background: rgba(255,255,255,0.06); color: #cfd3da; border: none;
-    border-radius: 9px; padding: 9px 18px; font-family: "Heebo"; font-size: 15px; font-weight: bold; }
+    border-radius: 9px; padding: 9px 18px; font-family: "Archivo SemiExpanded"; font-size: 15px; font-weight: bold; }
 #cfgBack:hover { background: rgba(255,255,255,0.12); color: #fff; }
-QLabel { color: #dfe3ea; font-family: "Heebo"; font-size: 15px; }
-#cfgTitle { color: #eef1f6; font-family: "Heebo"; font-size: 20px; font-weight: bold; letter-spacing: 1px; }
+QLabel { color: #dfe3ea; font-family: "Archivo SemiExpanded"; font-size: 15px; }
+#cfgTitle { color: #eef1f6; font-family: "Archivo SemiExpanded"; font-size: 20px; font-weight: bold; letter-spacing: 1px; }
 #scaleValue { color: #fff; font-size: 17px; font-weight: bold; background: rgba(255,255,255,0.06); border-radius: 6px; padding: 4px 10px; }
 #viewBtn { background: rgba(255,255,255,0.06); color: #b8bcc4; border: 1px solid rgba(255,255,255,0.10); border-radius: 8px; padding: 8px 18px; font-size: 14px; font-weight: bold; min-height: 20px; }
 #viewBtn:hover { background: #34343a; color: #ccc; }
@@ -775,7 +790,7 @@ QComboBox QAbstractItemView {
 }
 QPushButton {
     background: rgba(255,255,255,0.06); color: #e6e9ef; border: none;
-    border-radius: 8px; padding: 8px 16px; font-family: "Heebo"; font-size: 15px;
+    border-radius: 8px; padding: 8px 16px; font-family: "Archivo SemiExpanded"; font-size: 15px;
     min-height: 22px;
 }
 QPushButton:hover { background: #34343a; color: #fff; }

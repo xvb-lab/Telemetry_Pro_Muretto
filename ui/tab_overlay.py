@@ -31,8 +31,6 @@ from core.icons import ICON
 # sono FUORI dal menu: cartelle vive in widgets/ + copia di sicurezza
 # in backup_overlays/ — le funzioni si recuperano da li' per i nuovi.
 from widgets.map.widget import MapOverlay
-from widgets.wecrevs.widget import WecRevsOverlay
-from widgets.wecbars.widget import WecBarsOverlay
 from widgets.weconboard.widget import WecOnboardOverlay  # base di wec26board
 from widgets.wec26board.widget import Wec26OnboardOverlay
 from widgets.wec26battle.widget import (Wec26BattleOverlay,
@@ -47,8 +45,6 @@ _RUN_OVERLAY = _PROJECT_ROOT / "run_overlay.py"
 # Registro widget: (chiave config, etichetta, classe overlay)
 WIDGETS = [
     ("map", "Map", MapOverlay),
-    ("wecrevs", "WEC 2024 Revs", WecRevsOverlay),
-    ("wecbars", "WEC 2024 Pedals", WecBarsOverlay),
     ("wec26board", "WEC 2026 Onboard", Wec26OnboardOverlay),
     ("wec26battle", "WEC 2026 Battle Ahead", Wec26BattleOverlay),
     ("wec26battleb", "WEC 2026 Battle Behind", Wec26BattleBOverlay),
@@ -382,6 +378,24 @@ class _OverlayTab(QWidget):
         self._procs = {}          # key -> subprocess.Popen (un processo per overlay)
         self._build_ui()
         self._restore_all()
+        # SYNC LIVE: engineer_on puo' cambiare dal DASH (processo separato).
+        # Riallinea il toggle Engineer alla verita' (engineer_cfg engineer_on)
+        # ogni ~1.2s -> app e dash comandano/mostrano lo STESSO settaggio.
+        try:
+            from PySide6.QtCore import QTimer
+            self._eng_sync = QTimer(self)
+            self._eng_sync.timeout.connect(self._sync_engineer_row)
+            self._eng_sync.start(1200)
+        except Exception:
+            pass
+
+    def _sync_engineer_row(self):
+        row = getattr(self, "_eng_row", None)
+        if row is not None:
+            try:
+                row.restore()          # legge engineer_on, aggiorna il toggle
+            except Exception:
+                pass
 
     # ── GESTIONE PROCESSI (un overlay = un processo Python) ───────────
     def _spawn_cmd(self, key):
@@ -598,9 +612,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 #statusDot[on="true"]  { color: #00e676; }
 #statusDot[on="false"] { color: #4a4a4e; }
 
-#widgetName { color: #f2f2f2; font-family:'Heebo'; font-size: 15px; font-weight: bold; background: transparent; }
+#widgetName { color: #f2f2f2; font-family:'Archivo SemiExpanded'; font-size: 15px; font-weight: bold; background: transparent; }
 
-#toggleBtn { border-radius: 10px; font-family:'Heebo'; font-size: 12px; font-weight: bold; border: none; letter-spacing: 0.3px; }
+#toggleBtn { border-radius: 10px; font-family:'Archivo SemiExpanded'; font-size: 12px; font-weight: bold; border: none; letter-spacing: 0.3px; }
 QPushButton[on="false"] { background: #2e2e33; color: #8a8a90; }
 QPushButton[on="false"]:hover { background: #3a3a40; color: #b0b0b6; }
 QPushButton[on="true"]  { background: #00a152; color: #ffffff; }

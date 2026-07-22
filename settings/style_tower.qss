@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════════════ */
 
 * {
-    font-family: "Heebo", "Consolas", monospace;
+    font-family: "Archivo SemiExpanded", "Consolas", monospace;
     font-size: 14px;
     font-weight: bold;
 }

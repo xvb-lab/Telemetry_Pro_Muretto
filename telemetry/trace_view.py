@@ -2708,7 +2708,7 @@ class _WorksheetTab(QWidget):
         m = QMenu(self)
         m.setStyleSheet(
             "QMenu{background:#16181c;color:#f2f4f7;border:1px solid #2a2c30;"
-            "font-family:Heebo;font-size:12px;}"
+            "font-family:Archivo SemiExpanded;font-size:12px;}"
             "QMenu::item{padding:5px 18px;}"
             "QMenu::item:selected{background:rgba(255,29,67,0.45);}")
         for lab, key in (("Dot", "dot"), ("Car", "car"),
@@ -2732,7 +2732,7 @@ class _WorksheetTab(QWidget):
         m = QMenu(self)
         m.setStyleSheet(
             "QMenu{background:#16181c;color:#f2f4f7;border:1px solid #2a2c30;"
-            "font-family:Heebo;font-size:12px;}"
+            "font-family:Archivo SemiExpanded;font-size:12px;}"
             "QMenu::item{padding:5px 18px;}"
             "QMenu::item:selected{background:rgba(255,29,67,0.45);}")
         for sp in self._CATALOG:

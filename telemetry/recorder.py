@@ -2063,8 +2063,14 @@ class TelemetryRecorder:
             wet = str(four[0]).strip().upper().startswith("W")
         else:
             wet = bool(_db.declared_wet_from_surface(d.get("surface_type")))
+        # TRACK dall'_evt_track CONFERMATO della sessione (non da d['track']
+        # live: mTrackName scoring lagga dopo un cambio pista/sessione -> un
+        # giro fatto a Silverstone National finiva su 'Monza' stantìo e
+        # sporcava la leaderboard di TUTTI). _evt_track e' l'ancora con cui il
+        # giro e' stato accettato/registrato, quindi coerente col file DB.
+        _sub_track = getattr(self, "_evt_track", None) or d.get("track") or ""
         key = online.make_key(class_tag(d.get("car_class") or ""),
-                              _db._short_track(d.get("track") or ""), wet)
+                              _db._short_track(_sub_track), wet)
         if not key:
             return
         ws = [x for x in (wear or []) if x is not None]

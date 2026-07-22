@@ -28,7 +28,7 @@ from core.paths import USER_DIR
 from core import engineer_cfg          # flag auto_pit condiviso col muretto
 
 _ROOT = Path(__file__).parent.parent.parent
-_W, _H = 500, 300              # 260 + le due ROW (20+20): i moduli
+_W, _H = 550, 300              # 260 + le due ROW (20+20): i moduli
                                # tengono lo spazio pieno di prima
 _NAVY = QColor("#10123E")
 _RADIO_SHOW_S = 9.0
@@ -142,11 +142,47 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                # slot "MFD spento" (che qui useremo
                                # per altro) — cosi' restano in sync
         self._laps = 0
+        self._run = 1              # RUN corrente (1 = primo stint dal garage)
+        self._first_out = False    # prima uscita (garage) gia' avvenuta?
+        self._run_out_lap = -1     # giro in cui e' iniziato il run (outlap)
+        self._inpit_prev = None    # stato pit precedente, per lo scatto uscita
+        self._run_sess = None      # sessione per cui vale il contatore run
+        self._sector = 1           # settore corrente: 0=S3, 1=S1, 2=S2
+        self._sess_bs = [None, None, None]   # best di settore di SESSIONE (fastest)
+        self._in_garage = False    # dentro il box garage (simbolo WEC)
+        self._in_pits = False      # in corsia box
+        self._pit_state = 0        # 0=none 1=request 2=entering 3=stopped 4=exiting
+        self._sess_remain = 0.0    # tempo sessione rimanente (s)
+        self._track_temp = 0.0     # temp asfalto (garage)
+        self._tt_ref = None        # campione per il trend temp
+        self._tt_sample = 0.0
+        self._tt_trend = 0         # -1 giu', 0 stabile, +1 su
+        self._sess_best_lap = None # miglior giro di SESSIONE (tutti, per magenta)
+        self._cls_best_lap = None  # miglior giro di CLASSE (per il delta)
+        # ── motore DELTA live (traccia per distanza, stile TinyPedal) ──
+        self._lapdist = 0.0
+        self._dl_cur = []          # campioni (dist, tempo) del giro corrente
+        self._dl_ref = None        # traccia di riferimento (mio best)
+        self._dl_ref_time = None
+        self._dl_lap = None
+        self._prev_sector = None
+        self._track = ""           # nome pista (chiave per la traccia delta)
+        self._vclass = ""          # classe auto (chiave)
+        self._dl_track = None      # pista/classe per cui e' caricata la traccia
+        self._freeze_until = 0.0   # tempo settore/giro congelato 5s
+        self._freeze_txt = ""
+        self._freeze_col = None
+        self._delta_txt = ""       # delta live corrente
+        self._delta_col = None
+        self._lap_aborted = False  # giro buttato (mollato): delta esploso
+        self._lap_limits = False   # giro invalidato per track limits (Limits)
+        self._sec_col = [None, None, None]   # colore CONGELATO tacca settore
         self._oil = None
         self._abs = None
         self._tc = None
         self._carnum = ""
         self._driver = ""
+        self._vmodel = ""
         self._is_gt3 = False
         self._place = 0
         self._best = 0.0
@@ -236,12 +272,17 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         self._m3_sel = 0           # voce selezionata nel menu Mod 3
         self._m2_sel = 0           # voce selezionata nella pagina PIT
         self._auto_pit = False     # AUTO PIT (engineer_cfg): mostrato nel Mod 3
-        self._ap_ts = 0.0          # throttle rilettura flag auto_pit
+        self._ap_ts = 0.0          # throttle rilettura flag auto_pit/engineer_on
+        self._radio_en = False     # RADIO on/off (engineer_on): come riga Radio Options
         try:
-            self._auto_pit = bool(engineer_cfg.load().get("auto_pit", False))
+            _ec0 = engineer_cfg.load()
+            self._auto_pit = bool(_ec0.get("auto_pit", False))
+            self._radio_en = bool(_ec0.get("engineer_on", False))
         except Exception:
             pass
         self._pm_items = []
+        self._pm_pending = {}      # {nome voce: indice scelto} — protetti finche' LMU conferma
+        self._pm_pending_ts = {}   # {nome voce: monotonic dell'ultimo cambio}
         # scancode dei comandi elettronica: letti dal keyboard.json di
         # LMU (bind fantasma scritti dall'app + eventuali bind utente)
         _NAMES = {
@@ -324,23 +365,25 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     # ANTI-RIMBALZO: finche' LMU non CONFERMA la mia
                     # scelta, tengo il mio valore (mai il vecchio del
                     # gioco nel frattempo). Confermato -> mollo.
-                    pend = getattr(self, "_pm_pending", None)
-                    if pend and (time.monotonic()
-                                 - getattr(self, "_pm_pending_t",
-                                           0.0)) < 4.0:
-                        allok = True
+                    pend = getattr(self, "_pm_pending", None) or {}
+                    pts = getattr(self, "_pm_pending_ts", None)
+                    if pts is None:
+                        pts = self._pm_pending_ts = {}
+                    if pend:
+                        _now2 = time.monotonic()
                         for it2 in (dd if isinstance(dd, list)
                                     else []):
                             n2 = str((it2 or {}).get("name") or "")
                             if n2 in pend:
                                 if int(it2.get("currentSetting")
-                                       or 0) != pend[n2]:
-                                    it2["currentSetting"] = pend[n2]
-                                    allok = False
-                        if allok:
-                            self._pm_pending = None
-                    else:
-                        self._pm_pending = None
+                                       or 0) == pend[n2]:
+                                    pend.pop(n2, None)   # LMU conferma
+                                    pts.pop(n2, None)
+                                elif (_now2 - pts.get(n2, 0.0)) > 5.0:
+                                    pend.pop(n2, None)   # scaduto: cedo
+                                    pts.pop(n2, None)
+                                else:
+                                    it2["currentSetting"] = pend[n2]  # tengo il mio
                     self._pm_items = dd
                 except Exception:
                     pass
@@ -395,8 +438,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             if first:
                 return
             _full = json.loads(f.read_text(encoding="utf-8"))
-            self._radio_en = bool((_full.get("engineer") or {})
-                                  .get("enabled", False))
+            # NB: RADIO (engineer_on) vive in engineer_cfg.json e viene
+            # riletto ogni 1s nel paint. NON sovrascriverlo qui col vecchio
+            # config.json/engineer.enabled (flag legacy) -> corrompeva il toggle.
             d = _full.get("wec26mfd") or {}
             tgt = self._config._data.setdefault("wec26mfd", {})
             tgt.update(d)
@@ -501,9 +545,20 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         engineer_cfg.save(auto_pit=self._auto_pit)
                     except Exception:
                         pass
-                    self._m3_msg = (("AUTO PIT ON - MURETTO SCRIVE LA VE"
+                    self._m3_msg = (("AUTO PIT ON - ENGINEER SETS VE"
                                      if self._auto_pit else "AUTO PIT OFF"),
                                     time.monotonic())
+                    self._page_beep()
+                    self.update()
+                elif self._m3_sel == 3:    # RADIO (engineer_on): come Options
+                    self._radio_en = not self._radio_en
+                    self._ap_ts = time.monotonic()
+                    try:
+                        engineer_cfg.save(engineer_on=self._radio_en)
+                    except Exception:
+                        pass
+                    self._m3_msg = (("RADIO ON" if self._radio_en
+                                     else "RADIO OFF"), time.monotonic())
                     self._page_beep()
                     self.update()
         # croce su/giu: cambio valore della casella selezionata
@@ -520,7 +575,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             elif mod == 3:
                 # nel menu SETTINGS: sposta la voce selezionata
                 self._m3_sel = (self._m3_sel
-                                + (1 if (b & _XI_DD) else -1)) % 3
+                                + (1 if (b & _XI_DD) else -1)) % 4
                 self._page_beep()
                 self.update()
             elif self._ctrl_sel is not None:
@@ -559,6 +614,22 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             return
         super().mousePressEvent(e)
 
+    def mouseReleaseEvent(self, e):
+        # click (non-drag) sul box header -> apre/chiude come la onboard
+        moved = self._drag_pos is not None and \
+            (e.globalPosition().toPoint()
+             - (self._drag_pos + self.frameGeometry().topLeft())
+             ).manhattanLength() > 4
+        super().mouseReleaseEvent(e)
+        if not moved and e.button() == Qt.LeftButton and self.width() > 0:
+            sx = self.width() / float(_W)
+            sy = self.height() / float(_H)
+            px = e.position().x() / sx if sx else 0.0
+            py = e.position().y() / sy if sy else 0.0
+            if 0 <= py <= self.HDR and px >= getattr(self, "_hdr_bx0", 1e9):
+                self._hdr_forced = not getattr(self, "_hdr_open_now", True)
+                self.update()
+
     # ── dati ──────────────────────────────────────────────────────────
     def _read(self):
         ok = super()._read()
@@ -571,9 +642,66 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             num = int(sim.scoring.scoringInfo.mNumVehicles)
             cur_et = float(sim.scoring.scoringInfo.mCurrentET)
             try:
+                self._track = bytes(sim.scoring.scoringInfo.mTrackName) \
+                    .split(b"\x00")[0].decode("utf-8", "ignore").strip()
+            except Exception:
+                self._track = ""
+            try:
+                _end = float(sim.scoring.scoringInfo.mEndET)
+                self._sess_remain = max(0.0, _end - cur_et) \
+                    if _end > 0 else 0.0
+            except Exception:
+                self._sess_remain = 0.0
+            # MILESTONE tempo sessione (long run): al passaggio di
+            # 60/30/15/10/5/1 minuti la casella tempo mostra il residuo 5s
+            try:
+                _prev_rem = getattr(self, "_rem_prev", None)
+                self._rem_prev = self._sess_remain
+                if _prev_rem and self._sess_remain > 0 \
+                        and _prev_rem > self._sess_remain:
+                    for _ms in (3600.0, 1800.0, 900.0, 600.0,
+                                300.0, 60.0):
+                        if _prev_rem > _ms >= self._sess_remain:
+                            self._sess_flash_t = time.monotonic()
+                            self._sess_flash_v = _ms
+                            break
+            except Exception:
+                pass
+            try:
+                self._track_temp = float(sim.scoring.scoringInfo.mTrackTemp)
+            except Exception:
+                self._track_temp = 0.0
+            _tn = time.monotonic()          # trend temp asfalto (campione 6s)
+            if _tn - self._tt_sample > 6.0:
+                if self._tt_ref is not None:
+                    _dd = self._track_temp - self._tt_ref
+                    # STICKY: su/giu' appena si muove (0.05°), se stabile
+                    # tiene l'ULTIMA direzione (triangolo sempre visibile)
+                    self._tt_trend = 1 if _dd > 0.05 else \
+                        (-1 if _dd < -0.05 else self._tt_trend)
+                self._tt_ref = self._track_temp
+                self._tt_sample = _tn
+            try:
                 self._sess_type = int(sim.scoring.scoringInfo.mSession)
             except Exception:
                 self._sess_type = 0
+            # SESSIONE NUOVA = cambia il tipo OPPURE il tempo di sessione
+            # (mCurrentET) TORNA INDIETRO (pratica->pratica ha lo stesso tipo:
+            # il tempo che riparte da ~0 e' l'unico segnale affidabile).
+            _sess_new = (self._sess_type != self._run_sess
+                         or cur_et < getattr(self, "_prev_cur_et", 0.0) - 5.0)
+            self._prev_cur_et = cur_et
+            if _sess_new:
+                self._run_sess = self._sess_type      # nuova sessione: azzera run
+                self._run = 1
+                self._first_out = False
+                self._inpit_prev = None
+                self._run_out_lap = -1
+                self._dl_ref = None                   # delta: riparte da questa sessione
+                self._dl_ref_time = None
+                self._dl_cur = []
+                self._dl_ref_time = None
+                self._dl_lap = None
             pid = None
             _ovr = 0
             _pcc = b""
@@ -582,11 +710,38 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 if v.mIsPlayer:
                     pid = int(v.mID)
                     self._laps = int(v.mTotalLaps)
+                    # RUN: scatto uscita box (in pit -> in pista) = nuovo run
+                    _inpit = bool(int(getattr(v, "mInPits", 0)))
+                    _ingar = bool(int(getattr(v, "mInGarageStall", 0)))
+                    _off = _inpit or _ingar          # fermo: garage o corsia box
+                    if self._inpit_prev is None:
+                        self._inpit_prev = _off
+                    elif self._inpit_prev and not _off:   # garage/pit -> IN PISTA
+                        if self._first_out:               # non la 1a (garage)
+                            self._run += 1                # box successivo = nuovo run
+                        self._first_out = True
+                        self._run_out_lap = self._laps    # inizia l'outlap
+                    self._inpit_prev = _off
+                    self._in_pits = _inpit
+                    self._in_garage = _ingar
+                    _ps_prev = self._pit_state
+                    self._pit_state = int(getattr(v, "mPitState", 0))
+                    # RICHIESTA BOX (tasto pit o chiamata gioco): mPitState
+                    # passa a 1 -> apri da solo la pagina PIT (MOD 2). Solo sul
+                    # FRONTE, cosi' dopo puoi navigare altrove liberamente.
+                    if self._pit_state == 1 and _ps_prev != 1:
+                        try:
+                            _am = self._active_mods()
+                            if 2 in _am:
+                                self._page = _am.index(2)
+                        except Exception:
+                            pass
                     _ovr = int(v.mPlace)
                     try:
                         _pcc = bytes(v.mVehicleClass).split(b"\x00")[0]
                     except Exception:
                         _pcc = b""
+                    self._vclass = _pcc.decode("utf-8", "ignore")
                     self._best = float(v.mBestLapTime)
                     self._last = float(v.mLastLapTime)
                     _ls1 = float(v.mLastSector1)
@@ -607,6 +762,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     _cs2 = float(v.mCurSector2)
                     self._cs = (_cs1, _cs2 - _cs1 if _cs2 > 0
                                 and _cs1 > 0 else 0.0)
+                    self._sector = int(getattr(v, "mSector", 1))
                     _lst = float(v.mLapStartET)
                     self._live = max(0.0, cur_et - _lst) \
                         if _lst > 0 else 0.0
@@ -622,6 +778,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     m = re.search(r"#\s*(\d+)", vn)
                     if m:
                         self._carnum = m.group(1)
+                    _vm0 = re.sub(r"#\s*\d+", "", vn)
+                    _vm0 = re.sub(r"\s*:\s*\w+\s*$", "", _vm0)   # toglie ":WEC" finale
+                    self._vmodel = _vm0.strip()
                     self._is_gt3 = "GT3" in vn.upper()
                     break
             # posizione DI CLASSE: quanti della mia classe davanti +1
@@ -640,6 +799,48 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._place = _cnt + 1
                 else:
                     self._place = _ovr
+            # BEST DI SETTORE + BEST GIRO DI SESSIONE della MIA CLASSE:
+            # magenta e delta si riferiscono a questi (multiclass: una classe
+            # piu' veloce NON deve rubare il fuxia alla tua pole di classe)
+            _sbs = [None, None, None]
+            _sbl = None
+            _cbl = None
+            for i in range(min(num, _MX)):
+                v3 = sim.scoring.vehScoringInfo[i]
+                try:
+                    _b1 = float(v3.mBestSector1)
+                    _b2 = float(v3.mBestSector2)
+                    _bl = float(v3.mBestLapTime)
+                except Exception:
+                    continue
+                try:
+                    _cc3 = bytes(v3.mVehicleClass).split(b"\x00")[0]
+                except Exception:
+                    _cc3 = b""
+                _same3 = (not _pcc) or (_cc3 == _pcc)   # solo la MIA classe
+                if _bl and _bl > 0:
+                    if _same3 and (_sbl is None or _bl < _sbl):
+                        _sbl = _bl
+                    if _pcc and _cc3 == _pcc and (_cbl is None or _bl < _cbl):
+                        _cbl = _bl        # best giro della MIA classe
+                if not _same3:
+                    continue              # settori: solo la mia classe
+                _sp = (_b1 if _b1 > 0 else None,
+                       (_b2 - _b1) if _b2 > 0 and _b1 > 0 else None,
+                       (_bl - _b2) if _bl > 0 and _b2 > 0 else None)
+                for _si in range(3):
+                    _tt = _sp[_si]
+                    if _tt and _tt > 0 and (_sbs[_si] is None
+                                            or _tt < _sbs[_si]):
+                        _sbs[_si] = _tt
+            self._sess_bs = _sbs
+            self._sess_best_lap = _sbl
+            self._cls_best_lap = _cbl
+            if pid is not None:
+                try:
+                    self._update_delta(v)      # delta live + freeze settori
+                except Exception:
+                    pass
             for i in range(min(num, _MX)):
                 t = sim.telemetry.telemInfo[i]
                 if pid is not None and int(t.mID) == pid:
@@ -647,6 +848,25 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         self._oil = float(t.mEngineOilTemp)
                     except Exception:
                         self._oil = None
+                    try:                       # danno serio (dent >= 2)
+                        self._dmg_sev = any(
+                            int(t.mDentSeverity[_di]) >= 2
+                            for _di in range(8))
+                    except Exception:
+                        self._dmg_sev = False
+                    # DAMAGE = COMBO RITIRO (come il muretto): danno serio
+                    # + motore MORTO per 10s in pista. Riarma se riparte.
+                    _dead9 = (self._dmg_sev and (self._rpm or 0.0) < 100.0
+                              and not self._in_garage)
+                    if _dead9:
+                        if getattr(self, "_dmg_t0", None) is None:
+                            self._dmg_t0 = time.monotonic()
+                        elif time.monotonic() - self._dmg_t0 >= 10.0:
+                            self._dmg_dead = True
+                    else:
+                        self._dmg_t0 = None
+                        if (self._rpm or 0.0) > 300.0:
+                            self._dmg_dead = False   # e' ripartita
                     try:
                         self._abs = int(t.mABS) \
                             if int(t.mABSMax) > 0 else None
@@ -821,8 +1041,15 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         except Exception:
             self._flags9 = {}
         try:
-            _gp = int(self._mem._get_sim().scoring
-                      .scoringInfo.mGamePhase)
+            _si9 = self._mem._get_sim().scoring.scoringInfo
+            _gp = int(_si9.mGamePhase)
+            self._game_phase = _gp        # per PIT CLOSED (quali/prova)
+            # GOMMATURA pista 0-4 (mTrackGripLevel) + trend STICKY
+            _tg9 = int(getattr(_si9, "mTrackGripLevel", 0) or 0)
+            _pg9 = getattr(self, "_track_grip", None)
+            if _pg9 is not None and _tg9 != _pg9:
+                self._tg_trend = 1 if _tg9 > _pg9 else -1
+            self._track_grip = _tg9
             if _gp == 5 and getattr(self, "_gp_prev", None) != 5:
                 self._green_t = time.monotonic()
             self._gp_prev = _gp
@@ -970,6 +1197,337 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         # il brand non e' ancora noto durante i reload
         return QColor("#312C54"), QColor(255, 255, 255)
 
+    def _sector_states(self):
+        """3 stati settore (logica relative): fastest / improved / normal /
+        current. Acceso appena il settore chiude nel giro corrente."""
+        st = ["", "", ""]
+        ins = getattr(self, "_sector", 1)          # 0=S3, 1=S1, 2=S2
+        cs = self._cs or (0.0, 0.0)                 # (S1, split S2)
+        last = self._ls or (0.0, 0.0, 0.0)
+        best = self._bs or (0.0, 0.0, 0.0)
+        sbs = getattr(self, "_sess_bs", [None, None, None])
+
+        def _state(t, pb, idx):
+            if not t or t <= 0.0:
+                return ""
+            if sbs[idx] is not None and t <= sbs[idx] + 1e-3:
+                return "fastest"       # magenta: best di sessione
+            if pb and pb > 0.0 and t <= pb + 1e-3:
+                return "improved"      # verde: mio best
+            return "normal"            # giallo: piu' lento
+
+        if ins != 1 and len(cs) > 0 and cs[0] > 0:
+            st[0] = _state(cs[0], best[0] if len(best) > 0 else -1, 0)
+        if ins == 0 and len(cs) > 1 and cs[1] > 0:
+            st[1] = _state(cs[1], best[1] if len(best) > 1 else -1, 1)
+        if ins == 1:                    # giro appena chiuso: tutti e 3 dal last
+            for si in range(3):
+                lt = last[si] if si < len(last) else -1
+                if lt and lt > 0:
+                    st[si] = _state(lt, best[si] if si < len(best) else -1, si)
+        cur_idx = {0: 2, 1: 0, 2: 1}.get(ins, None)
+        if cur_idx is not None and not st[cur_idx]:
+            st[cur_idx] = "current"
+        return st
+
+    @staticmethod
+    def _fmt_t(s):
+        """Tempo in secondi -> 'sss.mmm' o 'm:ss.mmm'."""
+        if not s or s <= 0:
+            return "--"
+        _m = int(s // 60)
+        return "%d:%06.3f" % (_m, s - _m * 60) if _m else "%.3f" % s
+
+    @staticmethod
+    def _interp(arr, x):
+        """Interpola il tempo alla distanza x nella traccia (dist, tempo)."""
+        if not arr:
+            return None
+        if x <= arr[0][0]:
+            return arr[0][1]
+        if x >= arr[-1][0]:
+            return arr[-1][1]
+        for i in range(1, len(arr)):
+            if arr[i][0] >= x:
+                x0, t0 = arr[i - 1]
+                x1, t1 = arr[i]
+                if x1 == x0:
+                    return t1
+                return t0 + (t1 - t0) * (x - x0) / (x1 - x0)
+        return arr[-1][1]
+
+    def _dl_path(self):
+        """File della traccia delta per pista+classe (persistente tra riavvii)."""
+        _t = re.sub(r"[^A-Za-z0-9]+", "_", self._track or "track").strip("_")
+        _c = re.sub(r"[^A-Za-z0-9]+", "_", self._vclass or "cls").strip("_")
+        _d = USER_DIR / "delta"
+        try:
+            _d.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+        return _d / ("%s__%s.json" % (_t or "track", _c or "cls"))
+
+    def _dl_load(self):
+        """Carica la traccia di riferimento salvata (o azzera se non c'e')."""
+        self._dl_ref = None
+        self._dl_ref_time = None
+        self._dl_cur = []
+        try:
+            p = self._dl_path()
+            if p.exists():
+                d = json.loads(p.read_text(encoding="utf-8"))
+                tr = d.get("trace")
+                tm = d.get("time")
+                if tr and tm and float(tm) > 0:
+                    self._dl_ref = [(float(a), float(b)) for a, b in tr]
+                    self._dl_ref_time = float(tm)
+        except Exception:
+            pass
+
+    def _dl_save(self):
+        """Salva la traccia di riferimento corrente su file."""
+        try:
+            if not self._dl_ref or not self._dl_ref_time:
+                return
+            self._dl_path().write_text(json.dumps({
+                "time": self._dl_ref_time,
+                "trace": [[round(a, 1), round(b, 3)]
+                          for a, b in self._dl_ref],
+            }), encoding="utf-8")
+        except Exception:
+            pass
+
+    _DASH_LOGO = {
+        "Cadillac": "cardlogo/Cadillac_white.svg",
+        "Peugeot": "brandlogo/Peugeot_white_backup.svg",
+        "McLaren": "cardlogo/McLaren.svg",
+        "Toyota": "cardlogo/Toyota.svg",
+    }
+    # ritocchi dimensione SOLO dash (per-brand), non tocca onboard
+    _DASH_SCALE = {
+        "ginetta": 0.90,
+        "Peugeot": 1.10,
+    }
+
+    def _car_logo(self):
+        """Logo per il dash NERO: 1) mappa esplicita per-brand (_DASH_LOGO),
+        2) cardlogo/<brand>_white.svg, 3) brandlogo/ naturali. Cachato."""
+        import os
+        lp = None
+        try:
+            from core.wec_style import _ROOT as _WR
+            _root = str(_WR)
+            _rel = self._DASH_LOGO.get(self._brand)
+            if _rel:
+                _c = os.path.join(_root, _rel.replace("/", os.sep))
+                if os.path.exists(_c):
+                    lp = _c
+            if lp is None and self._brand:
+                _cw = os.path.join(_root, "cardlogo",
+                                   "%s_white.svg" % self._brand)
+                if os.path.exists(_cw):
+                    lp = _cw
+        except Exception:
+            lp = None
+        if lp is None:
+            try:
+                from core.utils import find_logo_path
+                lp = find_logo_path(self._brand)
+            except Exception:
+                lp = None
+        if not lp:
+            return None
+        lp = str(lp)
+        if getattr(self, "_clogo_lp", None) != lp:
+            try:
+                from PySide6.QtSvg import QSvgRenderer
+                self._clogo = QSvgRenderer(lp)
+                self._clogo_lp = lp
+            except Exception:
+                self._clogo = None
+        return getattr(self, "_clogo", None)
+
+    def _draw_car_logo(self, p, cx, cy, unit=72.0, opacity=1.0):
+        """Logo auto centrato con le PROPORZIONI per-brand ESATTE dell'onboard
+        (logo_box unit 72, rect_w 100 -> come wec26board.draw_card_base): stessa
+        grandezza e allineamento. Le bianche hanno l'aspect delle sorelle card.
+        Ritorna l'altezza."""
+        lg = self._car_logo()
+        if lg is None:
+            return 0.0
+        ds = lg.defaultSize()
+        vb = lg.viewBoxF()
+        if vb.width() > 0:
+            ar = vb.height() / vb.width()
+        elif ds.width() > 0:
+            ar = ds.height() / float(ds.width())
+        else:
+            return 0.0
+        try:
+            from core.wec_style import logo_box
+            ww, hh, _dy, _adv, _dx = logo_box(self._brand, ar, unit,
+                                              rect_w=100.0, surface="onboard")
+        except Exception:
+            hh = unit
+            ww = (unit / ar) if ar else unit
+        _sc = self._DASH_SCALE.get(self._brand, 1.0)   # ritocco solo dash
+        ww *= _sc
+        hh *= _sc
+        p.save()
+        p.setOpacity(max(0.0, min(1.0, opacity)))
+        lg.render(p, QRectF(cx - ww / 2.0, cy - hh / 2.0, ww, hh))
+        p.restore()
+        return hh
+
+    def _update_delta(self, v):
+        """DELTA live (vs mio best trace, ancorato al best di CLASSE) +
+        freeze 5s del tempo di settore/giro alla chiusura."""
+        now = time.monotonic()
+        self._lapdist = float(getattr(v, "mLapDist", 0.0))
+        # TRANSITORIO al traguardo: lapdist gia' a ~0 (nuovo giro) ma _live e'
+        # ancora il tempo del giro precedente per un paio di frame. NON va
+        # campionato (avvelena il riferimento) ne' usato per il delta.
+        _transient = self._lapdist < 150.0 and self._live > 10.0
+        # track limits: mCountLapFlag==1 -> giro conta ma NON il tempo
+        try:
+            _ll_prev = self._lap_limits
+            self._lap_limits = (int(getattr(v, "mCountLapFlag", 2)) == 1)
+            if self._lap_limits:
+                self._lap_was_inv = True          # questo giro NON fara' da ref
+                if not _ll_prev:
+                    self._inv_t = now             # INVALID: mostrato 5s
+        except Exception:
+            self._lap_limits = False
+        # cambio pista/classe -> AZZERA il riferimento (delta vs best di
+        # SESSIONE, come LMU e come le tacche; niente traccia all-time da disco)
+        _key = (self._track, self._vclass)
+        if _key != self._dl_track:
+            self._dl_track = _key
+            self._dl_ref = None
+            self._dl_ref_time = None
+            self._dl_cur = []
+        _MAG, _GRN, _YEL = (QColor("#ff2bd6"), QColor("#00e676"),
+                            QColor("#ffe24d"))          # rosa/verde/giallo WEC
+
+        def _col(t, pb, sb):
+            if t and t > 0:
+                if sb is not None and t <= sb + 1e-3:
+                    return _MAG
+                if pb and pb > 0 and t <= pb + 1e-3:
+                    return _GRN
+            return _YEL
+
+        best = self._bs or (0.0, 0.0, 0.0)
+        sbs = self._sess_bs or [None, None, None]
+        # ── NUOVO GIRO: valuta il giro chiuso come reference + freeze tempo giro
+        if self._laps != self._dl_lap:
+            if self._lap_aborted:            # giro CHIUSO era buttato -> nuovo RUN
+                self._run += 1
+            self._lap_aborted = False
+            # COOL-DOWN: se il giro appena chiuso era veloce (hai segnato un
+            # tempo), il prossimo e' raffreddamento -> niente delta/ABORTED
+            self._cool_lap = (self._last > 0 and self._best > 0
+                              and self._last <= self._best + 1.0)
+            if len(self._dl_cur) > 5 and self._last and self._last > 0:
+                # REGOLE riferimento: un giro PULITO scalza sempre un ref
+                # invalido; un giro INVALIDO puo' solo fare da ref
+                # PROVVISORIO (bootstrap) o migliorare tra invalidi — mai
+                # scalzare un pulito. Cosi' il delta c'e' SEMPRE, e appena
+                # fai un giro vero il riferimento diventa quello sano.
+                _cur_inv = getattr(self, "_lap_was_inv", False)
+                _ref_inv = getattr(self, "_dl_ref_inv", False)
+                if self._dl_ref_time is None \
+                        or (not _cur_inv and _ref_inv) \
+                        or (self._last < self._dl_ref_time
+                            and (_cur_inv == _ref_inv or not _cur_inv)):
+                    self._dl_ref = self._dl_cur      # nuovo trace di rif.
+                    self._dl_ref_time = self._last
+                    self._dl_ref_inv = _cur_inv
+            self._lap_was_inv = False
+            self._dl_cur = [(0.0, 0.0)]      # ANCHOR all'origine (stile TinyPedal)
+            self._dl_pos_last = 0.0
+            self._dl_lap = self._laps
+            self._sec_col = [None, None, None]   # nuovo giro: tacche da rifare
+            if self._last and self._last > 0 \
+                    and self._laps > self._run_out_lap:
+                self._freeze_until = now + 5.0
+                self._freeze_txt = self._fmt_t(self._last)
+                self._freeze_col = _col(self._last, self._best,
+                                        self._sess_best_lap)
+        # ── ARMA: solo quando l'inizio giro e' coerente (mLapStartET aggiornato,
+        #    _live piccolo). Cosi' NON registro il transitorio del traguardo
+        #    dove _live e' ancora ~il tempo del giro precedente. ──
+        if not getattr(self, "_dl_armed", False) and self._live < 5.0:
+            self._dl_armed = True
+        # ── campione traccia (stile TinyPedal): avanzi in distanza + tempo
+        #    crescente e ragionevole ──
+        if getattr(self, "_dl_armed", False) and 0.0 < self._live < 600.0:
+            _pl = getattr(self, "_dl_pos_last", 0.0)
+            _lt = self._dl_cur[-1][1] if self._dl_cur else 0.0
+            if self._lapdist > _pl + 4.0 and self._live >= _lt:
+                self._dl_cur.append((self._lapdist, self._live))
+                self._dl_pos_last = self._lapdist
+        # ── CAMBIO SETTORE: freeze 5s del tempo di settore chiuso
+        if self._prev_sector is not None and self._prev_sector != self._sector:
+            if self._prev_sector == 1:            # chiuso S1
+                _st = self._cs[0] if len(self._cs) > 0 else 0.0
+                if _st > 0:
+                    _cc = _col(_st, best[0], sbs[0])
+                    self._freeze_until = now + 5.0
+                    self._freeze_txt = "S1 " + self._fmt_t(_st)
+                    self._freeze_col = _cc
+                    self._sec_col[0] = _cc        # tacca = stesso colore del tempo
+            elif self._prev_sector == 2:          # chiuso S2
+                _st = self._cs[1] if len(self._cs) > 1 else 0.0
+                if _st > 0:
+                    _cc = _col(_st, best[1], sbs[1])
+                    self._freeze_until = now + 5.0
+                    self._freeze_txt = "S2 " + self._fmt_t(_st)
+                    self._freeze_col = _cc
+                    self._sec_col[1] = _cc
+        self._prev_sector = self._sector
+        # ── DELTA LIVE rolling (vs mio best trace), ancorato al best di CLASSE
+        self._delta_txt, self._delta_col = "", None
+        ref = self._dl_ref
+        # delta se: riferimento valido, campionamento ARMATO (fuori dal
+        # transitorio) e giro in corso. (Niente piu' blocco cool-down: nascondeva
+        # il delta a chi e' costante col proprio best.)
+        if ref and len(ref) >= 2 and getattr(self, "_dl_armed", False) \
+                and self._live > 0.5:
+            rt = self._interp(ref, self._lapdist)
+            if rt is not None:
+                d = self._live - rt              # delta vs il MIO best
+                _valid = (self._laps > self._run_out_lap
+                          and not self._in_pits and not self._in_garage)
+                _LIM = 3.0                        # limite delta = soglia abort
+                if _valid and d > _LIM:
+                    if not self._lap_aborted:     # FRONTE: segnala al muretto
+                        try:                      # (voce sincronizzata al dash)
+                            (USER_DIR / "dash_abort.json").write_text(
+                                json.dumps({"t": time.time(),
+                                            "lap": self._laps}))
+                        except Exception:
+                            pass
+                    self._lap_aborted = True      # molto piu' lento -> giro buttato
+                _dd = max(-_LIM, min(_LIM, d))    # cappato: aborted non esplode
+                # ABORTED: nascondo il numero pinnato (+3.000) -> solo la scritta
+                self._delta_txt = "" if self._lap_aborted else ("%+.3f" % _dd)
+                # COLORE DINAMICO (su proiezione = mio best + delta attuale):
+                # magenta = batti il fast di P1 (classe), verde = batti il tuo
+                # best, bianco = non stai migliorando niente
+                _col = QColor(255, 255, 255, 235)   # bianco: NON stai migliorando
+                _mb = self._dl_ref_time or 0.0
+                _p1 = self._cls_best_lap or 0.0
+                # coloro SOLO se stai migliorando (delta <= 0) e fuori dal
+                # transitorio di inizio giro (~2s). Delta positivo -> bianco.
+                if _mb > 0 and self._live > 2.0 and d <= 1e-3:
+                    _proj = _mb + d
+                    if _p1 > 0 and _proj <= _p1 + 1e-3:
+                        _col = _MAG        # proiezione batte il fast di P1
+                    else:
+                        _col = _GRN        # batti il tuo best
+                self._delta_col = _col
+
     # ── paint ─────────────────────────────────────────────────────────
     def paintEvent(self, e):
         p = QPainter(self)
@@ -1010,14 +1568,17 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             return
         boot = (time.monotonic() - self._pwr_t0) if self._pwr_t0 else 99
         if boot < 3.0:
-            # boot: spinner a quadratini 2x3 al centro
             p.setPen(Qt.NoPen)
             p.setBrush(QColor(6, 7, 9))
             p.drawRect(scr)
+            # LOGO AUTO in fade (sopra), poi lo spinner PIU' IN BASSO
+            _cy0 = scr.center().y()
+            self._draw_car_logo(p, _W / 2.0, _cy0 - 26.0, 72.0,
+                                 opacity=max(0.0, min(1.0, boot / 0.6)))
             side, gap = 4.5, 2.0
             step = side + gap
             cx = _W / 2.0 - step
-            cy = scr.center().y() - 1.5 * step
+            cy = _cy0 + 44.0                    # spinner abbassato
             POS = ((0, 0), (1, 0), (1, 1),
                    (1, 2), (0, 2), (0, 1))
             head = int(boot * 10) % 6
@@ -1052,11 +1613,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             return None
 
         rows = []
-        for pfx in ("DAMAGE",):
-            it = find(pfx)
-            if it:
+        it = find("DAMAGE")                    # SOLO se c'è danno (val != "-")
+        if it:
+            _o = it.get("settings") or []
+            _c = int(it.get("currentSetting") or 0)
+            _v = str((_o[_c] or {}).get("text") or "") \
+                if 0 <= _c < len(_o) else ""
+            if self._tr_pit(_v) != "-":
                 rows.append(it)
-        it = find("VIRTUAL ENERGY") or find("FUEL")
+        it = find("VIRTUAL ENERGY")
+        if it:
+            rows.append(it)
+        it = find("FUEL RATIO")               # ratio carburante
         if it:
             rows.append(it)
         for pfx in ("TIRES", "FL TIRE", "FR TIRE",
@@ -1064,6 +1632,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             it = find(pfx)
             if it:
                 rows.append(it)
+        # STOP/GO (serve penalità sì/no): SEMPRE in cima quando LMU lo espone,
+        # switchabile — NON sparisce se metti "No"
+        it = find("STOP/GO") or find("STOP AND GO") or find("STOP")
+        if it:
+            rows.insert(0, it)
         return rows
 
     @staticmethod
@@ -1198,8 +1771,13 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                             break
                 _pend[str(mst.get("name") or "")] = \
                     mst["currentSetting"]
-        self._pm_pending = _pend
-        self._pm_pending_t = time.monotonic()
+        _now = time.monotonic()
+        self._pm_pending = {**(getattr(self, "_pm_pending", None) or {}),
+                            **_pend}
+        if not hasattr(self, "_pm_pending_ts"):
+            self._pm_pending_ts = {}
+        for _k in _pend:
+            self._pm_pending_ts[_k] = _now       # ogni voce difesa dal SUO istante
         import threading
 
         def _post(menu):
@@ -1223,6 +1801,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         """Testo opzione LMU (spesso in italiano) -> INGLESE, UPPER."""
         t = (txt or "").strip()
         FIX = {"nessuna modifica": "NO CHANGE",
+               "non riparare": "NO REPAIR",
                "ripara tutto": "REPAIR ALL",
                "ripara carrozzeria": "REPAIR BODY",
                "ripara sospensioni": "REPAIR SUSP",
@@ -1234,15 +1813,20 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         for a, b in ((r"nuov[ei]", "NEW"), (r"usat[ae]", "USED"),
                      (r"medi[ae]", "MEDIUM"), (r"morbid[aei]", "SOFT"),
                      (r"dur[ae]", "HARD"), (r"bagnato", "WET"),
-                     (r"asciutto", "DRY")):
+                     (r"asciutto", "DRY"),
+                     (r"\bgiri\b", "LAPS"), (r"\bgiro\b", "LAP")):
             o = re.sub(a, b, o, flags=re.I)
         return o.upper().strip()
 
     def _paint_mod2(self, p):
-        FAM = "Heebo"
+        FAM = "Archivo SemiExpanded"
         bx = _W / 1334.0
         by = (_H - self.HDR - self.ROW_T - self.ROW_B) / 750.0
         y0 = self.HDR + self.ROW_T
+        # blocco GEAR/tachimetro come in MOD 1, STESSA posizione (dietro la lista)
+        _gy = self.HDR + self.ROW_T \
+            + (_H - self.HDR - self.ROW_T - self.ROW_B) / 2.0 - 44.0
+        self._paint_neon_gauge(p, _W / 2.0, _gy, 56.0)
         rows = self._m2_rows()
         f = QFont(FAM)
         if not rows:
@@ -1260,12 +1844,13 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._m2_ico_cache = {}
         from PySide6.QtSvg import QSvgRenderer
         from PySide6.QtCore import QByteArray
-        f.setPixelSize(20)
+        f.setPixelSize(18)
+        f.setWeight(QFont.Medium)
         p.setFont(f)
         _fm = QFontMetricsF(f)
         lh = 66.0 * by
 
-        def _ico(svg, x, cy):
+        def _ico(svg, x, cy, sz=22.0):
             if not svg:
                 return
             rnd = self._m2_ico_cache.get(svg)
@@ -1274,7 +1859,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 self._m2_ico_cache[svg] = rnd
                 if len(self._m2_ico_cache) > 40:
                     self._m2_ico_cache.clear()
-            rnd.render(p, QRectF(x, cy - 11.0, 22.0, 22.0))
+            rnd.render(p, QRectF(x, cy - sz / 2.0, sz, sz))
 
         def _pct_txt(it2):
             o2 = it2.get("settings") or []
@@ -1294,77 +1879,210 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             if pv and int(pv) > 0:
                 worst = int(pv) if worst is None else min(worst,
                                                           int(pv))
-        # ── HEAD: DAMAGE, ENERGY, 4 TYRES ──
-        for i in range(min(3, len(rows))):
+        # ── LISTA VERTICALE, colonna sinistra: STOP/GO(pen), DAMAGE, ENERGY,
+        #    RATIO, 4 TYRES, FL, FR, RL, RR. Righe/font AUTO-FIT sul numero
+        #    di voci (max 25 alto): con la penalità o piu' voci si stringono. ──
+        COLW = 220.0          # larghezza colonna testo
+        SELW = 175.0          # larghezza banda SELEZIONE (piu' stretta)
+        ROWH = 25.0           # altezza riga FISSA (il menu SCROLLA)
+        XC = 20.0             # margine sinistro colonna
+        TX = XC + 14.0        # rientro testo
+        PITCH = 31.0          # passo verticale
+        Y0C = y0 + 4.0
+        _isz = 22.0
+        f.setPixelSize(18)
+        f.setWeight(QFont.Medium)
+        p.setFont(f)
+        _fm = QFontMetricsF(f)
+        # ── SCROLL: finestra di righe attorno alla selezione ──
+        _n = len(rows)
+        _bot = y0 + 690.0 * by
+        _maxvis = max(1, int((_bot - Y0C) / PITCH))
+        _sel = (self._m2_sel % _n) if _n else 0
+        _sc = getattr(self, "_m2_scroll", 0)
+        if _sel < _sc:
+            _sc = _sel
+        elif _sel >= _sc + _maxvis:
+            _sc = _sel - _maxvis + 1
+        _sc = max(0, min(_sc, max(0, _n - _maxvis)))
+        self._m2_scroll = _sc
+        for i in range(_sc, min(_n, _sc + _maxvis)):
             it = rows[i]
             nm = str(it.get("name") or "").rstrip(":")
             opts = it.get("settings") or []
             cur = int(it.get("currentSetting") or 0)
             vt = str((opts[cur] or {}).get("text") or "") \
                 if 0 <= cur < len(opts) else ""
-            sel = (i == self._m2_sel % len(rows))
-            ry = (14 + i * 76) * by
-            cy = y0 + ry + lh / 2.0
-            p.setPen(QPen(QColor("#2fa8e0") if sel
-                          else QColor(255, 255, 255, 235)))
-            if nm.upper().startswith("TIRES"):
-                p.drawText(QRectF(40 * bx, y0 + ry, 400 * bx, lh),
-                           Qt.AlignLeft | Qt.AlignVCenter, "4 TYRES")
-                _ix = 40 * bx + _fm.horizontalAdvance("4 TYRES") + 16
-                # solo se monti gomme (No Change = niente simbolo/%)
+            up = nm.upper()
+            sel = (i == _sel)
+            ry = Y0C + (i - _sc) * PITCH
+            cy = ry + ROWH / 2.0
+            if sel:                              # selezione = bg grigio tenue
+                p.setPen(Qt.NoPen)
+                p.setBrush(QColor(160, 164, 174, 70))
+                p.drawRect(QRectF(XC, ry, SELW, ROWH))
+            p.setPen(QPen(QColor(255, 255, 255, 235)))
+            if up.startswith("STOP"):            # PENALITÀ stop&go
+                # SG = badge bg ROSSO testo bianco; 3 LAPS bianco (giri che
+                # restano, INFO); poi lo switch SÌ(verde)/NO(giallo).
+                _low = vt.strip().lower()
+                _on = _low.startswith("s") or _low.startswith("y")  # Sì/Yes
+                _mg = re.search(r"(\d+)", vt)
+                _cx = TX
+                _sgw = _fm.horizontalAdvance("SG") + 12.0
+                _bh = ROWH - 6.0
+                p.setPen(Qt.NoPen)
+                p.setBrush(QColor("#ff2b2b"))
+                p.drawRect(QRectF(_cx, ry + (ROWH - _bh) / 2.0, _sgw, _bh))
+                p.setPen(QPen(QColor(255, 255, 255)))
+                p.drawText(QRectF(_cx, ry, _sgw, ROWH), Qt.AlignCenter, "SG")
+                _cx += _sgw + 8.0
+                if _mg:                          # giri rimasti (bianco)
+                    _t = "%s LAPS " % _mg.group(1)
+                    p.setPen(QPen(QColor("#ffffff")))
+                    _w = _fm.horizontalAdvance(_t)
+                    p.drawText(QRectF(_cx, ry, _w + 6, ROWH),
+                               Qt.AlignLeft | Qt.AlignVCenter, _t)
+                    _cx += _w
+                p.setPen(QPen(QColor("#ffffff")))   # separatore
+                _w = _fm.horizontalAdvance("- ")
+                p.drawText(QRectF(_cx, ry, _w + 6, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter, "- ")
+                _cx += _w
+                _yn, _col = ("SI", "#00e676") if _on else ("NO", "#ffee00")
+                p.setPen(QPen(QColor(_col)))        # switch (verde/giallo)
+                p.drawText(QRectF(_cx, ry, 60.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter, _yn)
+            elif up.startswith("FUEL RATIO"):    # ratio carburante
+                p.drawText(QRectF(TX, ry, COLW - 24.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter,
+                           "RATIO %s" % vt.strip())
+            elif up.startswith("VIRTUAL ENERGY"):
+                # NUMERO % su badge VIOLA bold; poi i GIRI + bandierina a
+                # scacchi (FLAG_SVG) al posto di "LAPS".
+                _ln = self._tr_pit(vt)
+                _mp = re.match(r"\s*(\d+)\s*(?:%|L)?\s*(.*)", _ln)
+                if _mp:
+                    _num, _rest = _mp.group(1), _mp.group(2)
+                    _fb = QFont(FAM)
+                    _fb.setPixelSize(18)
+                    _fb.setWeight(QFont.Bold)
+                    _pw = QFontMetricsF(_fb).horizontalAdvance(_num) + 14.0
+                    _bh = ROWH - 6.0
+                    p.setPen(Qt.NoPen)
+                    p.setBrush(QColor("#8a3ffb"))          # viola
+                    p.drawRect(QRectF(TX, ry + (ROWH - _bh) / 2.0,
+                                      _pw, _bh))
+                    p.setFont(_fb)
+                    p.setPen(QPen(QColor(255, 255, 255)))
+                    p.drawText(QRectF(TX, ry, _pw, ROWH),
+                               Qt.AlignCenter, _num)
+                    _cx = TX + _pw + 8.0
+                    p.setFont(f)
+                    # % che SERVE per finire (STESSA logica dell'auto-pit:
+                    # auto_fuel_target = min VE% che copre i giri rimanenti).
+                    # Solo in GARA. Arancio.
+                    _need = None
+                    if self._sess_type >= 10:
+                        try:
+                            _lt9 = self._best or self._last or 0.0
+                            if self._sess_remain > 0 and _lt9 > 20.0 \
+                                    and self._pm_items:
+                                from core.strategy import auto_fuel_target
+                                _lneed = int(self._sess_remain / _lt9) + 1
+                                _r9 = auto_fuel_target(self._pm_items, _lneed)
+                                if _r9:
+                                    _need = _r9[1]
+                        except Exception:
+                            _need = None
+                    if _need is not None:
+                        p.setPen(QPen(QColor(255, 255, 255, 150)))
+                        p.drawText(QRectF(_cx, ry, 18.0, ROWH),
+                                   Qt.AlignLeft | Qt.AlignVCenter, ">")
+                        _cx += _fm.horizontalAdvance("> ")
+                        _nt = "%d" % _need
+                        p.setPen(QPen(QColor("#ff7a00")))     # arancio
+                        p.drawText(QRectF(_cx, ry, 40.0, ROWH),
+                                   Qt.AlignLeft | Qt.AlignVCenter, _nt)
+                        _cx += _fm.horizontalAdvance(_nt) + 10.0
+                    _lm2 = re.search(r"(\d+)", _rest)
+                    _lp = _lm2.group(1) if _lm2 else _rest
+                    p.setPen(QPen(QColor(255, 255, 255, 235)))
+                    p.drawText(QRectF(_cx, ry, 60.0, ROWH),
+                               Qt.AlignLeft | Qt.AlignVCenter, _lp)
+                    _cx += _fm.horizontalAdvance(_lp) + 5.0
+                    if _lm2:                               # bandierina a scacchi
+                        if not hasattr(self, "_flag_rnd"):
+                            from ui.icons import FLAG_SVG
+                            self._flag_rnd = QSvgRenderer(
+                                QByteArray(FLAG_SVG.encode()))
+                        _fsz = ROWH - 4.0
+                        self._flag_rnd.render(
+                            p, QRectF(_cx, ry + (ROWH - _fsz) / 2.0,
+                                      _fsz, _fsz))
+                else:
+                    p.drawText(QRectF(TX, ry, COLW - 24.0, ROWH),
+                               Qt.AlignLeft | Qt.AlignVCenter, _ln)
+            elif up.startswith("TIRES"):
+                p.drawText(QRectF(TX, ry, 200.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter, "ALL")
+                _ix = TX + _fm.horizontalAdvance("ALL") + 16
                 _mix = "MIX" in vt.upper()
                 if self._tyre_opt_parse(vt) or _mix:
-                    _ico(self._m2_icon_svg(it, rows), _ix, cy)
+                    _ico(self._m2_icon_svg(it, rows), _ix, cy, _isz)
                     if not _mix:
                         _pt = ("%d%%" % worst) if worst is not None \
                             else "100"
                         p.setPen(QPen(QColor(255, 255, 255, 235)))
-                        p.drawText(QRectF(_ix + 28, y0 + ry,
-                                          200 * bx, lh),
+                        p.drawText(QRectF(_ix + 28, ry, 120.0, ROWH),
                                    Qt.AlignLeft | Qt.AlignVCenter, _pt)
+            elif up[:2] in ("FL", "FR", "RL", "RR"):
+                sig = up[:2]
+                p.drawText(QRectF(TX, ry, 60.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter, sig)
+                _ix = TX + 32.0        # colonna icona FISSA (non spinta dal testo)
+                if self._tyre_opt_parse(vt):
+                    _ico(self._m2_icon_svg(it, rows), _ix, cy, _isz)
+                    pv = _pct_txt(it)
+                    _pt = ("%s%%" % pv) if (pv and int(pv) > 0) else "100"
+                    p.setPen(QPen(QColor(255, 255, 255, 235)))
+                    p.drawText(QRectF(_ix + 28, ry, 120.0, ROWH),
+                               Qt.AlignLeft | Qt.AlignVCenter, _pt)
             else:
                 _ln = self._tr_pit(vt)
-                # DAMAGE senza danno (N/D / -): riga VUOTA, niente "-"
-                if nm.upper().startswith("DAMAGE") and _ln in ("-",
-                                                               "N/D"):
-                    _ln = ""
-                p.drawText(QRectF(40 * bx, y0 + ry, 900 * bx, lh),
+                if up.startswith("DAMAGE"):
+                    if _ln in ("-", "N/D"):
+                        _ln = "NO DAMAGE"
+                        p.setPen(QPen(QColor("#00e676")))   # verde
+                    elif _ln == "REPAIR ALL":
+                        p.setPen(QPen(QColor("#ff7a00")))   # arancione acceso
+                    elif _ln == "REPAIR BODY":
+                        p.setPen(QPen(QColor("#ffee00")))   # giallo acceso
+                p.drawText(QRectF(TX, ry, COLW - 24.0, ROWH),
                            Qt.AlignLeft | Qt.AlignVCenter, _ln)
-        # ── 4 RUOTE in formazione MACCHININA (2 avanti / 2 dietro) ──
-        _cells = {"FL": (330, 452), "FR": (830, 452),
-                  "RL": (330, 600), "RR": (830, 600)}
-        for r2 in wheels:
-            sig = str(r2.get("name") or "").upper()[:2]
-            gx, gy2 = _cells.get(sig, (330, 452))
-            idx = rows.index(r2)
-            sel = (idx == self._m2_sel % len(rows))
-            cx2 = gx * bx
-            cy2 = y0 + gy2 * by
-            p.setPen(QPen(QColor("#2fa8e0") if sel
-                          else QColor(255, 255, 255, 235)))
-            p.drawText(QRectF(cx2, cy2 - lh / 2.0, 60 * bx, lh),
-                       Qt.AlignLeft | Qt.AlignVCenter, sig)
-            _ix = cx2 + _fm.horizontalAdvance(sig) + 12
-            # solo se monti gomme su questa ruota (No Change = niente)
-            o2 = r2.get("settings") or []
-            c2 = int(r2.get("currentSetting") or 0)
-            vt2 = str((o2[c2] or {}).get("text") or "") \
-                if 0 <= c2 < len(o2) else ""
-            if self._tyre_opt_parse(vt2):
-                _ico(self._m2_icon_svg(r2, rows), _ix, cy2)
-                pv = _pct_txt(r2)
-                _pt = ("%s%%" % pv) if (pv and int(pv) > 0) else "100"
-                p.setPen(QPen(QColor(255, 255, 255, 235)))
-                p.drawText(QRectF(_ix + 28, cy2 - lh / 2.0,
-                                  120 * bx, lh),
-                           Qt.AlignLeft | Qt.AlignVCenter, _pt)
+        # ── frecce SCROLL: se ci sono voci sopra/sotto la finestra ──
+        from PySide6.QtGui import QPolygonF as _QPF
+        _ax = XC + COLW - 14.0
+        p.setPen(Qt.NoPen)
+        p.setBrush(QColor(255, 255, 255, 160))
+        if _sc > 0:                              # su
+            _ay = Y0C - 1.0
+            p.drawPolygon(_QPF([QPointF(_ax, _ay + 6.0),
+                                QPointF(_ax + 9.0, _ay + 6.0),
+                                QPointF(_ax + 4.5, _ay)]))
+        if _sc + _maxvis < _n:                    # giu'
+            _ay = Y0C + _maxvis * PITCH - 6.0
+            p.drawPolygon(_QPF([QPointF(_ax, _ay),
+                                QPointF(_ax + 9.0, _ay),
+                                QPointF(_ax + 4.5, _ay + 6.0)]))
         # SLICK montate / totale — SOLO in qualifica (5-8) o gara
         # (>=10): in pratica le gomme sono illimitate, non ha senso
         _tmax = getattr(self, "_tyre_max", 0)
         _st9 = getattr(self, "_sess_type", 0)
         if _tmax > 0 and (5 <= _st9 <= 8 or _st9 >= 10):
             _mounted = _tmax - getattr(self, "_tyre_new_left", _tmax)
-            f.setPixelSize(20)
+            f.setPixelSize(18)
+            f.setWeight(QFont.Medium)
             p.setFont(f)
             p.setPen(QPen(QColor(255, 255, 255, 210)))
             p.drawText(QRectF(700 * bx, y0 + 12 * by, 594 * bx,
@@ -1372,6 +2090,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                        Qt.AlignRight | Qt.AlignVCenter,
                        "NEW SLICKS %d/%d" % (_mounted, _tmax))
         f.setPixelSize(max(6, int(26 * by)))
+        f.setWeight(QFont.Normal)                # hint torna Regular
         p.setFont(f)
         p.setPen(QPen(QColor(255, 255, 255, 180)))
         p.drawText(QRectF(0, y0 + 706 * by, _W, 34 * by),
@@ -1379,7 +2098,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
 
     # ── MOD 3: SCHERMATA IMPOSTAZIONI del dash (menu stile DDU) ──
     def _paint_mod3(self, p):
-        FAM = "CPMono_v07 Plain"
+        FAM = "Archivo SemiExpanded"
         bx = _W / 1334.0
         by = (_H - self.HDR - self.ROW_T - self.ROW_B) / 750.0
         y0 = self.HDR + self.ROW_T
@@ -1389,7 +2108,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         if _now - self._ap_ts > 1.0:
             self._ap_ts = _now
             try:
-                self._auto_pit = bool(engineer_cfg.load().get("auto_pit", False))
+                _ec = engineer_cfg.load()
+                self._auto_pit = bool(_ec.get("auto_pit", False))
+                self._radio_en = bool(_ec.get("engineer_on", False))
             except Exception:
                 pass
         # MENU VERO: voci reali con valore
@@ -1399,7 +2120,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                   "ON" if self._prefs.get("electric_control")
                   else "OFF"),
                  ("AUTO PIT",
-                  "ON" if self._auto_pit else "OFF"))
+                  "ON" if self._auto_pit else "OFF"),
+                 ("RADIO",
+                  "ON" if self._radio_en else "OFF"))
         f = QFont(FAM)
         f.setPixelSize(max(6, int(44 * by)))
         p.setFont(f)
@@ -1408,11 +2131,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             sel = (i == self._m3_sel)
             p.setPen(QPen(QColor("#2fa8e0") if sel
                           else QColor(255, 255, 255, 230)))
-            p.drawText(QRectF(40 * bx, y0 + (18 + i * 58) * by,
+            p.drawText(QRectF(40 * bx, y0 + (74 + i * 58) * by,
                               900 * bx, lh),
                        Qt.AlignLeft | Qt.AlignVCenter, it)
             p.setPen(QPen(QColor(255, 255, 255, 235)))
-            p.drawText(QRectF(700 * bx, y0 + (18 + i * 58) * by,
+            p.drawText(QRectF(700 * bx, y0 + (74 + i * 58) * by,
                               580 * bx, lh),
                        Qt.AlignRight | Qt.AlignVCenter,
                        "<%s>" % vv)
@@ -1427,9 +2150,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             fm3.setPixelSize(max(6, int(34 * by)))
             p.setFont(fm3)
             p.setPen(QPen(QColor("#ffed00")))
-            p.drawText(QRectF(40 * bx, y0 + 560 * by,
-                              1254 * bx, 60 * by),
-                       Qt.AlignLeft | Qt.AlignVCenter, _msg[0])
+            p.drawText(QRectF(0, y0 + 14 * by, _W, 46 * by),
+                       Qt.AlignCenter, _msg[0])
             p.setFont(f)                      # ripristina la legenda
             p.setPen(QPen(QColor(255, 255, 255, 180)))
         # comandi NOSTRI: croce del pad
@@ -1450,20 +2172,23 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             + (_H - self.HDR - self.ROW_T - self.ROW_B) / 2.0 - 44.0
         # fila regolazioni (MapBar del vecchio HUD) sopra l'ultima riga
         self._paint_ctrl_row(p)
-        # MOTORE SPENTO (rpm a zero): niente gauge, scritte di stato
+        # MOTORE SPENTO (rpm a zero): LOGO AUTO che resta + scritte sotto
         if self._rpm is not None and self._rpm < 1.0:
-            f_off = QFont("CPMono_v07 Plain")
+            _lcy = (self.HDR + _H) / 2.0 - 26.0        # STESSA posizione del boot
+            _lh = self._draw_car_logo(p, _W / 2.0, _lcy, 72.0)
+            _oy = _lcy + (_lh or 40.0) / 2.0 + 12.0    # sotto il logo
+            f_off = QFont("Archivo SemiExpanded")
             f_off.setPixelSize(20)
             p.setFont(f_off)
             p.setPen(QPen(QColor(255, 45, 45)))
-            p.drawText(QRectF(0, gy - 34, _W, 34), Qt.AlignCenter,
+            p.drawText(QRectF(0, _oy, _W, 28), Qt.AlignCenter,
                        "ENGINE OFF")
             if not self._is_gt3 and self._erpm > 10.0:
                 f_off.setPixelSize(15)
                 p.setFont(f_off)
                 p.setPen(QPen(QColor(0, 220, 90)))
-                p.drawText(QRectF(0, gy + 6, _W, 26), Qt.AlignCenter,
-                           "E-MOTOR ON")
+                p.drawText(QRectF(0, _oy + 28.0, _W, 24),
+                           Qt.AlignCenter, "E-MOTOR ON")
             return
         self._paint_neon_gauge(p, _W / 2.0, gy, 56.0)
         # ACQUA e OLIO impilati a SINISTRA in basso: le ICONE PNG di
@@ -1488,7 +2213,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 else self._px_oil_ok
             # blocco COMPATTO e ordinato, appoggiato al cerchio:
             # icona 18px + valore 11px, due righe allineate a destra
-            f_t = QFont("CPMono_v07 Plain")
+            f_t = QFont("Archivo SemiExpanded")
             f_t.setPixelSize(11)
             p.setFont(f_t)
             p.setPen(QColor(255, 255, 255, 240))
@@ -1542,7 +2267,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         def _gsym(gv):
             return "R" if gv < 0 else ("N" if gv == 0 else str(gv))
 
-        f_gear = QFont("Bebas Neue", 34)
+        f_gear = QFont("Archivo SemiExpanded", 34); f_gear.setBold(True)
         p.setFont(f_gear)
         fg = QFontMetricsF(f_gear)
         ts = (now - self._gear_t0) / 0.25 if self._gear_t0 else 2.0
@@ -1560,7 +2285,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             gear = _gsym(g)
             p.drawText(QPointF(gx - fg.horizontalAdvance(gear) / 2.0,
                                gy + fg.ascent() / 2.0 - 4), gear)
-        f_gl = QFont("Heebo", 13)
+        f_gl = QFont("Archivo SemiExpanded", 13)
         f_gl.setWeight(QFont.DemiBold)
         f_gl.setLetterSpacing(QFont.AbsoluteSpacing, 1.5)
         p.setFont(f_gl)
@@ -1649,7 +2374,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         y = _H - self.ROW_B - 42.0
         bh = 36.0
         # celle pulite: niente bordi ne' bg (solo flash e selezione)
-        f_l = QFont("CPMono_v07 Plain")
+        f_l = QFont("Archivo SemiExpanded")
         for i, (lbl, val) in enumerate(items):
             # BIAS: la migration lo muove DA SOLA a ogni frenata —
             # confronto a passi di 0.5 e MAI popup centrale (era il
@@ -1892,9 +2617,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         if k9 < 0.01:
             k9 = 0.0
         self._pu_k = k9
-        _gsz = int(60 - 36 * k9)          # 60 -> 24
+        _gsz = int(60 - 32 * k9)          # 60 -> 28
         _gcy9 = cy - (r * 0.48) * k9      # centro -> meta' alta
-        f_g = QFont("CPMono_v07 Plain", max(12, _gsz))
+        f_g = QFont("Archivo SemiExpanded", max(12, _gsz))
         p.setFont(f_g)
         fg = QFontMetricsF(f_g)
         p.setPen(QColor(255, 255, 255, 245))
@@ -1911,8 +2636,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _ri = r - 2.5
             p.drawPie(QRectF(cx - _ri, cy - _ri, _ri * 2, _ri * 2),
                       180 * 16, 180 * 16)
-            fL = QFont("CPMono_v07 Plain")
-            fL.setPixelSize(26)
+            fL = QFont("Archivo SemiExpanded")
+            fL.setPixelSize(20 if _tx9 == "GREEN" else 22)
             fL.setBold(True)
             p.setFont(fL)
             _tc9 = QColor(_tc9)
@@ -1927,7 +2652,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _ri = r - 2.5
             p.drawPie(QRectF(cx - _ri, cy - _ri, _ri * 2, _ri * 2),
                       180 * 16, 180 * 16)
-            f9 = QFont("CPMono_v07 Plain")
+            f9 = QFont("Archivo SemiExpanded")
             f9.setPixelSize(10)
             p.setFont(f9)
             p.setPen(QColor(255, 255, 255, int(215 * k9)))
@@ -1947,7 +2672,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                        Qt.AlignCenter, _vt)
         # ── velocita' SOTTO il cerchio, fuori (unita' dal menu) ──
         _mph = self._prefs.get("speed_unit", "KPH") == "MPH"
-        f_s = QFont("CPMono_v07 Plain", 19)
+        f_s = QFont("Archivo SemiExpanded", 19)
         p.setFont(f_s)
         fm = QFontMetricsF(f_s)
         s = "%.0f" % (self._spd_disp / 1.609344 if _mph
@@ -1973,7 +2698,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         return QColor(255, 59, 48)
         W90 = QColor(255, 255, 255, 230)
         NAVY = QColor(16, 17, 20)  # "negativo" delle celle piene = bg
-        FAM = "CPMono_v07 Plain"
+        FAM = "Archivo SemiExpanded"
         bx = _W / 1334.0
         by = (_H - self.HDR - self.ROW_T - self.ROW_B) / 750.0
         y0 = self.HDR + self.ROW_T
@@ -2196,16 +2921,327 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         p.drawLine(QPointF(x + 13.0, 11.0), QPointF(x + 8.0, 32.0))
         x += 21.0
         # posizione, in linea con lo slash e attaccata (scala 0.8)
-        f_ps = QFont("Druk Wide Cy TT", 22)
+        f_ps = QFont("Archivo SemiExpanded", 22)
         f_ps.setWeight(QFont.Black)
         f_ps.setItalic(True)
         p.setFont(f_ps)
         p.setPen(QColor(hf))
-        p.drawText(QPointF(x + 2.0, 32.0),
-                   "P%d" % (self._place or 14))
+        _ptxt = "P%d" % (self._place or 14)
+        p.drawText(QPointF(x + 2.0, 32.0), _ptxt)
+        # ── nome pilota (grande) + modello auto (piccolo): STATICI nell'header
+        #    a DESTRA. Il box navy dinamico ci scorre SOPRA (poi -> i dati).
+        _nm = (self._driver or "").upper()
+        _vm = (getattr(self, "_vmodel", "") or "").upper()
+        _rx = float(_W) - 14.0
+        if _nm:
+            f_dr = QFont("Archivo SemiExpanded", 15)
+            f_dr.setWeight(QFont.Black)
+            f_dr.setItalic(True)
+            p.setFont(f_dr)
+            p.setPen(QColor(hf))                 # colore testo della card (brand)
+            p.drawText(QPointF(
+                _rx - QFontMetricsF(f_dr).horizontalAdvance(_nm),
+                21.0), _nm)
+        if _vm:
+            f_vm = QFont("Archivo SemiExpanded", 10)
+            f_vm.setWeight(QFont.DemiBold)
+            f_vm.setItalic(True)
+            p.setFont(f_vm)
+            _mc = QColor(hf)
+            _mc.setAlpha(215)
+            p.setPen(_mc)
+            p.drawText(QPointF(
+                _rx - QFontMetricsF(f_vm).horizontalAdvance(_vm),
+                37.0), _vm)
+        # ── box navy DINAMICO che scorre da DESTRA SOPRA il nome (come onboard):
+        #    si apre da solo dopo open_delay_s, click apre/chiude.
+        _od = float(self.cfg.get("open_delay_s", 10.0))
+        _t0 = getattr(self, "_hdr_shown_t0", None)
+        if _t0 is None:
+            _t0 = self._hdr_shown_t0 = time.monotonic()
+        _fc = getattr(self, "_hdr_forced", None)
+        _open = _fc if _fc is not None else \
+            (time.monotonic() - _t0) >= _od   # dopo 10s copre il nome
+        self._hdr_open_now = _open                      # per il click
+        _tgt = 1.0 if _open else 0.0
+        _hf = getattr(self, "_hdr_k", 0.0)
+        _hf += (_tgt - _hf) * 0.22                      # scorrimento fluido
+        if abs(_tgt - _hf) < 0.01:
+            _hf = _tgt
+        self._hdr_k = _hf
+        _pend = x + 2.0 + QFontMetricsF(f_ps).horizontalAdvance(_ptxt)
+        _bx0 = _pend + 16.0
+        _bx1 = float(_W)
+        self._hdr_bx0 = _bx0                            # per il click
+        if _bx1 > _bx0 and _hf > 0.001:
+            _bw = _bx1 - _bx0
+            _dx = _bw * (1.0 - _hf)                     # scorre right->left
+            _rect = QRectF(_bx0 + _dx, 0.0, _bw - _dx, self.HDR)
+            p.setPen(Qt.NoPen)
+            p.setBrush(QColor(85, 74, 146, 255))       # #554A92, copre il nome
+            p.drawRect(_rect)
+            # ── DATO DINAMICO (prova/quali): RUN corrente, stile ufficiale ──
+            if self._sess_type < 10:
+                p.save()
+                p.setClipRect(_rect)
+                f_big = QFont("Archivo SemiExpanded", 15)
+                f_big.setWeight(QFont.Black)
+                f_big.setItalic(True)
+                f_sup = QFont("Archivo SemiExpanded", 9)
+                f_sup.setWeight(QFont.Black)
+                f_sup.setItalic(True)
+                _tx = _bx0 + 14.0
+                _yb = 30.0
+
+                def _fmt(s):
+                    if not s or s <= 0:
+                        return "--"
+                    _m = int(s // 60)
+                    return "%d:%06.3f" % (_m, s - _m * 60) if _m \
+                        else "%.3f" % s
+
+                # giro VALIDO = fuori garage/pit e outlap gia' chiuso
+                _valid = (not self._in_pits and not self._in_garage
+                          and self._laps > self._run_out_lap)
+                # ── etichetta: GARAGE / PIT / BOX / OUTLAP / Nˢᵗ RUN (come relative) ──
+                p.setFont(f_big)
+                p.setPen(QColor(255, 255, 255, 250))
+                _phq = int(getattr(self, "_game_phase", 5) or 0)
+                if _phq <= 0:
+                    _lbl = "PIT CLOSED"   # quali/prova: corsia box chiusa
+                elif self._in_garage:
+                    _lbl = "GARAGE"       # (poi simbolo WEC da creare)
+                elif self._in_pits:
+                    _lbl = "PIT"
+                elif self._pit_state == 1:
+                    _lbl = "BOX"          # box chiamato (pit request)
+                elif getattr(self, "_dmg_dead", False):
+                    _lbl = "DAMAGE"       # combo ritiro: macchina morta
+                elif not _valid:
+                    _lbl = "OUT LAP"
+                elif self._lap_aborted:
+                    _lbl = "ABORTED"      # hai mollato: giro buttato
+                else:
+                    _lbl = None
+                if _lbl is not None:
+                    p.drawText(QPointF(_tx, _yb), _lbl)
+                    _tx += QFontMetricsF(f_big).horizontalAdvance(_lbl) + 16.0
+                else:
+                    _run = max(1, int(self._run))    # 1 = primo stint
+                    _d2 = _run % 100
+                    _sfx = "TH" if 11 <= _d2 <= 13 else \
+                        {1: "ST", 2: "ND", 3: "RD"}.get(_run % 10, "TH")
+                    _ns = str(_run)
+                    p.drawText(QPointF(_tx, _yb), _ns)
+                    _tx += QFontMetricsF(f_big).horizontalAdvance(_ns) + 1.0
+                    # suffisso ST/ND/RD come l'originale WEC: PICCOLO,
+                    # apice allineato in alto al numero
+                    f_sup2 = QFont("Archivo SemiExpanded", 8)
+                    f_sup2.setWeight(QFont.Black)
+                    f_sup2.setItalic(True)
+                    p.setFont(f_sup2)
+                    p.drawText(QPointF(_tx, _yb - 6.0), _sfx)
+                    _tx += QFontMetricsF(f_sup2).horizontalAdvance(_sfx) + 7.0
+                    p.setFont(f_big)
+                    p.drawText(QPointF(_tx, _yb), "RUN")
+                    _tx += QFontMetricsF(f_big).horizontalAdvance("RUN") + 14.0
+
+                if not _valid:
+                    # GARAGE / PIT / OUT LAP: colonne colorate come il RUN.
+                    # TEMPO SESSIONE nella colonna #0a0031, TRACK TEMP /34°\
+                    # nella colonna #181246 a destra (niente LAP qui).
+                    _srt = int(max(0.0, self._sess_remain))
+                    _h = _srt // 3600
+                    _m = (_srt % 3600) // 60
+                    _s = _srt % 60
+                    _stxt = "%d:%02d:%02d" % (_h, _m, _s) if _h > 0 \
+                        else "%d:%02d" % (_m, _s)
+                    # colonna TEMP/GRIP: pagina condivisa GARAGE/OUT LAP/PIT
+                    # (cosi' deciso: il pit mostra lo stesso del garage)
+                    _has_tt = self._track_temp > 0
+                    _gl = getattr(self, "_track_grip", None)
+                    # stile "controlli elettronici" del dash: VALORE sopra
+                    # (+ triangolo attaccato), label piccola sotto.
+                    # TEMP e GRIP (0-4) affiancati, niente alternanza.
+                    f_tt = QFont("Archivo SemiExpanded", 13)
+                    f_tt.setWeight(QFont.Normal)
+                    f_tt.setItalic(True)
+                    f_lb = QFont("Archivo SemiExpanded", 7)
+                    f_lb.setWeight(QFont.Medium)
+                    f_lb.setItalic(True)
+                    _fv2 = QFontMetricsF(f_tt)
+                    _fl2 = QFontMetricsF(f_lb)
+                    _txt_t = "%d°" % int(round(self._track_temp))
+                    _txt_g = ("%d" % _gl) if _gl is not None else "-"
+                    _wt2 = max(_fv2.horizontalAdvance(_txt_t) + 12.0,
+                               _fl2.horizontalAdvance("TEMP"))
+                    _wg2 = max(_fv2.horizontalAdvance(_txt_g) + 12.0,
+                               _fl2.horizontalAdvance("GRIP"))
+                    # ALTERNA ogni 10s: blocco TEMP <-> blocco GRIP
+                    _show_g = (_gl is not None
+                               and int(time.monotonic() / 10.0) % 2 == 1)
+                    _wb2 = max(_wt2, _wg2)          # larghezza fissa
+                    # colonna a destra: icona STRADA + [temp|grip]
+                    _ttw = 12.0 + 22.0 + 9.0 + _wb2 + 12.0
+                    _tt_x0 = _bx1 - (_ttw if _has_tt else 0.0)
+                    p.setPen(Qt.NoPen)
+                    if _has_tt:
+                        p.setBrush(QColor("#181246"))
+                        p.drawRect(QRectF(_tt_x0, 0.0, _ttw, self.HDR))
+                    # colonna TEMPO SESSIONE: dal label fino alla colonna temp
+                    p.setBrush(QColor("#0a0031"))
+                    p.drawRect(QRectF(_tx, 0.0, _tt_x0 - _tx, self.HDR))
+                    _twt = QFontMetricsF(f_big).horizontalAdvance(_stxt)
+                    _cx2 = _tx + max(10.0, (_tt_x0 - _tx - _twt) / 2.0)
+                    p.setFont(f_big)
+                    p.setPen(QColor(255, 255, 255, 235))
+                    p.drawText(QPointF(_cx2, _yb), _stxt)
+                    # ── TEMP ASFALTO: icona STRADA + numero + triangolo ──
+                    if _has_tt:
+                        _cx2 = _tt_x0 + 12.0
+                        # icona strada BIANCA (bordi obliqui + tratteggio)
+                        _ry1 = _yb + 2.0            # base (larga)
+                        _ry0 = _yb - 15.0           # cima (stretta)
+                        _rw = 22.0
+                        _pen = QPen(QColor(255, 255, 255, 240), 2.4,
+                                    Qt.SolidLine, Qt.FlatCap)
+                        p.setPen(_pen)              # bordo sinistro /
+                        p.drawLine(QPointF(_cx2 + 1.0, _ry1),
+                                   QPointF(_cx2 + 6.5, _ry0))
+                        # bordo destro \
+                        p.drawLine(QPointF(_cx2 + _rw - 1.0, _ry1),
+                                   QPointF(_cx2 + _rw - 6.5, _ry0))
+                        # mezzeria tratteggiata (3 tacche)
+                        _mx = _cx2 + _rw / 2.0
+                        p.setPen(QPen(QColor(255, 255, 255, 240), 2.2,
+                                      Qt.SolidLine, Qt.FlatCap))
+                        p.drawLine(QPointF(_mx, _ry1),
+                                   QPointF(_mx, _ry1 - 4.5))
+                        p.drawLine(QPointF(_mx, _ry1 - 7.5),
+                                   QPointF(_mx, _ry1 - 11.0))
+                        p.drawLine(QPointF(_mx, _ry1 - 14.0),
+                                   QPointF(_mx, _ry1 - 17.0))
+                        _cx2 += _rw + 9.0
+                        from PySide6.QtGui import QPolygonF
+
+                        def _blk(x, val, lab, tr, w):
+                            """valore sopra + triangolo, label sotto."""
+                            p.setFont(f_tt)
+                            p.setPen(QColor(255, 255, 255, 245))
+                            p.drawText(QPointF(x, 25.0), val)
+                            _txr = x + _fv2.horizontalAdvance(val) + 4.0
+                            p.setPen(Qt.NoPen)
+                            p.setBrush(QColor(255, 255, 255,
+                                              245 if tr != 0 else 110))
+                            _cyT = 24.0
+                            if tr >= 0:
+                                p.drawPolygon(QPolygonF([
+                                    QPointF(_txr, _cyT),
+                                    QPointF(_txr + 8.0, _cyT),
+                                    QPointF(_txr + 4.0, _cyT - 9.0)]))
+                            else:
+                                p.drawPolygon(QPolygonF([
+                                    QPointF(_txr, _cyT - 9.0),
+                                    QPointF(_txr + 8.0, _cyT - 9.0),
+                                    QPointF(_txr + 4.0, _cyT)]))
+                            p.setFont(f_lb)
+                            p.setPen(QColor(255, 255, 255, 190))
+                            p.drawText(QPointF(x, 38.0), lab)
+                            return x + w + 10.0
+
+                        if _show_g:
+                            _blk(_cx2, _txt_g, "GRIP",
+                                 getattr(self, "_tg_trend", 0), _wb2)
+                        else:
+                            _blk(_cx2, _txt_t, "TEMP",
+                                 self._tt_trend, _wb2)
+                else:
+                    # ── colori 3 barrette settore: magenta/verde/giallo + pulse ──
+                    _SC = {"fastest": QColor("#ff2bd6"),
+                           "improved": QColor("#00e676"),
+                           "normal": QColor("#ffe24d")}    # colori WEC
+                    _states = self._sector_states()
+                    _pul = 0.35 + 0.65 * abs(
+                        (time.monotonic() % 1.0) - 0.5) * 2.0
+                    # ── 3 barrette settore ATTACCATE alla label, sul navy ──
+                    p.setPen(Qt.NoPen)
+                    for _i2 in range(3):
+                        _frz = self._sec_col[_i2]
+                        if _frz is not None:
+                            _c2 = _frz               # congelato: come il tempo
+                        else:
+                            _stt = _states[_i2]
+                            if _stt == "current":
+                                _c2 = QColor(255, 255, 255, int(255 * _pul))
+                            elif _stt in _SC:
+                                _c2 = _SC[_stt]
+                            else:
+                                _c2 = QColor(255, 255, 255, 45)
+                        p.setBrush(_c2)
+                        p.drawRect(QRectF(_tx + _i2 * 9.0, 12.0, 5.0, 20.0))
+                    _tx += 3 * 9.0 + 16.0
+                    # ── COLONNA LAP (a destra): bg #181246, larghezza fissa 3 cifre ──
+                    f_lap = QFont("Archivo SemiExpanded", 12)
+                    f_lap.setWeight(QFont.DemiBold)
+                    f_lap.setItalic(True)
+                    _lm = QFontMetricsF(f_lap)
+                    _laptxt = "LAP %d" % (self._laps + 1)
+                    # larga sul DATO REALE (pagina RUN: spazio ai tempi)
+                    _lapw = _lm.horizontalAdvance(_laptxt) + 24.0
+                    _lap_x0 = _bx1 - _lapw
+                    p.setPen(Qt.NoPen)
+                    p.setBrush(QColor("#181246"))
+                    p.drawRect(QRectF(_lap_x0, 0.0, _lapw, self.HDR))
+                    # ── COLONNA DELTA: bg #0a0031, dalle barrette fino alla LAP ──
+                    _dl_x0 = _tx
+                    _dl_x1 = _lap_x0
+                    p.setBrush(QColor("#0a0031"))
+                    p.drawRect(QRectF(_dl_x0, 0.0, _dl_x1 - _dl_x0, self.HDR))
+                    # ── testo: freeze (5s) / INVALID / milestone sessione / DELTA ──
+                    if time.monotonic() < self._freeze_until \
+                            and self._freeze_txt:
+                        _vt, _vc, _lim = self._freeze_txt, self._freeze_col, False
+                    elif self._lap_limits and \
+                            time.monotonic() - getattr(self, "_inv_t",
+                                                       -99.0) < 5.0:
+                        # INVALID: 5 secondi, poi la casella torna al DELTA
+                        _vt, _vc, _lim = "INVALID", \
+                            QColor(255, 255, 255, 150), True
+                    elif time.monotonic() - getattr(self, "_sess_flash_t",
+                                                    -99.0) < 5.0:
+                        # traguardo tempo sessione (60/30/15/10/5/1 min):
+                        # residuo mostrato 5s nella casella tempo
+                        _rm = int(round(getattr(self, "_sess_flash_v", 0.0)))
+                        _vt = ("LAST MINUTE" if _rm <= 60
+                               else "LEFT %d MIN" % (_rm // 60))
+                        _vc, _lim = QColor(255, 255, 255, 200), False
+                    else:
+                        _vt, _vc, _lim = self._delta_txt, self._delta_col, False
+                    if _lim:                     # INVALID: bold dritto, bianco soft
+                        f_v = QFont("Archivo SemiExpanded", 12)
+                        f_v.setWeight(QFont.Bold)
+                        f_v.setItalic(False)
+                    else:                        # delta/freeze: demibold 14
+                        f_v = QFont("Archivo SemiExpanded", 14)
+                        f_v.setWeight(QFont.DemiBold)
+                        f_v.setItalic(True)
+                    # ── SOLO il tempo, CENTRATO nel box delta ──
+                    if _vt:
+                        _txt_w = QFontMetricsF(f_v).horizontalAdvance(_vt)
+                        _gx = _dl_x0 + max(6.0, (_dl_x1 - _dl_x0 - _txt_w) / 2.0)
+                        p.setFont(f_v)
+                        p.setPen(_vc or QColor(255, 255, 255, 235))
+                        p.drawText(QPointF(_gx, _yb), _vt)
+                    # ── LAP N: dentro la colonna, a destra ──
+                    p.setFont(f_lap)
+                    p.setPen(QColor(255, 255, 255, 220))
+                    p.drawText(QPointF(
+                        _bx1 - 12.0 - _lm.horizontalAdvance(_laptxt),
+                        _yb), _laptxt)
+                p.restore()
         # ── ROW ALTA: <MDF> celeste a sinistra, pagina 1/3 a destra
         #    (font del dash; i numeri header sono stati spostati qui)
-        f_row = QFont("CPMono_v07 Plain")
+        f_row = QFont("Archivo SemiExpanded")
         f_row.setPixelSize(11)
         p.setFont(f_row)
         # in basso a DESTRA: <MDF> celeste + numero moduli

@@ -1,5 +1,5 @@
 /* LMU Strategy / Pit Window Widget */
-* { font-family: "Heebo", "Consolas", monospace; }
+* { font-family: "Archivo SemiExpanded", "Consolas", monospace; }
 
 #overlay   { background: transparent; }
 #container {

@@ -1,5 +1,5 @@
 /* LMU Session Widget — BBC Weather Style */
-* { font-family: "Heebo", "Consolas", monospace; }
+* { font-family: "Archivo SemiExpanded", "Consolas", monospace; }
 
 #overlay   { background: transparent; }
 #container { background: rgba(8, 11, 16, 250); border-radius: 6px; }

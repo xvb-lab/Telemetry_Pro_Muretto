@@ -173,7 +173,7 @@ class _RankRow(QFrame):
         if self._card_bg is not None:
             # numero grande corsivo, stesso stile delle card onboard
             pb.setStyleSheet(
-                "color:%s;font-family:'Druk Wide Cy TT', 'Archivo SemiExpanded';"
+                "color:%s;font-family:'Archivo SemiExpanded';"
                 "font-size:30px;font-weight:900;font-style:italic;"
                 "background:transparent;"
                 % getattr(self, "_card_txc", "#ffffff"))
@@ -218,29 +218,29 @@ class _RankRow(QFrame):
         dl = QLabel(_pn.upper())
         if self._card_bg is not None:
             dl.setStyleSheet(
-                "color:%s;font-family:'Druk Wide Cy TT', 'Archivo SemiExpanded';"
+                "color:%s;font-family:'Archivo SemiExpanded';"
                 "font-size:15px;font-weight:900;font-style:italic;"
                 "background:transparent;"
                 % getattr(self, "_card_txc", "#ffffff"))
         else:
-            dl.setStyleSheet("color:#eef0f4;font-family:'Heebo';font-size:15px;"
+            dl.setStyleSheet("color:#eef0f4;font-family:'Archivo SemiExpanded';font-size:15px;"
                              "font-weight:800;background:transparent;")
         cl = QLabel(rec.get("car") or "\u2014")
         tl = QLabel(rec.get("team") or "NO TEAM")
         if self._card_bg is not None:
             # su card: colore adattivo (scuro su basi chiare)
             _txc = getattr(self, "_card_txc", "#ffffff")
-            cl.setStyleSheet("color:%s;font-family:'Heebo';"
+            cl.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';"
                              "font-size:12px;font-weight:700;"
                              "background:transparent;" % _txc)
-            tl.setStyleSheet("color:%s;font-family:'Heebo';"
+            tl.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';"
                              "font-size:12px;font-weight:600;"
                              "background:transparent;" % _txc)
         else:
-            cl.setStyleSheet("color:%s;font-family:'Heebo';font-size:12px;"
+            cl.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:12px;"
                              "font-weight:700;background:transparent;"
                              % _bord)
-            tl.setStyleSheet("color:#a79fb0;font-family:'Heebo';"
+            tl.setStyleSheet("color:#a79fb0;font-family:'Archivo SemiExpanded';"
                              "font-size:12px;font-weight:600;"
                              "background:transparent;")
         dcol.addWidget(dl); dcol.addWidget(cl); dcol.addWidget(tl)
@@ -275,7 +275,7 @@ class _RankRow(QFrame):
         _gap = ("+%.3f" % ((_ms0 - leader_ms) / 1000.0)) \
             if (leader_ms and _ms0 and _ms0 > leader_ms) else ""
         gcol = QLabel(_gap)
-        gcol.setStyleSheet("color:%s;font-family:'Heebo';font-size:13px;"
+        gcol.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:13px;"
                            "font-weight:700;background:transparent;"
                            % ("#f2f4f7"))
         gcol.setFixedWidth(66)
@@ -358,7 +358,7 @@ class _RankRow(QFrame):
             _tcol2.setSpacing(1)
             _tcol2.setContentsMargins(0, 0, 0, 0)
             t = QLabel(_fmt_ms(ms))
-            t.setStyleSheet("color:#f2f4f7;font-family:'Heebo';"
+            t.setStyleSheet("color:#f2f4f7;font-family:'Archivo SemiExpanded';"
                             "font-size:19px;font-weight:800;"
                             "background:transparent;")
             t.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -367,7 +367,7 @@ class _RankRow(QFrame):
                 (_fmt_ms(rec.get(_sk)) if rec.get(_sk) else "—")
                 for _sk in ("s1_ms", "s2_ms", "s3_ms"))
             _s2 = QLabel(_secs)
-            _s2.setStyleSheet("color:#aab2c4;font-family:'Heebo';"
+            _s2.setStyleSheet("color:#aab2c4;font-family:'Archivo SemiExpanded';"
                               "font-size:11px;font-weight:700;"
                               "background:transparent;")
             _s2.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -392,7 +392,7 @@ class _RankRow(QFrame):
             self.setFixedWidth(980)
         else:
             t = QLabel(_fmt_ms(ms))
-            t.setStyleSheet("color:%s;font-family:'Heebo';font-size:19px;"
+            t.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:19px;"
                             "font-weight:800;background:transparent;"
                             % ("#f2f4f7"))
             t.setFixedWidth(104)
@@ -405,7 +405,7 @@ class _RankRow(QFrame):
                 _sl = QLabel(_fmt_ms(_sv) if _sv else "—")
                 _sl.setFixedWidth(62)
                 _sl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                _sl.setStyleSheet("color:%s;font-family:'Heebo';"
+                _sl.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';"
                                   "font-size:14px;font-weight:700;"
                                   "background:transparent;" % _seccol)
                 h.addWidget(_sl); h.addSpacing(6)
@@ -602,7 +602,7 @@ class _CommunityTab(QWidget):
             empty = QLabel("No community times yet.\nBe the first: set a lap and it "
                            "will appear here.")
             empty.setWordWrap(True); empty.setAlignment(Qt.AlignCenter)
-            empty.setStyleSheet("color:#9aa0aa;font-family:'Heebo';font-size:13px;"
+            empty.setStyleSheet("color:#9aa0aa;font-family:'Archivo SemiExpanded';font-size:13px;"
                                 "padding:24px;background:transparent;")
             self._tracks_v.insertWidget(self._tracks_v.count() - 1, empty)
             return
