@@ -106,6 +106,11 @@ class TelemetryReader:
 
             ve_frac = float(t.mVirtualEnergy)            # 0..1
             ve_pct = ve_frac * 100.0
+            try:
+                _dff = float(t.mFrontDownforce)          # N per assale
+                _dfr = float(t.mRearDownforce)
+            except Exception:
+                _dff = _dfr = 0.0
 
             out = {
                 # ── sessione / identità ──
@@ -244,6 +249,8 @@ class TelemetryReader:
                     wrot.append(None)
             out["tyre_surf"] = surf
             out["tyre_inner"] = inner
+            out["df_front"] = _dff           # downforce (N) per assale
+            out["df_rear"] = _dfr
             out["tyre_carcass"] = carc
             out["brake_temp"] = brk
             out["tyre_wear"] = wear

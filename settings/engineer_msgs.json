@@ -7737,6 +7737,112 @@
       "en": "Confirmed: you've flat-spotted the {ruota}. The vibration stays until we change the set.",
       "es": "Confirmado: plano en la {ruota}.",
       "fr": "Confirme : plat sur la {ruota}."
+    },
+    "debrief_press_hi": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "Dalle temperature gomma: il centro del battistrada {asse} scalda troppo — pressione alta, togliamo qualche decimo.",
+      "variants_it": [
+        "Dalle temperature gomma: il centro del battistrada {asse} scalda troppo — pressione alta, togliamo qualche decimo.",
+        "Le tre zone dicono pressione alta sull'asse {asse}: lavora solo il centro gomma. Da scendere un filo.",
+        "Treno {asse} gonfio: impronta a cupola nei dati. Alla prossima uscita proviamo mezzo psi in meno."
+      ],
+      "en": "Dalle temperature gomma: il centro del battistrada {asse} scalda troppo — pressione alta, togliamo qualche decimo.",
+      "es": "Dalle temperature gomma: il centro del battistrada {asse} scalda troppo — pressione alta, togliamo qualche decimo.",
+      "fr": "Dalle temperature gomma: il centro del battistrada {asse} scalda troppo — pressione alta, togliamo qualche decimo."
+    },
+    "debrief_press_lo": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "Dalle temperature gomma: sull'asse {asse} lavorano le spalle e il centro resta freddo — pressione bassa, saliamo un filo.",
+      "variants_it": [
+        "Dalle temperature gomma: sull'asse {asse} lavorano le spalle e il centro resta freddo — pressione bassa, saliamo un filo.",
+        "Le tre zone dicono pressione bassa {asse}: il centro non morde. Da alzare di qualche decimo.",
+        "Treno {asse} sgonfio nei dati: spalle calde, centro freddo. Proviamo mezzo psi in più."
+      ],
+      "en": "Dalle temperature gomma: sull'asse {asse} lavorano le spalle e il centro resta freddo — pressione bassa, saliamo un filo.",
+      "es": "Dalle temperature gomma: sull'asse {asse} lavorano le spalle e il centro resta freddo — pressione bassa, saliamo un filo.",
+      "fr": "Dalle temperature gomma: sull'asse {asse} lavorano le spalle e il centro resta freddo — pressione bassa, saliamo un filo."
+    },
+    "debrief_camber_much": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "Sull'asse {asse} il bordo interno scalda molto più dell'esterno: c'è troppo camber, ne togliamo un paio di decimi.",
+      "variants_it": [
+        "Sull'asse {asse} il bordo interno scalda molto più dell'esterno: c'è troppo camber, ne togliamo un paio di decimi.",
+        "Spread termico alto sull'{asse}: l'interno gomma cuoce. Camber da ridurre."
+      ],
+      "en": "Sull'asse {asse} il bordo interno scalda molto più dell'esterno: c'è troppo camber, ne togliamo un paio di decimi.",
+      "es": "Sull'asse {asse} il bordo interno scalda molto più dell'esterno: c'è troppo camber, ne togliamo un paio di decimi.",
+      "fr": "Sull'asse {asse} il bordo interno scalda molto più dell'esterno: c'è troppo camber, ne togliamo un paio di decimi."
+    },
+    "debrief_camber_little": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "Sull'asse {asse} l'esterno gomma scalda quanto l'interno: manca camber, la gomma non appoggia bene in curva.",
+      "variants_it": [
+        "Sull'asse {asse} l'esterno gomma scalda quanto l'interno: manca camber, la gomma non appoggia bene in curva.",
+        "Poco camber sull'{asse} nei dati: aggiungiamo un paio di decimi e l'appoggio migliora."
+      ],
+      "en": "Sull'asse {asse} l'esterno gomma scalda quanto l'interno: manca camber, la gomma non appoggia bene in curva.",
+      "es": "Sull'asse {asse} l'esterno gomma scalda quanto l'interno: manca camber, la gomma non appoggia bene in curva.",
+      "fr": "Sull'asse {asse} l'esterno gomma scalda quanto l'interno: manca camber, la gomma non appoggia bene in curva."
+    },
+    "debrief_brake_front": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "In staccata i freni davanti scaldano molto più del posteriore: bias troppo avanti o ducts posteriori larghi. Da rivedere.",
+      "variants_it": [
+        "In staccata i freni davanti scaldano molto più del posteriore: bias troppo avanti o ducts posteriori larghi. Da rivedere.",
+        "Squilibrio freni nei dati: l'anteriore lavora troppo. Mezzo click di bias indietro o ducts davanti più aperti."
+      ],
+      "en": "In staccata i freni davanti scaldano molto più del posteriore: bias troppo avanti o ducts posteriori larghi. Da rivedere.",
+      "es": "In staccata i freni davanti scaldano molto più del posteriore: bias troppo avanti o ducts posteriori larghi. Da rivedere.",
+      "fr": "In staccata i freni davanti scaldano molto più del posteriore: bias troppo avanti o ducts posteriori larghi. Da rivedere."
+    },
+    "debrief_brake_rear": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "In staccata il posteriore frena più del dovuto: bias indietro o ducts anteriori larghi. Occhio alla stabilità in ingresso.",
+      "variants_it": [
+        "In staccata il posteriore frena più del dovuto: bias indietro o ducts anteriori larghi. Occhio alla stabilità in ingresso.",
+        "Freni posteriori troppo caldi rispetto agli anteriori: sposta il bias avanti di mezzo click."
+      ],
+      "en": "In staccata il posteriore frena più del dovuto: bias indietro o ducts anteriori larghi. Occhio alla stabilità in ingresso.",
+      "es": "In staccata il posteriore frena più del dovuto: bias indietro o ducts anteriori larghi. Occhio alla stabilità in ingresso.",
+      "fr": "In staccata il posteriore frena più del dovuto: bias indietro o ducts anteriori larghi. Occhio alla stabilità in ingresso."
+    },
+    "debrief_bottoming": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "La macchina tocca il fondo ripetutamente in velocità: valutiamo un paio di millimetri di altezza o molle più sostenute.",
+      "variants_it": [
+        "La macchina tocca il fondo ripetutamente in velocità: valutiamo un paio di millimetri di altezza o molle più sostenute.",
+        "Bottoming nei dati: il fondo striscia nei punti veloci. Alziamo di poco o induriamo il posteriore."
+      ],
+      "en": "La macchina tocca il fondo ripetutamente in velocità: valutiamo un paio di millimetri di altezza o molle più sostenute.",
+      "es": "La macchina tocca il fondo ripetutamente in velocità: valutiamo un paio di millimetri di altezza o molle più sostenute.",
+      "fr": "La macchina tocca il fondo ripetutamente in velocità: valutiamo un paio di millimetri di altezza o molle più sostenute."
+    },
+    "debrief_aero_bal": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "Bilancio aero medio dello stint: {pct} per cento sull'anteriore. Tienilo come riferimento per le modifiche d'ala.",
+      "variants_it": [
+        "Bilancio aero medio dello stint: {pct} per cento sull'anteriore. Tienilo come riferimento per le modifiche d'ala.",
+        "Dai curvoni: carico al {pct} per cento davanti. Se cambiamo ala, ripartiamo da qui."
+      ],
+      "en": "Bilancio aero medio dello stint: {pct} per cento sull'anteriore. Tienilo come riferimento per le modifiche d'ala.",
+      "es": "Bilancio aero medio dello stint: {pct} per cento sull'anteriore. Tienilo come riferimento per le modifiche d'ala.",
+      "fr": "Bilancio aero medio dello stint: {pct} per cento sull'anteriore. Tienilo come riferimento per le modifiche d'ala."
     }
   }
 }

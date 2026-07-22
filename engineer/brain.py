@@ -2108,6 +2108,53 @@ class Engineer:
                         acc[0] += fa
                         acc[1] += ra
                         acc[2] += 1
+                # 3 ZONE gomma (strato interno) in appoggio: per camber
+                # e pressioni a fine stint (docs/ingegneria 2.1-2.2)
+                if fa > 0.4 or ra > 0.4:
+                    tin = raw.get("tyre_inner") or []
+                    if len(tin) >= 4:
+                        tz = st.setdefault("an_t",
+                                           [[0.0, 0.0, 0.0, 0]
+                                            for _ in range(4)])
+                        for wi in range(4):
+                            z = tin[wi]
+                            if isinstance(z, (list, tuple)) and len(z) >= 3:
+                                try:
+                                    tz[wi][0] += float(z[0] or 0.0)
+                                    tz[wi][1] += float(z[1] or 0.0)
+                                    tz[wi][2] += float(z[2] or 0.0)
+                                    tz[wi][3] += 1
+                                except (TypeError, ValueError):
+                                    pass
+            # FRENI per assale in staccata (squilibrio bias/ducts)
+            try:
+                if float(raw.get("brake") or 0.0) > 0.4:
+                    bk = raw.get("brake_temp") or []
+                    if len(bk) >= 4:
+                        ab = st.setdefault("an_bk", [0.0, 0.0, 0])
+                        ab[0] += (float(bk[0] or 0) + float(bk[1] or 0)) / 2.0
+                        ab[1] += (float(bk[2] or 0) + float(bk[3] or 0)) / 2.0
+                        ab[2] += 1
+            except (TypeError, ValueError):
+                pass
+            # BOTTOMING: ride height a terra in velocita'
+            try:
+                rh = raw.get("ride_h") or []
+                if spd > 25.0 and any(
+                        x is not None and float(x) < 2.0 for x in rh[:4]):
+                    st["an_bot"] = st.get("an_bot", 0) + 1
+            except (TypeError, ValueError):
+                pass
+            # BILANCIO AERO nei tratti veloci
+            try:
+                dff = float(raw.get("df_front") or 0.0)
+                dfr = float(raw.get("df_rear") or 0.0)
+                if spd > 45.0 and (dff + dfr) > 500.0:
+                    ad = st.setdefault("an_df", [0.0, 0])
+                    ad[0] += dff / (dff + dfr)
+                    ad[1] += 1
+            except (TypeError, ValueError, ZeroDivisionError):
+                pass
             return out
         # ── IN GARAGE: findings, una volta per stint analizzato ──
         if not st.pop("an_on", None):
@@ -2146,6 +2193,51 @@ class Engineer:
                              "trasera derecha", "arriere droite"))
                 mi = max(range(4), key=lambda i: dw[i])
                 out.append(self.msg("debrief_wear_wheel", ruota=W[mi]))
+        # ── INGEGNERIA v2: pressioni/camber (3 zone), freni, fondo, aero ──
+        extras = []
+        _AX = (self._L("anteriore", "front", "delantero", "avant"),
+               self._L("posteriore", "rear", "trasero", "arriere"))
+        tz = st.pop("an_t", None)
+        if tz:
+            zm = []
+            for wi in range(4):
+                s0, s1, s2, c = tz[wi]
+                zm.append(None if c < 20 else (s0 / c, s1 / c, s2 / c))
+            # indice zona INTERNA (verso l'auto): sx=2 per ruote sinistre
+            _IN = (2, 0, 2, 0)
+            for ax, wids in ((0, (0, 1)), (1, (2, 3))):
+                zz = [zm[w] for w in wids if zm[w]]
+                if len(zz) < 2:
+                    continue
+                crown = sum(z[1] - (z[0] + z[2]) / 2.0 for z in zz) / 2.0
+                spread = sum(zm[w][_IN[w]] - zm[w][2 - _IN[w]]
+                             for w in wids if zm[w]) / 2.0
+                if crown > 5.0:
+                    extras.append(self.msg("debrief_press_hi", asse=_AX[ax]))
+                elif crown < -5.0:
+                    extras.append(self.msg("debrief_press_lo", asse=_AX[ax]))
+                elif spread > 12.0:
+                    extras.append(self.msg("debrief_camber_much",
+                                           asse=_AX[ax]))
+                elif spread < 2.0:
+                    extras.append(self.msg("debrief_camber_little",
+                                           asse=_AX[ax]))
+        ab = st.pop("an_bk", None)
+        if ab and ab[2] >= 20:
+            d = ab[0] / ab[2] - ab[1] / ab[2]
+            if d > 150.0:
+                extras.append(self.msg("debrief_brake_front"))
+            elif d < -150.0:
+                extras.append(self.msg("debrief_brake_rear"))
+        if st.pop("an_bot", 0) >= 5:
+            extras.append(self.msg("debrief_bottoming"))
+        ad = st.pop("an_df", None)
+        if ad and ad[1] >= 20:
+            extras.append(self.msg("debrief_aero_bal",
+                                   pct=int(round(100.0 * ad[0] / ad[1]))))
+        # tetto: massimo 3 findings totali (il muretto non fa la lista spesa)
+        room = max(0, 3 - len(out))
+        out.extend([m for m in extras if m][:room])
         return out
 
     def corner_coach_call(self, raw, laps_done):
@@ -2317,11 +2409,17 @@ class Engineer:
             if 50.0 < p < pmin:
                 self._st["sc_lap"] = laps_done
                 return [self.msg("tyre_press_lo", tyre=W[i])]
-        try:
-            ti = [float(x or 0.0) for x in (raw.get("tyre_inner")
-                                            or [])[:4]]
-        except (TypeError, ValueError):
-            ti = []
+        ti = []
+        for x in (raw.get("tyre_inner") or [])[:4]:
+            try:
+                # ogni ruota = [3 zone]: media; retrocompatibile col singolo
+                if isinstance(x, (list, tuple)):
+                    ti.append(sum(float(v or 0.0) for v in x) / len(x))
+                else:
+                    ti.append(float(x or 0.0))
+            except (TypeError, ValueError, ZeroDivisionError):
+                ti = []
+                break
         if len(ti) == 4 and all(t > 30.0 for t in ti):
             fa = (ti[0] + ti[1]) / 2.0
             ra = (ti[2] + ti[3]) / 2.0

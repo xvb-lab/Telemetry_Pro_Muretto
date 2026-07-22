@@ -92,6 +92,9 @@ _mk(["tyres_cold", "tyres_warm", "brakes_cold", "tyres_hot", "brakes_hot",
      "quali_pole_gap", "quali_pole_lead", "quali_top5", "overtake_done",
      "debrief_stint", "debrief_sectors", "debrief_tyre", "debrief_improve",
      "debrief_balance_us", "debrief_balance_os", "debrief_wear_wheel",
+     "debrief_press_hi", "debrief_press_lo", "debrief_camber_much",
+     "debrief_camber_little", "debrief_brake_front", "debrief_brake_rear",
+     "debrief_bottoming", "debrief_aero_bal",
      "flatspot_confirmed",
      "lap_time_call"], 2)
 # P3 info gara
