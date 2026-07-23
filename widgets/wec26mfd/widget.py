@@ -3182,7 +3182,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             # carburante BIANCA a sinistra (rich. 23/07), come acqua/olio
             _bp9 = getattr(self, "_bar_pct9", None)
             if _bp9:
-                if not hasattr(self, "_svg_fuel_w9"):
+                if not hasattr(self, "_svg_fuel_soft9"):
                     try:
                         from PySide6.QtSvg import QSvgRenderer as _QSRf2
                         from PySide6.QtCore import QByteArray as _QBAf2
@@ -3190,14 +3190,17 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         _tf2 = (_ROOT / "assets" / "icons"
                                 / "fuel_spia.svg").read_text(
                                     encoding="utf-8")
+                        # STESSO bianco morbido delle icone acqua/olio
                         _tf2 = _re2.sub(r"#[0-9a-fA-F]{6}",
-                                        "#ffffff", _tf2)
-                        self._svg_fuel_w9 = _QSRf2(_QBAf2(_tf2.encode()))
+                                        "#cfd6df", _tf2)
+                        self._svg_fuel_soft9 = _QSRf2(
+                            _QBAf2(_tf2.encode()))
                     except Exception:
-                        self._svg_fuel_w9 = None
-                if getattr(self, "_svg_fuel_w9", None) is not None:
-                    self._svg_fuel_w9.render(
-                        p, QRectF(_xr - 27, gy + 51, 16, 16))
+                        self._svg_fuel_soft9 = None
+                if getattr(self, "_svg_fuel_soft9", None) is not None:
+                    # piu' piccola e vicina al numero (+12px, rich. 23/07)
+                    self._svg_fuel_soft9.render(
+                        p, QRectF(_xr - 15, gy + 52, 13, 13))
                 p.setPen(QColor(255, 255, 255, 240))
                 p.drawText(QRectF(_xr - 21, gy + 50, 44, 18),
                            Qt.AlignRight | Qt.AlignVCenter,
