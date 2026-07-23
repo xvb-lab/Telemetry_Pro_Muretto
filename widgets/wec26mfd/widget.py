@@ -5238,15 +5238,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             dl = (lift - ld) % tl
             if best is None or dl < best:
                 best = dl
-        # RAMPA A TEMPO, non a metri fissi (collaudo 23/07: 220m fissi
-        # suonavano prestissimo nei tratti veloci): ~2s alla velocita'
-        # attuale, come il conto alla rovescia del nativo LMU
-        window = min(120.0, max(60.0, (spd / 3.6) * 1.4))
-        _frac9 = None
-        if _full9:
-            _frac9 = 1.0
-        elif best is not None and best <= window:
-            _frac9 = min(1.0, 1.0 - best / window + 0.001)
+        # NIENTE RAMPA (regola utente 23/07, definitiva): i LED si
+        # accendono ESATTAMENTE quando suona — sono l'indicatore del
+        # lift, on/off precisi al punto. Accesi per tutto il coast.
+        window = 0.0
+        _frac9 = 1.0 if _full9 else None
         # DIAGNOSTICA LICO (23/07, da togliere a collaudo ok): ogni
         # ~0.5s scrive posizione/punti/frazione — un giro col lico e
         # il log dice ESATTAMENTE dove accende e perche'
