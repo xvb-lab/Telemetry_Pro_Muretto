@@ -4340,6 +4340,8 @@ class Engineer:
             st["tm_lap"] = int(raw.get("laps_completed") or 0)
             st["tm_hl_lap"] = None
             st["tm_ok"] = 0
+            st["eco_bank"] = 0.0          # banca nuova a ogni modalita'
+            st["eco_done"] = False
             if mode in ("longrun", "ecofree"):
                 extra = sig[1]
                 # consumo stimato DI LMU (stessa fonte del pannello
@@ -4412,13 +4414,34 @@ class Engineer:
             used = prev_ve - ve
             if used <= 0 or used > tgt * 3.0:
                 return []          # rifornimento/reset: giro sporco
-            # stato per i LED lico del dash (margine adattivo)
+            # BANCA DEL RISPARMIO (come LMU, rich. 23/07): accumula
+            # (target - usato) a ogni giro; quando il gruzzolo copre i
+            # giri extra il coach TACE, se si erode riprende. done ->
+            # i LED lico del dash si spengono finche' serve.
+            _bank = float(st.get("eco_bank") or 0.0) + (tgt - used)
+            st["eco_bank"] = _bank
+            _extra9 = 0
+            try:
+                _sig9 = st.get("tm_sig") or (None, None)
+                _extra9 = int(_sig9[1] or 0) if mode in (
+                    "longrun", "ecofree") else 0
+            except (TypeError, ValueError):
+                _extra9 = 0
+            _goal9 = _extra9 * tgt if _extra9 > 0 else None
+            _done9 = bool(_goal9 and _bank >= _goal9)
+            if _done9 and st.get("eco_done") is not True:
+                st["eco_done"] = True
+            elif _goal9 and _bank < _goal9 * 0.9:
+                st["eco_done"] = False       # eroso: si riprende
+            # stato per i LED lico del dash (margine adattivo + done)
             try:
                 import json as _js
                 from core.paths import USER_DIR as _UD
                 (_UD / "eco_state.json").write_text(
                     _js.dumps({"ts": _time.time(),
-                               "target": tgt, "used": used}),
+                               "target": tgt, "used": used,
+                               "bank": round(_bank, 3),
+                               "done": bool(st.get("eco_done"))}),
                     encoding="utf-8")
             except Exception:
                 pass

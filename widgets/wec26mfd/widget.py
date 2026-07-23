@@ -5200,8 +5200,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 _tg9 = float(_st9.get("target") or 0.0)
                 _us9 = float(_st9.get("used") or 0.0)
                 self._eco_ratio = (_us9 / _tg9) if _tg9 > 0 else 1.0
+                self._eco_done = bool(_st9.get("done"))
             except Exception:
                 self._eco_ratio = 1.0
+                self._eco_done = False
+        # BANCA PIENA (come LMU): obiettivo raggiunto -> il coach TACE
+        # finche' il muretto non segnala che il gruzzolo si sta erodendo
+        if getattr(self, "_eco_done", False):
+            return None
         _ratio = min(max(getattr(self, "_eco_ratio", 1.0), 0.8), 1.4)
         # MARGINE STILE LMU (misure utente 23/07): +1 -> ~150-200m,
         # cresce col LIVELLO fino a ~300-350m a +4. L'adattivo dal
