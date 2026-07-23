@@ -1711,21 +1711,27 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             f9.setPixelSize(15)
             f9.setBold(True)
             p.setFont(f9)
-            # icone COMPOUND (dal vecchio tyres/grid): michelin per le
-            # Hypercar, goodyear per il resto; foratura -> tyre_damage
-            _cu9 = (_tag or "").upper()
-            _brand = "michelin" if _cu9 in ("HY",) else "goodyear"
-            _cnames = {0: "%s_soft" % _brand, 1: "%s_medium" % _brand,
-                       2: "%s_hard" % _brand, 3: "%s_wet" % _brand}
-            if not hasattr(self, "_comp_px"):
-                self._comp_px = {}
+            # COMPOUND coi SIMBOLI NOSTRI (ui.icons: chip SVG con lettera),
+            # come standings/relative; foratura -> icona tyre_damage
+            from ui.icons import tyre_chip_svg as _tcs
+            from PySide6.QtSvg import QSvgRenderer as _QSR
+            from PySide6.QtCore import QByteArray as _QBA
+            _sig4 = {0: "S", 1: "M", 2: "H", 3: "W"}
+            if not hasattr(self, "_comp_svg"):
+                self._comp_svg = {}
 
-            def _cpx(nm):
-                if nm not in self._comp_px:
-                    _ip8 = _ROOT / "assets" / "icons" / (nm + ".png")
-                    self._comp_px[nm] = QPixmap(str(_ip8)) \
-                        if _ip8.exists() else None
-                return self._comp_px[nm]
+            def _crend(sig):
+                if sig not in self._comp_svg:
+                    try:
+                        self._comp_svg[sig] = _QSR(
+                            _QBA(_tcs(sig, True).encode()))
+                    except Exception:
+                        self._comp_svg[sig] = None
+                return self._comp_svg[sig]
+
+            if not hasattr(self, "_px_tdmg"):
+                _ip8 = _ROOT / "assets" / "icons" / "tyre_damage.png"
+                self._px_tdmg = QPixmap(str(_ip8)) if _ip8.exists() else None
 
             _co4 = _cd.get("comp4") or [None] * 4
             _fl4 = _cd.get("tyre_flat") or [False] * 4
@@ -1736,12 +1742,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             for _i9, _lx9, _ly9 in _lay:
                 _tv9 = _c4[_i9]
                 _bv9 = _b4[_i9]
-                _nm9 = "tyre_damage" if _fl4[_i9] \
-                    else _cnames.get(_co4[_i9], "")
-                _pm9 = _cpx(_nm9) if _nm9 else None
-                if _pm9:
+                if _fl4[_i9] and getattr(self, "_px_tdmg", None):
                     p.drawPixmap(QRectF(_lx9 + 24, _ly9 - 24,
-                                        20, 20).toRect(), _pm9)
+                                        20, 20).toRect(), self._px_tdmg)
+                else:
+                    _sg9 = _sig4.get(_co4[_i9])
+                    _rd9 = _crend(_sg9) if _sg9 else None
+                    if _rd9 is not None and _rd9.isValid():
+                        _rd9.render(p, QRectF(_lx9 + 24, _ly9 - 24, 20, 20))
                 if _tv9 is not None:
                     p.setPen(QPen(_ctt(int(_tv9), _tag)))
                     p.drawText(QRectF(_lx9, _ly9, 68, 18),
@@ -1750,14 +1758,6 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.setPen(QPen(QColor(255, 255, 255, 215)))
                     p.drawText(QRectF(_lx9, _ly9 + 18, 68, 18),
                                Qt.AlignCenter, "%.0f°" % _bv9)
-            # titolo pagina in fondo: STESSO stile/misura della legenda MOD 3
-            by4 = bodyh / 750.0
-            ft4 = QFont("Archivo SemiExpanded")
-            ft4.setPixelSize(max(6, int(26 * by4)))
-            p.setFont(ft4)
-            p.setPen(QPen(QColor(255, 255, 255, 180)))
-            p.drawText(QRectF(0, y0 + 706 * by4, _W, 34 * by4),
-                       Qt.AlignCenter, "CAR STATUS")
         except Exception:
             pass
 
@@ -3617,7 +3617,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         n_pg = max(1, len(self._active_mods()))
         _num = "%d/%d" % ((self._page % n_pg) + 1, n_pg)
         # in basso a SINISTRA: titolo del modulo in giallo VR46
-        _TIT = {1: "DASHBOARD", 2: "PIT", 3: "SETTINGS"}
+        _TIT = {1: "DASHBOARD", 2: "PIT", 3: "SETTINGS", 4: "CAR STATUS"}
         _mcur = self._active_mods()[self._page % n_pg]
         p.setPen(QColor("#ffed00"))
         p.drawText(rr, Qt.AlignLeft | Qt.AlignVCenter,
