@@ -10919,7 +10919,10 @@ class TelemetryWindow(QMainWindow):
         _dw = QWidget()
         _dw.setObjectName("ftDonateBox")
         _dw.setCursor(Qt.PointingHandCursor)
-        _dw.setStyleSheet("#ftDonateBox{background:transparent;}")
+        # PILLINA blu stile BuyMeACoffee (rich. 23/07): si deve VEDERE
+        _dw.setStyleSheet(
+            "#ftDonateBox{background:#6f9ceb;border-radius:15px;}"
+            "#ftDonateBox:hover{background:#7fa9f2;}")
         # SUPPORT ME con la tazzina col cuore (rich. 23/07, al posto
         # del vecchio Donate/PayPal — il link resta lo stesso)
         _dl = QHBoxLayout(_dw); _dl.setContentsMargins(14, 4, 14, 4)
@@ -10930,7 +10933,7 @@ class TelemetryWindow(QMainWindow):
                      / "support_cup.svg"))
         _dl.addWidget(_pp, 0, Qt.AlignVCenter)
         _dn = QLabel("Support me")
-        _dn.setStyleSheet("color:#ffffff;font-size:14px;font-weight:800;"
+        _dn.setStyleSheet("color:#17181c;font-size:14px;font-weight:800;"
                           "background:transparent;")
         _dl.addWidget(_dn, 0, Qt.AlignVCenter)
         _dw.mousePressEvent = (
