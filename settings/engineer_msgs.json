@@ -8496,12 +8496,78 @@
       "it": "Penalità scontata, pratica chiusa: testa alla gara.",
       "variants_it": [
         "Penalità scontata, pratica chiusa: testa alla gara.",
-        "Fatto, stop and go servito: si torna a correre.",
+        "Fatto, penalità servita: si torna a correre.",
         "Penalità archiviata: adesso recuperiamo."
       ],
       "en": "Penalty served, case closed: back to racing.",
       "es": "Penalización cumplida: volvemos a la carrera.",
       "fr": "Penalite purgee: on retourne a la course."
+    },
+    "penalty_dt": {
+      "cat": "penalita",
+      "level": "critical",
+      "beep": true,
+      "it": "Drive through per {motivo}: entra in corsia, percorrila al limitatore SENZA fermarti, e riesci.",
+      "variants_it": [
+        "Drive through per {motivo}: entra in corsia, percorrila al limitatore SENZA fermarti, e riesci.",
+        "Penalita': drive through, {motivo}. NON ti fermi: passi dalla corsia box e prosegui.",
+        "Ci hanno dato un drive through per {motivo}: solo passaggio in corsia, niente sosta."
+      ],
+      "en": "Drive through for {motivo}: enter the pit lane, drive through on the limiter WITHOUT stopping, and rejoin.",
+      "es": "Drive through por {motivo}: entra al pit lane, recorrelo SIN parar y sal.",
+      "fr": "Drive through pour {motivo}: passe par la voie des stands SANS t arreter."
+    },
+    "penalty_sg2": {
+      "cat": "penalita",
+      "level": "critical",
+      "beep": true,
+      "it": "Stop and go di {sec} secondi per {motivo}: entra, fermati in piazzola, conto io i secondi, e riparti.",
+      "variants_it": [
+        "Stop and go di {sec} secondi per {motivo}: entra, fermati in piazzola, conto io i secondi, e riparti.",
+        "Penalita': stop and go, {sec} secondi, {motivo}. Piazzola, fermo, e via: niente gomme, niente benzina."
+      ],
+      "en": "Stop and go, {sec} seconds, for {motivo}: come in, stop in the box, I count, and go.",
+      "es": "Stop and go de {sec} segundos por {motivo}: entra, para en el box y sal.",
+      "fr": "Stop and go de {sec} secondes pour {motivo}: rentre, arrete-toi, et repars."
+    },
+    "penalty_time": {
+      "cat": "penalita",
+      "level": "warn",
+      "beep": true,
+      "it": "{sec} secondi aggiunti al tuo tempo per {motivo}: si applicano a fine gara, tu spingi.",
+      "variants_it": [
+        "{sec} secondi aggiunti al tuo tempo per {motivo}: si applicano a fine gara, tu spingi.",
+        "Penalita' di {sec} secondi ({motivo}): niente sosta, vanno sul tempo finale. Recuperiamoli in pista."
+      ],
+      "en": "{sec} seconds added to your time for {motivo}: applied at the end, keep pushing.",
+      "es": "{sec} segundos anadidos por {motivo}: se aplican al final, sigue empujando.",
+      "fr": "{sec} secondes ajoutees pour {motivo}: appliquees a la fin, continue."
+    },
+    "penalty_boxcall_sg": {
+      "cat": "penalita",
+      "level": "warn",
+      "beep": true,
+      "it": "Ti aspettiamo in piazzola per lo stop and go: macchina ferma, conto io, e riparti quando te lo dico.",
+      "variants_it": [
+        "Ti aspettiamo in piazzola per lo stop and go: macchina ferma, conto io, e riparti quando te lo dico.",
+        "Ok, dentro per la penalita': piazzola, fermo, aspetta il via e riparti. Non tocchiamo niente."
+      ],
+      "en": "We are waiting at the box for the stop and go: car stopped, I count, and go on my call.",
+      "es": "Te esperamos en el box para el stop and go: para en la plaza y sal cuando te diga.",
+      "fr": "On t attend au stand pour le stop and go: arrete-toi, je compte, et repars a mon signal."
+    },
+    "penalty_boxcall_dt": {
+      "cat": "penalita",
+      "level": "warn",
+      "beep": true,
+      "it": "Ricorda: e' un drive through. NON fermarti: percorri tutta la corsia al limitatore e prosegui.",
+      "variants_it": [
+        "Ricorda: e' un drive through. NON fermarti: percorri tutta la corsia al limitatore e prosegui.",
+        "Drive through: passaggio pulito in corsia, limitatore inserito, e fuori. Nessuna sosta."
+      ],
+      "en": "Remember: it is a drive through. Do NOT stop: drive the whole lane on the limiter and carry on.",
+      "es": "Recuerda: es un drive through. NO pares: recorre el pit lane con el limitador.",
+      "fr": "Rappel: c est un drive through. Ne t arrete PAS: parcours la voie au limiteur."
     }
   }
 }

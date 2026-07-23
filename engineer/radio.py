@@ -130,7 +130,9 @@ _mk(["grip_margin", "grip_over", "abs_high", "tc_high", "ve_burn",
      "dirty_air", "opp_fading", "timeloss_focus", "brake_potential",
      "coast_waste", "brake_release_dirty", "gas_earlier"], 3)
 _mk(["grip_loss"], 2)
-_mk(["penalty_sg", "penalty_sg_nolaps"], 0)
+_mk(["penalty_sg", "penalty_sg_nolaps", "penalty_dt",
+     "penalty_sg2", "penalty_time", "penalty_boxcall_sg",
+     "penalty_boxcall_dt"], 0)
 _mk(["penalty_served"], 1)
 _mk(["bias_ack"], 2)
 _mk(["adv_bias_back", "adv_bias_fwd", "adv_wing_front", "adv_wing_less",

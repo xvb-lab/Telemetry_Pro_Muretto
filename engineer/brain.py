@@ -5182,33 +5182,86 @@ class Engineer:
         return out
 
     def penalty_call(self, raw):
-        """PENALITA' DEL PILOTA (23/07 notte: MANCAVA — la voce
-        arrivava tardi dal conteggio scoring). Fonte VELOCE: la riga
-        STOP/GO del pit menu, la stessa della card. Annuncio immediato
-        all'assegnazione + conferma quando e' scontata."""
+        """PENALITA' DEL PILOTA v2 (23/07 notte): TIPO e MOTIVO dal
+        TRACE (immediato: drive-through vs stop&go vs +secondi) con
+        ISTRUZIONI diverse — nel DT non ti fermi! Fallback e fine
+        sconto dalla riga STOP/GO del pit menu; promemoria alla
+        chiamata box / ingresso corsia."""
         raw = raw or {}
         if session_kind(raw.get("session_type")) != "race":
             return []
         st = self._st
+        out = []
+        try:
+            from core.race_control import latest_penalty_parts
+            _t9, _kind, _reason, _loc = latest_penalty_parts()
+        except Exception:
+            _t9, _kind, _reason, _loc = 0.0, "", "", False
+        _RIT = {"SPEEDING": "velocita' in corsia",
+                "TRACK LIMITS": "track limits",
+                "CUT TRACK": "taglio di pista",
+                "FALSE START": "partenza anticipata",
+                "PASSING UNDER YELLOW": "sorpasso in gialla",
+                "IGNORING BLUE FLAGS": "bandiere blu ignorate"}
+        if _loc and _t9 > 0 and _t9 != st.get("pen_t9") \
+                and _time.monotonic() - _t9 < 30.0:
+            st["pen_t9"] = _t9
+            _mot = _RIT.get((_reason or "").upper(),
+                            (_reason or "").lower())
+            ku = (_kind or "").upper()
+            if "DRIVE" in ku:
+                st["pen_kind"] = "dt"
+                out.append(self.msg("penalty_dt", motivo=_mot))
+            elif "STOP" in ku:
+                st["pen_kind"] = "sg"
+                import re as _re8
+                _s8 = _re8.search(r"(\d+)", ku)
+                out.append(self.msg("penalty_sg2",
+                                    sec=(_s8.group(1) if _s8
+                                         else "10"), motivo=_mot))
+            elif ku.startswith("+"):
+                out.append(self.msg("penalty_time",
+                                    sec=ku.strip("+S"), motivo=_mot))
         txt = str(raw.get("stop_go") or "").strip().lower()
-        if not txt and st.get("sg_act") is None:
-            return []
         act = bool(txt) and not txt.startswith("n") and (
             txt.startswith("s") or txt.startswith("y")
             or any(ch.isdigit() for ch in txt))
         prev = st.get("sg_act")
         st["sg_act"] = act
-        if prev is None:
-            return []                    # primo campione: stato base
-        if act and not prev:
-            import re as _re9
-            _m9 = _re9.search(r"(\d+)", txt)
-            if _m9:
-                return [self.msg("penalty_sg", laps=_m9.group(1))]
-            return [self.msg("penalty_sg_nolaps")]
-        if prev and not act:
-            return [self.msg("penalty_served")]
-        return []
+        if prev is not None:
+            if act and not prev and not out \
+                    and _time.monotonic() - st.get("pen_t9",
+                                                   0.0) > 30.0:
+                import re as _re9
+                _m9 = _re9.search(r"(\d+)", txt)
+                st["pen_kind"] = "sg"
+                if _m9:
+                    out.append(self.msg("penalty_sg",
+                                        laps=_m9.group(1)))
+                else:
+                    out.append(self.msg("penalty_sg_nolaps"))
+            if prev and not act:
+                st.pop("pen_kind", None)
+                out.append(self.msg("penalty_served"))
+        _pk = st.get("pen_kind")
+        if _pk:
+            _req = int(raw.get("pit_state") or 0) == 1
+            _inp = bool(raw.get("in_pits"))
+            if (_req or _inp) and not st.get("pen_box_said"):
+                st["pen_box_said"] = True
+                out.append(self.msg(
+                    "penalty_boxcall_sg" if _pk == "sg"
+                    else "penalty_boxcall_dt"))
+            if not (_req or _inp):
+                st.pop("pen_box_said", None)
+            if _pk == "dt":
+                if _inp:
+                    st["dt_inlane"] = True
+                elif st.get("dt_inlane"):
+                    st.pop("dt_inlane", None)
+                    st.pop("pen_kind", None)
+                    out.append(self.msg("penalty_served"))
+        return [m for m in out if m]
 
     def _sane_one(self, m, raw):
         code = (m or {}).get("code") or ""
