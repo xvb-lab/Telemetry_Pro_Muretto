@@ -1266,6 +1266,13 @@ class _LiveMap(QWidget):
                              "lock": True, "slide": True}
         self.update()
 
+    def set_slide_segs(self, segs):
+        """SLIDES come TRATTI di strada (rich. 23/07): lista di
+        polilinee [(x,z), ...] — il pezzo di pista dove la macchina
+        e' scivolata, non un puntino."""
+        self._slide_segs = segs or []
+        self.update()
+
     @staticmethod
     def _pos_at_ld(arr, ld):
         """(x, z) INTERPOLATO alla lapdist esatta (arr ordinato per ld).
@@ -1689,6 +1696,21 @@ class _LiveMap(QWidget):
         # sopra le traiettorie — layer dalla legenda cliccabile ──
         _evs = getattr(self, "_events", None) or []
         _evshow = getattr(self, "_ev_show", None) or {}
+        # SLIDES = tratto di strada rosa (non un dot)
+        _ssegs = getattr(self, "_slide_segs", None) or []
+        if _ssegs and _evshow.get("slide"):
+            _pens = QPen(QColor(255, 110, 199, 175), 4.5,
+                         Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+            p.setPen(_pens)
+            p.setBrush(Qt.NoBrush)
+            for _sg in _ssegs:
+                if len(_sg) < 2:
+                    continue
+                _pth9 = QPainterPath()
+                _pth9.moveTo(P(_sg[0][0], _sg[0][1]))
+                for _q9 in _sg[1:]:
+                    _pth9.lineTo(P(_q9[0], _q9[1]))
+                p.drawPath(_pth9)
         if _evs:
             for _kind, _ex, _ez in _evs:
                 if not _evshow.get(_kind):
@@ -1768,9 +1790,10 @@ class _LiveMap(QWidget):
         # accendono/spengono i layer contatti/tagli/bloccaggi ──
         self._ev_hit = {}
         _evs9 = getattr(self, "_events", None) or []
-        if _evs9:
+        _nseg9 = len(getattr(self, "_slide_segs", None) or [])
+        if _evs9 or _nseg9:
             _evshow9 = getattr(self, "_ev_show", None) or {}
-            _cnt9 = {}
+            _cnt9 = {"slide": _nseg9}
             for _k9, _x9, _z9 in _evs9:
                 _cnt9[_k9] = _cnt9.get(_k9, 0) + 1
             # etichette in INGLESE (l'app e' EN) — rich. 23/07;
@@ -1786,10 +1809,10 @@ class _LiveMap(QWidget):
             f9l.setPointSize(8)
             p.setFont(f9l)
             for _k9, _lab9, _col9 in _EVL:
-                if not _cnt9.get(_k9):
-                    continue
-                _on9 = bool(_evshow9.get(_k9))
-                _txt9 = "%s %d" % (_lab9, _cnt9[_k9])
+                # chip SEMPRE visibili, con lo zero smorzato (23/07)
+                _n9 = _cnt9.get(_k9, 0)
+                _on9 = bool(_evshow9.get(_k9)) and _n9 > 0
+                _txt9 = "%s %d" % (_lab9, _n9)
                 _tw9 = p.fontMetrics().horizontalAdvance(_txt9)
                 _rect9 = QRectF(_ex9, _ey9 - 4.0, 14.0 + _tw9 + 10.0,
                                 18.0)
@@ -3205,28 +3228,30 @@ class _WorksheetTab(QWidget):
                     "SELECT kind, x, z FROM events"
                     " WHERE x IS NOT NULL AND z IS NOT NULL").fetchall()
                 _out9 = [(str(k), float(x), float(z)) for k, x, z in _ev9]
-                # SLIDES (perdite di aderenza) DERIVATE dai samples
-                # (rich. 23/07 "metti tutto il registrato"): slip
-                # laterale medio >= 3.5 sostenuto ~0.5s -> marker al
-                # punto d'inizio (pos mondo nei samples)
+                # SLIDES (perdite di aderenza) DERIVATE dai samples,
+                # come TRATTI di strada (rich. 23/07): slip laterale
+                # medio >= 3.5 sostenuto -> il PEZZO di pista scivolato
+                _segs9 = []
                 try:
                     _rows9 = _con9.execute(
                         "SELECT pos_x, pos_z,"
                         " (ABS(slat_fl)+ABS(slat_fr)+ABS(slat_rl)"
                         "  +ABS(slat_rr))/4.0, speed FROM samples"
                         " WHERE rowid % 3 = 0 ORDER BY rowid").fetchall()
-                    _run9 = 0
+                    _cur9 = []
                     for _px9, _pz9, _sl9, _sp9 in _rows9:
                         if (_sl9 or 0.0) >= 3.5 and (_sp9 or 0) > 60.0:
-                            _run9 += 1
-                            if _run9 == 4:      # ~0.5s sostenuto
-                                _out9.append(("slide", float(_px9),
-                                              float(_pz9)))
+                            _cur9.append((float(_px9), float(_pz9)))
                         elif (_sl9 or 0.0) < 2.0:
-                            _run9 = 0
+                            if len(_cur9) >= 4:     # ~0.5s sostenuto
+                                _segs9.append(_cur9)
+                            _cur9 = []
+                    if len(_cur9) >= 4:
+                        _segs9.append(_cur9)
                 except Exception:
                     pass
                 self.map_w.set_events(_out9)
+                self.map_w.set_slide_segs(_segs9)
         except Exception:
             pass
         self._update_read(None)
