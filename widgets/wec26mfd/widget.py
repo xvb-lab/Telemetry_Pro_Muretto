@@ -1044,6 +1044,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                 "car_class": getattr(self, "_cls_name", "")
                                 or ("GT3" if getattr(self, "_is_gt3", False)
                                     else ""),
+                                "comp4": [int(t.mWheels[i2].mCompoundType)
+                                          for i2 in range(4)],
                             }
                         except Exception:
                             pass
@@ -1709,6 +1711,24 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             f9.setPixelSize(15)
             f9.setBold(True)
             p.setFont(f9)
+            # icone COMPOUND (dal vecchio tyres/grid): michelin per le
+            # Hypercar, goodyear per il resto; foratura -> tyre_damage
+            _cu9 = (_tag or "").upper()
+            _brand = "michelin" if _cu9 in ("HY",) else "goodyear"
+            _cnames = {0: "%s_soft" % _brand, 1: "%s_medium" % _brand,
+                       2: "%s_hard" % _brand, 3: "%s_wet" % _brand}
+            if not hasattr(self, "_comp_px"):
+                self._comp_px = {}
+
+            def _cpx(nm):
+                if nm not in self._comp_px:
+                    _ip8 = _ROOT / "assets" / "icons" / (nm + ".png")
+                    self._comp_px[nm] = QPixmap(str(_ip8)) \
+                        if _ip8.exists() else None
+                return self._comp_px[nm]
+
+            _co4 = _cd.get("comp4") or [None] * 4
+            _fl4 = _cd.get("tyre_flat") or [False] * 4
             _lay = ((0, gx0 - 78, gy0 + mh_u * 0.10),
                     (1, gx0 + mw_u + 10, gy0 + mh_u * 0.10),
                     (2, gx0 - 78, gy0 + mh_u * 0.72),
@@ -1716,6 +1736,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             for _i9, _lx9, _ly9 in _lay:
                 _tv9 = _c4[_i9]
                 _bv9 = _b4[_i9]
+                _nm9 = "tyre_damage" if _fl4[_i9] \
+                    else _cnames.get(_co4[_i9], "")
+                _pm9 = _cpx(_nm9) if _nm9 else None
+                if _pm9:
+                    p.drawPixmap(QRectF(_lx9 + 24, _ly9 - 24,
+                                        20, 20).toRect(), _pm9)
                 if _tv9 is not None:
                     p.setPen(QPen(_ctt(int(_tv9), _tag)))
                     p.drawText(QRectF(_lx9, _ly9, 68, 18),
