@@ -253,6 +253,32 @@ class ConfigWindow(QDialog):
             _ap.toggled.connect(_ap_tgl)
             grid.addWidget(_ap, row_i, 1)
             row_i += 1
+            # ── Dash layout: completa / solo cambio / solo header /
+            #    senza header (salva SUBITO, la card lo legge live) ──
+            from PySide6.QtWidgets import QComboBox
+            grid.addWidget(QLabel("Dash layout"), row_i, 0)
+            _dlc = QComboBox()
+            _dlc.addItems(["Completa", "Solo cambio", "Solo header",
+                           "Senza header"])
+            try:
+                from core.config import get_config as _gc9
+                _dlc.setCurrentIndex(int(_gc9().widget("wec26mfd")
+                                         .get("dash_layout", 0) or 0))
+            except Exception:
+                pass
+
+            def _dl_ch(ix):
+                try:
+                    from core.config import get_config as _gc8
+                    _c8 = _gc8()
+                    _c8._data.setdefault("wec26mfd", {})["dash_layout"] = \
+                        int(ix)
+                    _c8.save()
+                except Exception:
+                    pass
+            _dlc.currentIndexChanged.connect(_dl_ch)
+            grid.addWidget(_dlc, row_i, 1)
+            row_i += 1
         # gli altri overlay WEC: soglia lotta / preview
         elif self._key in ("wec26battle", "wec26battleb", "wec26flag",
                            "wec26radio"):

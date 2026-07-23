@@ -1777,6 +1777,35 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         p.setRenderHint(QPainter.SmoothPixmapTransform)
         s = self.width() / float(_W)
         p.scale(s, s)
+        # ── DASH LAYOUT (Options app): 0 completa, 1 solo cambio,
+        # 2 solo header, 3 senza header ──
+        try:
+            _dl9 = int(self.cfg.get("dash_layout", 0) or 0)
+        except Exception:
+            _dl9 = 0
+        _mc9 = getattr(self, "_minicar", None)
+        if _dl9 == 1:
+            # SOLO CAMBIO: tachimetro neon grande su fondo pulito
+            if _mc9 is not None and _mc9.isVisible():
+                _mc9.hide()
+            p.setPen(Qt.NoPen)
+            p.setBrush(QColor(10, 14, 22, 235))
+            p.drawRoundedRect(QRectF(0, 0, _W, _H), 14, 14)
+            self._gauge_with_fade(p, _W / 2.0, _H / 2.0, 105.0,
+                                  show_gear=True)
+            p.end()
+            return
+        if _dl9 == 2:
+            # SOLO HEADER: resta la barra alta, il resto trasparente
+            if _mc9 is not None and _mc9.isVisible():
+                _mc9.hide()
+            p.setClipRect(QRectF(0, 0, _W, self.HDR))
+            self._paint_frame(p)
+            p.end()
+            return
+        if _dl9 == 3:
+            # SENZA HEADER: tutto il corpo, barra alta trasparente
+            p.setClipRect(QRectF(0, self.HDR, _W, _H - self.HDR))
         # (radio SEPARATA: vive nell'overlay "Team Radio", non qui)
         self._paint_frame(p)
         self._paint_page(p)
@@ -2520,14 +2549,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 and time.monotonic() - self._lamp_t0 < 2.5)
         sv = self._svg_fari_on if (_bshow or _lt9) else self._svg_fari_off
         if sv.isValid():
-            sv.render(p, QRectF(_W / 2.0 - 128.0, gy - 48.0, 22, 22))
+            sv.render(p, QRectF(_W / 2.0 - 156.0, gy - 48.0, 22, 22))
         # spia ABBAGLIANTI: A SE', ACCANTO — durante il lampeggio segue
         # LO STATO REALE dei fari di LMU (accesa quando il gioco li
         # accende), non un timer nostro
         if _lf or _lt9:
             if (_bm or _lt9) and self._svg_fari_hi.isValid():
                 self._svg_fari_hi.render(
-                    p, QRectF(_W / 2.0 - 156.0, gy - 48.0, 22, 22))
+                    p, QRectF(_W / 2.0 - 184.0, gy - 48.0, 22, 22))
             self.update()          # segue il toggling del gioco
 
     def _cfg_pull(self):
@@ -2709,18 +2738,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                 "warning_light", "freni_warn", "batteria",
                                 "eco_spia", "abs_spia",
                                 "freccia_sx", "freccia_dx")}
-            for _nm0, _dx0 in (("fuel_spia", -72.0),
-                               ("pit_limiter", -100.0),
-                               ("abbaglianti", -156.0),
-                               ("esp_tc", -184.0),
-                               ("engine_warn", 50.0),
-                               ("tyre_warn", 78.0),
-                               ("warning_light", 106.0),
-                               ("freni_warn", 134.0),
-                               ("batteria", 162.0),
-                               ("abs_spia", 190.0),
-                               ("freccia_sx", -240.0),
-                               ("freccia_dx", 218.0)):
+            for _nm0, _dx0 in (("fuel_spia", -100.0),
+                               ("pit_limiter", -128.0),
+                               ("abbaglianti", -184.0),
+                               ("esp_tc", -212.0),
+                               ("engine_warn", 78.0),
+                               ("tyre_warn", 106.0),
+                               ("warning_light", 134.0),
+                               ("freni_warn", 162.0),
+                               ("batteria", 190.0),
+                               ("abs_spia", 218.0),
+                               ("freccia_sx", -268.0),
+                               ("freccia_dx", 246.0)):
                 _r0 = self._svg_offmap.get(_nm0)
                 if _r0 is not None and _r0.isValid():
                     _r0.render(p, QRectF(_W / 2.0 + _dx0, gy - 48.0,
@@ -2790,7 +2819,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         str(_ROOT / "assets" / "icons" / "pit_limiter.svg"))
                 if self._svg_lim9.isValid():
                     self._svg_lim9.render(
-                        p, QRectF(_W / 2.0 - 100.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 - 128.0, gy - 48.0, 22, 22))
             # SPIA BENZINA (icona utente): autonomia sotto i 2 giri
             # (stessa soglia/isteresi del cerchio), fissa gialla
             if getattr(self, "_fuel_low", False) or _lt:
@@ -2800,7 +2829,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         str(_ROOT / "assets" / "icons" / "fuel_spia.svg"))
                 if self._svg_fuel9.isValid():
                     self._svg_fuel9.render(
-                        p, QRectF(_W / 2.0 - 72.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 - 100.0, gy - 48.0, 22, 22))
             # SPIA TERGI (PNG originali): logica V2 dell'IconBar —
             # motore spento wiper_0, >=3 fast, >=1 slow, 0 off
             if not hasattr(self, "_px_wip9"):
@@ -2818,7 +2847,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 _wk9 = "slow"
             else:
                 _wk9 = "off"
-            p.drawPixmap(QRectF(_W / 2.0 - 212.0, gy - 48.0,
+            p.drawPixmap(QRectF(_W / 2.0 - 240.0, gy - 48.0,
                                 22, 22).toRect(), self._px_wip9[_wk9])
             # SPIA ESP/TC (icona utente): sfarfalla quando il controllo
             # trazione sta intervenendo, come su una stradale
@@ -2830,7 +2859,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 if (time.monotonic() % 0.3) < 0.18 \
                         and self._svg_esp9.isValid():
                     self._svg_esp9.render(
-                        p, QRectF(_W / 2.0 - 184.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 - 212.0, gy - 48.0, 22, 22))
                 self.update()          # sfarfallio fluido
             # ── gruppo spie DESTRO (icone utente), da dentro a fuori:
             # MOTORE rossa (surriscaldo/danno), GOMMA TPMS (forata/persa),
@@ -2845,19 +2874,19 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             if getattr(self, "_overheat", False) or _lt:
                 if _blk9 and self._svg_eng9.isValid():
                     self._svg_eng9.render(
-                        p, QRectF(_W / 2.0 + 50.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 + 78.0, gy - 48.0, 22, 22))
                 self.update()
             if (_lt or any(getattr(self, "_flat4", None) or [])
                     or any(getattr(self, "_det4", None) or [])):
                 if _blk9 and self._svg_tyre9.isValid():
                     self._svg_tyre9.render(
-                        p, QRectF(_W / 2.0 + 78.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 + 106.0, gy - 48.0, 22, 22))
                 self.update()
             _ws9 = getattr(self, "_wsusp", None) or []
             if _lt or any(v is not None and v >= 0.5 for v in _ws9):
                 if _blk9 and self._svg_warn9.isValid():
                     self._svg_warn9.render(
-                        p, QRectF(_W / 2.0 + 106.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 + 134.0, gy - 48.0, 22, 22))
                 self.update()          # lampeggio fluido
             # SPIA FRENI (icona utente): oltre il limite di classe
             # (650 acciaio GT / 750 carbonio HY-P2-P3, soglie del doc)
@@ -2873,7 +2902,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         str(_ROOT / "assets" / "icons" / "freni_warn.svg"))
                 if _blk9 and self._svg_brk9.isValid():
                     self._svg_brk9.render(
-                        p, QRectF(_W / 2.0 + 134.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 + 162.0, gy - 48.0, 22, 22))
                 self.update()
             # SPIA ABS (icona utente): sfarfalla con l'intervento
             if getattr(self, "_abs_on", False) or _lt:
@@ -2883,7 +2912,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         str(_ROOT / "assets" / "icons" / "abs_spia.svg"))
                 if (_lt or (time.monotonic() % 0.3) < 0.18)                         and self._svg_abs9.isValid():
                     self._svg_abs9.render(
-                        p, QRectF(_W / 2.0 + 190.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 + 218.0, gy - 48.0, 22, 22))
                 self.update()
             # FRECCE HAZARD agli estremi: pit limiter O fermo >5s in pista
             if (getattr(self, "_limiter", False)
@@ -2893,13 +2922,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     _ipf = _ROOT / "assets" / "icons"
                     self._svg_fsx9 = _QSRf9(str(_ipf / "freccia_sx.svg"))
                     self._svg_fdx9 = _QSRf9(str(_ipf / "freccia_dx.svg"))
-                if (_lt or (time.monotonic() % 0.8) < 0.45):
+                # IN FASE con la fila RPM arancione del limiter
+                if (_lt or int(time.monotonic() * 2) % 2 == 0):
                     if self._svg_fsx9.isValid():
                         self._svg_fsx9.render(
-                            p, QRectF(_W / 2.0 - 240.0, gy - 48.0, 22, 22))
+                            p, QRectF(_W / 2.0 - 268.0, gy - 48.0, 22, 22))
                     if self._svg_fdx9.isValid():
                         self._svg_fdx9.render(
-                            p, QRectF(_W / 2.0 + 218.0, gy - 48.0, 22, 22))
+                            p, QRectF(_W / 2.0 + 246.0, gy - 48.0, 22, 22))
                 self.update()
             # batteria nel LAMP TEST (di norma vive nel check da spenti)
             if _lt:
@@ -2909,7 +2939,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         str(_ROOT / "assets" / "icons" / "batteria.svg"))
                 if self._svg_batt9.isValid():
                     self._svg_batt9.render(
-                        p, QRectF(_W / 2.0 + 162.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 + 190.0, gy - 48.0, 22, 22))
         except Exception:
             pass
 
@@ -2964,7 +2994,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         str(_ipb / "engine_warn.svg"))
                 if self._svg_engoff9.isValid():
                     self._svg_engoff9.render(
-                        p, QRectF(_W / 2.0 + 50.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 + 78.0, gy - 48.0, 22, 22))
                 # FRENI accesi fissi nel check (auto vera: batteria +
                 # motore + olio + freni a quadro inserito)
                 if not hasattr(self, "_svg_brk9"):
@@ -2973,11 +3003,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         str(_ROOT / "assets" / "icons" / "freni_warn.svg"))
                 if self._svg_brk9.isValid():
                     self._svg_brk9.render(
-                        p, QRectF(_W / 2.0 + 134.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 + 162.0, gy - 48.0, 22, 22))
                 if self._svg_batt9.isValid():
                     # slot TUTTO SUO (+162, dopo i freni): mai sovrapposta
                     self._svg_batt9.render(
-                        p, QRectF(_W / 2.0 + 162.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 + 190.0, gy - 48.0, 22, 22))
             except Exception:
                 pass
             return
