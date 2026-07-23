@@ -5104,12 +5104,35 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                      (_zp.get("points") or [])]
             except Exception:
                 self._eco_lmu_pts = []
-            # NIENTE fallback dalle curve apprese (verificato 23/07:
-            # dati sporchi — brake_d 649m alla Parabolica, veleggiate
-            # nel traffico lette come frenate -> chiamate a caso, il
-            # famoso "meta' Curva Grande"). SENZA calibrazione i LED
-            # eco stanno MUTI: si calibra con 1-2 giri di eco NATIVO
-            # LMU (+1) e da li' i punti sono quelli veri.
+            # 2) AUTOMATICO (23/07, la soluzione vera): punti di
+            #    FRENATA dalla mediana dei giri puliti del recorder
+            #    (pedale freno a 100Hz) — per ogni pista gia' guidata,
+            #    senza calibrare. I punti calibrati dall'eco nativo,
+            #    se esistono, restano prioritari (sono i rilasci esatti).
+            self._eco_pts_kind = "release"
+            if not self._eco_lmu_pts:
+                try:
+                    from core import lico_points as _lpz
+                    from core.classes import class_tag as _ct2
+                    _tg2 = _ct2(_key[1]) or _key[1]
+                    _auto = _lpz.load_auto(_key[0], _tg2)
+                    if _auto:
+                        self._eco_lmu_pts = _auto
+                        self._eco_pts_kind = "brake"
+                    elif getattr(self, "_eco_autok", None) != _key:
+                        # calcolo UNA volta per pista, in un thread
+                        self._eco_autok = _key
+                        import threading as _thz
+
+                        def _mk9(tr=_key[0], tg=_tg2):
+                            try:
+                                _lpz.compute_and_save(tr, tg)
+                            except Exception:
+                                pass
+                            self._eco_ct = 0.0    # ricarica cache
+                        _thz.Thread(target=_mk9, daemon=True).start()
+                except Exception:
+                    pass
         if not getattr(self, "_eco_lmu_pts", None):
             return None
         # margine adattivo dal muretto (eco_state.json: used vs target)
@@ -5132,10 +5155,13 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         _adat = min(max((_ratio - 1.0) * 200.0, -40.0), 40.0)
         _pts = getattr(self, "_eco_lmu_pts", None) or []
         best = None
-        # PUNTI VERI DI LMU: il punto registrato E' il rilascio al
-        # livello di calibrazione (+1). Ogni livello in piu' anticipa
-        # di ~50m; l'adattivo rifinisce.
-        _ant = 50.0 * (_lvl - 1) + _adat
+        # release (calibrati LMU): gia' anticipati per il +1 -> solo
+        # +50m/livello. brake (automatici dal freno): anticipo pieno
+        # stile LMU, 150m al +1 fino a ~300m al +4.
+        if getattr(self, "_eco_pts_kind", "release") == "brake":
+            _ant = 150.0 + 50.0 * (_lvl - 1) + _adat
+        else:
+            _ant = 50.0 * (_lvl - 1) + _adat
         for d in _pts:
             lift = d - _ant
             past = (ld - lift) % tl
