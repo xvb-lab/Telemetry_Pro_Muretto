@@ -738,6 +738,21 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                     time.monotonic())
                     self._page_beep()
                     self.update()
+                elif self._m3_sel == 10:   # TYRE TEMP: strato/carcassa/superficie
+                    # scelta a TRE come il widget V2 (select_tyre_temp):
+                    # quale temperatura mostrano badge MOD1 e macchinine
+                    _seq10 = ["inner", "carcass", "surface"]
+                    _c10 = self._prefs.get("tyre_temp", "inner")
+                    _j10 = _seq10.index(_c10) if _c10 in _seq10 else 0
+                    _j10 = (_j10 + (1 if (b & _XI_DR) else -1)) % 3
+                    self._prefs["tyre_temp"] = _seq10[_j10]
+                    self._save_prefs()
+                    self._m3_msg = ({"inner": "TYRE TEMP: LAYER",
+                                     "carcass": "TYRE TEMP: CARCASS",
+                                     "surface": "TYRE TEMP: SURFACE"}
+                                    [_seq10[_j10]], time.monotonic())
+                    self._page_beep()
+                    self.update()
         # TENUTA dx/sx sulla pagina PIT: auto-repeat che ACCELERA
         # (0.35s di attesa, poi 8/s -> 20/s -> 50/s): i numeri LMU di
         # benzina/energia si impostano senza mitragliare il pad
@@ -768,7 +783,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             elif mod == 3:
                 # nel menu SETTINGS: sposta la voce selezionata
                 self._m3_sel = (self._m3_sel
-                                + (1 if (b & _XI_DD) else -1)) % 10
+                                + (1 if (b & _XI_DD) else -1)) % 11
                 self._page_beep()
                 self.update()
             elif self._ctrl_sel is not None:
@@ -1143,6 +1158,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         # riferimento per la temperatura di lavoro gomma
                         self._inn4 = [sum(
                             float(t.mWheels[k].mTireInnerLayerTemperature[j])
+                            - 273.15 for j in range(3)) / 3.0
+                            for k in range(4)]
+                        # superficie (battistrada, media 3 zone) per la
+                        # scelta TYRE TEMP stile V2
+                        self._surf4 = [sum(
+                            float(t.mWheels[k].mTemperature[j])
                             - 273.15 for j in range(3)) / 3.0
                             for k in range(4)]
                         self._wear4 = [float(t.mWheels[k].mWear)
@@ -2202,7 +2223,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             # colori gomma dall'INNER layer (strato di lavoro), non carcassa;
             # danni/foratura/staccate da letture DIRETTE; sospensioni e aero
             # dai wearables REST (thread dedicato), come nel dashboard v3
-            _t4m = getattr(self, "_inn4", None) or self._carc4
+            _t4m = self._tyre_temp4()
             mc.set_data(_t4m, getattr(self, "_brk4", None), _tag,
                         getattr(self, "_dent8", None),
                         getattr(self, "_wsusp", None),
@@ -2233,7 +2254,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             gy = mc.y() / s
             gw = mc.width() / s
             gh = mc.height() / s
-            tv = getattr(self, "_inn4", None) or [None] * 4
+            tv = self._tyre_temp4()
             wear = getattr(self, "_wear4", None) or [None] * 4
             # centri ruota dalla geometria vera di TyreBrakeGrid (row_y),
             # riportati in unita' painter (la v3 usava _WY=20.6 perche' la
@@ -2674,7 +2695,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             "TELEMETRY ON": "TELEMETRIA ON",
             "TELEMETRY OFF": "TELEMETRIA OFF",
             "WING": "ALA", "GRILLE": "GRIGLIA",
-            "DUCT F": "COND A", "DUCT R": "COND P"}
+            "DUCT F": "COND A", "DUCT R": "COND P",
+            "TYRE TEMP": "TEMP GOMME"}
 
     def _it9(self, s):
         """Traduzione display EN->IT se la lingua dash e' IT."""
@@ -3261,7 +3283,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                   "ON" if getattr(self, "_beam_steady", False) else "OFF"),
                  ("WIPER", str(getattr(self, "_wiper9", 0))),
                  ("LANGUAGE",
-                  self._prefs.get("dash_lang", "EN")))
+                  self._prefs.get("dash_lang", "EN")),
+                 ("TYRE TEMP",
+                  ({"inner": "STRATO", "carcass": "CARCASSA",
+                    "surface": "SUPERFICIE"}
+                   if self._prefs.get("dash_lang", "EN") == "IT" else
+                   {"inner": "LAYER", "carcass": "CARCASS",
+                    "surface": "SURFACE"})
+                  .get(self._prefs.get("tyre_temp", "inner"), "LAYER")))
         f = QFont(FAM)
         f.setPixelSize(max(6, int(52 * by)))     # piu' GRANDE (rich. 23/07)
         f.setWeight(QFont.Medium)
@@ -3312,7 +3341,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         p.setPen(Qt.NoPen)
         p.setBrush(QColor("#2fa8e0"))
         _dx4 = _W / 2.0
-        _dy4 = y0 + 680.0 * by
+        _dy4 = y0 + 742.0 * by     # sotto le 11 righe (TYRE TEMP inclusa)
         p.drawPolygon(_QPF4([QPointF(_dx4 - 7.0, _dy4),
                              QPointF(_dx4 + 7.0, _dy4),
                              QPointF(_dx4, _dy4 + 7.0)]))
@@ -3705,6 +3734,17 @@ class Wec26MfdOverlay(WecOnboardOverlay):
     # card), font CP Mono del pack. Colori nostri: nero -> trasparente
     # (resta il navy della card), arancione -> bianco 90%; le celle
     # piene hanno i numeri "in negativo" col navy. Dato assente = tace.
+    def _tyre_temp4(self):
+        """Temperatura gomma SCELTA dal menu TYRE TEMP (logica V2
+        select_tyre_temp, collaudata): strato / carcassa / superficie,
+        con fallback alla carcassa se lo strato scelto manca."""
+        _prf = getattr(self, "_prefs", None) or {}
+        _m = _prf.get("tyre_temp", "inner")
+        _src = {"inner": getattr(self, "_inn4", None),
+                "carcass": getattr(self, "_carc4", None),
+                "surface": getattr(self, "_surf4", None)}.get(_m)
+        return _src or getattr(self, "_carc4", None) or [None] * 4
+
     def _paint_tyres_mini(self, p, gy):
         """MOD1, angolo BASSO-SINISTRA sopra la fila MAP/TC (rifinito
         23/07 notte, meta' misura): 4 celle gomme — USURA grande senza
@@ -3713,7 +3753,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         try:
             # STRATO DI LAVORO (inner layer), come lo mostra LMU —
             # la carcassa dava numeri diversi (rich. 23/07 notte)
-            _tc = getattr(self, "_inn4", None) or self._carc4                 or [None] * 4
+            _tc = self._tyre_temp4()
             _wr = getattr(self, "_wear4", None) or [None] * 4
         except Exception:
             return
@@ -3786,7 +3826,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         except Exception:
             _tag = ""
         try:
-            _t4m = getattr(self, "_inn4", None) or self._carc4
+            _t4m = self._tyre_temp4()
             mc.set_data(_t4m, getattr(self, "_brk4", None), _tag,
                         getattr(self, "_dent8", None),
                         getattr(self, "_wsusp", None),
