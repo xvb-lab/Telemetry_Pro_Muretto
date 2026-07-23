@@ -3498,7 +3498,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _has_map9 = (_tagsc == "HY"
                          or (getattr(self, "_mmap", 0) or 0) > 0)
             _map0 = (getattr(self, "_mmap", None) == 0)
-            _rsc = QRectF(_xl, gy + 43, 34, 19)   # SOTTO il MOD (23/07)
+            _rsc = QRectF(_xl, gy - 3, 34, 19)    # SOPRA il MOD (23/07)
             if not _has_map9:
                 pass                       # niente chip: mappa fissa
             elif _map0 or _lt:
@@ -3685,7 +3685,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         simbolo %, badge TEMPERATURA carcassa all'angolo esterno (blu
         freddo / verde in finestra 70-90 / rosso oltre)."""
         try:
-            _tc = self._carc4 or [None] * 4
+            # STRATO DI LAVORO (inner layer), come lo mostra LMU —
+            # la carcassa dava numeri diversi (rich. 23/07 notte)
+            _tc = getattr(self, "_inn4", None) or self._carc4                 or [None] * 4
             _wr = getattr(self, "_wear4", None) or [None] * 4
         except Exception:
             return
