@@ -1848,56 +1848,80 @@ class _LiveMap(QWidget):
                         QPointF(c9.x(), c9.y() + 4.5),
                         QPointF(c9.x() - 4.5, c9.y())]))
 
-        # SCIE grigie dei rivali (la traiettoria che cagano, 23/07)
+        # SCIE grigie dei rivali: CODA degli ultimi 40s dietro ogni
+        # macchina — mai lo storico intero della sessione (veniva un
+        # groviglio di righe spezzate, 23/07 sera). Spezzata solo sui
+        # veri salti (>50 m nel mondo: pit/reset), non a caso.
         _oserp = getattr(self, "_opp_series", None) or {}
         _oppt = getattr(self, "_opp_t", None)
         if _oserp and _oppt is not None and _evshow.get("opp", True) \
                 and getattr(self, "_opp_pts", None) is not None:
             p.setBrush(Qt.NoBrush)
-            p.setPen(QPen(QColor(154, 160, 171, 80), 1.2))
+            p.setPen(QPen(QColor(154, 160, 171, 70), 1.3,
+                          Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            _t0tr8 = _oppt - 40.0
             for _cidp, _serp in _oserp.items():
                 if _cidp == -1:
                     continue
                 _pth8 = None
-                _lp8 = None
-                for _rw8 in _serp[::3]:
+                _lpw8 = None
+                for _rw8 in _serp:
+                    if _rw8[0] < _t0tr8:
+                        continue
                     if _rw8[0] > _oppt:
                         break
                     _q8 = P(_rw8[1], _rw8[2])
-                    if _pth8 is None or (_lp8 is not None and (
-                            (_q8.x() - _lp8.x()) ** 2
-                            + (_q8.y() - _lp8.y()) ** 2) > 80.0 ** 2):
+                    if _pth8 is None or (_lpw8 is not None and (
+                            (_rw8[1] - _lpw8[0]) ** 2
+                            + (_rw8[2] - _lpw8[1]) ** 2) > 50.0 ** 2):
                         if _pth8 is not None:
                             p.drawPath(_pth8)
                         _pth8 = QPainterPath()
                         _pth8.moveTo(_q8)
                     else:
                         _pth8.lineTo(_q8)
-                    _lp8 = _q8
+                    _lpw8 = (_rw8[1], _rw8[2])
                 if _pth8 is not None:
                     p.drawPath(_pth8)
-        # MACCHININE GRIGIE dei rivali (replay): stessa forma, grige
+        # MACCHININE GRIGIE dei rivali: STESSA macchinina del pilota
+        # (scocca + abitacolo), grigia, ruotata nella direzione di
+        # marcia; numero bold DISEGNATO sulla scocca, gira con lei
+        # (rifatto 23/07 sera: prima pallino piatto + testo appoggiato)
         _opp9 = getattr(self, "_opp_pts", None)
         if _opp9 and _evshow.get("opp", True):
-            _fo9 = p.font()
-            _fo7 = p.font()
-            _fo7.setPointSize(max(6, int(dot_r * 0.9)))
-            _fo7.setBold(True)
             for _row9 in _opp9:
                 _ox9, _oz9 = _row9[0], _row9[1]
                 _po9 = _row9[2] if len(_row9) > 2 else 0
                 _c9o = P(_ox9, _oz9)
+                _ang9 = None
+                if len(_row9) > 4:
+                    _q9h = P(_row9[3], _row9[4])
+                    _dx9 = _q9h.x() - _c9o.x()
+                    _dy9 = _q9h.y() - _c9o.y()
+                    if abs(_dx9) > 1e-6 or abs(_dy9) > 1e-6:
+                        _ang9 = math.degrees(math.atan2(_dy9, _dx9))
                 p.setPen(QPen(QColor("#09090b"), 1.2))
-                p.setBrush(QColor(154, 160, 171, 220))
-                p.drawEllipse(_c9o, dot_r * 0.9, dot_r * 0.9)
+                p.setBrush(QColor(158, 164, 175, 235))
+                if _ang9 is None:
+                    p.drawEllipse(_c9o, dot_r * 0.95, dot_r * 0.95)
+                else:
+                    _L9 = dot_r * 2.2
+                    _W9 = dot_r * 1.25
+                    p.save()
+                    p.translate(_c9o)
+                    p.rotate(_ang9)
+                    p.drawRoundedRect(
+                        QRectF(-_L9, -_W9, 2 * _L9, 2 * _W9),
+                        _W9 * 0.75, _W9 * 0.75)
+                    p.setPen(Qt.NoPen)
+                    p.setBrush(QColor(0, 0, 0, 100))
+                    p.drawRoundedRect(
+                        QRectF(-_L9 * 0.35, -_W9 * 0.62,
+                               _L9 * 0.85, _W9 * 1.24),
+                        _W9 * 0.4, _W9 * 0.4)
+                    p.restore()
                 if _po9:
-                    p.setFont(_fo7)
-                    _tw9 = p.fontMetrics().horizontalAdvance(str(_po9))
-                    p.setPen(QColor(255, 255, 255, 240))
-                    p.drawText(QPointF(_c9o.x() - _tw9 / 2.0,
-                                       _c9o.y() + dot_r * 0.45),
-                               str(_po9))
-            p.setFont(_fo9)
+                    self._car_num(p, _c9o, _ang9, _po9, dot_r)
         # dot INTERPOLATI (pa/pb calcolati in alto); indice solo di riserva
         if pb is not None:
             dot(pb, cmp_c, _mk_ang(getattr(self, "_cmp_srt", None), _ld_b))
@@ -1906,22 +1930,12 @@ class _LiveMap(QWidget):
                 _mk_ang(getattr(self, "_cmp_srt", None),
                         cmp[hi_cmp][2] if len(cmp[hi_cmp]) > 2 else None))
         if pa is not None:
-            dot(pa, sel_c, _mk_ang(getattr(self, "_sel_srt", None), _ld_a))
-            # DELTA accanto alla macchinina nel replay (cantiere 23/07):
-            # +sei dietro il confronto / -sei davanti, alla stessa posizione
+            _angp9 = _mk_ang(getattr(self, "_sel_srt", None), _ld_a)
+            dot(pa, sel_c, _angp9)
+            # numero di posizione SULLA mia macchinina, come i rivali
             _ppn = getattr(self, "_play_pos_num", 0)
             if _ppn and getattr(self, "_play_ld", None):
-                _c9n = P(pa[0], pa[1])
-                _fn9 = p.font()
-                _fn7 = p.font()
-                _fn7.setPointSize(max(6, int(dot_r)))
-                _fn7.setBold(True)
-                p.setFont(_fn7)
-                _tw9n = p.fontMetrics().horizontalAdvance(str(_ppn))
-                p.setPen(QColor(255, 255, 255, 250))
-                p.drawText(QPointF(_c9n.x() - _tw9n / 2.0,
-                                   _c9n.y() + dot_r * 0.5), str(_ppn))
-                p.setFont(_fn9)
+                self._car_num(p, P(pa[0], pa[1]), _angp9, _ppn, dot_r)
             _pg = getattr(self, "_play_gap", None)
             if _pg is not None and getattr(self, "_play_ld", None):
                 c9 = P(pa[0], pa[1])
@@ -2133,6 +2147,38 @@ class _LiveMap(QWidget):
         # MANINA su tutti i chip/dot cliccabili (legenda giri + eventi)
         self._hover_cursor(e.position())
         self._scrub(e.position()); super().mouseMoveEvent(e)
+
+    def _car_num(self, p, c, ang, num, dot_r):
+        """Numero di gara SULLA macchinina: bold, centrato sulla
+        scocca, ruota con la macchina (raddrizzato quando verrebbe a
+        testa in giu' — come le livree vere)."""
+        from PySide6.QtGui import QColor as _QC
+        f0 = p.font()
+        f7 = p.font()
+        f7.setBold(True)
+        f7.setPointSizeF(max(6.0, float(dot_r) * 1.05))
+        p.save()
+        p.translate(c)
+        if ang is not None:
+            _a9 = ang % 360.0
+            if 90.0 < _a9 < 270.0:
+                _a9 -= 180.0
+            p.rotate(_a9)
+        p.setFont(f7)
+        fm = p.fontMetrics()
+        _t9 = str(num)
+        _w9 = fm.horizontalAdvance(_t9)
+        try:
+            _h9 = float(fm.capHeight())
+        except AttributeError:
+            _h9 = fm.ascent() * 0.7
+        # bianco con ombra scura: leggibile sull'abitacolo scuro
+        p.setPen(_QC(0, 0, 0, 200))
+        p.drawText(QPointF(-_w9 / 2.0 + 0.8, _h9 / 2.0 + 0.8), _t9)
+        p.setPen(_QC(255, 255, 255, 250))
+        p.drawText(QPointF(-_w9 / 2.0, _h9 / 2.0), _t9)
+        p.restore()
+        p.setFont(f0)
 
     def _pick_layer_color(self, _k9):
         """Palette per il layer (dal DOT della legenda)."""
@@ -3414,8 +3460,25 @@ class _WorksheetTab(QWidget):
                 else:
                     _x9i, _z9i = _prev9[1], _prev9[2]
                 _po9i = _prev9[3] if len(_prev9) > 3 else 0
+                # direzione di marcia (per ruotare la macchinina):
+                # dal movimento prev->next; da fermo tiene l'ultima
+                _hd9 = getattr(self.map_w, "_opp_hd", None)
+                if _hd9 is None:
+                    _hd9 = self.map_w._opp_hd = {}
+                _dxh9 = _dzh9 = None
+                if _next9 is not None:
+                    _dx = _next9[1] - _prev9[1]
+                    _dz = _next9[2] - _prev9[2]
+                    if _dx * _dx + _dz * _dz > 0.04:
+                        _dxh9, _dzh9 = _dx, _dz
+                        _hd9[_cid9] = (_dx, _dz)
+                if _dxh9 is None and _cid9 in _hd9:
+                    _dxh9, _dzh9 = _hd9[_cid9]
                 if _cid9 == -1:
                     self.map_w._play_pos_num = _po9i
+                elif _dxh9 is not None:
+                    _opts9.append((_x9i, _z9i, _po9i,
+                                   _x9i + _dxh9, _z9i + _dzh9))
                 else:
                     _opts9.append((_x9i, _z9i, _po9i))
             self.map_w.set_opponents(_opts9)
