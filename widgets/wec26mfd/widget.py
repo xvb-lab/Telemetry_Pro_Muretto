@@ -1142,6 +1142,21 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                     and (self._speed or 0.0) < 0.5:
                                 if self._pit_t0 is None:
                                     self._pit_t0 = time.monotonic()
+                                    # ANCORA: stima fotografata all'arrivo
+                                    # (certificata al decimo, test 23/07).
+                                    # Da qui scala il NOSTRO orologio:
+                                    # un solo countdown fluido, niente
+                                    # gradini delle fasi ne' il preventivo
+                                    # prossima-sosta che LMU riarma prima
+                                    # del via ("manca 13" fantasma).
+                                    self._pit_est0 = dict(
+                                        self._pit_est or {})
+                                    try:
+                                        self._pit_total0 = float(
+                                            self._pit_est0.get("total")
+                                            or 0.0)
+                                    except (TypeError, ValueError):
+                                        self._pit_total0 = 0.0
                                 self._pit_run = (time.monotonic()
                                                  - self._pit_t0)
                             elif (self._speed or 0.0) > 1.5:
@@ -2756,12 +2771,15 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         # ── PANNELLO TEMPO SOSTA (spazio ex-gauge): stima LMU scomposta
         # (rotta pitstop-estimate, 23/07) e CRONO che scorre da fermi ai
         # box: grande = stima − trascorso (ambra), oltre stima = +X rosso ──
-        _est9 = getattr(self, "_pit_est", None) or {}
+        _stopping = getattr(self, "_pit_t0", None) is not None
+        # da FERMI: stima e scomposizione CONGELATE all'ancora (un solo
+        # countdown fluido); in marcia: preventivo live
+        _est9 = (getattr(self, "_pit_est0", None) if _stopping
+                 else getattr(self, "_pit_est", None)) or {}
         try:
             _tot9 = float(_est9.get("total") or 0.0)
         except (TypeError, ValueError):
             _tot9 = 0.0
-        _stopping = getattr(self, "_pit_t0", None) is not None
         if _tot9 > 0.05 or _stopping:
             _px0, _px1 = 300.0, 530.0
             _pxc = (_px0 + _px1) / 2.0
@@ -2777,13 +2795,24 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _big.setWeight(QFont.Bold)
             p.setFont(_big)
             if _stopping:
-                # La stima REST e' il LAVORO RIMANENTE, LIVE (test 23/07:
-                # cala a gradini man mano che la squadra finisce le fasi,
-                # sequenziali: rifornimento -> gomme). Quindi il numero
-                # grande E' il rimanente di LMU, interpolato liscio tra un
-                # poll e l'altro. Niente piu' doppio conteggio col crono.
-                _age9 = time.monotonic() - getattr(self, "_pit_est_t", 0.0)
-                _rem = max(0.0, _tot9 - min(_age9, 3.0))
+                # UN SOLO countdown fluido: ancora fotografata all'arrivo
+                # meno il NOSTRO orologio (la stima d'ingresso e' esatta
+                # al decimo: test 45.99 vs 45.9). Se la squadra AGGIUNGE
+                # lavoro a sosta in corso (menu cambiato), ri-ancora.
+                try:
+                    _live9 = float((getattr(self, "_pit_est", None)
+                                    or {}).get("total") or 0.0)
+                except (TypeError, ValueError):
+                    _live9 = 0.0
+                _rem = max(0.0, getattr(self, "_pit_total0", 0.0)
+                           - self._pit_run)
+                if _live9 > _rem + 2.5 and self._pit_run > 1.0:
+                    self._pit_total0 = _live9 + self._pit_run
+                    try:
+                        self._pit_est0 = dict(self._pit_est or {})
+                    except Exception:
+                        pass
+                    _rem = _live9
                 if _rem > 0.05:
                     p.setPen(QPen(QColor("#ffb020")))       # ambra: lavori
                     _bt = "%.1f" % _rem
