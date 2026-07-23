@@ -3037,7 +3037,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         f.setPixelSize(max(6, int(52 * by)))     # piu' GRANDE (rich. 23/07)
         f.setWeight(QFont.Medium)
         p.setFont(f)
-        _pitch = 72.0
+        _pitch = 68.0     # 9 righe (LINGUA inclusa) senza sbordare
         lh = _pitch * by
         for i, (it, vv) in enumerate(ITEMS):
             sel = (i == self._m3_sel)
@@ -3055,10 +3055,38 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 _vc3 = QColor("#2fa8e0")        # TEST: blu
             elif i == 5 and vv != "OFF":
                 _vc3 = QColor("#00e676")        # LICO: verde
+            # valore + TRIANGOLINI stile LMU sulla voce selezionata
+            # (rich. 23/07: come il menu pit del gioco, niente "<>")
+            from PySide6.QtGui import QPolygonF as _QPF3
+            _vtxt = str(vv)
+            _vx1 = 1270.0 * bx                  # bordo destro valori
+            _vw3 = QFontMetricsF(f).horizontalAdvance(_vtxt)
             p.setPen(QPen(_vc3))
-            p.drawText(QRectF(700 * bx, ry, 570 * bx, lh),
-                       Qt.AlignRight | Qt.AlignVCenter,
-                       "<%s>" % vv)
+            p.drawText(QRectF(700 * bx, ry, _vx1 - 700 * bx - 16.0, lh),
+                       Qt.AlignRight | Qt.AlignVCenter, _vtxt)
+            if sel:
+                _cyv = ry + lh / 2.0
+                p.setPen(Qt.NoPen)
+                p.setBrush(_vc3)
+                p.drawPolygon(_QPF3([                 # destra >
+                    QPointF(_vx1 - 8.0, _cyv - 5.5),
+                    QPointF(_vx1 - 8.0, _cyv + 5.5),
+                    QPointF(_vx1, _cyv)]))
+                _lx3 = _vx1 - 16.0 - _vw3 - 12.0
+                p.drawPolygon(_QPF3([                 # sinistra <
+                    QPointF(_lx3 + 8.0, _cyv - 5.5),
+                    QPointF(_lx3 + 8.0, _cyv + 5.5),
+                    QPointF(_lx3, _cyv)]))
+        # TRIANGOLINO GIU' centrato sotto il menu (il giro delle voci
+        # continua: stesso segnale del menu pit, rich. 23/07)
+        from PySide6.QtGui import QPolygonF as _QPF4
+        p.setPen(Qt.NoPen)
+        p.setBrush(QColor(255, 255, 255, 150))
+        _dx4 = _W / 2.0
+        _dy4 = y0 + 680.0 * by
+        p.drawPolygon(_QPF4([QPointF(_dx4 - 7.0, _dy4),
+                             QPointF(_dx4 + 7.0, _dy4),
+                             QPointF(_dx4, _dy4 + 7.0)]))
         f.setPixelSize(max(6, int(26 * by)))
         p.setFont(f)
         p.setPen(QPen(QColor(255, 255, 255, 180)))
@@ -3131,6 +3159,15 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawText(QRectF(_xr - 29, gy + 34, 44, 18),
                            Qt.AlignRight | Qt.AlignVCenter,
                            "%.0f°C" % self._oil)
+            # NUMERO energia/benzina sotto l'olio (senza %), colore
+            # della barra (blu VE / rosa fuel / rosso riserva)
+            _bp9 = getattr(self, "_bar_pct9", None)
+            if _bp9:
+                p.setPen(QColor(_bp9[1]))
+                p.drawText(QRectF(_xr - 29, gy + 50, 44, 18),
+                           Qt.AlignRight | Qt.AlignVCenter,
+                           "%d" % _bp9[0])
+                p.setPen(QColor(255, 255, 255, 240))
         except Exception:
             pass
         # SPIE a destra del cerchio (speculari ad acqua/olio):
@@ -3743,18 +3780,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         if _vef > 0.005 and _cbar is not None:
             p.setPen(QPen(_cbar, 3.0, Qt.SolidLine, Qt.RoundCap))
             p.drawArc(rect2, int(229 * 16), int(82 * _vef * 16))
-        # PERCENTUALE energia/benzina SEMPRE sott'occhio (rich. 23/07):
-        # numero piccolo sotto a sinistra del cerchio, colore della barra
-        if _cbar is not None and _vef > 0.0:
-            f_pc9 = QFont("Archivo SemiExpanded", 12)
-            f_pc9.setWeight(QFont.DemiBold)
-            p.setFont(f_pc9)
-            p.setPen(_cbar)
-            _pct9 = "%d%%" % round(_vef * 100)
-            p.drawText(QPointF(
-                cx - r - 10.0
-                - QFontMetricsF(f_pc9).horizontalAdvance(_pct9),
-                cy + r * 0.55), _pct9)
+        # NUMERO energia/benzina (senza %) sotto la temperatura OLIO
+        # nel blocco a sinistra (rich. 23/07): qui salvo valore+colore,
+        # lo disegna il blocco acqua/olio che conosce le sue coordinate
+        self._bar_pct9 = (round(_vef * 100), _cbar) \
+            if (_cbar is not None and _vef > 0.0) else None
         # SOC nel SEMICERCHIO ALTO (il varco vuoto del gauge, rich.
         # 23/07): carica batteria ibrida — VERDE quando rigenera,
         # AMBRA quando scarica (boost), BIANCO neutro. Solo se l'auto
