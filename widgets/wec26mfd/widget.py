@@ -3669,20 +3669,23 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._eng_on_prev = False
             _lcy = (self.HDR + _H) / 2.0 - 26.0        # STESSA posizione del boot
             _lh = self._draw_car_logo(p, _W / 2.0, _lcy, 72.0)
-            # ENGINE OFF: FISSA in basso (rich. 23/07 — ancorata al
-            # logo saltava su coi loghi-scritta tipo Porsche)
+            # ENGINE OFF fissa in basso; ma se l'ibrida SI MUOVE in
+            # ELETTRICO (rpm zero, e-motor che gira o macchina che
+            # cammina) la scritta DIVENTA verde E-MOTOR ON finche' non
+            # entra il termico (rich. 23/07 sera)
+            _emov9 = (not self._is_gt3) and (
+                self._erpm > 10.0 or (self._speed or 0.0) > 1.0)
             f_off = QFont("Archivo SemiExpanded")
             f_off.setPixelSize(14)
             p.setFont(f_off)
-            p.setPen(QPen(QColor(255, 45, 45)))
-            p.drawText(QRectF(0, _H - self.ROW_B - 68.0, _W, 22),
-                       Qt.AlignCenter, "ENGINE OFF")
-            if not self._is_gt3 and self._erpm > 10.0:
-                f_off.setPixelSize(15)
-                p.setFont(f_off)
+            if _emov9:
                 p.setPen(QPen(QColor(0, 220, 90)))
-                p.drawText(QRectF(0, _oy + 28.0, _W, 24),
+                p.drawText(QRectF(0, _H - self.ROW_B - 68.0, _W, 22),
                            Qt.AlignCenter, "E-MOTOR ON")
+            else:
+                p.setPen(QPen(QColor(255, 45, 45)))
+                p.drawText(QRectF(0, _H - self.ROW_B - 68.0, _W, 22),
+                           Qt.AlignCenter, "ENGINE OFF")
             # QUADRO inserito, motore spento: TUTTE le spie visibili
             # (auto vera); in piu' BATTERIA e MOTORE fisse accese
             self._paint_spie(p, gy)
@@ -4357,11 +4360,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         # ── GEAR + SPEED al centro (MOTORE SPENTO: rpm a zero) ──
         eng_off = (self._rpm is not None and self._rpm < 1.0)
         if eng_off:
-            txt(R(0, 280, 1334, 100), "ENGINE OFF", 70,
-                QColor(255, 45, 45))
-            if not self._is_gt3 and self._erpm > 10.0:
-                txt(R(0, 390, 1334, 90), "E-MOTOR ON", 55,
+            _emov8 = (not self._is_gt3) and (
+                self._erpm > 10.0 or (self._speed or 0.0) > 1.0)
+            if _emov8:
+                txt(R(0, 280, 1334, 100), "E-MOTOR ON", 70,
                     QColor(0, 220, 90))
+            else:
+                txt(R(0, 280, 1334, 100), "ENGINE OFF", 70,
+                    QColor(255, 45, 45))
         else:
             txt(R(610, 20, 114, 55), "GEAR", 35)
             g = self._gear
