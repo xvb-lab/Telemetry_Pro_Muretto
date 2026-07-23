@@ -2684,18 +2684,16 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                "+%d" % _en)
                     p.setFont(f_e)      # ripristina
             self._paint_beam_spia(p, gy)
-            # SPIA PIT LIMITER (icona utente LIM): lampeggia col
+            # SPIA PIT LIMITER (icona utente LIM): FISSA col
             # limitatore inserito, accanto ai fari
             if getattr(self, "_limiter", False):
                 if not hasattr(self, "_svg_lim9"):
                     from PySide6.QtSvg import QSvgRenderer as _QSRl
                     self._svg_lim9 = _QSRl(
                         str(_ROOT / "assets" / "icons" / "pit_limiter.svg"))
-                if (time.monotonic() % 0.7) < 0.4 \
-                        and self._svg_lim9.isValid():
+                if self._svg_lim9.isValid():
                     self._svg_lim9.render(
                         p, QRectF(_W / 2.0 - 100.0, gy - 48.0, 22, 22))
-                self.update()          # lampeggio fluido
             # SPIA BENZINA (icona utente): autonomia sotto i 2 giri
             # (stessa soglia/isteresi del cerchio), fissa gialla
             if getattr(self, "_fuel_low", False):
