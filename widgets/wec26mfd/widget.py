@@ -1689,7 +1689,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             if mc is not None:
                 mc.deleteLater()
             from .minicar import TyreBrakeGrid
-            mc = self._minicar = TyreBrakeGrid(scale=_msc, rear_ext=0.25)
+            mc = self._minicar = TyreBrakeGrid(scale=_msc, rear_ext=0.3)
             mc.setParent(self)
         mc.move(int(_W / 2.0 * s - mc.width() / 2.0),
                 int((y0 + bodyh / 2.0) * s - mc.height() / 2.0))
@@ -1711,16 +1711,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         _cd.get("detached"))
         except Exception:
             pass
-        # ── composizione ORIGINALE del dashboard v3 attorno alla macchinina:
-        # per ruota temp °C (inner, colorata) sopra usura % (bianca), blocco
-        # centrato sull'asse della ruota; ACQUA sopra l'auto, OLIO sotto,
-        # fulmine energia al centro (solo ibride). Compound chip piccolo
-        # sul lato esterno di ogni blocco.
+        # ── VERBATIM dashboard v3 (_draw_minicar_labels): temp °C + usura %
+        # per ruota, ACQUA davanti / OLIO dietro, fulmine energia al centro.
         try:
             from widgets.list.colors import col_tyre_temp as _ctt
             from ui.icons import (WATER_SVG as _WSVG, OIL_SVG as _OSVG,
-                                  energy_bolt_svg as _ebolt,
-                                  tyre_chip_svg as _tcs)
+                                  energy_bolt_svg as _ebolt)
             from PySide6.QtSvg import QSvgRenderer as _QSR
             from PySide6.QtCore import QByteArray as _QBA
             if not hasattr(self, "_svg_cache9"):
@@ -1736,54 +1732,38 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             gy = mc.y() / s
             gw = mc.width() / s
             gh = mc.height() / s
+            tv = getattr(self, "_inn4", None) or [None] * 4
+            wear = getattr(self, "_wear4", None) or [None] * 4
+            # centri ruota dalla geometria vera di TyreBrakeGrid (row_y),
+            # riportati in unita' painter (la v3 usava _WY=20.6 perche' la
+            # scala della minicar coincideva con quella del pannello)
             sc9 = mc._scale
-            # centri ruota VERI dalla geometria di TyreBrakeGrid (row_y)
             _h0d = 72.0 * sc9
-            cy_f = gy + (_h0d * 0.30 - sc9) / s
-            cy_r = gy + (mc.height() - _h0d * 0.30 + sc9) / s
-            _c4 = getattr(self, "_inn4", None) or self._carc4 or [None] * 4
-            _w4 = getattr(self, "_wear4", None) or [None] * 4
-            _co4 = _cd.get("comp4") or [None] * 4
-            _fl4 = _cd.get("tyre_flat") or [False] * 4
-            _sig4 = {0: "S", 1: "M", 2: "H", 3: "W"}
-            if not hasattr(self, "_px_tdmg"):
-                _ip8 = _ROOT / "assets" / "icons" / "tyre_damage.png"
-                self._px_tdmg = QPixmap(str(_ip8)) if _ip8.exists() else None
-            _CW = 44.0
-            f9 = QFont("Archivo SemiExpanded")
-            f9.setPixelSize(12)
-            f9.setBold(True)
-            p.setFont(f9)
-            corners = [(0, -1, cy_f), (1, +1, cy_f),
-                       (2, -1, cy_r), (3, +1, cy_r)]
-            for wi, side, cy in corners:
-                cx = gx - 18.0 if side < 0 else gx + gw + 18.0
+            _wy_f = (_h0d * 0.30 - sc9) / s
+            _wy_r = (mc.height() - _h0d * 0.30 + sc9) / s
+            corners = [(0, -1, 0), (1, +1, 0), (2, -1, 1), (3, +1, 1)]
+            p.setFont(QFont("Arial", 8, QFont.Bold))
+            _CW = 34.0
+            for wi, side, row in corners:
+                cx = gx - 14.0 if side < 0 else gx + gw + 14.0
+                cy = gy + (_wy_f if row == 0 else _wy_r)
                 _lx = cx - _CW / 2.0
-                if _c4[wi] is not None:
-                    p.setPen(QPen(_ctt(int(_c4[wi]), _tag)))
-                    p.drawText(QRectF(_lx, cy - 14.0, _CW, 13),
+                if tv[wi] is not None:
+                    p.setPen(_ctt(tv[wi], _tag))
+                    p.drawText(QRectF(_lx, cy - 11.5, _CW, 11),
                                Qt.AlignHCenter | Qt.AlignVCenter,
-                               "%d°C" % int(round(_c4[wi])))
-                if _w4[wi] is not None:
-                    p.setPen(QPen(QColor(242, 244, 247)))
-                    p.drawText(QRectF(_lx, cy + 1.0, _CW, 13),
+                               "%d°C" % int(round(tv[wi])))
+                if wear[wi] is not None:
+                    p.setPen(QColor("#f2f4f7"))
+                    p.drawText(QRectF(_lx, cy + 0.5, _CW, 11),
                                Qt.AlignHCenter | Qt.AlignVCenter,
-                               "%d%%" % int(round(_w4[wi] * 100)))
-                # compound chip sul lato ESTERNO del blocco
-                _ccx = _lx - 16.0 if side < 0 else _lx + _CW + 3.0
-                if _fl4[wi] and getattr(self, "_px_tdmg", None):
-                    p.drawPixmap(QRectF(_ccx, cy - 7.0, 14, 14).toRect(),
-                                 self._px_tdmg)
-                else:
-                    _sg9 = _sig4.get(_co4[wi])
-                    if _sg9:
-                        _prnd(_tcs(_sg9, True)).render(
-                            p, QRectF(_ccx, cy - 7.0, 14, 14))
+                               "%d%%" % int(round(wear[wi] * 100)))
 
             def _eng_temp9(svg, temp, ccx, ccy, warn):
                 if temp is None:
                     return
                 txt = "%.1f°C" % float(temp)
+                p.setFont(QFont("Arial", 8, QFont.Bold))
                 _fm9 = p.fontMetrics()
                 _tw9 = _fm9.horizontalAdvance(txt)
                 D9 = 13.0
@@ -1795,11 +1775,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                            Qt.AlignVCenter | Qt.AlignLeft, txt)
 
             _ccx9 = gx + gw / 2.0
-            _eng_temp9(_WSVG, self._water, _ccx9, gy - 9.0, 110.0)
-            _eng_temp9(_OSVG, self._oil, _ccx9, gy + gh + 9.0, 125.0)
-            # ENERGIA al centro (solo ibride): fulmine + SoC %
-            _bt9 = getattr(self, "_batt9", 0.0)
-            if getattr(self, "_emo9", 0) and _bt9 > 0.0:
+            _eng_temp9(_WSVG, self._water, _ccx9, gy - 8.0, 110.0)
+            _eng_temp9(_OSVG, self._oil, _ccx9, gy + gh + 8.0, 125.0)
+            _bt9 = getattr(self, "_batt9", None)
+            if getattr(self, "_emo9", 0) and _bt9 is not None:
                 _st9x = self._emo9
                 if _st9x == 3:
                     _ec9 = "#00e676"
@@ -1813,8 +1792,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 _ey9 = gy + gh / 2.0
                 _prnd(_ebolt(_ec9)).render(
                     p, QRectF(_ex9 - 7.5, _ey9 - 12.5, 15, 15))
+                p.setFont(QFont("Arial", 7, QFont.Bold))
                 p.setPen(QColor(_ec9))
-                p.drawText(QRectF(_ex9 - 16, _ey9 + 3.5, 32, 11),
+                p.drawText(QRectF(_ex9 - 16, _ey9 + 3.5, 32, 9),
                            Qt.AlignHCenter | Qt.AlignVCenter,
                            "%d" % int(round(_bt9 * 100)))
         except Exception:
