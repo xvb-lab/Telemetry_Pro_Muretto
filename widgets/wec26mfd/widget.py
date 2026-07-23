@@ -5073,8 +5073,19 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         _txt_w = QFontMetricsF(f_v).horizontalAdvance(_vt)
                         _gx = _dl_x0 + max(6.0, (_dl_x1 - _dl_x0 - _txt_w) / 2.0)
                         p.setFont(f_v)
-                        p.setPen(_vc or QColor(255, 255, 255, 235))
-                        p.drawText(QPointF(_gx, _yb), _vt)
+                        if _vt[:3] in ("S1 ", "S2 ", "S3 "):
+                            # S1/S2 in BIANCO, il tempo nel SUO colore
+                            # (rich. 23/07 notte: contrasto a colpo
+                            # d'occhio mentre guidi)
+                            p.setPen(QColor(255, 255, 255, 245))
+                            p.drawText(QPointF(_gx, _yb), _vt[:2])
+                            _lw9 = QFontMetricsF(f_v)                                .horizontalAdvance(_vt[:3])
+                            p.setPen(_vc or QColor(255, 255, 255, 235))
+                            p.drawText(QPointF(_gx + _lw9, _yb),
+                                       _vt[3:])
+                        else:
+                            p.setPen(_vc or QColor(255, 255, 255, 235))
+                            p.drawText(QPointF(_gx, _yb), _vt)
                     # ── LAP N / CARBURANTE alternati ogni 10s (rich.
                     # 23/07, come TEMP/GRIP): icona benzina BIANCA
                     # (dal tuo SVG, ricolorato) + numero secco — senza
