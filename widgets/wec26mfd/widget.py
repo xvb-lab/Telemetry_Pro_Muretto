@@ -3667,14 +3667,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _wr = getattr(self, "_wear4", None) or [None] * 4
         except Exception:
             return
-        CW, CH, GAP = 52.0, 30.0, 5.0
+        CW, CH, GAP = 58.0, 34.0, 6.0
         x0 = 20.0
-        y0 = _H - self.ROW_B - 50.0 - (CH * 2 + GAP)
+        y0 = _H - self.ROW_B - 60.0 - (CH * 2 + GAP)
         f_big = QFont("Archivo SemiExpanded")
-        f_big.setPixelSize(15)
+        f_big.setPixelSize(16)
         f_big.setWeight(QFont.Bold)
         f_sm = QFont("Archivo SemiExpanded")
-        f_sm.setPixelSize(9)
+        f_sm.setPixelSize(10)
         f_sm.setWeight(QFont.Bold)
         for _i, _c, _r in ((0, 0, 0), (1, 1, 0), (2, 0, 1), (3, 1, 1)):
             cx = x0 + _c * (CW + GAP)
@@ -3697,9 +3697,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     _bc = QColor("#00a95e")
                 else:
                     _bc = QColor("#e03535")
-                BW, BH = 22.0, 12.0
-                bx = cx if _c == 0 else cx + CW - BW
-                by = (cy - 2.0) if _r == 0 else (cy + CH - BH + 2.0)
+                BW, BH = 24.0, 13.0
+                bx = (cx - 3.0) if _c == 0 else (cx + CW - BW + 3.0)
+                by = (cy - 5.0) if _r == 0 else (cy + CH - BH + 5.0)
                 p.setPen(Qt.NoPen)
                 p.setBrush(_bc)
                 p.drawRoundedRect(QRectF(bx, by, BW, BH), 3, 3)
