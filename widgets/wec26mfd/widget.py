@@ -1758,6 +1758,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._sec_col[1] = _cc
         self._prev_sector = self._sector
         # ── DELTA LIVE rolling (vs mio best trace), ancorato al best di CLASSE
+        # SBLOCCO abort incastrato: ai box/garage o a inizio giro pulito
+        # (transitorio nuovo giro) il flag si azzera SEMPRE — senno' un
+        # abort seguito dal rientro lasciava delta nascosto e tacche
+        # neutre per tutta la sessione
+        if self._in_garage or self._in_pits:
+            self._lap_aborted = False
         self._delta_txt, self._delta_col = "", None
         ref = self._dl_ref
         # delta se: riferimento valido, campionamento ARMATO (fuori dal
