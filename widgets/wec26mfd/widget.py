@@ -3559,10 +3559,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _lh = self._draw_car_logo(p, _W / 2.0, _lcy, 72.0)
             _oy = _lcy + (_lh or 40.0) / 2.0 + 12.0    # sotto il logo
             f_off = QFont("Archivo SemiExpanded")
-            f_off.setPixelSize(20)
+            f_off.setPixelSize(14)          # piu' piccola (rich. 23/07)
             p.setFont(f_off)
             p.setPen(QPen(QColor(255, 45, 45)))
-            p.drawText(QRectF(0, _oy, _W, 28), Qt.AlignCenter,
+            p.drawText(QRectF(0, _oy, _W, 22), Qt.AlignCenter,
                        "ENGINE OFF")
             if not self._is_gt3 and self._erpm > 10.0:
                 f_off.setPixelSize(15)
