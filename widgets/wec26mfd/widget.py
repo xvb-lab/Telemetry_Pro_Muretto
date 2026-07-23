@@ -1709,6 +1709,37 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._dl_ref = None
             self._dl_ref_time = None
             self._dl_cur = []
+            self._dl_restored = False
+        # RIPRISTINO rif. dopo RIAVVIO APP a meta' sessione (bug 23/07:
+        # LMU ricordava il best 1:53, noi ripartivamo dal primo giro
+        # post-riavvio 1:56 -> delta verde bugiardo). Il best salvato su
+        # disco torna valido SOLO se e' ancora la stessa sessione LMU:
+        # stessa pista/classe/tipo + continuita' del tempo rimanente.
+        if self._dl_ref is None and not getattr(self, "_dl_restored", False):
+            _rem9 = float(getattr(self, "_sess_remain", 0.0) or 0.0)
+            if _rem9 > 0.0:
+                self._dl_restored = True          # un tentativo solo, armato
+                try:
+                    _d9 = json.loads((USER_DIR / "delta"
+                                      / "session_ref.json")
+                                     .read_text(encoding="utf-8"))
+                    _age = time.time() - float(_d9.get("wall") or 0.0)
+                    _exp = float(_d9.get("remain") or -1.0) - _age
+                    _tr9 = _d9.get("trace") or []
+                    if (_d9.get("track") == self._track
+                            and _d9.get("vclass") == self._vclass
+                            and _d9.get("sess_type")
+                            == getattr(self, "_sess_type", None)
+                            and 0.0 <= _age < 6.0 * 3600.0
+                            and abs(_exp - _rem9) < 180.0
+                            and len(_tr9) > 50
+                            and float(_d9.get("ref_time") or 0.0) > 10.0):
+                        self._dl_ref = [(float(q[0]), float(q[1]))
+                                        for q in _tr9]
+                        self._dl_ref_time = float(_d9["ref_time"])
+                        self._dl_ref_inv = bool(_d9.get("ref_inv"))
+                except Exception:
+                    pass
         _MAG, _GRN, _YEL = (QColor("#ff2bd6"), QColor("#00e676"),
                             QColor("#ffe24d"))          # rosa/verde/giallo WEC
 
@@ -1727,15 +1758,21 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             # PROVA DELTA (verifica 23/07, da togliere a collaudo ok): al
             # traguardo il delta mostrato deve convergere a (giro - best).
             try:
-                if self._dl_ref_time and self._last and self._last > 0:
-                    _att = self._last - self._dl_ref_time
+                if self._last and self._last > 0:
+                    _rt9 = self._dl_ref_time
                     with open(USER_DIR / "delta_check.log", "a",
                               encoding="utf-8") as _fh:
-                        _fh.write("lap %d: giro %.3f ref %.3f -> atteso "
-                                  "%+.3f | mostrato %s\n" % (
-                                      self._laps, self._last,
-                                      self._dl_ref_time, _att,
-                                      getattr(self, "_d_final", "n/d")))
+                        if _rt9:
+                            _fh.write("lap %d: giro %.3f ref %.3f -> "
+                                      "atteso %+.3f | mostrato %s\n" % (
+                                          self._laps, self._last, _rt9,
+                                          self._last - _rt9,
+                                          getattr(self, "_d_final",
+                                                  "n/d")))
+                        else:
+                            _fh.write("lap %d: giro %.3f ref N/D "
+                                      "(nessun riferimento!)\n"
+                                      % (self._laps, self._last))
             except Exception:
                 pass
             if self._lap_aborted:            # giro CHIUSO era buttato -> nuovo RUN
@@ -1761,6 +1798,23 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._dl_ref = self._dl_cur      # nuovo trace di rif.
                     self._dl_ref_time = self._last
                     self._dl_ref_inv = _cur_inv
+                    # PERSISTI il rif.: sopravvive al riavvio app nella
+                    # STESSA sessione LMU (vedi ripristino sopra)
+                    try:
+                        _fd9 = USER_DIR / "delta"
+                        _fd9.mkdir(parents=True, exist_ok=True)
+                        (_fd9 / "session_ref.json").write_text(json.dumps({
+                            "track": self._track, "vclass": self._vclass,
+                            "sess_type": getattr(self, "_sess_type", None),
+                            "remain": float(getattr(self, "_sess_remain",
+                                                    0.0) or 0.0),
+                            "wall": time.time(),
+                            "ref_time": self._dl_ref_time,
+                            "ref_inv": bool(_cur_inv),
+                            "trace": [[round(a, 1), round(b, 3)]
+                                      for a, b in self._dl_ref]}))
+                    except Exception:
+                        pass
             self._lap_was_inv = False
             self._dl_cur = [(0.0, 0.0)]      # ANCHOR all'origine (stile TinyPedal)
             self._dl_pos_last = 0.0
