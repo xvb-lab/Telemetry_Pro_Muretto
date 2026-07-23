@@ -567,7 +567,13 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     _i4 = _seq.index(_cur4) if _cur4 in _seq else 0
                     _i4 = (_i4 + (1 if (b & _XI_DR) else -1)) % len(_seq)
                     self._test_mode = _seq[_i4]
-                    engineer_cfg.save(test_mode=self._test_mode)
+                    if self._test_mode:
+                        # un TEST attivo spegne l'ECO FREE da solo (23/07)
+                        self._eco_free = 0
+                        engineer_cfg.save(test_mode=self._test_mode,
+                                          eco_free=0)
+                    else:
+                        engineer_cfg.save(test_mode=None)
                     self._ap_ts = time.monotonic()
                     _lbl4 = {None: "TEST OFF",
                              "longrun": "LONG RUN - SET TARGET LAPS",
@@ -836,6 +842,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     _vm0 = re.sub(r"\s*:\s*\w+\s*$", "", _vm0)   # toglie ":WEC" finale
                     self._vmodel = _vm0.strip()
                     self._is_gt3 = "GT3" in vn.upper()
+                    try:
+                        self._cls_name = bytes(v.mVehicleClass) \
+                            .split(b"\x00")[0].decode("utf-8", "ignore")
+                    except Exception:
+                        self._cls_name = ""
                     break
             # posizione DI CLASSE: quanti della mia classe davanti +1
             if pid is not None and _ovr > 0:
@@ -985,6 +996,51 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         self._erpm = float(t.mElectricBoostMotorRPM)
                         self._ign = int(t.mIgnitionStarter)
                         self._limiter = bool(t.mSpeedLimiter)
+                        # FARI: lampeggio = 2+ commutazioni in 1.2s
+                        try:
+                            _bm9 = bool(t.mHeadlights)
+                            _bp9 = getattr(self, "_beam_prev", None)
+                            if _bp9 is not None and _bm9 != _bp9:
+                                _hq = getattr(self, "_beam_tg", None)
+                                if _hq is None:
+                                    from collections import deque as _dq9
+                                    _hq = self._beam_tg = _dq9(maxlen=6)
+                                _hq.append(time.monotonic())
+                            self._beam_prev = _bm9
+                            _hq = getattr(self, "_beam_tg", None) or []
+                            _nw9 = time.monotonic()
+                            self._light_flash = len(
+                                [x for x in _hq if _nw9 - x < 1.2]) >= 2
+                        except Exception:
+                            self._light_flash = False
+                        # dati MACCHININA (MOD 4)
+                        try:
+                            self._car_d = {
+                                "tires": self._carc4,
+                                "tyre_surf": [[float(t.mWheels[i2]
+                                               .mTemperature[j2]) - 273.15
+                                               for j2 in range(3)]
+                                              for i2 in range(4)],
+                                "tyre_flat": [bool(t.mWheels[i2].mFlat)
+                                              for i2 in range(4)],
+                                "tyre_detached": [bool(t.mWheels[i2].mDetached)
+                                                  for i2 in range(4)],
+                                "body_dent": [int(x2) for x2
+                                              in t.mDentSeverity],
+                                "detached": bool(t.mDetached),
+                                "water_temp": self._water,
+                                "oil_temp": self._oil,
+                                "headlights": bool(t.mHeadlights),
+                                "light_flash": getattr(self, "_light_flash",
+                                                       False),
+                                "pit_limiter": self._limiter,
+                                "brake": float(t.mUnfilteredBrake),
+                                "car_class": getattr(self, "_cls_name", "")
+                                or ("GT3" if getattr(self, "_is_gt3", False)
+                                    else ""),
+                            }
+                        except Exception:
+                            pass
                         # effetto cambiata (dal WEC 2024 Revs) —
                         # memoria PROPRIA: self._gear e' gia'
                         # aggiornato in questa stessa lettura
@@ -1596,8 +1652,25 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         p.end()
 
     def _active_mods(self):
-        """MODULI FISSI: 1 = dashboard, 2 = vuota, 3 = impostazioni."""
-        return [1, 2, 3]
+        """MODULI FISSI: 1 = dashboard, 2 = pit, 3 = impostazioni,
+        4 = macchinina danni/gomme (dal dashboard V2)."""
+        return [1, 2, 3, 4]
+
+    # ── MOD 4: MACCHININA gomme/danni (portata 1:1 dalla V2) ──
+    def _paint_mod4(self, p):
+        try:
+            from .car_canvas import CarDiagram
+        except Exception:
+            return
+        if not hasattr(self, "_car_diag"):
+            self._car_diag = CarDiagram()
+        y0 = self.HDR + self.ROW_T
+        bodyh = _H - self.HDR - self.ROW_T - self.ROW_B
+        k = (bodyh - 22.0) / 197.0
+        cw = 96.0 * k
+        d = getattr(self, "_car_d", None) or {}
+        self._car_diag.draw(p, d, _W / 2.0 - cw / 2.0, y0 + 11.0, k)
+        self.update()          # animazioni (lampeggi/pulse) fluide
 
     def _paint_page(self, p):
         """Disegna il MOD della pagina corrente. PRIMA la CORRENTE:
@@ -1647,6 +1720,13 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._anim_t.stop()
         if not act:
             return
+        # RETROILLUMINAZIONE notte: fari FISSI accesi -> velo blu leggero
+        # su tutto lo schermo del dash (sotto il contenuto della pagina)
+        if getattr(self, "_beam", False) \
+                and not getattr(self, "_light_flash", False):
+            p.setPen(Qt.NoPen)
+            p.setBrush(QColor(64, 130, 255, 14))
+            p.drawRect(scr)
         mod = act[self._page % len(act)]
         fn = getattr(self, "_paint_mod%d" % mod, None)
         if fn is not None:
@@ -2371,6 +2451,27 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawRoundedRect(_re, 4, 4)
                 p.setPen(QPen(QColor("#37d67a")))
                 p.drawText(_re, Qt.AlignCenter, _txt)
+            # SPIA FARI (dalla V2): proiettore + fasci in alto a sinistra
+            # della corona; lampeggio = blink netto, fissi = accesa fissa
+            _bm = getattr(self, "_beam", False)
+            _lf = getattr(self, "_light_flash", False)
+            if _bm or _lf:
+                _on = True
+                if _lf:
+                    _on = (time.monotonic() % 0.5) < 0.28
+                    self.update()          # blink fluido
+                if _on:
+                    _hc = QColor("#7fdcff")
+                    _hx, _hy = _W / 2.0 - 126.0, gy - 46.0
+                    p.setPen(Qt.NoPen)
+                    p.setBrush(_hc)
+                    p.drawChord(QRectF(_hx, _hy, 13, 13),
+                                90 * 16, 180 * 16)
+                    p.setPen(QPen(_hc, 1.6, Qt.SolidLine, Qt.RoundCap))
+                    for _dy9 in (-4, 0, 4):
+                        p.drawLine(QPointF(_hx + 10, _hy + 6.5 + _dy9),
+                                   QPointF(_hx + 19,
+                                           _hy + 6.5 + _dy9 * 1.4))
         except Exception:
             pass
         return
@@ -2527,7 +2628,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 except (TypeError, ValueError):
                     pass
             pv = self._ctrl_prev.get(lbl)
-            if pv is not None and pv != _cmp:
+            # NIENTE flash al primo popolamento ("-" -> valore vero
+            # all'avvio: era il lampo blu su tutte le celle, rich. 23/07)
+            if pv is not None and pv != _cmp and pv != "-":
                 self._ctrl_flash[lbl] = now
                 if lbl != "BIAS":
                     self._ctrl_popup = (lbl, val, now)
@@ -2540,20 +2643,20 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setPen(Qt.NoPen)
                 p.setBrush(QColor(18, 64, 200))
                 p.drawRect(rr)
+            # SELEZIONE: quadratino grigio pieno come MOD 2/3
+            _sel9 = (i == self._ctrl_sel)
+            if _sel9:
+                p.setPen(Qt.NoPen)
+                p.setBrush(QColor(160, 164, 174, 70))
+                p.drawRect(rr)
             f_l.setPixelSize(8)
             p.setFont(f_l)
             p.setPen(QColor(255, 255, 255, 200))
             p.drawText(QRectF(rx, y + 3, bw, 10), Qt.AlignCenter, lbl)
-            # SELEZIONE: lo STESSO numero diventa giallo e un po'
-            # piu' grande
-            _sel9 = (i == self._ctrl_sel)
-            f_l.setPixelSize(19 if _sel9 else 15)
+            f_l.setPixelSize(15)
             p.setFont(f_l)
-            p.setPen(QColor("#ffed00") if _sel9
-                     else QColor(255, 255, 255, 245))
-            p.drawText(QRectF(rx, y + 11 if _sel9 else y + 13,
-                              bw, 23 if _sel9 else 21),
-                       Qt.AlignCenter, val)
+            p.setPen(QColor(255, 255, 255, 245))
+            p.drawText(QRectF(rx, y + 13, bw, 21), Qt.AlignCenter, val)
 
     def _gauge_with_fade(self, p, cx, cy, r, show_gear=True):
         """Regola MOTORE per il gauge (mod 1 e 2): spento = non appare;
