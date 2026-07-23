@@ -363,6 +363,11 @@ def _collect(brain, raw, ld, pace):
         (brain.stopped_check_call, (raw, ld)),    # fermo in pista + spia motore
         (brain.corner_coach_call, (raw, ld)),     # coach staccate/trazione per curva (prova)
         (brain.stint_findings_call, (raw, ld)),   # ingegneria stint: findings in garage
+        (brain.pro_findings_call, (raw, ld)),     # findings PRO: math channel live (23/07)
+        (brain.rival_watch_call, (raw, ld)),      # rivali: penalita' nuove + chi cala (gara)
+        (brain.tl_where_call, (raw,)),            # track limits NOMINATI (in che curva)
+        (brain.timeloss_focus_call, (raw, ld)),   # dove perdi: curva ricorrente (prova)
+        (brain.rain_pace_call, (raw, ld)),        # slick sotto pioggia: passo crollato
         # (brain.welcome_call TOLTO: il benvenuto aveva rotto, 23/07)
         (brain.stint_debrief, (raw, ld)),         # debrief a voce a fine stint (garage)
         # 🔵 STRATEGY

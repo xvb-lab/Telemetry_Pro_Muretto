@@ -122,6 +122,12 @@ _mk(["retire_engine", "retire_susp", "retire_accident"], 1)
 _mk(["car_sliding", "flatspot_check", "kerb_zone_corner", "kerb_zone",
      "outlap_gt3", "outlap_hy", "outlap_p2", "outlap_p3",
      "coast_corner"], 2)
+# CANTIERE 2: salute macchina subito (P2), coaching/energia P3
+_mk(["brake_fade", "press_high", "press_low", "tyre_glaze",
+     "diffuser_stall", "power_clip", "camber_spread",
+     "tl_corner", "tl_corner_again"], 2)
+_mk(["grip_margin", "grip_over", "abs_high", "tc_high", "ve_burn",
+     "dirty_air", "opp_fading", "timeloss_focus"], 3)
 # default 4 = coaching (passo, settori, note curva)
 
 _TIER_TTL = {0: 999, 1: 30, 2: 12, 3: 8, 4: 10}

@@ -295,6 +295,10 @@ class TelemetryReader:
             out["air_temp"] = float(si.mAmbientTemp)
             out["track_temp"] = float(si.mTrackTemp)
             out["raining"] = float(si.mRaining)
+            try:
+                out["track_len"] = float(si.mLapDist)
+            except Exception:
+                out["track_len"] = 0.0
             out["wetness"] = float(si.mAvgPathWetness)
             try:
                 out["wetness_min"] = float(si.mMinPathWetness)

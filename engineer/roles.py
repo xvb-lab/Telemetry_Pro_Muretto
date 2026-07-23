@@ -69,6 +69,15 @@ _role(["longrun_on", "longrun_on_nodata", "racesim_on", "racesim_on_nodata",
 _role(["hotlap_on", "hotlap_loss", "hotlap_clean"], "spotter")
 
 
+# CANTIERE 2 (23/07): findings pro. Salute macchina/assetto = RACE
+# ENGINEER; guida e rivali = PERFORMANCE; energia = STRATEGY.
+_role(["camber_spread", "tyre_glaze", "brake_fade", "diffuser_stall",
+       "press_high", "press_low", "power_clip"], "engineer")
+_role(["grip_margin", "grip_over", "abs_high", "tc_high", "dirty_air",
+       "opp_fading", "timeloss_focus"], "spotter")
+_role(["ve_burn"], "strategist")
+
+
 def role_for(code):
     return _MSG_ROLE.get(code, "engineer")
 
@@ -105,10 +114,46 @@ ROLE_COLOR = {
     "spotter": "#37d67a",
 }
 
+# ── VOCI SELEZIONABILI dal menu Engineer (23/07, tutte edge-tts free).
+# Le "multilingual" parlano OGNI lingua dell'app (ma su qualche parola
+# possono scivolare nell'accento); le classiche sono madrelingua FISSE
+# della loro lingua. (label, id) — id vuoto = titolare di ROLE_VOICES.
+VOICE_CHOICES = [
+    ("Default", ""),
+    ("Florian (DE) — multilingual", "de-DE-FlorianMultilingualNeural"),
+    ("Seraphina (DE) — multilingual", "de-DE-SeraphinaMultilingualNeural"),
+    ("Remy (FR) — multilingual", "fr-FR-RemyMultilingualNeural"),
+    ("Vivienne (FR) — multilingual", "fr-FR-VivienneMultilingualNeural"),
+    ("Ava (US) — multilingual", "en-US-AvaMultilingualNeural"),
+    ("Andrew (US) — multilingual", "en-US-AndrewMultilingualNeural"),
+    ("Emma (US) — multilingual", "en-US-EmmaMultilingualNeural"),
+    ("Brian (US) — multilingual", "en-US-BrianMultilingualNeural"),
+    ("Giuseppe (IT)", "it-IT-GiuseppeNeural"),
+    ("Diego (IT)", "it-IT-DiegoNeural"),
+    ("Isabella (IT)", "it-IT-IsabellaNeural"),
+    ("Christopher (EN-US)", "en-US-ChristopherNeural"),
+    ("Guy (EN-US)", "en-US-GuyNeural"),
+    ("Ryan (EN-GB)", "en-GB-RyanNeural"),
+    ("Conrad (DE)", "de-DE-ConradNeural"),
+    ("Henri (FR)", "fr-FR-HenriNeural"),
+    ("Jean (FR-CA)", "fr-CA-JeanNeural"),
+    ("Alvaro (ES)", "es-ES-AlvaroNeural"),
+    ("Jorge (ES-MX)", "es-MX-JorgeNeural"),
+]
+
 
 def voice_for(code, lang="it"):
-    """Voce edge-tts per il codice-messaggio, nella lingua data."""
+    """Voce edge-tts per il codice-messaggio, nella lingua data.
+    L'utente puo' cambiare la formazione dal menu Engineer
+    (engineer_cfg 'voices': {ruolo: voce}); vuoto = titolare."""
     role = role_for(code)
+    try:
+        from core.engineer_cfg import load as _ld_cfg
+        _ov = (_ld_cfg().get("voices") or {}).get(role)
+        if _ov:
+            return _ov
+    except Exception:
+        pass
     lg = str(lang).lower()[:2]
     voices = ROLE_VOICES.get(role, ROLE_VOICES["engineer"])
     return voices.get(lg, voices["it"])

@@ -4484,6 +4484,405 @@ class Engineer:
                     dec="%.0f" % (dsec * 10.0), fase=fase)] if x]
         return []
 
+
+    # ══ CANTIERE 2 (23/07) — FINDINGS DA INGEGNERIA VERA ══════════════
+    # Math channel live (docs/math_channels_avanzati + target_pitwall):
+    # accumulo nel giro, verdetto al cambio giro, UN finding alla volta
+    # (il muretto professionale non mitraglia), one-shot per stint.
+    _PF_GT = {"HY": 3.2, "P2": 2.9, "P3": 2.5, "GT3": 2.25, "GTE": 2.15}
+    _PF_PRESS = {"HY": (182.0, 188.0), "P2": (172.0, 178.0),
+                 "P3": (172.0, 178.0), "GT3": (163.0, 168.0),
+                 "GTE": (163.0, 168.0)}
+    _PF_FADE_T = {"GT3": 700.0, "GTE": 700.0}     # acciaio; carbonio 850
+
+    def _pf_tag(self, raw):
+        try:
+            from core.classes import class_tag
+            return class_tag(raw.get("car_class") or "") or ""
+        except Exception:
+            return ""
+
+    def pro_findings_call(self, raw, ld):
+        """Accumula i canali nel giro e al cambio giro emette AL MASSIMO
+        un finding, in ordine di importanza (salute auto prima del
+        coaching). I one-shot (camber, stallo, pressioni) una volta per
+        stint. Muto in corsia/garage."""
+        raw = raw or {}
+        st = self._st.setdefault("pf", {})
+        if raw.get("garage") or raw.get("in_pits"):
+            st["acc"] = {}
+            st.pop("lap", None)
+            st.setdefault("said", set()).clear()
+            return []
+        acc = st.setdefault("acc", {})
+
+        def _add(k, v, n=1):
+            a = acc.setdefault(k, [0.0, 0])
+            a[0] += v
+            a[1] += n
+
+        def _avg(k):
+            a = acc.get(k)
+            return (a[0] / a[1]) if a and a[1] else None
+
+        spd = self._fnum(raw.get("speed")) or 0.0
+        thr = self._fnum(raw.get("throttle")) or 0.0
+        brk = self._fnum(raw.get("brake")) or 0.0
+        gl = self._fnum(raw.get("g_lat")) or 0.0
+        gg = self._fnum(raw.get("g_long")) or 0.0
+        tag = self._pf_tag(raw)
+        # ── ACCUMULO ──
+        comb = (gl * gl + gg * gg) ** 0.5
+        if spd > 90.0 and abs(gl) > 0.7:
+            acc["gmax"] = max(acc.get("gmax", 0.0), comb)
+        if brk > 0.25:
+            _add("abs_on", 1.0 if raw.get("abs_active") else 0.0)
+            acc["decel"] = min(acc.get("decel", 0.0), gg)
+        if thr > 0.35 and abs(gl) > 0.25:
+            _add("tc_on", 1.0 if raw.get("tc_active") else 0.0)
+        _bk4 = raw.get("brake_temp") or []
+        try:
+            if _bk4:
+                acc["bkmax"] = max(acc.get("bkmax", 0.0),
+                                   max(float(x or 0) for x in _bk4[:4]))
+        except (TypeError, ValueError):
+            pass
+        # pressioni a caldo (oltre 120 km/h)
+        _pr4 = raw.get("tyre_press") or []
+        if spd > 120.0 and len(_pr4) >= 4:
+            for _i in range(4):
+                try:
+                    _add("pr%d" % _i, float(_pr4[_i]))
+                except (TypeError, ValueError):
+                    pass
+        # camber: spread interno-esterno (inner layer 3 zone per ruota)
+        _ti4 = raw.get("tyre_inner") or []
+        if spd > 100.0 and abs(gl) > 0.9 and len(_ti4) >= 4:
+            for _i in range(4):
+                z = _ti4[_i]
+                if isinstance(z, (list, tuple)) and len(z) >= 3:
+                    try:
+                        _add("cam%d" % _i, abs(float(z[0]) - float(z[2])))
+                    except (TypeError, ValueError):
+                        pass
+        # glazing/blister: superficie (centro) - carcassa
+        _ts4 = raw.get("tyre_surf") or []
+        _tc4 = raw.get("tyre_temp") or raw.get("tyre_carcass") or []
+        if spd > 100.0 and len(_ts4) >= 4 and len(_tc4) >= 4:
+            for _i in range(4):
+                zs = _ts4[_i]
+                try:
+                    _s = (float(zs[1]) if isinstance(zs, (list, tuple))
+                          and len(zs) >= 3 else float(zs))
+                    _add("glz%d" % _i, _s - float(_tc4[_i]))
+                except (TypeError, ValueError, IndexError):
+                    pass
+        # stallo diffusore (prototipi): posteriore bassa in velocita'
+        if tag in ("HY", "P2", "P3") and spd > 170.0:
+            _rh = raw.get("ride_h") or []
+            try:
+                if len(_rh) >= 4:
+                    _rmin = min(float(_rh[2] or 99), float(_rh[3] or 99))
+                    _thr_rh = 25.0 if tag == "HY" else 22.0
+                    _add("stall", 1.0 if _rmin * 1000.0 < _thr_rh
+                         else 0.0)
+            except (TypeError, ValueError):
+                pass
+        # power clip (HY): tutto gas sul dritto ma non accelera
+        if tag == "HY" and thr > 0.98 and 200.0 < spd < 305.0 \
+                and abs(gl) < 0.25 and abs(gg) < 0.045:
+            acc["clip"] = acc.get("clip", 0) + 1
+        # aria sporca (gara): incollato davanti nei tratti veloci
+        try:
+            _ga = self._fnum((raw.get("rivals") or {}).get("gap_ahead"))
+            if _ga is not None and 0.05 < _ga < 1.2 and spd > 120.0:
+                _add("dirty", 1.0)
+            elif spd > 120.0:
+                _add("dirty", 0.0)
+        except Exception:
+            pass
+
+        # ── VERDETTO al cambio giro ──
+        lap = int(raw.get("laps_completed") or 0)
+        if lap <= int(st.get("lap") or 0):
+            return []
+        st["lap"] = lap
+        said = st.setdefault("said", set())
+        out = None
+        W = (self._L("anteriore sinistra", "front left",
+                     "delantera izquierda", "avant gauche"),
+             self._L("anteriore destra", "front right",
+                     "delantera derecha", "avant droite"),
+             self._L("posteriore sinistra", "rear left",
+                     "trasera izquierda", "arriere gauche"),
+             self._L("posteriore destra", "rear right",
+                     "trasera derecha", "arriere droite"))
+        kind = session_kind(raw.get("session_type"))
+        # 1. FRENI IN FADE: decel peggiora con freni roventi
+        _dec = acc.get("decel", 0.0)
+        if _dec < -0.5:
+            _base = st.get("dec_base")
+            if _base is None or _dec < _base:
+                st["dec_base"] = _dec        # miglior decel visto
+            elif "fade" not in said and _dec > _base * 0.86 \
+                    and acc.get("bkmax", 0.0) > self._PF_FADE_T.get(
+                        tag, 850.0):
+                said.add("fade")
+                out = self.msg("brake_fade")
+        # 2. PRESSIONI fuori finestra (dal 3o giro di stint)
+        if out is None and "press" not in said \
+                and lap >= int(st.get("stint_lap0") or 0) + 3:
+            _win = self._PF_PRESS.get(tag)
+            if _win:
+                for _i in range(4):
+                    _pv = _avg("pr%d" % _i)
+                    if _pv is None:
+                        continue
+                    if _pv > _win[1] + 2.0:
+                        said.add("press")
+                        out = self.msg("press_high", ruota=W[_i],
+                                       kpa=int(round(_pv - _win[1])))
+                        break
+                    if _pv < _win[0] - 2.0:
+                        said.add("press")
+                        out = self.msg("press_low", ruota=W[_i],
+                                       kpa=int(round(_win[0] - _pv)))
+                        break
+        # 3. GLAZING/BLISTER
+        if out is None and "glaze" not in said:
+            for _i in range(4):
+                _gv = _avg("glz%d" % _i)
+                if _gv is not None and _gv > 20.0:
+                    said.add("glaze")
+                    out = self.msg("tyre_glaze", ruota=W[_i])
+                    break
+        # 4. CAMBER spread (solo prova: e' roba da assetto)
+        if out is None and "camber" not in said and kind == "practice":
+            for _i in range(4):
+                _cv = _avg("cam%d" % _i)
+                if _cv is not None and _cv > 15.0:
+                    said.add("camber")
+                    out = self.msg("camber_spread", ruota=W[_i],
+                                   deg=int(round(_cv)))
+                    break
+        # 5. STALLO DIFFUSORE
+        if out is None and "stall" not in said:
+            _sv = _avg("stall")
+            if _sv is not None and _sv > 0.25:
+                said.add("stall")
+                out = self.msg("diffuser_stall")
+        # 6. TC/ABS troppo carichi (GT: hardware vero)
+        if out is None and tag in ("GT3", "GTE"):
+            _tcv = _avg("tc_on")
+            _abv = _avg("abs_on")
+            if "tc" not in said and _tcv is not None and _tcv > 0.08:
+                said.add("tc")
+                out = self.msg("tc_high", pct=int(round(_tcv * 100)))
+            elif "abs" not in said and _abv is not None \
+                    and _abv > 0.15:
+                said.add("abs")
+                out = self.msg("abs_high", pct=int(round(_abv * 100)))
+        # 7. POWER CLIP (HY)
+        if out is None and "clip" not in said \
+                and acc.get("clip", 0) > 25:
+            said.add("clip")
+            out = self.msg("power_clip")
+        # 8. BURN RATE energia (HY)
+        if out is None and tag == "HY" and "burn" not in said:
+            _ve = self._fnum(raw.get("ve_pct"))
+            _vp = st.get("ve_prev")
+            st["ve_prev"] = _ve
+            _tl = self._fnum(raw.get("track_len")) or 0.0
+            if _ve is not None and _vp is not None and _tl > 500.0:
+                _mjkm = max(0.0, (_vp - _ve)) * 9.0 / (_tl / 1000.0)
+                if 1.2 < _mjkm < 4.0:
+                    said.add("burn")
+                    out = self.msg("ve_burn", mj="%.2f" % _mjkm)
+        # 9. ARIA SPORCA (gara)
+        if out is None and kind == "race" and "dirty" not in said:
+            _dv = _avg("dirty")
+            if _dv is not None and _dv > 0.30:
+                said.add("dirty")
+                out = self.msg("dirty_air")
+        # 10. GRIP: margine o oltre (prova/hotlap — coaching puro)
+        if out is None and kind == "practice":
+            _gm = acc.get("gmax")
+            _tgt = self._PF_GT.get(tag)
+            if _gm and _tgt:
+                _u = _gm / _tgt
+                if _u < 0.86 and st.get("grip_lap", -9) < lap - 3:
+                    st["grip_lap"] = lap
+                    out = self.msg("grip_margin",
+                                   pct=int(round(_u * 100)))
+                elif _u > 1.04 and st.get("grip_lap", -9) < lap - 3:
+                    st["grip_lap"] = lap
+                    out = self.msg("grip_over")
+        # nuovo stint quando riparte il conteggio
+        if st.get("stint_lap0") is None:
+            st["stint_lap0"] = lap
+        st["acc"] = {}
+        return [out] if out else []
+
+    def rival_watch_call(self, raw, ld):
+        """RIVALI: penalita' nuove (chi) + rivale davanti che cala.
+        Solo in gara. Dati: field (pen per pilota) + gap_ahead."""
+        raw = raw or {}
+        if session_kind(raw.get("session_type")) != "race":
+            return []
+        st = self._st.setdefault("rw", {})
+        out = []
+        # penalita' nuove nel field
+        try:
+            field = raw.get("field") or {}
+            pens = st.setdefault("pens", {})
+            for _cid, c in field.items():
+                _p = int(c.get("pen") or 0)
+                _prev = pens.get(_cid)
+                pens[_cid] = _p
+                if _prev is not None and _p > _prev:
+                    nm = (c.get("name") or "").strip()
+                    if nm:
+                        out.append(self.msg("opp_penalty", name=nm))
+                        break               # una per giro basta
+        except Exception:
+            pass
+        # rivale davanti che cala: gap che scende netto per 3 giri
+        lap = int(raw.get("laps_completed") or 0)
+        if lap > int(st.get("lap") or 0):
+            st["lap"] = lap
+            try:
+                _ga = self._fnum((raw.get("rivals") or {})
+                                 .get("gap_ahead"))
+            except Exception:
+                _ga = None
+            hist = st.setdefault("gah", [])
+            if _ga is not None and 0.0 < _ga < 60.0:
+                hist.append(_ga)
+                del hist[:-4]
+                if len(hist) >= 4 and "fading" not in st \
+                        and all(hist[i] - hist[i + 1] > 0.35
+                                for i in range(len(hist) - 1)):
+                    st["fading"] = True
+                    out.append(self.msg("opp_fading"))
+            else:
+                del hist[:]
+                st.pop("fading", None)
+        return [m for m in out if m]
+
+    def _map_turn_at(self, raw, ldist):
+        """Nome curva (T4) alla lapdist: geometria mappa, cache 60s."""
+        try:
+            _now = _time.monotonic()
+            _key = raw.get("track") or ""
+            if getattr(self, "_mt_key", None) != _key \
+                    or _now - getattr(self, "_mt_t", 0.0) > 60.0:
+                self._mt_key = _key
+                self._mt_t = _now
+                from core.lico_points import map_turns
+                _tl = self._fnum(raw.get("track_len")) or 0.0
+                self._mt_turns = map_turns(_key, _tl) if _tl else []
+            best = None
+            for _d, _lab, _end in self._mt_turns:
+                _dist = _d - ldist
+                if -120.0 <= _dist <= 400.0:
+                    if best is None or abs(_dist) < abs(best[0]):
+                        best = (_dist, _lab)
+            return best[1] if best else None
+        except Exception:
+            return None
+
+    def tl_where_call(self, raw):
+        """TRACK LIMITS NOMINATI: quando il conteggio sale, dice DOVE
+        ("sempre in T4") — geometria mappa, niente piu' 'da qualche
+        parte'. Cooldown 30s."""
+        raw = raw or {}
+        st = self._st
+        try:
+            steps = int(raw.get("tl_steps") or 0)
+        except (TypeError, ValueError):
+            return []
+        prev = st.get("tlw_steps")
+        st["tlw_steps"] = steps
+        if prev is None or steps <= prev:
+            return []
+        _now = _time.monotonic()
+        if _now - st.get("tlw_t", 0.0) < 30.0:
+            return []
+        turn = self._map_turn_at(raw, self._fnum(raw.get("lapdist"))
+                                 or 0.0)
+        if not turn:
+            return []
+        st["tlw_t"] = _now
+        # ricorrenza: stessa curva 2+ volte -> frase "sempre li'"
+        hist = st.setdefault("tlw_hist", [])
+        hist.append(turn)
+        del hist[:-6]
+        if hist.count(turn) >= 2:
+            return [self.msg("tl_corner_again", turn=turn)]
+        return [self.msg("tl_corner", turn=turn)]
+
+    def timeloss_focus_call(self, raw, ld):
+        """DOVE PERDI, LIVE: se la stessa curva e' la peggiore per 2
+        giri di fila (dal Time-Loss del recorder), l'ingegnere la
+        chiama col nome. Solo prova/test."""
+        raw = raw or {}
+        if session_kind(raw.get("session_type")) != "practice":
+            return []
+        if raw.get("test_mode") == "hotlap":
+            return []            # in hotlap ci pensa gia' test_mode_call
+        st = self._st.setdefault("tlf", {})
+        d = self._last_timeloss()
+        if not d:
+            return []
+        lap = int(d.get("lap") or 0)
+        if lap <= int(st.get("lap") or 0):
+            return []
+        st["lap"] = lap
+        worst = (d.get("worst") or [{}])[0]
+        corner = worst.get("corner")
+        tot = self._fnum(worst.get("total_s")) or 0.0
+        if not corner or tot < 0.25:
+            st.pop("prev", None)
+            return []
+        if st.get("prev") == corner:
+            if _time.monotonic() - st.get("t", 0.0) > 120.0:
+                st["t"] = _time.monotonic()
+                return [self.msg("timeloss_focus", turn=corner,
+                                 sec="%.1f" % tot)]
+        st["prev"] = corner
+        return []
+
+    def rain_pace_call(self, raw, ld):
+        """PIOGGIA: su slick col bagnato che monta, se il passo crolla
+        rispetto al TUO asciutto -> chiama le wet (rain_box_pace)."""
+        raw = raw or {}
+        st = self._st.setdefault("rp", {})
+        try:
+            rain = float(raw.get("raining") or 0.0)
+        except (TypeError, ValueError):
+            rain = 0.0
+        lap = int(raw.get("laps_completed") or 0)
+        if lap <= int(st.get("lap") or 0):
+            return []
+        st["lap"] = lap
+        last = self._fnum(raw.get("last_lap"))
+        if not last or last < 20.0:
+            return []
+        if rain < 0.05:
+            hist = st.setdefault("dry", [])
+            hist.append(last)
+            del hist[:-5]
+            return []
+        dry = st.get("dry") or []
+        if rain >= 0.2 and len(dry) >= 2 and not self._wet_mounted(raw) \
+                and not st.get("said"):
+            med = sorted(dry)[len(dry) // 2]
+            if last > med + 3.0:
+                st["said"] = True
+                return [self.msg("rain_box_pace",
+                                 perdita="%.0f" % (last - med))]
+        return []
+
     def _sane_one(self, m, raw):
         code = (m or {}).get("code") or ""
         # WARM-UP: appena acceso (o a sessione nuova) il muretto ASCOLTA
@@ -4589,6 +4988,17 @@ class Engineer:
                     "gap_closing", "gap_losing") \
                 and not _gok(riv.get("gap_ahead")):
             return False, "rivale davanti inesistente"
+        # ANTI-RIPETIZIONE coaching (23/07: "dice sempre le stesse
+        # cose"): lo stesso finding non torna prima di 4 minuti
+        _COACH9 = ("car_sliding", "kerb_zone", "flatspot_check",
+                   "coast_corner", "grip_margin", "grip_over",
+                   "tc_high", "abs_high", "dirty_air", "tl_corner",
+                   "timeloss_focus", "opp_fading")
+        if code.startswith(_COACH9):
+            _nowc9 = _time.time()
+            for _e9 in self._st.get("emit_log", []):
+                if _e9[1] == code and _nowc9 - _e9[0] < 240.0:
+                    return False, "coaching: stesso finding entro 4 min"
         # frasi pro-pioggia con le wet GIA' montate: mai
         if self._wet_mounted(raw) and code in ("rain_box_now", "advise_wet"):
             return False, "wet gia' montate"
@@ -4611,7 +5021,7 @@ class Engineer:
         if not msgs:
             return msgs
         now = _time.time()
-        log = [e for e in self._st.get("emit_log", []) if now - e[0] <= 90.0]
+        log = [e for e in self._st.get("emit_log", []) if now - e[0] <= 240.0]
         out = []
         for m in msgs:
             code = (m or {}).get("code") or ""

@@ -8003,6 +8003,230 @@
         "Lico spento: si torna al passo pieno.",
         "Lico disattivato, riprendiamo il ritmo normale."
       ]
+    },
+    "grip_margin": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Stai usando il {pct} per cento del grip disponibile: c'è margine, puoi appoggiarti di più in curva.",
+      "variants_it": [
+        "Stai usando il {pct} per cento del grip disponibile: c'è margine, puoi appoggiarti di più in curva.",
+        "Margine gomma: sei al {pct} per cento del potenziale. Entra più deciso, la macchina lo tiene.",
+        "Il grip c'è e non lo usi tutto: {pct} per cento. Porta più velocità in percorrenza."
+      ],
+      "en": "You're using {pct} percent of the available grip: there's margin, lean on the car more.",
+      "es": "Usas el {pct} por ciento del agarre disponible: hay margen, apóyate más en curva.",
+      "fr": "Tu utilises {pct} pour cent du grip disponible: il y a de la marge, appuie davantage en courbe."
+    },
+    "grip_over": {
+      "cat": "coach",
+      "level": "warn",
+      "beep": false,
+      "it": "Sei oltre il limite del grip: la macchina scappa e il tempo non arriva. Riporta tutto appena sotto il cento per cento.",
+      "variants_it": [
+        "Sei oltre il limite del grip: la macchina scappa e il tempo non arriva. Riporta tutto appena sotto il cento per cento.",
+        "Stai chiedendo più grip di quello che c'è: pulisci gli ingressi e il tempo torna.",
+        "Oltre il limite non si va più forte, si scivola e basta: un filo più composto."
+      ],
+      "en": "You're over the grip limit: the car slides and the lap time doesn't come. Bring it just under a hundred percent.",
+      "es": "Estás por encima del límite de agarre: el coche se escapa y el tiempo no llega. Vuelve justo por debajo del cien por cien.",
+      "fr": "Tu es au-delà de la limite de grip: la voiture glisse et le chrono ne vient pas. Reviens juste sous les cent pour cent."
+    },
+    "camber_spread": {
+      "cat": "gomme",
+      "level": "info",
+      "beep": false,
+      "it": "Sulla {ruota} c'è uno spread di {deg} gradi tra spalla interna ed esterna: camber da rivedere in garage.",
+      "variants_it": [
+        "Sulla {ruota} c'è uno spread di {deg} gradi tra spalla interna ed esterna: camber da rivedere in garage.",
+        "La {ruota} lavora storta: {deg} gradi di differenza tra interno ed esterno. Me lo segno per l'assetto."
+      ],
+      "en": "The {ruota} shows a {deg} degree spread between inner and outer shoulder: camber to review in the garage.",
+      "es": "La {ruota} muestra {deg} grados de diferencia entre el hombro interior y el exterior: hay que revisar la caída en el garaje.",
+      "fr": "La {ruota} montre un écart de {deg} degrés entre l'épaule intérieure et extérieure: carrossage à revoir au garage."
+    },
+    "tyre_glaze": {
+      "cat": "gomme",
+      "level": "warn",
+      "beep": false,
+      "it": "La {ruota} si sta vetrificando: superficie molto più calda del cuore. Un giro pulito senza farla pattinare e la riprendi.",
+      "variants_it": [
+        "La {ruota} si sta vetrificando: superficie molto più calda del cuore. Un giro pulito senza farla pattinare e la riprendi.",
+        "Attenzione alla {ruota}: gomma lucida, superficie surriscaldata e niente grip. Un giro dolce e la fai respirare."
+      ],
+      "en": "The {ruota} is glazing: surface much hotter than the core. One clean lap without spinning it and it comes back.",
+      "es": "La {ruota} se está cristalizando: superficie mucho más caliente que el núcleo. Una vuelta limpia sin patinar y se recupera.",
+      "fr": "La {ruota} est en train de glacer: surface bien plus chaude que le cœur. Un tour propre sans patiner et elle revient."
+    },
+    "diffuser_stall": {
+      "cat": "assetto",
+      "level": "warn",
+      "beep": false,
+      "it": "Il fondo va in stallo nei curvoni veloci: posteriore troppo bassa, occhio allo snap. Me lo segno per l'assetto.",
+      "variants_it": [
+        "Il fondo va in stallo nei curvoni veloci: posteriore troppo bassa, occhio allo snap. Me lo segno per l'assetto.",
+        "Altezza posteriore al limite: il diffusore stalla in appoggio veloce. Da alzare un paio di millimetri in garage."
+      ],
+      "en": "The floor is stalling in the fast corners: rear ride height too low, watch for the snap. Noted for the setup.",
+      "es": "El fondo entra en pérdida en las curvas rápidas: altura trasera demasiado baja, cuidado con el latigazo. Lo apunto para el reglaje.",
+      "fr": "Le fond décroche dans les courbes rapides: hauteur arrière trop basse, attention au décrochage. Je le note pour les réglages."
+    },
+    "brake_fade": {
+      "cat": "freni",
+      "level": "critical",
+      "beep": true,
+      "it": "Freni in fade: stessa pressione, meno decelerazione, temperature alte. Raffreddali un paio di curve e allunga le staccate.",
+      "variants_it": [
+        "Freni in fade: stessa pressione, meno decelerazione, temperature alte. Raffreddali un paio di curve e allunga le staccate.",
+        "Il pedale c'è ma la macchina non rallenta come prima: freni cotti. Gestiscili due curve, poi tornano."
+      ],
+      "en": "Brakes are fading: same pressure, less deceleration, temperatures are high. Cool them for a couple of corners and brake earlier.",
+      "es": "Los frenos pierden eficacia: misma presión, menos deceleración, temperaturas altas. Enfríalos un par de curvas y frena antes.",
+      "fr": "Les freins fatiguent: même pression, moins de décélération, températures élevées. Refroidis-les deux virages et freine plus tôt."
+    },
+    "abs_high": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "L'ABS interviene sul {pct} per cento delle frenate: troppa pressione a fine staccata. Rilascio più progressivo.",
+      "variants_it": [
+        "L'ABS interviene sul {pct} per cento delle frenate: troppa pressione a fine staccata. Rilascio più progressivo.",
+        "Stai facendo lavorare l'ABS al {pct} per cento: modula di più il pedale, guadagni in percorrenza."
+      ],
+      "en": "ABS is active on {pct} percent of your braking: too much pressure at the end of the stop. Release more progressively.",
+      "es": "El ABS actúa en el {pct} por ciento de tus frenadas: demasiada presión al final. Suelta el pedal más progresivo.",
+      "fr": "L'ABS intervient sur {pct} pour cent de tes freinages: trop de pression en fin de freinage. Relâche plus progressivement."
+    },
+    "tc_high": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Il controllo trazione taglia sul {pct} per cento delle uscite: stai scaldando le posteriori. Gas più dolce o un click in meno di TC.",
+      "variants_it": [
+        "Il controllo trazione taglia sul {pct} per cento delle uscite: stai scaldando le posteriori. Gas più dolce o un click in meno di TC.",
+        "TC al {pct} per cento in trazione: così cuoci le gomme dietro. Apri il gas più progressivo."
+      ],
+      "en": "Traction control cuts on {pct} percent of your exits: you're overheating the rears. Smoother throttle or one click less TC.",
+      "es": "El control de tracción corta en el {pct} por ciento de las salidas: estás sobrecalentando las traseras. Gas más suave o un punto menos de TC.",
+      "fr": "L'antipatinage coupe sur {pct} pour cent des sorties: tu surchauffes les pneus arrière. Gaz plus doux ou un cran de TC en moins."
+    },
+    "power_clip": {
+      "cat": "consumi",
+      "level": "info",
+      "beep": false,
+      "it": "Sei in power clip sul dritto: al tetto di potenza l'ibrido non spinge più. Anticipa il deploy in uscita di curva.",
+      "variants_it": [
+        "Sei in power clip sul dritto: al tetto di potenza l'ibrido non spinge più. Anticipa il deploy in uscita di curva.",
+        "Il regolamento taglia la potenza a fondo dritto: sposta l'energia in accelerazione, non alla velocità massima."
+      ],
+      "en": "You're power clipping on the straight: at the power ceiling the hybrid stops pushing. Deploy earlier out of the corner.",
+      "es": "Estás en el tope de potencia en la recta: el híbrido deja de empujar. Adelanta el despliegue a la salida de la curva.",
+      "fr": "Tu es en power clip dans la ligne droite: au plafond de puissance l'hybride ne pousse plus. Déploie plus tôt en sortie de virage."
+    },
+    "ve_burn": {
+      "cat": "consumi",
+      "level": "warn",
+      "beep": false,
+      "it": "Stai bruciando {mj} megajoule al chilometro: sopra il target. Più dolce in trazione o non arriviamo.",
+      "variants_it": [
+        "Stai bruciando {mj} megajoule al chilometro: sopra il target. Più dolce in trazione o non arriviamo.",
+        "Consumo energia alto: {mj} megajoule al chilometro. Gestisci il gas in uscita di curva."
+      ],
+      "en": "You're burning {mj} megajoules per kilometre: above target. Smoother on traction or we won't make it.",
+      "es": "Estás quemando {mj} megajulios por kilómetro: por encima del objetivo. Más suave en tracción o no llegamos.",
+      "fr": "Tu brûles {mj} mégajoules au kilomètre: au-dessus de la cible. Plus doux en traction ou on n'y arrivera pas."
+    },
+    "press_high": {
+      "cat": "gomme",
+      "level": "warn",
+      "beep": false,
+      "it": "La {ruota} è {kpa} punti sopra la finestra a caldo: alla sosta togliamo pressione.",
+      "variants_it": [
+        "La {ruota} è {kpa} punti sopra la finestra a caldo: alla sosta togliamo pressione.",
+        "Pressione alta sulla {ruota}: {kpa} sopra il target. La sistemiamo al pit."
+      ],
+      "en": "The {ruota} is {kpa} points above the hot window: we'll take pressure out at the stop.",
+      "es": "La {ruota} está {kpa} puntos por encima de la ventana en caliente: quitaremos presión en la parada.",
+      "fr": "La {ruota} est {kpa} points au-dessus de la fenêtre à chaud: on enlèvera de la pression à l'arrêt."
+    },
+    "press_low": {
+      "cat": "gomme",
+      "level": "warn",
+      "beep": false,
+      "it": "La {ruota} è {kpa} punti sotto la finestra a caldo: alla sosta aggiungiamo pressione.",
+      "variants_it": [
+        "La {ruota} è {kpa} punti sotto la finestra a caldo: alla sosta aggiungiamo pressione.",
+        "Pressione bassa sulla {ruota}: {kpa} sotto il target. La sistemiamo al pit."
+      ],
+      "en": "The {ruota} is {kpa} points below the hot window: we'll add pressure at the stop.",
+      "es": "La {ruota} está {kpa} puntos por debajo de la ventana en caliente: añadiremos presión en la parada.",
+      "fr": "La {ruota} est {kpa} points sous la fenêtre à chaud: on ajoutera de la pression à l'arrêt."
+    },
+    "dirty_air": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Sei nell'aria sporca da mezzo giro: l'anteriore perde carico e scaldi le gomme. O prepari l'attacco o prendi aria.",
+      "variants_it": [
+        "Sei nell'aria sporca da mezzo giro: l'anteriore perde carico e scaldi le gomme. O prepari l'attacco o prendi aria.",
+        "Troppo tempo in scia: la macchina davanti ti rovina l'anteriore. Decidi: attacco o aria pulita."
+      ],
+      "en": "You've been in dirty air for half a lap: the front loses load and the tyres overheat. Either set up the pass or find clean air.",
+      "es": "Llevas media vuelta en aire sucio: el delantero pierde carga y calientas los neumáticos. O preparas el ataque o buscas aire limpio.",
+      "fr": "Tu es dans l'air sale depuis un demi-tour: l'avant perd de l'appui et les pneus chauffent. Prépare l'attaque ou trouve de l'air propre."
+    },
+    "opp_fading": {
+      "cat": "rivali",
+      "level": "info",
+      "beep": false,
+      "it": "Il rivale davanti sta calando: il distacco scende giro dopo giro. Tienilo nel mirino.",
+      "variants_it": [
+        "Il rivale davanti sta calando: il distacco scende giro dopo giro. Tienilo nel mirino.",
+        "Quello davanti perde passo: continua così che lo prendi.",
+        "Il gap con chi ti precede scende costante: sta soffrendo, resta su di lui."
+      ],
+      "en": "The car ahead is fading: the gap is coming down lap after lap. Keep them in your sights.",
+      "es": "El rival de delante está cayendo: la distancia baja vuelta tras vuelta. No lo pierdas de vista.",
+      "fr": "La voiture devant faiblit: l'écart descend tour après tour. Garde-la dans le viseur."
+    },
+    "tl_corner": {
+      "cat": "limits",
+      "level": "warn",
+      "beep": false,
+      "it": "Track limits in {turn}: è lì che stai allargando. Tieni dentro la ruota.",
+      "variants_it": [
+        "Track limits in {turn}: è lì che stai allargando. Tieni dentro la ruota.",
+        "Occhio ai limiti in {turn}: tieni un margine in uscita."
+      ],
+      "en": "Track limits at {turn}: that's where you're running wide. Keep the wheel inside.",
+      "es": "Límites de pista en {turn}: ahí es donde te abres. Mantén la rueda dentro.",
+      "fr": "Limites de piste à {turn}: c'est là que tu élargis. Garde la roue à l'intérieur."
+    },
+    "tl_corner_again": {
+      "cat": "limits",
+      "level": "warn",
+      "beep": false,
+      "it": "Di nuovo {turn}: stesso punto, stesso taglio. Sacrifica l'uscita e chiudiamola qui.",
+      "variants_it": [
+        "Di nuovo {turn}: stesso punto, stesso taglio. Sacrifica l'uscita e chiudiamola qui.",
+        "Sempre {turn}: tieni mezza macchina di margine in uscita, non possiamo regalare un altro avviso."
+      ],
+      "en": "That's {turn} again: same spot, same cut. Sacrifice the exit and let's end it here.",
+      "es": "Otra vez {turn}: mismo punto, mismo corte. Sacrifica la salida y acabemos con esto.",
+      "fr": "Encore {turn}: même endroit, même coupe. Sacrifie la sortie et on arrête ça ici."
+    },
+    "timeloss_focus": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Stai lasciando {sec} secondi in {turn}, giro dopo giro: concentrati lì al prossimo passaggio.",
+      "variants_it": [
+        "Stai lasciando {sec} secondi in {turn}, giro dopo giro: concentrati lì al prossimo passaggio.",
+        "Il tempo lo perdi in {turn}: {sec} secondi sul tuo riferimento. Lavoraci adesso."
+      ],
+      "en": "You're losing {sec} seconds at {turn}, lap after lap: focus there on the next pass.",
+      "es": "Pierdes {sec} segundos en {turn}, vuelta tras vuelta: céntrate ahí en el próximo paso.",
+      "fr": "Tu perds {sec} secondes à {turn}, tour après tour: concentre-toi là au prochain passage."
     }
   }
 }
