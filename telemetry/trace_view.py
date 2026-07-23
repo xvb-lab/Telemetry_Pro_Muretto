@@ -1281,7 +1281,14 @@ class _LiveMap(QWidget):
         if not hasattr(self, "_ev_show"):
             self._ev_show = {"contact": True, "tl": False,
                              "lock": True, "slide": True,
-                             "tc": False, "abs": False, "lico": True}
+                             "tc": False, "abs": False, "lico": True,
+                             "opp": True}
+        self.update()
+
+    def set_opponents(self, pts):
+        """Macchinine GRIGIE dei rivali nel replay (rich. 23/07):
+        lista [(x, z)] della posizione di ogni avversario adesso."""
+        self._opp_pts = pts
         self.update()
 
     def set_event_segs(self, segs):
@@ -1841,6 +1848,13 @@ class _LiveMap(QWidget):
                         QPointF(c9.x(), c9.y() + 4.5),
                         QPointF(c9.x() - 4.5, c9.y())]))
 
+        # MACCHININE GRIGIE dei rivali (replay): stessa forma, grige
+        _opp9 = getattr(self, "_opp_pts", None)
+        if _opp9 and _evshow.get("opp", True):
+            p.setPen(QPen(QColor("#09090b"), 1.2))
+            p.setBrush(QColor(154, 160, 171, 220))
+            for _ox9, _oz9 in _opp9:
+                p.drawEllipse(P(_ox9, _oz9), dot_r * 0.9, dot_r * 0.9)
         # dot INTERPOLATI (pa/pb calcolati in alto); indice solo di riserva
         if pb is not None:
             dot(pb, cmp_c, _mk_ang(getattr(self, "_cmp_srt", None), _ld_b))
@@ -1899,6 +1913,7 @@ class _LiveMap(QWidget):
         if _evs9 or _nseg9:
             _evshow9 = getattr(self, "_ev_show", None) or {}
             _cnt9 = {k: len(v) for k, v in _segd9.items()}
+            _cnt9["opp"] = len(getattr(self, "_opp_series", {}) or {})
             for _k9, _x9, _z9 in _evs9:
                 _cnt9[_k9] = _cnt9.get(_k9, 0) + 1
             # etichette in INGLESE (l'app e' EN) — rich. 23/07;
@@ -1909,7 +1924,8 @@ class _LiveMap(QWidget):
                     ("slide", "Slides", "#ff8a1e"),
                     ("tc", "TC", "#4a90e2"),
                     ("abs", "ABS", "#c77dff"),
-                    ("lico", "LICO", "#8a3ffb"))
+                    ("lico", "LICO", "#8a3ffb"),
+                    ("opp", "Opponents", "#9aa0ab"))
             _ex9 = 12.0
             _ey9 = 34.0
             f9l = p.font()
@@ -3124,6 +3140,19 @@ class _WorksheetTab(QWidget):
             self._rp_tb = self._t2ld(cmp_lap, con=cmp_con)
         if not self._rp_ta:
             return
+        # RIVALI del giro (macchinine grigie): serie t->pos per auto
+        try:
+            _con9 = getattr(self.data, "con", None)
+            _oser9 = {}
+            if _con9 is not None and self._sel is not None:
+                for _cid9, _t9, _x9, _z9 in _con9.execute(
+                        "SELECT cid, t, x, z FROM opponents"
+                        " WHERE lap=? ORDER BY t", (self._sel,)):
+                    _oser9.setdefault(_cid9, []).append(
+                        (float(_t9), float(_x9), float(_z9)))
+            self.map_w._opp_series = _oser9
+        except Exception:
+            self.map_w._opp_series = {}
         self._play.setText("pause")
         self._rp_timer.start()
 
@@ -3135,6 +3164,7 @@ class _WorksheetTab(QWidget):
         self._play.setText("play_arrow")
         try:
             self.map_w.set_play_pos(None, None)
+            self.map_w.set_opponents(None)
         except Exception:
             pass
 
@@ -3275,6 +3305,22 @@ class _WorksheetTab(QWidget):
                     _gap9 = None       # fuori scala: meglio niente
         self.map_w.set_play_pos(ld_a if ld_a is not None else ld_b,
                                 ld_b, _gap9)
+        # muovi le macchinine grigie al tempo del replay
+        try:
+            _oser9 = getattr(self.map_w, "_opp_series", None) or {}
+            _opts9 = []
+            for _ser9 in _oser9.values():
+                _pp9 = None
+                for _tt9, _xx9, _zz9 in _ser9:
+                    if _tt9 <= self._rp_t:
+                        _pp9 = (_xx9, _zz9)
+                    else:
+                        break
+                if _pp9 is not None:
+                    _opts9.append(_pp9)
+            self.map_w.set_opponents(_opts9)
+        except Exception:
+            pass
         # i grafici seguono il giro SELEZIONATO (cursore + readout)
         if ld_a is not None:
             for ch in self.charts:
