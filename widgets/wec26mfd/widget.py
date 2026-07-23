@@ -2647,7 +2647,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             "TELEMETRY ON": "TELEMETRIA ON",
             "TELEMETRY OFF": "TELEMETRIA OFF",
             "WING": "ALA", "GRILLE": "GRIGLIA",
-            "DUCT F": "PRESA ANT", "DUCT R": "PRESA POST"}
+            "DUCT F": "COND A", "DUCT R": "COND P"}
 
     def _it9(self, s):
         """Traduzione display EN->IT se la lingua dash e' IT."""
