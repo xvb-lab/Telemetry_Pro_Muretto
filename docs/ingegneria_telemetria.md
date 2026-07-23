@@ -538,9 +538,19 @@ e domani diventera' il Garage advisor con valori cliccabili.
 - Range tipici (letteratura OptimumG): stradali 0,5-1,5 Hz · racing
   senza effetto suolo ~1,5-2,5 Hz · aero car 3-5+ Hz. Il Garage advisor
   usera' la classe per proporre la finestra giusta.
-- Prossimi tip della serie (bump singolo, damping in ride/roll/pitch)
-  = la matematica per gli istogrammi §5.5.
-- Fonte: PDF ufficiale optimumg.com (scaricato e letto).
+- **Tip 2 — la formula della molla** (con disciplina delle unita', kg
+  non Newton!): `Ks = 4π² · fr² · m_sospesa · MR²` (MR = motion ratio
+  ruota/molla). E baseline **barre antirollio** dal roll gradient scelto.
+- **Tip 3 — terza molla (heave)**: ride frequency alta per l'aero SENZA
+  irrigidire il bump singolo (es. ride 1,5 Hz, singola ruota 1,0 Hz):
+  e' la teoria dietro la riga heave/packers della matrice §9.1.
+- **Tip 4 — damping**: trasmissibilita' (output/input in ampiezza),
+  damping ratio e curva ammortizzatore di BASELINE → i numeri per
+  giudicare gli istogrammi §5.5.
+- Fonte: 4 PDF ufficiali optimumg.com (scaricati e letti). NB: il
+  contenuto del SEMINARIO OptimumG e' proprietario (le copie su Scribd
+  sono upload non autorizzati): i Tech Tips gratuiti coprono la teoria
+  che ci serve.
 
 *Fonti: [YourDataDriven](https://www.yourdatadriven.com/guide-to-interpreting-tyre-temperatures-in-motorsports/),
 [Autosport Labs](https://www.autosportlabs.com/using_tire_temperatures_for_better_grip_and_faster_lap_times/),
