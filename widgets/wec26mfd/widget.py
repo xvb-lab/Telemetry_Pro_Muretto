@@ -995,6 +995,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         self._carc4 = [float(
                             t.mWheels[k].mTireCarcassTemperature)
                             - 273.15 for k in range(4)]
+                        self._brk4 = [float(t.mWheels[k].mBrakeTemp)
+                                      - 273.15 for k in range(4)]
                         self._rpm = float(t.mEngineRPM)
                         self._crpm = float(t.mClutchRPM)
                         self._erpm = float(t.mElectricBoostMotorRPM)
@@ -1660,21 +1662,70 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         4 = macchinina danni/gomme (dal dashboard V2)."""
         return [1, 2, 3, 4]
 
-    # ── MOD 4: MACCHININA gomme/danni (portata 1:1 dalla V2) ──
+    # ── MOD 4: MACCHININA del dashboard v3 (TyreBrakeGrid) ──
     def _paint_mod4(self, p):
-        try:
-            from .car_canvas import CarDiagram
-        except Exception:
-            return
-        if not hasattr(self, "_car_diag"):
-            self._car_diag = CarDiagram()
         y0 = self.HDR + self.ROW_T
         bodyh = _H - self.HDR - self.ROW_T - self.ROW_B
-        k = (bodyh - 22.0) / 197.0
-        cw = 96.0 * k
-        d = getattr(self, "_car_d", None) or {}
-        self._car_diag.draw(p, d, _W / 2.0 - cw / 2.0, y0 + 11.0, k)
-        self.update()          # animazioni (lampeggi/pulse) fluide
+        s = self.width() / float(_W)
+        # child in PIXEL DEVICE (come nel vecchio dashboard): riempie
+        # ~80% del corpo pagina, ricreato se cambia la scala della card
+        _msc = (bodyh * s * 0.80) / 72.0
+        mc = getattr(self, "_minicar", None)
+        if mc is None or abs(mc._scale - _msc) > 0.06:
+            if mc is not None:
+                mc.deleteLater()
+            from .minicar import TyreBrakeGrid
+            mc = self._minicar = TyreBrakeGrid(scale=_msc, rear_ext=0.25)
+            mc.setParent(self)
+        mc.move(int(_W / 2.0 * s - mc.width() / 2.0),
+                int((y0 + bodyh / 2.0) * s - mc.height() / 2.0))
+        if not mc.isVisible():
+            mc.show()
+        mc.raise_()
+        _cd = getattr(self, "_car_d", None) or {}
+        try:
+            from core.classes import class_tag as _ct
+            _tag = _ct(getattr(self, "_cls_name", "") or "") or ""
+        except Exception:
+            _tag = ""
+        try:
+            mc.set_data(self._carc4, getattr(self, "_brk4", None), _tag,
+                        _cd.get("body_dent"), None, None,
+                        _cd.get("tyre_flat"), _cd.get("tyre_detached"),
+                        _cd.get("detached"))
+        except Exception:
+            pass
+        # ETICHETTE attorno (come il dashboard): gomma °C sopra, freno °C
+        # sotto, per ruota — FL/FR in alto, RL/RR in basso
+        try:
+            from widgets.list.colors import col_tyre_temp as _ctt
+            mw_u = mc.width() / s
+            mh_u = mc.height() / s
+            gx0 = _W / 2.0 - mw_u / 2.0
+            gy0 = y0 + (bodyh - mh_u) / 2.0
+            _c4 = self._carc4 or [None] * 4
+            _b4 = getattr(self, "_brk4", None) or [None] * 4
+            f9 = QFont("Archivo SemiExpanded")
+            f9.setPixelSize(15)
+            f9.setBold(True)
+            p.setFont(f9)
+            _lay = ((0, gx0 - 78, gy0 + mh_u * 0.10),
+                    (1, gx0 + mw_u + 10, gy0 + mh_u * 0.10),
+                    (2, gx0 - 78, gy0 + mh_u * 0.72),
+                    (3, gx0 + mw_u + 10, gy0 + mh_u * 0.72))
+            for _i9, _lx9, _ly9 in _lay:
+                _tv9 = _c4[_i9]
+                _bv9 = _b4[_i9]
+                if _tv9 is not None:
+                    p.setPen(QPen(_ctt(int(_tv9), _tag)))
+                    p.drawText(QRectF(_lx9, _ly9, 68, 18),
+                               Qt.AlignCenter, "%.0f°" % _tv9)
+                if _bv9 is not None:
+                    p.setPen(QPen(QColor(255, 255, 255, 215)))
+                    p.drawText(QRectF(_lx9, _ly9 + 18, 68, 18),
+                               Qt.AlignCenter, "%.0f°" % _bv9)
+        except Exception:
+            pass
 
     def _paint_page(self, p):
         """Disegna il MOD della pagina corrente. PRIMA la CORRENTE:
@@ -1692,13 +1743,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 self._pwr_t0 = time.monotonic()
                 self._anim_t.start()
         scr = QRectF(0, self.HDR, _W, _H - self.HDR)
+        _mc0 = getattr(self, "_minicar", None)
         if not ion:
+            if _mc0 is not None and _mc0.isVisible():
+                _mc0.hide()
             p.setPen(Qt.NoPen)
             p.setBrush(QColor(6, 7, 9))
             p.drawRect(scr)
             return
         boot = (time.monotonic() - self._pwr_t0) if self._pwr_t0 else 99
         if boot < 3.0:
+            if _mc0 is not None and _mc0.isVisible():
+                _mc0.hide()
             p.setPen(Qt.NoPen)
             p.setBrush(QColor(6, 7, 9))
             p.drawRect(scr)
@@ -1732,6 +1788,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             p.setBrush(QColor(64, 130, 255, 14))
             p.drawRect(scr)
         mod = act[self._page % len(act)]
+        if mod != 4 and _mc0 is not None and _mc0.isVisible():
+            _mc0.hide()          # la macchinina vive SOLO nel MOD 4
         fn = getattr(self, "_paint_mod%d" % mod, None)
         if fn is not None:
             fn(p)
