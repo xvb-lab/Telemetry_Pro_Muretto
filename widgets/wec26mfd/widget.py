@@ -2181,19 +2181,23 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                  ("TEST MODE", _tm_lbl),
                  ("TEST TARGET", _tg_lbl))
         f = QFont(FAM)
-        f.setPixelSize(max(6, int(44 * by)))
+        f.setPixelSize(max(6, int(52 * by)))     # piu' GRANDE (rich. 23/07)
+        f.setWeight(QFont.Medium)
         p.setFont(f)
-        lh = 58.0 * by
+        _pitch = 72.0
+        lh = _pitch * by
         for i, (it, vv) in enumerate(ITEMS):
             sel = (i == self._m3_sel)
-            p.setPen(QPen(QColor("#2fa8e0") if sel
-                          else QColor(255, 255, 255, 230)))
-            p.drawText(QRectF(40 * bx, y0 + (74 + i * 58) * by,
-                              900 * bx, lh),
-                       Qt.AlignLeft | Qt.AlignVCenter, it)
+            ry = y0 + (60 + i * _pitch) * by
+            if sel:                      # selezione = bg pieno come MOD 2
+                p.setPen(Qt.NoPen)
+                p.setBrush(QColor(160, 164, 174, 70))
+                p.drawRect(QRectF(28 * bx, ry + 4 * by,
+                                  1278 * bx, lh - 8 * by))
             p.setPen(QPen(QColor(255, 255, 255, 235)))
-            p.drawText(QRectF(700 * bx, y0 + (74 + i * 58) * by,
-                              580 * bx, lh),
+            p.drawText(QRectF(48 * bx, ry, 900 * bx, lh),
+                       Qt.AlignLeft | Qt.AlignVCenter, it)
+            p.drawText(QRectF(700 * bx, ry, 570 * bx, lh),
                        Qt.AlignRight | Qt.AlignVCenter,
                        "<%s>" % vv)
         f.setPixelSize(max(6, int(26 * by)))
