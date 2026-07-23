@@ -374,6 +374,7 @@ def _collect(brain, raw, ld, pace):
         (brain.strat_extra_stop, (raw, ld)),
         (brain.fuel_save_option, (raw, ld)),      # margine per una sosta in meno
         (brain.manage_briefing, (raw,)),          # gestisci / spingi nel briefing
+        (brain.test_mode_call, (raw, ld)),        # modalita' TEST dal dash (long run/sim/hotlap)
         (brain.pit_exit_traffic, (raw,)),         # traffico al rientro box (v2)
         (brain.garage_briefing, (raw,)),          # motore acceso: grip/temp/gomme + no-slick-in-pioggia
         (brain.pit_lane_release, (raw,)),         # safe release: uscita corsia box
@@ -517,6 +518,10 @@ def run():
             _auto_fuel_tick(feed, live, _cfg, brain, ld)   # AUTO PIT: VE stint + annuncia
             # raw per il cervello: fisica + blocco strategia
             raw = dict(d)
+            # MODALITA' TEST dal dash (engineer_cfg, riletta ogni 2s)
+            raw["test_mode"] = _cfg.get("test_mode") or None
+            raw["test_extra"] = _cfg.get("test_extra_laps")
+            raw["test_race_min"] = _cfg.get("test_race_min")
             raw["ts"] = time.monotonic()
             raw["on_track"] = True
             raw["lap_time"] = d.get("last_lap")       # per sector_delta / feedback

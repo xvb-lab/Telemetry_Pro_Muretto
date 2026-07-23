@@ -2156,6 +2156,19 @@ class TelemetryRecorder:
                     self._tlm_pending = [
                         {"lap": res["lap"], "ref": res["ref"], **r}
                         for r in res["corners"]]
+                    # stato per il MURETTO (hotlap mode): curve peggiori
+                    try:
+                        from core.paths import USER_DIR as _UDx
+                        from telemetry.timeloss import worst as _tlworst
+                        import json as _jsx
+                        (_UDx / "last_timeloss.json").write_text(
+                            _jsx.dumps({"ts": time.time(),
+                                        "lap": res["lap"], "ref": res["ref"],
+                                        "total_s": res["total_s"],
+                                        "worst": _tlworst(res, 3)}),
+                            encoding="utf-8")
+                    except Exception:
+                        pass
             except Exception:
                 pass
         threading.Thread(target=_work, daemon=True).start()

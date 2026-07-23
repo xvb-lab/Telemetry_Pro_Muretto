@@ -561,6 +561,47 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                      else "RADIO OFF"), time.monotonic())
                     self._page_beep()
                     self.update()
+                elif self._m3_sel == 4:    # TEST MODE (muretto adattivo)
+                    _seq = [None, "longrun", "racesim", "hotlap"]
+                    _cur4 = getattr(self, "_test_mode", None)
+                    _i4 = _seq.index(_cur4) if _cur4 in _seq else 0
+                    _i4 = (_i4 + (1 if (b & _XI_DR) else -1)) % len(_seq)
+                    self._test_mode = _seq[_i4]
+                    engineer_cfg.save(test_mode=self._test_mode)
+                    self._ap_ts = time.monotonic()
+                    _lbl4 = {None: "TEST OFF",
+                             "longrun": "LONG RUN - SET TARGET LAPS",
+                             "racesim": "RACE SIM - SET MINUTES",
+                             "hotlap": "HOTLAP - PUSH!"}[self._test_mode]
+                    self._m3_msg = (_lbl4, time.monotonic())
+                    self._page_beep()
+                    self.update()
+                elif self._m3_sel == 5:    # TEST TARGET (per la modalita')
+                    _tm5 = getattr(self, "_test_mode", None)
+                    if _tm5 == "longrun":
+                        _opts5 = [2, 3, 4]
+                        _c5 = getattr(self, "_test_extra", 2)
+                        _j5 = _opts5.index(_c5) if _c5 in _opts5 else 0
+                        _j5 = (_j5 + (1 if (b & _XI_DR) else -1)) % len(_opts5)
+                        self._test_extra = _opts5[_j5]
+                        engineer_cfg.save(test_extra_laps=self._test_extra)
+                        self._m3_msg = ("LONG RUN +%d LAPS" % self._test_extra,
+                                        time.monotonic())
+                    elif _tm5 == "racesim":
+                        _opts5 = [30, 60, 90, 120]
+                        _c5 = getattr(self, "_test_min", 60)
+                        _j5 = _opts5.index(_c5) if _c5 in _opts5 else 0
+                        _j5 = (_j5 + (1 if (b & _XI_DR) else -1)) % len(_opts5)
+                        self._test_min = _opts5[_j5]
+                        engineer_cfg.save(test_race_min=self._test_min)
+                        self._m3_msg = ("RACE SIM %d MIN" % self._test_min,
+                                        time.monotonic())
+                    else:
+                        self._m3_msg = ("SELECT A TEST MODE FIRST",
+                                        time.monotonic())
+                    self._ap_ts = time.monotonic()
+                    self._page_beep()
+                    self.update()
         # croce su/giu: cambio valore della casella selezionata
         elif (b & (_XI_DU | _XI_DD)) and not (prev & (_XI_DU | _XI_DD)):
             act = self._active_mods()
@@ -575,7 +616,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             elif mod == 3:
                 # nel menu SETTINGS: sposta la voce selezionata
                 self._m3_sel = (self._m3_sel
-                                + (1 if (b & _XI_DD) else -1)) % 4
+                                + (1 if (b & _XI_DD) else -1)) % 6
                 self._page_beep()
                 self.update()
             elif self._ctrl_sel is not None:
@@ -2113,9 +2154,21 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 _ec = engineer_cfg.load()
                 self._auto_pit = bool(_ec.get("auto_pit", False))
                 self._radio_en = bool(_ec.get("engineer_on", False))
+                self._test_mode = _ec.get("test_mode") or None
+                self._test_extra = int(_ec.get("test_extra_laps") or 2)
+                self._test_min = int(_ec.get("test_race_min") or 60)
             except Exception:
                 pass
         # MENU VERO: voci reali con valore
+        _tmv = getattr(self, "_test_mode", None)
+        _tm_lbl = {None: "OFF", "longrun": "LONG RUN",
+                   "racesim": "RACE SIM", "hotlap": "HOTLAP"}.get(_tmv, "OFF")
+        if _tmv == "longrun":
+            _tg_lbl = "+%d LAPS" % getattr(self, "_test_extra", 2)
+        elif _tmv == "racesim":
+            _tg_lbl = "%d MIN" % getattr(self, "_test_min", 60)
+        else:
+            _tg_lbl = "-"
         ITEMS = (("SPEED UNIT",
                   self._prefs.get("speed_unit", "KPH")),
                  ("ELECTRIC CONTROL",
@@ -2124,7 +2177,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                  ("AUTO PIT",
                   "ON" if self._auto_pit else "OFF"),
                  ("RADIO",
-                  "ON" if self._radio_en else "OFF"))
+                  "ON" if self._radio_en else "OFF"),
+                 ("TEST MODE", _tm_lbl),
+                 ("TEST TARGET", _tg_lbl))
         f = QFont(FAM)
         f.setPixelSize(max(6, int(44 * by)))
         p.setFont(f)

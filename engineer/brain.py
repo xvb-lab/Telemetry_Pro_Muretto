@@ -109,7 +109,8 @@ class Engineer:
                      "contact_", "aero_", "susp_", "damage", "tyre_flat",
                      "wheel_", "fuel_short", "engine_", "brakes_over",
                      "tyres_over", "limits_", "tlimits_", "debrief_",
-                     "race_start", "green_restart", "session_end")
+                     "race_start", "green_restart", "session_end",
+                     "longrun_", "racesim_", "hotlap_", "test_")
     # QUALIFICA (sei da solo): lo spotter NON da' bandiere ne' traffico.
     # Restano tempi/settori/passo/gomme/grip: servono in quali.
     _LAW_QUALI_MUTE = ("blue_", "yellow", "local_yellow", "traffic_",
@@ -4217,6 +4218,139 @@ class Engineer:
         except Exception:
             return out
 
+    # ── MODALITA' TEST dal dash (mod 3): long run / race sim / hotlap ──
+    @staticmethod
+    def _fnum(v):
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return None
+
+    def _last_timeloss(self):
+        """last_timeloss.json scritto dal recorder (processo UI) a fine
+        giro: curva peggiore e totale. None se vecchio o assente."""
+        try:
+            import json as _js
+            from core.paths import USER_DIR as _UD
+            d = _js.loads((_UD / "last_timeloss.json")
+                          .read_text(encoding="utf-8"))
+            if _time.time() - float(d.get("ts") or 0) > 150.0:
+                return None
+            return d
+        except Exception:
+            return None
+
+    def test_mode_call(self, raw, laps_done):
+        """Selettore TEST dal dash (engineer_cfg): il muretto cambia
+        registro. longrun = allunga lo stint di +N giri (target consumo
+        e check ogni giro); racesim = simulazione gara di N minuti
+        (piano + consumo al nominale); hotlap = giro secco (dopo ogni
+        giro la curva peggiore dalla Time-Loss). Le mute di registro
+        stanno in _sane_one."""
+        raw = raw or {}
+        mode = raw.get("test_mode") or None
+        st = self._st
+        prev = st.get("tm_mode", None)
+        out = []
+        if mode != prev:
+            st["tm_mode"] = mode
+            st["tm_lap"] = int(raw.get("laps_completed") or 0)
+            st["tm_hl_lap"] = None
+            st["tm_ok"] = 0
+            if mode == "longrun":
+                extra = int(self._fnum(raw.get("test_extra")) or 2)
+                per = self._fnum(raw.get("lmu_per_lap"))
+                ve = self._fnum(raw.get("ve_pct"))
+                tgt = None
+                if per and per > 0 and ve and ve > 1.0:
+                    tgt = ve / (ve / per + extra)
+                st["tm_target"] = tgt
+                st["tm_ve_prev"] = ve
+                if tgt:
+                    out.append(self.msg("longrun_on", extra=extra,
+                                        target="%.1f" % tgt,
+                                        cur="%.1f" % per))
+                else:
+                    out.append(self.msg("longrun_on_nodata", extra=extra))
+            elif mode == "racesim":
+                mins = int(self._fnum(raw.get("test_race_min")) or 60)
+                est = self._fnum(raw.get("est_lap")) \
+                    or self._fnum(raw.get("best_lap"))
+                per = self._fnum(raw.get("lmu_per_lap"))
+                giri = int(mins * 60.0 / est) if est and est > 20.0 else None
+                stops = None
+                if giri and per and per > 0:
+                    stops = max(0, int((giri - 1) // max(1.0, 100.0 / per)))
+                st["tm_ve_prev"] = self._fnum(raw.get("ve_pct"))
+                if giri is not None and stops is not None:
+                    out.append(self.msg("racesim_on", minuti=mins,
+                                        giri=giri, soste=stops))
+                else:
+                    out.append(self.msg("racesim_on_nodata", minuti=mins))
+            elif mode == "hotlap":
+                out.append(self.msg("hotlap_on"))
+            elif prev:
+                out.append(self.msg("test_off"))
+            return [x for x in out if x]
+        if not mode:
+            return []
+        # ── check al CAMBIO GIRO (mai in corsia/garage) ──
+        ld = int(raw.get("laps_completed") or 0)
+        if ld <= int(st.get("tm_lap") or 0):
+            return []
+        st["tm_lap"] = ld
+        if raw.get("in_pits") or raw.get("garage"):
+            return []
+        if mode in ("longrun", "racesim"):
+            ve = self._fnum(raw.get("ve_pct"))
+            prev_ve = st.get("tm_ve_prev")
+            st["tm_ve_prev"] = ve
+            tgt = st.get("tm_target") if mode == "longrun" \
+                else self._fnum(raw.get("lmu_per_lap"))
+            if ve is None or prev_ve is None or not tgt:
+                return []
+            used = prev_ve - ve
+            if used <= 0 or used > tgt * 3.0:
+                return []          # rifornimento/reset: giro sporco
+            k = used / tgt
+            if k > 1.06:
+                return [x for x in [self.msg("test_over",
+                                             used="%.1f" % used,
+                                             target="%.1f" % tgt)] if x]
+            if k < 0.94:
+                return [x for x in [self.msg("test_margin",
+                                             used="%.1f" % used,
+                                             target="%.1f" % tgt)] if x]
+            st["tm_ok"] = int(st.get("tm_ok") or 0) + 1
+            if st["tm_ok"] % 3 == 0:
+                return [x for x in [self.msg("test_good")] if x]
+            return []
+        if mode == "hotlap":
+            data = self._last_timeloss()
+            if not data:
+                return []
+            lap_f = data.get("lap")
+            if lap_f is None or lap_f == st.get("tm_hl_lap"):
+                return []
+            st["tm_hl_lap"] = lap_f
+            tot = self._fnum(data.get("total_s"))
+            worst = data.get("worst") or []
+            if tot is not None and tot <= 0.15:
+                return [x for x in [self.msg("hotlap_clean")] if x]
+            if worst:
+                w = worst[0] or {}
+                dsec = self._fnum(w.get("total_s")) or 0.0
+                if dsec < 0.1:
+                    return []
+                fase = "in ingresso" \
+                    if abs(self._fnum(w.get("entry_s")) or 0.0) >= \
+                    abs(self._fnum(w.get("exit_s")) or 0.0) else "in uscita"
+                num = str(w.get("corner") or "?").lstrip("T")
+                return [x for x in [self.msg(
+                    "hotlap_loss", curva=num,
+                    dec="%.0f" % (dsec * 10.0), fase=fase)] if x]
+        return []
+
     def _sane_one(self, m, raw):
         code = (m or {}).get("code") or ""
         # WARM-UP: appena acceso (o a sessione nuova) il muretto ASCOLTA
@@ -4249,6 +4383,19 @@ class Engineer:
                 and (m or {}).get("level") != "critical" \
                 and not code.startswith(self._LAW_CRISIS_KEEP):
             return False, "gialla attiva: solo sicurezza/bandiere"
+        # MODALITA' TEST (dal dash): il muretto cambia REGISTRO.
+        # In gestione (long run / race sim) il veleggiare e' VOLUTO:
+        # mai rimproveri sul coasting. In hotlap niente consumi/strategia:
+        # conta solo il giro secco.
+        _tm9 = raw.get("test_mode")
+        if _tm9 in ("longrun", "racesim") \
+                and code.startswith("coast_corner"):
+            return False, "gestione attiva: il veleggiare e' voluto"
+        if _tm9 == "hotlap" and (m or {}).get("level") != "critical" \
+                and code.startswith(("fuel_", "energy_", "strat", "plan",
+                                     "manage", "status_", "chk_",
+                                     "tyre_manage")):
+            return False, "hotlap: niente gestione, solo giro secco"
         # LEGGE CENTRALE DI STATO — prima di ogni logica di modulo
         in_lane = bool(raw.get("in_pits") or raw.get("in_pitlane")
                        or raw.get("garage"))

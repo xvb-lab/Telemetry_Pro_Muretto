@@ -82,6 +82,11 @@ _mk(["pit_closed", "pit_open", "pit_ready", "tyre_stock", "garage_brief",
 # benvenuto + finale a tre voci (v2): detti, non scartabili come info
 _mk(["brief_spot", "fin_eng_good", "fin_eng_ok", "fin_strat_good",
      "fin_strat_ok", "fin_spot_good", "fin_spot_ok"], 1)
+# MODALITA' TEST dal dash: attivazioni P1 (ack immediato), check P2
+_mk(["longrun_on", "longrun_on_nodata", "racesim_on", "racesim_on_nodata",
+     "hotlap_on", "test_off"], 1)
+_mk(["test_over", "test_margin", "test_good",
+     "hotlap_loss", "hotlap_clean"], 2)
 # P2 stato vettura + check consumi
 _mk(["tyres_cold", "tyres_warm", "brakes_cold", "tyres_hot", "brakes_hot",
      "aero_light", "aero_bad", "susp_light", "susp_bad", "damage_body",
@@ -123,7 +128,8 @@ _GROUP_GAP = 8.0           # un solo messaggio per gruppo entro N secondi
 # rotto — si riparla dell'argomento solo dopo minuti (i critici P0
 # passano sempre: il tier 0 non e' mai deduplicato). Richiesta utente.
 _GROUP_GAP_BY = {"strategia": 180.0, "pioggia": 180.0,
-                 "consumi": 90.0, "gomme": 90.0}
+                 "consumi": 90.0, "gomme": 90.0,
+                 "test": 40.0}
 _YELLOW = ("local_yellow", "yellow_flag", "yellow_sector")
 # cosa TAGLIA il messaggio in corso: gialle + il safe-release "aspetta" (auto in
 # arrivo mentre esci dal box) -> deve passare subito, non dopo il briefing.
@@ -157,6 +163,8 @@ _grp(["rain_starting", "rain_fc", "rain_fc_now", "rain_fc_end", "rain_fc_wet_end
       "advise_wet", "advise_slick", "rain_dryline", "wet_manage_choice",
       "wet_patchy", "wet_sector", "wet_tyre_hot", "wet_tyre_cold"], "pioggia")
 _grp(["tyres_cold", "tyres_warm", "brakes_cold", "tyres_hot", "brakes_hot"], "temp")
+_grp(["test_over", "test_margin", "test_good",
+      "hotlap_loss", "hotlap_clean"], "test")
 _grp(["plan", "plan_hist", "plan_nostop", "plan_stops", "plan_stops_solo",
       "plan_eco_save", "plan_eco_stint", "plan_wx_arc", "plan_model_stops",
       "plan_model_stint", "plan_tyre_stock", "plan_tyre_short",

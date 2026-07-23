@@ -7784,6 +7784,125 @@
       "en": "You're coasting in turn {turn}: connect brake and throttle, that dead time is pure lap time.",
       "es": "Estás planeando en la curva {turn}: conecta freno y gas.",
       "fr": "Tu plane au virage {turn} : relie frein et gaz."
+    },
+    "longrun_on": {
+      "cat": "strategy",
+      "level": "info",
+      "beep": false,
+      "it": "Long run: obiettivo più {extra} giri di stint. Ti serve {target} a giro, adesso stai sui {cur}. Costruiscilo alzando prima il piede a fine rettilineo, le curve non toccarle.",
+      "variants_it": [
+        "Long run: obiettivo più {extra} giri di stint. Ti serve {target} a giro, adesso stai sui {cur}. Costruiscilo alzando prima il piede a fine rettilineo, le curve non toccarle.",
+        "Partiamo col long run: vogliamo allungare di {extra} giri. Il numero da tenere è {target} a giro, oggi viaggi a {cur}.",
+        "Programma long run, più {extra} giri: target {target} a giro. Il risparmio si costruisce in staccata, la velocità di curva resta tutta."
+      ]
+    },
+    "longrun_on_nodata": {
+      "cat": "strategy",
+      "level": "info",
+      "beep": false,
+      "it": "Long run attivo, più {extra} giri. Fammi un giro pulito e ti do il numero da tenere.",
+      "variants_it": [
+        "Long run attivo, più {extra} giri. Fammi un giro pulito e ti do il numero da tenere.",
+        "Programma long run, più {extra} giri: al primo giro chiuso arriva il target di consumo."
+      ]
+    },
+    "racesim_on": {
+      "cat": "strategy",
+      "level": "info",
+      "beep": false,
+      "it": "Simulazione gara da {minuti} minuti: sono circa {giri} giri e {soste} soste. Trattiamola come una gara vera, dalla prima curva.",
+      "variants_it": [
+        "Simulazione gara da {minuti} minuti: sono circa {giri} giri e {soste} soste. Trattiamola come una gara vera, dalla prima curva.",
+        "Race sim da {minuti} minuti: piano da {giri} giri con {soste} soste. Passo da gara, testa da gara.",
+        "Partiamo con la simulazione: {minuti} minuti, circa {giri} giri, {soste} soste previste. Ritmo vero, gestione vera."
+      ]
+    },
+    "racesim_on_nodata": {
+      "cat": "strategy",
+      "level": "info",
+      "beep": false,
+      "it": "Simulazione gara da {minuti} minuti. Al primo giro chiuso ti do piano e soste.",
+      "variants_it": [
+        "Simulazione gara da {minuti} minuti. Al primo giro chiuso ti do piano e soste.",
+        "Race sim attiva, {minuti} minuti: dammi un giro di riferimento e costruiamo il piano."
+      ]
+    },
+    "hotlap_on": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Modalità qualifica. Dimentica i consumi: scaldala, trova l'aria libera e spremi il giro. Dopo ogni tentativo ti dico dove hai lasciato tempo.",
+      "variants_it": [
+        "Modalità qualifica. Dimentica i consumi: scaldala, trova l'aria libera e spremi il giro. Dopo ogni tentativo ti dico dove hai lasciato tempo.",
+        "Programma da qualifica: conta solo il giro. A dirti dove perdi ci penso io, tu pensa a guidare.",
+        "Si fa il tempo: gomme in temperatura, spazio libero, e giro pieno. Al traguardo ti leggo la curva peggiore."
+      ]
+    },
+    "test_off": {
+      "cat": "strategy",
+      "level": "info",
+      "beep": false,
+      "it": "Chiudiamo la modalità test, si torna al programma normale.",
+      "variants_it": [
+        "Chiudiamo la modalità test, si torna al programma normale.",
+        "Modalità test conclusa: riprendiamo il lavoro standard."
+      ]
+    },
+    "test_over": {
+      "cat": "strategy",
+      "level": "warn",
+      "beep": false,
+      "it": "Stai usando {used} a giro, il target è {target}: alleggerisci. Alza il piede prima a fine rettilineo, la velocità di curva tienila tutta.",
+      "variants_it": [
+        "Stai usando {used} a giro, il target è {target}: alleggerisci. Alza il piede prima a fine rettilineo, la velocità di curva tienila tutta.",
+        "{used} contro {target}: così lo stint non arriva in fondo. Respira sull'acceleratore in fondo ai rettilinei.",
+        "Siamo sopra target: {used} a giro invece di {target}. Serve più rilascio, non meno curva."
+      ]
+    },
+    "test_margin": {
+      "cat": "strategy",
+      "level": "info",
+      "beep": false,
+      "it": "Sei a {used} contro un target di {target}: c'è margine, puoi appoggiare di più.",
+      "variants_it": [
+        "Sei a {used} contro un target di {target}: c'è margine, puoi appoggiare di più.",
+        "Stai risparmiando oltre il necessario: {used} a giro col target a {target}. Riprenditi un po' di passo.",
+        "Consumo sotto il piano: {used} contro {target}. Puoi spingere di più senza rovinare niente."
+      ]
+    },
+    "test_good": {
+      "cat": "strategy",
+      "level": "good",
+      "beep": false,
+      "it": "Consumo centrato, passo buono. Avanti così.",
+      "variants_it": [
+        "Consumo centrato, passo buono. Avanti così.",
+        "Numeri in riga: consumo sul target. Non cambiare niente.",
+        "Equilibrio perfetto tra passo e consumo. Tienilo."
+      ]
+    },
+    "hotlap_loss": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "In curva {curva} lasci {dec} decimi, {fase}.",
+      "variants_it": [
+        "In curva {curva} lasci {dec} decimi, {fase}.",
+        "Il grosso è in curva {curva}: {dec} decimi {fase}.",
+        "Curva {curva}, {fase}: lì ci sono {dec} decimi da riprendere.",
+        "Guarda la curva {curva}: {dec} decimi rimasti lì, {fase}."
+      ]
+    },
+    "hotlap_clean": {
+      "cat": "coach",
+      "level": "good",
+      "beep": false,
+      "it": "Giro pieno, non c'è niente da buttare. Se lo ripeti, il tempo arriva.",
+      "variants_it": [
+        "Giro pieno, non c'è niente da buttare. Se lo ripeti, il tempo arriva.",
+        "Pulito, tutto insieme: questo era il giro. Rifallo.",
+        "Niente sbavature, giro completo. Ora serve solo la copia."
+      ]
     }
   }
 }
