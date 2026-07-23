@@ -640,6 +640,26 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._ap_ts = time.monotonic()
                     self._page_beep()
                     self.update()
+                elif self._m3_sel == 7:    # LIGHTS: toggle fari (bind invisibile)
+                    if getattr(self, "_prefs", {}).get("electric_control"):
+                        _send_scancode(39)     # "Headlights" (DIK ;)
+                        self._m3_msg = ("LIGHTS TOGGLE", time.monotonic())
+                    else:
+                        self._m3_msg = ("ENABLE ELECTRIC CONTROL FIRST",
+                                        time.monotonic())
+                    self._page_beep()
+                    self.update()
+                elif self._m3_sel == 8:    # WIPER: velocita' tergi
+                    if getattr(self, "_prefs", {}).get("electric_control"):
+                        _send_scancode(51 if (b & _XI_DR) else 52)
+                        self._m3_msg = ("WIPER %s" %
+                                        ("+" if (b & _XI_DR) else "-"),
+                                        time.monotonic())
+                    else:
+                        self._m3_msg = ("ENABLE ELECTRIC CONTROL FIRST",
+                                        time.monotonic())
+                    self._page_beep()
+                    self.update()
                 elif self._m3_sel == 6:    # ECO FREE: risparmio libero (anche gara)
                     _opts6 = [0, 1, 2, 3, 4]
                     _c6 = getattr(self, "_eco_free", 0)
@@ -683,7 +703,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             elif mod == 3:
                 # nel menu SETTINGS: sposta la voce selezionata
                 self._m3_sel = (self._m3_sel
-                                + (1 if (b & _XI_DD) else -1)) % 7
+                                + (1 if (b & _XI_DD) else -1)) % 9
                 self._page_beep()
                 self.update()
             elif self._ctrl_sel is not None:
@@ -2566,7 +2586,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                  ("TEST TARGET", _tg_lbl),
                  ("ECO FREE",
                   ("+%d LAPS" % getattr(self, "_eco_free", 0))
-                  if getattr(self, "_eco_free", 0) else "OFF"))
+                  if getattr(self, "_eco_free", 0) else "OFF"),
+                 ("LIGHTS",
+                  "ON" if getattr(self, "_beam_steady", False) else "OFF"),
+                 ("WIPER", str(getattr(self, "_wiper9", 0))))
         f = QFont(FAM)
         f.setPixelSize(max(6, int(52 * by)))     # piu' GRANDE (rich. 23/07)
         f.setWeight(QFont.Medium)
@@ -2584,6 +2607,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             p.setPen(QPen(QColor(255, 255, 255, 235)))
             p.drawText(QRectF(48 * bx, ry, 900 * bx, lh),
                        Qt.AlignLeft | Qt.AlignVCenter, it)
+            _vc3 = QColor(255, 255, 255, 235)
+            if i == 4 and vv != "OFF":
+                _vc3 = QColor("#2fa8e0")        # TEST: blu
+            elif i == 6 and vv != "OFF":
+                _vc3 = QColor("#00e676")        # ECO FREE: verde
+            p.setPen(QPen(_vc3))
             p.drawText(QRectF(700 * bx, ry, 570 * bx, lh),
                        Qt.AlignRight | Qt.AlignVCenter,
                        "<%s>" % vv)
@@ -3043,6 +3072,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             "Inc Rear ARB": 70, "Dec Rear ARB": 41,
             "Brake Migration Forward": 43,
             "Brake Migration Rearward": 86,
+            "Headlights": 39,
+            "Increment Wipers": 51, "Decrement Wipers": 52,
+            "Increment Windscreen Wipers": 51,
+            "Decrement Windscreen Wipers": 52,
         }
         try:
             import shutil
