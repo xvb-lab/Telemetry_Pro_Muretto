@@ -9368,6 +9368,11 @@ class _TrackPage(QWidget):
         self._back_locked = False
 
         def _locked_live():
+            # SOLO le pagine che ESCONO dalla sessione bloccano; le
+            # interne (Telemetria -> stint) restano libere, senno' ci
+            # rimani intrappolato (bug 23/07 sera)
+            if not getattr(self, "_exit_locks", True):
+                return False
             try:
                 rec = self.window()._app._legacy._recorder
                 return bool(rec and rec.is_armed())
@@ -10340,6 +10345,7 @@ class _TelemetryPage(_TrackPage):
 
     def __init__(self, on_back=None, parent=None):
         super().__init__(on_sessions=None, on_back=on_back, parent=parent)
+        self._exit_locks = False      # back -> stint: DENTRO la sessione
         self._tabsw = None
         try:
             self._btn_sess.setVisible(False)
