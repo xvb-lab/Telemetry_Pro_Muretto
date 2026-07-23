@@ -1788,15 +1788,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             corners = [(0, -1, 0), (1, +1, 0), (2, -1, 1), (3, +1, 1)]
             p.setFont(QFont("Arial", 8, QFont.Bold))
             _CW = 34.0
-            # chip COMPOUND (simboli nostri) sul lato esterno del blocco;
-            # foratura -> icona tyre_damage
+            # chip COMPOUND (simboli nostri) sul lato esterno del blocco:
+            # SOLO i simboli compound, sempre (la foratura la dice la
+            # gomma arancione sulla macchinina, MAI icone estranee)
             from ui.icons import tyre_chip_svg as _tcs
             _sig4 = {0: "S", 1: "M", 2: "H", 3: "W"}
             _co4 = getattr(self, "_comp4", None) or [None] * 4
-            _fl4x = getattr(self, "_flat4", None) or [False] * 4
-            if not hasattr(self, "_px_tdmg"):
-                _ip8 = _ROOT / "assets" / "icons" / "tyre_damage.png"
-                self._px_tdmg = QPixmap(str(_ip8)) if _ip8.exists() else None
             for wi, side, row in corners:
                 cx = gx - 14.0 if side < 0 else gx + gw + 14.0
                 cy = gy + (_wy_f if row == 0 else _wy_r)
@@ -1812,14 +1809,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                Qt.AlignHCenter | Qt.AlignVCenter,
                                "%d%%" % int(round(wear[wi] * 100)))
                 _ccx = _lx - 15.0 if side < 0 else _lx + _CW + 2.0
-                if _fl4x[wi] and getattr(self, "_px_tdmg", None):
-                    p.drawPixmap(QRectF(_ccx, cy - 6.5, 13, 13).toRect(),
-                                 self._px_tdmg)
-                else:
-                    _sg9 = _sig4.get(_co4[wi])
-                    if _sg9:
-                        _prnd(_tcs(_sg9, True)).render(
-                            p, QRectF(_ccx, cy - 6.5, 13, 13))
+                _sg9 = _sig4.get(_co4[wi])
+                if _sg9:
+                    _prnd(_tcs(_sg9, True)).render(
+                        p, QRectF(_ccx, cy - 6.5, 13, 13))
 
             # (acqua/olio TOLTI dal MOD 4 su richiesta: vivono in MOD 1)
             _bt9 = getattr(self, "_batt9", None)
