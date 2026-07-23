@@ -3583,20 +3583,31 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         p.setFont(f_gear)
         fg = QFontMetricsF(f_gear)
         ts = (now - self._gear_t0) / 0.25 if self._gear_t0 else 2.0
-        p.setPen(QColor(255, 255, 255, 245))
+        # EXTRA BOLD garantito (23/07): il glifo si disegna come PATH
+        # riempito + contorno 1.6px — ingrassa anche se il font non ha
+        # il peso Black caricato nel processo overlay
+        from PySide6.QtGui import QPainterPath as _QPPg
+
+        def _fat(x, y, s9):
+            _pth = _QPPg()
+            _pth.addText(QPointF(x, y), f_gear, s9)
+            p.setPen(QPen(QColor(255, 255, 255, 245), 1.6))
+            p.setBrush(QColor(255, 255, 255, 245))
+            p.drawPath(_pth)
         if ts < 1.0:
             shown = _gsym(self._gear_old if ts < 0.5 else g)
             sy = max(0.08, abs(1.0 - 2.0 * ts))
             p.save()
             p.translate(gx, gy)
             p.scale(1.0, sy)
-            p.drawText(QPointF(-fg.horizontalAdvance(shown) / 2.0,
-                               fg.ascent() / 2.0 - 4), shown)
+            _fat(-fg.horizontalAdvance(shown) / 2.0,
+                 fg.ascent() / 2.0 - 4, shown)
             p.restore()
         else:
             gear = _gsym(g)
-            p.drawText(QPointF(gx - fg.horizontalAdvance(gear) / 2.0,
-                               gy + fg.ascent() / 2.0 - 4), gear)
+            _fat(gx - fg.horizontalAdvance(gear) / 2.0,
+                 gy + fg.ascent() / 2.0 - 4, gear)
+        p.setBrush(Qt.NoBrush)
         f_gl = QFont("Archivo SemiExpanded", 13)
         f_gl.setWeight(QFont.DemiBold)
         f_gl.setLetterSpacing(QFont.AbsoluteSpacing, 1.5)
@@ -3877,12 +3888,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             # la striscia — verso il pieno quando carica, verso il
             # vuoto quando scarica (rich. 23/07)
             if _emo in (2, 3) and _span9 > 6.0:
-                _ph9 = (time.monotonic() % 0.9) / 0.9
+                # piu' VELOCE e col TONO SCURO dello stesso colore
+                # (il bianco sul verde spariva, rich. 23/07)
+                _ph9 = (time.monotonic() % 0.55) / 0.55
                 if _emo == 3:                        # carica: tail->head
                     _pa9 = 117.5 - _ph9 * (_span9 - 5.0)
                 else:                                # scarica: head->tail
                     _pa9 = 117.5 - (1.0 - _ph9) * (_span9 - 5.0)
-                p.setPen(QPen(QColor(255, 255, 255, 210), 3.0,
+                p.setPen(QPen(_csoc.darker(260), 3.0,
                               Qt.SolidLine, Qt.RoundCap))
                 p.drawArc(rect2, int(_pa9 * 16), int(-5 * 16))
                 self.update()                        # anima fluido
@@ -3897,7 +3910,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 cx - 0.4617 * _r2s - 8.0
                 - QFontMetricsF(f_sc9).horizontalAdvance(
                     "%d" % round(_soc9 * 100)),
-                cy - 0.8870 * _r2s + 4.0),
+                cy - 0.8870 * _r2s + 2.0),
                 "%d" % round(_soc9 * 100))
         # RPM: arco sul lato SINISTRO in basso (meno di mezzo cerchio),
         # parte dal fondo e sale a sinistra — BLU che sfuma al BIANCO
