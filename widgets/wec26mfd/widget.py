@@ -2865,7 +2865,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             f.setWeight(QFont.Medium)
             p.setFont(f)
             _fme = QFontMetricsF(f)
-            _yy9 = 168.0
+            # sotto l'ELAPSED, staccata (prima pestava su ENERGY)
+            _yy9 = 186.0
             for _v9, _l9 in _parts9[:4]:
                 p.setPen(QPen(QColor(255, 255, 255, 140)))
                 p.drawText(QPointF(_pxc - 62.0, _yy9), _l9)
