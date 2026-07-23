@@ -1085,7 +1085,13 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                 if _hq is None:
                                     from collections import deque as _dq9
                                     _hq = self._beam_tg = _dq9(maxlen=6)
-                                _hq.append(time.monotonic())
+                                _nwtg = time.monotonic()
+                                # inizio di una SEQUENZA di lampeggi:
+                                # congela lo stato pre-lampeggio (la spia
+                                # verde non deve ballare col toggling)
+                                if not _hq or _nwtg - _hq[-1] > 1.2:
+                                    self._beam_pre = _bp9
+                                _hq.append(_nwtg)
                             self._beam_prev = _bm9
                             _hq = getattr(self, "_beam_tg", None) or []
                             _nw9 = time.monotonic()
@@ -2460,8 +2466,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._svg_fari_hi = _QSRf(str(_ip9 / "abbaglianti.svg"))
         _bm = getattr(self, "_beam", False)
         _lf = getattr(self, "_light_flash", False)
-        # spia FARI: sempre al suo posto col suo stato (verde/grigia)
-        sv = self._svg_fari_on if _bm else self._svg_fari_off
+        # spia FARI: sempre al suo posto col suo stato (verde/grigia).
+        # Durante il LAMPEGGIO resta CONGELATA sullo stato pre-lampeggio:
+        # a ballare col toggling e' solo l'abbagliante.
+        _bshow = getattr(self, "_beam_pre", _bm) if _lf else _bm
+        sv = self._svg_fari_on if _bshow else self._svg_fari_off
         if sv.isValid():
             sv.render(p, QRectF(_W / 2.0 - 128.0, gy - 48.0, 22, 22))
         # spia ABBAGLIANTI: A SE', ACCANTO — durante il lampeggio segue
