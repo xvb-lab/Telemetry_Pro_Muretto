@@ -544,6 +544,25 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         self._prefs["electric_control"] = False
                         self._save_prefs()
                     else:
+                        # BIND GIA' NEL FILE? Allora il gioco li ha
+                        # caricati all'avvio: riattiva il flag SUBITO,
+                        # niente scrittura, niente riavvio LMU (23/07)
+                        _have = False
+                        try:
+                            _kb9 = json.loads(Path(
+                                r"C:\program files (x86)\steam"
+                                r"\steamapps\common\Le Mans Ultimate"
+                                r"\UserData\player\keyboard.json")
+                                .read_text(encoding="utf-8")) \
+                                .get("Input") or {}
+                            _have = all(n9 in _kb9 for n9 in (
+                                "Increment Motor Map",
+                                "Traction Control Up",
+                                "Antilock Brake System Up",
+                                "Bias Forward", "Inc Front ARB",
+                                "Brake Migration Forward"))
+                        except Exception:
+                            _have = False
                         # LMU acceso? il file bind si scrive SOLO a
                         # gioco chiuso (senno' li butta alla chiusura)
                         _run = False
@@ -555,7 +574,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                             _run = True
                         except Exception:
                             _run = False
-                        if _run:
+                        if _have:
+                            self._prefs["electric_control"] = True
+                            self._save_prefs()
+                            self._m3_msg = ("ELECTRIC ON (BINDS OK)",
+                                            time.monotonic())
+                        elif _run:
                             self._m3_msg = ("CLOSE LMU FIRST, "
                                             "THEN ENABLE",
                                             time.monotonic())
