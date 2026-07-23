@@ -1376,17 +1376,23 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         # stessa soglia: mai due comportamenti diversi)
         try:
             _leff = self._lico
+            _own_src = False
             if _leff < 0.015:
                 try:
                     _own9 = self._eco_lift_frac()
                     if _own9 is not None:
                         _leff = _own9
+                        _own_src = True
                 except Exception:
                     pass
             self._lico_eff = _leff
+            # BEEP: col NOSTRO lico suona AL PUNTO di rilascio (pieno),
+            # non all'inizio della rampa (collaudo 23/07: arrivava ~2s
+            # prima ovunque). Il nativo resta com'era (collaudato).
+            _thr_beep = 0.97 if _own_src else 0.03
             if _leff < 0.015:
                 self._lico_open = False
-            elif _leff >= 0.03 and not self._lico_open:
+            elif _leff >= _thr_beep and not self._lico_open:
                 self._lico_open = True
                 if self._lico_snd is None:
                     from PySide6.QtMultimedia import QSoundEffect
