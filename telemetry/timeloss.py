@@ -61,8 +61,20 @@ def _vmin_in(series, lds, d0, d1):
     return min(seg) if seg else None
 
 
-def corners_for(track, car_class, wet=False):
-    """Curve apprese dall'ingegnere, ordinate per lapdist."""
+def corners_for(track, car_class, wet=False, track_len=None):
+    """Curve per la matrice: PRIMA la GEOMETRIA della mappa SVG
+    (numerazione VERA da cartello: 6 curve al National = T1..T6);
+    le curve APPRESE solo come fallback (23/07 notte: al National
+    'curva 7/9/10' — erano segmenti appresi sporchi)."""
+    if track and track_len:
+        try:
+            from core.lico_points import map_turns
+            mt = map_turns(track, float(track_len))
+            if len(mt) >= 3:
+                return [{"d": float(e), "end": float(x),
+                         "brake_d": 60.0} for e, _lab, x in mt]
+        except Exception:
+            pass
     prof = _learn.load(track, car_class)
     cond = (prof.get("cond") or {}).get("wet" if wet else "dry") or {}
     cs = [c for c in (cond.get("corners") or []) if c.get("d") is not None]
@@ -75,14 +87,19 @@ def compute(con, lap, ref, track=None, car_class=None, corners=None,
 
     -> {lap, ref, total_s, straights_s, corners: [{corner, d, entry_s,
         exit_s, total_s, vmin, vmin_ref}]}  oppure None se dati scarsi."""
-    if corners is None:
-        corners = corners_for(track, car_class, wet)
     A = lap_series(con, lap)
     B = lap_series(con, ref)
-    if len(A) < 100 or len(B) < 100 or not corners:
+    if len(A) < 100 or len(B) < 100:
         return None
     ldsA = [q[0] for q in A]
     ldsB = [q[0] for q in B]
+    if corners is None:
+        # la lunghezza pista serve alla geometria mappa: la lapdist
+        # massima del giro E' la lunghezza (a un metro)
+        corners = corners_for(track, car_class, wet,
+                              track_len=max(ldsA[-1], ldsB[-1]))
+    if not corners:
+        return None
     lo = max(ldsA[0], ldsB[0])
     hi = min(ldsA[-1], ldsB[-1])
     if hi - lo < 500.0:

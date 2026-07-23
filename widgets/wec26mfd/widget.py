@@ -2347,6 +2347,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._lamp_t0 = None       # prossima accensione: nuovo lamp test
             if _mc0 is not None and _mc0.isVisible():
                 _mc0.hide()
+            _mc19 = getattr(self, "_minicar1", None)
+            if _mc19 is not None and _mc19.isVisible():
+                _mc19.hide()           # quadro staccato: TUTTO spento
             p.setPen(Qt.NoPen)
             p.setBrush(QColor(6, 7, 9))
             p.drawRect(scr)
@@ -2355,6 +2358,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         if boot < 3.0:
             if _mc0 is not None and _mc0.isVisible():
                 _mc0.hide()
+            _mc19 = getattr(self, "_minicar1", None)
+            if _mc19 is not None and _mc19.isVisible():
+                _mc19.hide()           # anche durante il boot
             p.setPen(Qt.NoPen)
             p.setBrush(QColor(6, 7, 9))
             p.drawRect(scr)

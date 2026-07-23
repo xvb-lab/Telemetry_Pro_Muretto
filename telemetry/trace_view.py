@@ -954,11 +954,30 @@ def _load_track_svg(track):
     base = Path(__file__).resolve().parent.parent / "settings" / "trackmap"
     if not base.exists():
         return None, []
+    def _norm9(s):
+        s = re.sub(r"#U([0-9a-fA-F]{4})",
+                   lambda m: chr(int(m.group(1), 16)), s).lower()
+        for w in ("grand prix", "circuit", "international",
+                  "raceway", "speedway", "the "):
+            s = s.replace(w, " ")
+        return re.sub(r"[^a-z0-9]+", "", s)
+
+    # match TOLLERANTE (23/07 notte): il nome LMU e il file SVG
+    # differiscono spesso solo per 'Circuit' e simili — il match
+    # esatto lasciava la geometria buona inutilizzata
+    _tn9 = _norm9(track)
     f = None
+    _best9 = -1
     for sv in base.glob("*.svg"):
-        name = re.sub(r"#U([0-9a-fA-F]{4})", lambda m: chr(int(m.group(1), 16)), sv.stem)
-        if name == track:
-            f = sv; break
+        _sn9 = _norm9(sv.stem)
+        if not _sn9 or not _tn9:
+            continue
+        if _sn9 == _tn9:
+            f = sv
+            break
+        if (_sn9 in _tn9 or _tn9 in _sn9) and len(_sn9) > _best9:
+            _best9 = len(_sn9)
+            f = sv
     if f is None:
         return None, []
     try:
