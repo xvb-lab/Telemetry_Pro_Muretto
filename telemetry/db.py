@@ -130,6 +130,13 @@ CREATE TABLE IF NOT EXISTS timeloss (
     vmin REAL, vmin_ref REAL,   -- velocita' minima in curva (km/h)
     PRIMARY KEY (lap, corner)
 );
+CREATE TABLE IF NOT EXISTS opponents (
+    lap INTEGER,            -- giro del GIOCATORE in quel momento
+    t   REAL,               -- stesso orologio dei samples (tempo nel giro)
+    cid INTEGER,            -- mID del rivale
+    x REAL, z REAL          -- posizione mondo (macchinine grigie replay)
+);
+CREATE INDEX IF NOT EXISTS idx_opp_lap ON opponents(lap);
 CREATE TABLE IF NOT EXISTS events (
     lap     INTEGER,
     t       REAL,               -- tempo dall'inizio giro (s)
@@ -233,6 +240,7 @@ class TelemetryDB:
         self._buf_sectors = []
         self._buf_samples = []
         self._buf_events = []
+        self._buf_opps = []
         self._buf_timeloss = []
 
     def _migrate(self):
@@ -279,6 +287,7 @@ class TelemetryDB:
     def add_sector(self, row):    self._buf_sectors.append(row)
     def add_sample(self, row):    self._buf_samples.append(row)
     def add_event(self, row):     self._buf_events.append(row)
+    def add_opponent(self, row):  self._buf_opps.append(row)
     def add_timeloss(self, row):  self._buf_timeloss.append(row)
 
     def _flush_table(self, table, cols, buf):
@@ -311,6 +320,7 @@ class TelemetryDB:
                  "w_fl", "w_fr", "w_rl", "w_rr",
                  "b_fl", "b_fr", "b_rl", "b_rr"]
     _EVT_COLS = ["lap", "t", "lapdist", "x", "z", "kind", "val"]
+    _OPP_COLS = ["lap", "t", "cid", "x", "z"]
     _TLM_COLS = ["lap", "ref", "corner", "d", "entry_s", "exit_s",
                  "total_s", "vmin", "vmin_ref"]
 
@@ -348,6 +358,7 @@ class TelemetryDB:
                                  ("sectors", self._SEC_COLS, self._buf_sectors),
                                  ("samples", self._SMP_COLS, self._buf_samples),
                                  ("events", self._EVT_COLS, self._buf_events),
+                                 ("opponents", self._OPP_COLS, self._buf_opps),
                                  ("timeloss", self._TLM_COLS, self._buf_timeloss)):
             if not buf:
                 continue
