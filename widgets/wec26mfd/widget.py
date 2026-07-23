@@ -3230,13 +3230,13 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         p.setPen(QColor(255, 255, 255, 240))
         _xr = _W / 2.0 - 72.0        # bordo destro del blocco
         if wsvg.isValid():
-            wsvg.render(p, QRectF(_xr - 44, gy + 18, 18, 18))
+            wsvg.render(p, QRectF(_xr - 46, gy + 18, 18, 18))
         if self._water is not None:
             p.drawText(QRectF(_xr - 40, gy + 18, 44, 18),
                        Qt.AlignRight | Qt.AlignVCenter,
                        "%.0f°C" % self._water)
         if osvg.isValid():
-            osvg.render(p, QRectF(_xr - 35, gy + 34, 18, 18))
+            osvg.render(p, QRectF(_xr - 37, gy + 34, 18, 18))
         if self._oil is not None:
             p.drawText(QRectF(_xr - 29, gy + 34, 44, 18),
                        Qt.AlignRight | Qt.AlignVCenter,
