@@ -10961,11 +10961,29 @@ class TelemetryWindow(QMainWindow):
         # del vecchio Donate/PayPal — il link resta lo stesso)
         _dl = QHBoxLayout(_dw); _dl.setContentsMargins(14, 4, 14, 4)
         _dl.setSpacing(7)
-        _pp = _SvgBox(); _pp.setFixedSize(20, 20)
+        # tazzina in un contenitore fisso: cosi' puo' SALTELLARE ogni
+        # 10 secondi senza spostare il layout (rich. 23/07 notte)
+        _ppwrap = QWidget(); _ppwrap.setFixedSize(20, 24)
+        _ppwrap.setStyleSheet("background:transparent;")
+        _pp = _SvgBox(_ppwrap); _pp.setGeometry(0, 4, 20, 20)
         _pp.setStyleSheet("background:transparent;")
         _pp.load(str(Path(__file__).resolve().parent.parent / "assets"
                      / "support_cup.svg"))
-        _dl.addWidget(_pp, 0, Qt.AlignVCenter)
+        _dl.addWidget(_ppwrap, 0, Qt.AlignVCenter)
+        from PySide6.QtCore import (QPropertyAnimation, QPoint,
+                                    QEasingCurve, QTimer as _QThop)
+        self._cup_anim = QPropertyAnimation(_pp, b"pos", self)
+        self._cup_anim.setDuration(700)
+        self._cup_anim.setStartValue(QPoint(0, 4))
+        self._cup_anim.setKeyValueAt(0.22, QPoint(0, -3))   # hop!
+        self._cup_anim.setKeyValueAt(0.45, QPoint(0, 4))
+        self._cup_anim.setKeyValueAt(0.62, QPoint(0, 0))    # hop piccolo
+        self._cup_anim.setEndValue(QPoint(0, 4))
+        self._cup_anim.setEasingCurve(QEasingCurve.OutQuad)
+        self._cup_timer = _QThop(self)
+        self._cup_timer.timeout.connect(
+            lambda: self._cup_anim.start())
+        self._cup_timer.start(10000)
         _dn = QLabel("Support me")
         _dn.setStyleSheet("color:#17181c;font-size:14px;font-weight:800;"
                           "background:transparent;")
