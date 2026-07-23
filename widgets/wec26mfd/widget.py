@@ -617,42 +617,32 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                      else "RADIO OFF"), time.monotonic())
                     self._page_beep()
                     self.update()
-                elif self._m3_sel == 4:    # TEST MODE (muretto adattivo)
-                    _seq = [None, "longrun", "racesim", "hotlap"]
-                    _cur4 = getattr(self, "_test_mode", None)
+                elif self._m3_sel == 4:    # TEST MODE (ciclo unico coi minuti)
+                    _seq = [(None, 0), ("longrun", 0), ("racesim", 30),
+                            ("racesim", 60), ("racesim", 90),
+                            ("racesim", 120), ("hotlap", 0)]
+                    _cur4 = (getattr(self, "_test_mode", None),
+                             getattr(self, "_test_min", 60)
+                             if getattr(self, "_test_mode", None)
+                             == "racesim" else 0)
                     _i4 = _seq.index(_cur4) if _cur4 in _seq else 0
                     _i4 = (_i4 + (1 if (b & _XI_DR) else -1)) % len(_seq)
-                    self._test_mode = _seq[_i4]
-                    engineer_cfg.save(test_mode=self._test_mode)
+                    self._test_mode, _mn4 = _seq[_i4]
+                    if self._test_mode == "racesim":
+                        self._test_min = _mn4
+                        engineer_cfg.save(test_mode=self._test_mode,
+                                          test_race_min=_mn4)
+                        _lbl4 = "RACE SIM %d MIN" % _mn4
+                    else:
+                        engineer_cfg.save(test_mode=self._test_mode)
+                        _lbl4 = {None: "TEST OFF",
+                                 "longrun": "LONG RUN - USES LICO",
+                                 "hotlap": "HOTLAP - PUSH!"}[self._test_mode]
                     self._ap_ts = time.monotonic()
-                    _lbl4 = {None: "TEST OFF",
-                             "longrun": "LONG RUN - SET TARGET LAPS",
-                             "racesim": "RACE SIM - SET MINUTES",
-                             "hotlap": "HOTLAP - PUSH!"}[self._test_mode]
                     self._m3_msg = (_lbl4, time.monotonic())
                     self._page_beep()
                     self.update()
-                elif self._m3_sel == 5:    # TEST TARGET (per la modalita')
-                    _tm5 = getattr(self, "_test_mode", None)
-                    if _tm5 == "longrun":
-                        self._m3_msg = ("LONG RUN USES LICO (ROW BELOW)",
-                                        time.monotonic())
-                    elif _tm5 == "racesim":
-                        _opts5 = [30, 60, 90, 120]
-                        _c5 = getattr(self, "_test_min", 60)
-                        _j5 = _opts5.index(_c5) if _c5 in _opts5 else 0
-                        _j5 = (_j5 + (1 if (b & _XI_DR) else -1)) % len(_opts5)
-                        self._test_min = _opts5[_j5]
-                        engineer_cfg.save(test_race_min=self._test_min)
-                        self._m3_msg = ("RACE SIM %d MIN" % self._test_min,
-                                        time.monotonic())
-                    else:
-                        self._m3_msg = ("SELECT A TEST MODE FIRST",
-                                        time.monotonic())
-                    self._ap_ts = time.monotonic()
-                    self._page_beep()
-                    self.update()
-                elif self._m3_sel == 7:    # LIGHTS: toggle fari (bind invisibile)
+                elif self._m3_sel == 6:    # LIGHTS: toggle fari (bind invisibile)
                     if getattr(self, "_prefs", {}).get("electric_control"):
                         _send_scancode(39)     # "Headlights" (DIK ;)
                         self._m3_msg = ("LIGHTS TOGGLE", time.monotonic())
@@ -661,7 +651,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                         time.monotonic())
                     self._page_beep()
                     self.update()
-                elif self._m3_sel == 8:    # WIPER: velocita' tergi
+                elif self._m3_sel == 7:    # WIPER: velocita' tergi
                     if getattr(self, "_prefs", {}).get("electric_control"):
                         _send_scancode(51 if (b & _XI_DR) else 52)
                         self._m3_msg = ("WIPER %s" %
@@ -715,7 +705,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             elif mod == 3:
                 # nel menu SETTINGS: sposta la voce selezionata
                 self._m3_sel = (self._m3_sel
-                                + (1 if (b & _XI_DD) else -1)) % 9
+                                + (1 if (b & _XI_DD) else -1)) % 8
                 self._page_beep()
                 self.update()
             elif self._ctrl_sel is not None:
@@ -2605,14 +2595,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         self._cfg_pull()
         # MENU VERO: voci reali con valore
         _tmv = getattr(self, "_test_mode", None)
-        _tm_lbl = {None: "OFF", "longrun": "LONG RUN",
-                   "racesim": "RACE SIM", "hotlap": "HOTLAP"}.get(_tmv, "OFF")
-        if _tmv == "longrun":
-            _tg_lbl = "-"                     # il long run usa la riga LICO
-        elif _tmv == "racesim":
-            _tg_lbl = "%d MIN" % getattr(self, "_test_min", 60)
+        if _tmv == "racesim":
+            _tm_lbl = "RACE SIM %d" % getattr(self, "_test_min", 60)
         else:
-            _tg_lbl = "-"
+            _tm_lbl = {None: "OFF", "longrun": "LONG RUN",
+                       "hotlap": "HOTLAP"}.get(_tmv, "OFF")
         ITEMS = (("SPEED UNIT",
                   self._prefs.get("speed_unit", "KPH")),
                  ("ELECTRIC CONTROL",
@@ -2623,7 +2610,6 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                  ("RADIO",
                   "ON" if self._radio_en else "OFF"),
                  ("TEST MODE", _tm_lbl),
-                 ("TEST TARGET", _tg_lbl),
                  ("LICO",
                   ("+%d LAPS" % getattr(self, "_eco_free", 0))
                   if getattr(self, "_eco_free", 0) else "OFF"),
@@ -2650,8 +2636,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _vc3 = QColor(255, 255, 255, 235)
             if i == 4 and vv != "OFF":
                 _vc3 = QColor("#2fa8e0")        # TEST: blu
-            elif i == 6 and vv != "OFF":
-                _vc3 = QColor("#00e676")        # ECO FREE: verde
+            elif i == 5 and vv != "OFF":
+                _vc3 = QColor("#00e676")        # LICO: verde
             p.setPen(QPen(_vc3))
             p.drawText(QRectF(700 * bx, ry, 570 * bx, lh),
                        Qt.AlignRight | Qt.AlignVCenter,
