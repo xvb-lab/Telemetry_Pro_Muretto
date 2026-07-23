@@ -1262,7 +1262,7 @@ class _LiveMap(QWidget):
         Layer accendibili dalla legenda cliccabile."""
         self._events = evts or []
         if not hasattr(self, "_ev_show"):
-            self._ev_show = {"contact": True, "tl": False, "lock": False}
+            self._ev_show = {"contact": True, "tl": False, "lock": True}
         self.update()
 
     @staticmethod
@@ -1762,11 +1762,13 @@ class _LiveMap(QWidget):
             _cnt9 = {}
             for _k9, _x9, _z9 in _evs9:
                 _cnt9[_k9] = _cnt9.get(_k9, 0) + 1
-            _EVL = (("contact", "Contatti", "#ff5a4d"),
-                    ("tl", "Tagli", "#ff9f2e"),
-                    ("lock", "Bloccaggi", "#ffe24d"))
+            # etichette in INGLESE (l'app e' EN) — rich. 23/07;
+            # verticale dall'ALTO a scendere, sotto la legenda giri
+            _EVL = (("contact", "Contacts", "#ff5a4d"),
+                    ("tl", "Cuts", "#ff9f2e"),
+                    ("lock", "Lock-ups", "#ffe24d"))
             _ex9 = 12.0
-            _ey9 = float(self.height()) - 18.0
+            _ey9 = 34.0
             f9l = p.font()
             f9l.setBold(False)
             f9l.setPointSize(8)
@@ -1788,7 +1790,7 @@ class _LiveMap(QWidget):
                 p.setPen(QColor(235, 238, 245, 235 if _on9 else 120))
                 p.drawText(QPointF(_ex9 + 16.0, _ey9 + 9.0), _txt9)
                 self._ev_hit[_k9] = _rect9
-                _ex9 += _rect9.width() + 6.0
+                _ey9 += 22.0
         for which, label, col in items:
             cxp, cyp = x + 6, 12
             p.setPen(QPen(QColor("#09090b"), 1)); p.setBrush(col)
@@ -2686,7 +2688,7 @@ class _WorksheetTab(QWidget):
         root.addWidget(_prow)                # fisso, sopra lo scroll
         from PySide6.QtCore import QTimer as _QT
         self._rp_timer = _QT(self)
-        self._rp_timer.setInterval(33)               # ~30 fps
+        self._rp_timer.setInterval(16)               # ~60 fps: replay fluido
         self._rp_timer.timeout.connect(self._rp_tick)
         self._rp_t = 0.0
         self._rp_ta = []; self._rp_tb = []           # (t_rel, lapdist)
@@ -3003,7 +3005,7 @@ class _WorksheetTab(QWidget):
         self._rp_ia = 0; self._rp_ib = 0
 
     def _cycle_speed(self):
-        _seq = [1.0, 2.0, 4.0, 0.5]
+        _seq = [1.0, 2.0, 4.0, 8.0, 0.5]     # +8x (rich. 23/07)
         try:
             i = _seq.index(self._rp_speed)
         except ValueError:
