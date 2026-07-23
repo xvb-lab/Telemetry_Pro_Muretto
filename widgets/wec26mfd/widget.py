@@ -307,9 +307,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                             headers={"Accept": "application/json"}),
                             timeout=0.4) as r:
                         self._pit_est = _js.loads(r.read())
+                    self._pit_est_t = _tt.monotonic()
                 except Exception:
                     pass
-                _tt.sleep(2.0)
+                # durante la sosta il rimanente cala in fretta: poll fitto
+                _tt.sleep(1.0 if getattr(self, "_pit_t0", None) is not None
+                          else 2.0)
         import threading as _th9
         _th9.Thread(target=_wear_loop, daemon=True).start()
         self._pit_est = None       # stima sosta (dalla corsia lenta sopra)
@@ -2774,21 +2777,43 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _big.setWeight(QFont.Bold)
             p.setFont(_big)
             if _stopping:
-                _rem = _tot9 - self._pit_run
-                if _tot9 > 0.05 and _rem >= 0.0:
-                    p.setPen(QPen(QColor("#ffb020")))       # ambra: scorre
+                # La stima REST e' il LAVORO RIMANENTE, LIVE (test 23/07:
+                # cala a gradini man mano che la squadra finisce le fasi,
+                # sequenziali: rifornimento -> gomme). Quindi il numero
+                # grande E' il rimanente di LMU, interpolato liscio tra un
+                # poll e l'altro. Niente piu' doppio conteggio col crono.
+                _age9 = time.monotonic() - getattr(self, "_pit_est_t", 0.0)
+                _rem = max(0.0, _tot9 - min(_age9, 3.0))
+                if _rem > 0.05:
+                    p.setPen(QPen(QColor("#ffb020")))       # ambra: lavori
                     _bt = "%.1f" % _rem
-                elif _tot9 > 0.05:
-                    p.setPen(QPen(QColor("#ff2b2b")))       # oltre stima
-                    _bt = "+%.1f" % (-_rem)
+                    self._pit_zero_t = None
                 else:
-                    p.setPen(QPen(QColor("#ffb020")))       # senza stima
-                    _bt = "%.1f" % self._pit_run
+                    # lavori finiti e ancora fermo: overtime (semaforo,
+                    # penalita' in scomputo, coda in corsia)
+                    if getattr(self, "_pit_zero_t", None) is None:
+                        self._pit_zero_t = time.monotonic()
+                    _ovr = time.monotonic() - self._pit_zero_t
+                    if _ovr < 2.0:
+                        p.setPen(QPen(QColor("#00e676")))   # verde: via!
+                        _bt = "0.0"
+                    else:
+                        p.setPen(QPen(QColor("#ff2b2b")))
+                        _bt = "+%.1f" % _ovr
             else:
+                self._pit_zero_t = None
                 p.setPen(QPen(QColor(255, 255, 255, 235)))
                 _bt = "%.1f" % _tot9
             p.drawText(QRectF(_px0, 112.0, _px1 - _px0, 42.0),
                        Qt.AlignCenter, _bt + "s")
+            if _stopping and self._pit_run > 0.2:
+                f.setPixelSize(11)
+                f.setWeight(QFont.Medium)
+                p.setFont(f)
+                p.setPen(QPen(QColor(255, 255, 255, 150)))
+                p.drawText(QRectF(_px0, 152.0, _px1 - _px0, 14.0),
+                           Qt.AlignCenter,
+                           "ELAPSED %.1fs" % self._pit_run)
             # scomposizione: solo le voci > 0, dalla piu' pesante
             _LBL = (("ve", "ENERGY"), ("fuel", "FUEL"),
                     ("tires", "TYRES"), ("damage", "DAMAGE"),
