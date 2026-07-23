@@ -2198,6 +2198,24 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.drawText(QRectF(_lx, cy + 1.0, _CW, 15),
                                Qt.AlignHCenter | Qt.AlignVCenter,
                                "%d%%" % int(round(wear[wi] * 100)))
+                # PRESSIONE (kPa) e TEMP FRENO per ruota (rich. 23/07):
+                # pressione bianca tenue, freno col gradiente collaudato
+                # della minicar (carbon/acciaio per classe)
+                _pr9 = (self._press4[wi]
+                        if isinstance(self._press4, list)
+                        and self._press4[wi] else None)
+                if _pr9:
+                    p.setPen(QColor(255, 255, 255, 150))
+                    p.drawText(QRectF(_lx, cy + 16.0, _CW, 15),
+                               Qt.AlignHCenter | Qt.AlignVCenter,
+                               "%d" % int(round(_pr9)))
+                _bk9 = getattr(self, "_brk4", None)
+                if _bk9 and _bk9[wi] is not None and _bk9[wi] > -100:
+                    p.setPen(mc._brake_grad_color(
+                        int(round(_bk9[wi])), _tag))
+                    p.drawText(QRectF(_lx, cy + 31.0, _CW, 15),
+                               Qt.AlignHCenter | Qt.AlignVCenter,
+                               "%d°" % int(round(_bk9[wi])))
                 _ccx = _lx - 30.0 if side < 0 else _lx + _CW + 4.0
                 _sg9 = (_sgf if wi < 2 else _sgr) or _sig4.get(_co4[wi])
                 if _sg9:
@@ -3160,15 +3178,30 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawText(QRectF(_xr - 29, gy + 34, 44, 18),
                            Qt.AlignRight | Qt.AlignVCenter,
                            "%.0f°C" % self._oil)
-            # NUMERO energia/benzina sotto l'olio (senza %), colore
-            # della barra (blu VE / rosa fuel / rosso riserva)
+            # NUMERO energia/benzina sotto l'olio: BIANCO con l'icona
+            # carburante BIANCA a sinistra (rich. 23/07), come acqua/olio
             _bp9 = getattr(self, "_bar_pct9", None)
             if _bp9:
-                p.setPen(QColor(_bp9[1]))
+                if not hasattr(self, "_svg_fuel_w9"):
+                    try:
+                        from PySide6.QtSvg import QSvgRenderer as _QSRf2
+                        from PySide6.QtCore import QByteArray as _QBAf2
+                        import re as _re2
+                        _tf2 = (_ROOT / "assets" / "icons"
+                                / "fuel_spia.svg").read_text(
+                                    encoding="utf-8")
+                        _tf2 = _re2.sub(r"#[0-9a-fA-F]{6}",
+                                        "#ffffff", _tf2)
+                        self._svg_fuel_w9 = _QSRf2(_QBAf2(_tf2.encode()))
+                    except Exception:
+                        self._svg_fuel_w9 = None
+                if getattr(self, "_svg_fuel_w9", None) is not None:
+                    self._svg_fuel_w9.render(
+                        p, QRectF(_xr - 27, gy + 51, 16, 16))
+                p.setPen(QColor(255, 255, 255, 240))
                 p.drawText(QRectF(_xr - 21, gy + 50, 44, 18),
                            Qt.AlignRight | Qt.AlignVCenter,
                            "%d" % _bp9[0])
-                p.setPen(QColor(255, 255, 255, 240))
         except Exception:
             pass
         # SPIE a destra del cerchio (speculari ad acqua/olio):
@@ -3658,7 +3691,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setPen(Qt.NoPen)
                 p.setBrush(QColor(160, 164, 174, 70))
                 p.drawRect(rr)
+            # BOLD nomi e numeri: il font fino sgranava (rich. 23/07)
             f_l.setPixelSize(8)
+            f_l.setWeight(QFont.Bold)
             p.setFont(f_l)
             p.setPen(QColor(255, 255, 255, 200))
             p.drawText(QRectF(rx, y + 3, bw, 10), Qt.AlignCenter, lbl)
