@@ -1247,11 +1247,22 @@ class _LiveMap(QWidget):
         self._hi = self._nearest_ld(self._scrub_pts, ld)
         self.update()
 
-    def set_play_pos(self, ld_a, ld_b):
+    def set_play_pos(self, ld_a, ld_b, gap=None):
         """REPLAY: posizioni INDIPENDENTI dei due giri (il confronto sta dove
         lo porta il SUO tempo, non alla stessa lapdist). None = replay spento,
-        si torna al cursore normale."""
+        si torna al cursore normale. gap = distacco in secondi alla
+        posizione della macchinina (rich. 23/07): +dietro / -davanti."""
         self._play_ld = None if ld_a is None else (ld_a, ld_b)
+        self._play_gap = gap
+        self.update()
+
+    def set_events(self, evts):
+        """MARKER EVENTI sulla mappa (cantiere 23/07): [(kind, x, z)]
+        con kind in contact|tl|lock — tabella events del recorder.
+        Layer accendibili dalla legenda cliccabile."""
+        self._events = evts or []
+        if not hasattr(self, "_ev_show"):
+            self._ev_show = {"contact": True, "tl": False, "lock": False}
         self.update()
 
     @staticmethod
@@ -1672,6 +1683,36 @@ class _LiveMap(QWidget):
             else:
                 p.drawEllipse(c, dot_r, dot_r)
 
+        # ── MARKER EVENTI (contatti/tagli/bloccaggi): sotto i dot,
+        # sopra le traiettorie — layer dalla legenda cliccabile ──
+        _evs = getattr(self, "_events", None) or []
+        _evshow = getattr(self, "_ev_show", None) or {}
+        if _evs:
+            for _kind, _ex, _ez in _evs:
+                if not _evshow.get(_kind):
+                    continue
+                c9 = P(_ex, _ez)
+                if _kind == "contact":
+                    p.setPen(QPen(QColor("#ff5a4d"), 2.0))
+                    p.setBrush(Qt.NoBrush)
+                    p.drawEllipse(c9, 5.0, 5.0)
+                    p.drawLine(QPointF(c9.x() - 2.5, c9.y() - 2.5),
+                               QPointF(c9.x() + 2.5, c9.y() + 2.5))
+                    p.drawLine(QPointF(c9.x() - 2.5, c9.y() + 2.5),
+                               QPointF(c9.x() + 2.5, c9.y() - 2.5))
+                elif _kind == "tl":
+                    from PySide6.QtGui import QPolygonF as _QPFe
+                    p.setPen(Qt.NoPen)
+                    p.setBrush(QColor("#ff9f2e"))
+                    p.drawPolygon(_QPFe([
+                        QPointF(c9.x(), c9.y() - 5.0),
+                        QPointF(c9.x() - 4.5, c9.y() + 3.5),
+                        QPointF(c9.x() + 4.5, c9.y() + 3.5)]))
+                else:                                   # lock
+                    p.setPen(Qt.NoPen)
+                    p.setBrush(QColor("#ffe24d"))
+                    p.drawEllipse(c9, 3.0, 3.0)
+
         # dot INTERPOLATI (pa/pb calcolati in alto); indice solo di riserva
         if pb is not None:
             dot(pb, cmp_c, _mk_ang(getattr(self, "_cmp_srt", None), _ld_b))
@@ -1681,6 +1722,22 @@ class _LiveMap(QWidget):
                         cmp[hi_cmp][2] if len(cmp[hi_cmp]) > 2 else None))
         if pa is not None:
             dot(pa, sel_c, _mk_ang(getattr(self, "_sel_srt", None), _ld_a))
+            # DELTA accanto alla macchinina nel replay (cantiere 23/07):
+            # +sei dietro il confronto / -sei davanti, alla stessa posizione
+            _pg = getattr(self, "_play_gap", None)
+            if _pg is not None and getattr(self, "_play_ld", None):
+                c9 = P(pa[0], pa[1])
+                f9 = p.font()
+                f9.setBold(True)
+                f9.setPointSize(9)
+                p.setFont(f9)
+                _gt = "%+.2f" % _pg
+                p.setPen(QColor(0, 0, 0, 220))
+                p.drawText(QPointF(c9.x() + 13.0, c9.y() - 9.0), _gt)
+                p.setPen(QColor("#ff5a4d") if _pg > 0.02
+                         else QColor("#37d67a") if _pg < -0.02
+                         else QColor(235, 238, 245))
+                p.drawText(QPointF(c9.x() + 12.0, c9.y() - 10.0), _gt)
         elif hi_sel is not None and 0 <= hi_sel < len(sel):
             dot(sel[hi_sel], sel_c,
                 _mk_ang(getattr(self, "_sel_srt", None),
@@ -1696,6 +1753,42 @@ class _LiveMap(QWidget):
         if cmp:
             items.append(("cmp", self._lb, cmp_c))
         items.append(("track", "Track", trk_c))
+        # ── LEGENDA EVENTI cliccabile (cantiere 23/07): chip che
+        # accendono/spengono i layer contatti/tagli/bloccaggi ──
+        self._ev_hit = {}
+        _evs9 = getattr(self, "_events", None) or []
+        if _evs9:
+            _evshow9 = getattr(self, "_ev_show", None) or {}
+            _cnt9 = {}
+            for _k9, _x9, _z9 in _evs9:
+                _cnt9[_k9] = _cnt9.get(_k9, 0) + 1
+            _EVL = (("contact", "Contatti", "#ff5a4d"),
+                    ("tl", "Tagli", "#ff9f2e"),
+                    ("lock", "Bloccaggi", "#ffe24d"))
+            _ex9 = 12.0
+            _ey9 = float(self.height()) - 18.0
+            f9l = p.font()
+            f9l.setBold(False)
+            f9l.setPointSize(8)
+            p.setFont(f9l)
+            for _k9, _lab9, _col9 in _EVL:
+                if not _cnt9.get(_k9):
+                    continue
+                _on9 = bool(_evshow9.get(_k9))
+                _txt9 = "%s %d" % (_lab9, _cnt9[_k9])
+                _tw9 = p.fontMetrics().horizontalAdvance(_txt9)
+                _rect9 = QRectF(_ex9, _ey9 - 4.0, 14.0 + _tw9 + 10.0,
+                                18.0)
+                p.setPen(Qt.NoPen)
+                p.setBrush(QColor(20, 24, 32, 200 if _on9 else 120))
+                p.drawRoundedRect(_rect9, 4, 4)
+                p.setBrush(QColor(_col9) if _on9
+                           else QColor(120, 126, 138, 140))
+                p.drawEllipse(QPointF(_ex9 + 8.0, _ey9 + 5.0), 4.0, 4.0)
+                p.setPen(QColor(235, 238, 245, 235 if _on9 else 120))
+                p.drawText(QPointF(_ex9 + 16.0, _ey9 + 9.0), _txt9)
+                self._ev_hit[_k9] = _rect9
+                _ex9 += _rect9.width() + 6.0
         for which, label, col in items:
             cxp, cyp = x + 6, 12
             p.setPen(QPen(QColor("#09090b"), 1)); p.setBrush(col)
@@ -1820,6 +1913,14 @@ class _LiveMap(QWidget):
             self._pan_start = (e.position(), tuple(self._pan_off))
             self.setCursor(Qt.ClosedHandCursor)
             return
+        # legenda EVENTI: click sul chip accende/spegne il layer
+        for _k9, rect in (getattr(self, "_ev_hit", None) or {}).items():
+            if rect.contains(e.position()):
+                _sh = getattr(self, "_ev_show", None) or {}
+                _sh[_k9] = not _sh.get(_k9)
+                self._ev_show = _sh
+                self.update()
+                return
         if self._review and self.color_cb is not None:
             for which, rect in self._dot_hit.items():
                 if rect.contains(e.position()):
@@ -2946,7 +3047,16 @@ class _WorksheetTab(QWidget):
         if ld_a is None and ld_b is None:              # entrambi al traguardo
             self._stop_play()
             return
-        self.map_w.set_play_pos(ld_a if ld_a is not None else ld_b, ld_b)
+        # DELTA accanto alla macchinina (cantiere 23/07): quando il
+        # confronto passa dalla STESSA posizione, il distacco e'
+        # (tempo mio qui) - (tempo suo qui): + = sono dietro
+        _gap9 = None
+        if ld_a is not None and self._rp_tb:
+            _tb9 = self._t_at_ld(self._rp_tb, ld_a)
+            if _tb9 is not None:
+                _gap9 = (self._rp_t - _off) - _tb9
+        self.map_w.set_play_pos(ld_a if ld_a is not None else ld_b,
+                                ld_b, _gap9)
         # i grafici seguono il giro SELEZIONATO (cursore + readout)
         if ld_a is not None:
             for ch in self.charts:
@@ -3064,6 +3174,18 @@ class _WorksheetTab(QWidget):
         self.map_w.set_review(self._xz(self._sel),
                               self._xz(cmp_lap, con=cmp_con) if cmp_lap is not None else [],
                               self._la, self._lb)
+        # MARKER EVENTI sulla mappa (cantiere 23/07): contatti/tagli/
+        # bloccaggi di TUTTA la sessione, layer dalla legenda cliccabile
+        try:
+            _con9 = getattr(self.data, "con", None)
+            if _con9 is not None:
+                _ev9 = _con9.execute(
+                    "SELECT kind, x, z FROM events"
+                    " WHERE x IS NOT NULL AND z IS NOT NULL").fetchall()
+                self.map_w.set_events(
+                    [(str(k), float(x), float(z)) for k, x, z in _ev9])
+        except Exception:
+            pass
         self._update_read(None)
 
     def _on_scrub(self, ld):
