@@ -3411,12 +3411,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawText(QRectF(_xr2 - 26, gy + 50, 44, 18),
                            Qt.AlignLeft | Qt.AlignVCenter, _t9f)
                 try:
-                    if not hasattr(self, "_flag_rnd"):
+                    from PySide6.QtSvg import QSvgRenderer as _QSRfl
+                    from PySide6.QtCore import QByteArray as _QBAfl
+                    if not hasattr(self, "_flag_rnd9"):
                         from ui.icons import FLAG_SVG
-                        self._flag_rnd = QSvgRenderer(
-                            QByteArray(FLAG_SVG.encode()))
+                        self._flag_rnd9 = _QSRfl(
+                            _QBAfl(FLAG_SVG.encode()))
                     _fw9 = QFontMetricsF(p.font())                        .horizontalAdvance(_t9f)
-                    self._flag_rnd.render(
+                    self._flag_rnd9.render(
                         p, QRectF(_xr2 - 26 + _fw9 + 5, gy + 51,
                                   14, 14))
                 except Exception:
