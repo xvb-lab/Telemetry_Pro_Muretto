@@ -1787,17 +1787,23 @@ class Engineer:
         # SOLO dentro il box, motore acceso
         if not raw.get("garage") or rpm < 300.0:
             self._st.pop("pl_state", None)
-            self._st.pop("pl_dist", None)
+            self._st.pop("pl_pos", None)
             return []
         tm = raw.get("traffic_map") or {}
         pl = tm.get("player") or {}
         px, pz = pl.get("x"), pl.get("z")
         if px is None or pz is None:
             return []
-        prevd = self._st.get("pl_dist") or {}
-        curd = {}
+        px, pz = float(px), float(pz)
+        prevp = self._st.get("pl_pos") or {}
+        curp = {}
         threat = False
-        # auto che PERCORRONO la corsia (in_pits, in movimento) vicine a te
+        # auto che PERCORRONO la corsia (in_pits, in movimento) vicine a te.
+        # BUG 23/07 notte ("mi dice aspetta ma la corsia e' vuota"): chi
+        # ESCE dai box resta in_pits fino a fine linea di uscita, che
+        # corre SULLA pista davanti ai garage -> falso allarme. Filtro
+        # CORRIDOIO: conta solo chi, proseguendo dritto, ti passa a meno
+        # di 15 metri (la corsia); chi sfila sul tracciato passa a 25-40m.
         for c in (tm.get("cars") or []):
             if c.get("is_player") or c.get("garage"):
                 continue                              # nel proprio box: a parte
@@ -1808,16 +1814,26 @@ class Engineer:
             cx, cz = c.get("x"), c.get("z")
             if cx is None or cz is None:
                 continue
-            d = ((float(cx) - float(px)) ** 2
-                 + (float(cz) - float(pz)) ** 2) ** 0.5
+            cx, cz = float(cx), float(cz)
             cid = c.get("id")
-            curd[cid] = d
-            if d > 200.0:
+            curp[cid] = (cx, cz)
+            d = ((cx - px) ** 2 + (cz - pz) ** 2) ** 0.5
+            if d > 120.0:                             # vicine davvero (~100m)
                 continue
-            pd = prevd.get(cid)
-            if pd is not None and d < pd - 0.15:      # in avvicinamento (conferma)
+            pp = prevp.get(cid)
+            if pp is None:
+                continue
+            vx, vz = cx - pp[0], cz - pp[1]
+            vm = (vx * vx + vz * vz) ** 0.5
+            if vm < 0.05:
+                continue
+            rx, rz = px - cx, pz - cz
+            if (vx * rx + vz * rz) / vm < 0.15:       # non viene verso di te
+                continue
+            perp = abs(vx * rz - vz * rx) / vm        # a che distanza ti passa
+            if perp <= 15.0:
                 threat = True
-        self._st["pl_dist"] = curd
+        self._st["pl_pos"] = curp
 
         prev = self._st.get("pl_state")
         if threat:
@@ -5229,6 +5245,39 @@ class Engineer:
         except Exception:
             pass
         return out
+
+    def engine_health_call(self, raw):
+        """ESCALATION salute motore: oltre la spia (engine_over, 3s),
+        se il surriscaldamento ACCUMULA nello stint (>=25s totali)
+        parla una volta con causa e rimedio. Reset al box."""
+        raw = raw or {}
+        st = self._st.setdefault("eh", {})
+        if raw.get("garage") or raw.get("in_pits"):
+            st.clear()
+            return []
+        _now = _time.monotonic()
+        _prev = st.get("t")
+        st["t"] = _now
+        if not raw.get("overheating"):
+            return []
+        if _prev is not None and _now - _prev < 3.0:
+            st["acc"] = st.get("acc", 0.0) + (_now - _prev)
+        if st.get("said") or st.get("acc", 0.0) < 25.0:
+            return []
+        st["said"] = True
+        _wt = self._fnum(raw.get("eng_water")) or 0.0
+        _ot = self._fnum(raw.get("eng_oil")) or 0.0
+        if _ot >= 130.0 and _ot - 130.0 >= _wt - 110.0:
+            _cosa = self._L("l'olio oltre i centotrenta",
+                            "oil above one thirty",
+                            "el aceite por encima de ciento treinta",
+                            "l'huile au-dessus de cent trente")
+        else:
+            _cosa = self._L("l'acqua oltre i centodieci",
+                            "water above one ten",
+                            "el agua por encima de ciento diez",
+                            "l'eau au-dessus de cent dix")
+        return [self.msg("engine_suffer", cosa=_cosa)]
 
     def penalty_call(self, raw):
         """PENALITA' DEL PILOTA v2 (23/07 notte): TIPO e MOTIVO dal

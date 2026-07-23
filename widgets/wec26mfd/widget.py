@@ -669,7 +669,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                              == "racesim" else 0)
                     _i4 = _seq.index(_cur4) if _cur4 in _seq else 0
                     _i4 = (_i4 + (1 if (b & _XI_DR) else -1)) % len(_seq)
+                    _was_lr4 = (_cur4[0] == "longrun")
                     self._test_mode, _mn4 = _seq[_i4]
+                    # LICO AGGANCIATO AL TEST (rich. 23/07 notte): il
+                    # Long Run coach'a "lico +2" -> il chip LICO del
+                    # dash si accende DA SOLO su +2; uscendo dal Long
+                    # Run si rispegne (l'eco a mano resta suo, riga 6)
+                    if self._test_mode == "longrun":
+                        self._eco_free = 2
+                        engineer_cfg.save(eco_free=2)
+                    elif _was_lr4:
+                        self._eco_free = 0
+                        engineer_cfg.save(eco_free=0)
                     if self._test_mode == "racesim":
                         self._test_min = _mn4
                         engineer_cfg.save(test_mode=self._test_mode,
@@ -678,7 +689,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     else:
                         engineer_cfg.save(test_mode=self._test_mode)
                         _lbl4 = {None: "TEST OFF",
-                                 "longrun": "LONG RUN - USES LICO",
+                                 "longrun": "LONG RUN - LICO +2",
                                  "hotlap": "HOTLAP - PUSH!"}[self._test_mode]
                     self._ap_ts = time.monotonic()
                     self._m3_msg = (_lbl4, time.monotonic())

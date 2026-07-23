@@ -8643,6 +8643,20 @@
       "en": "And opening the brake ducts, they ran hot.",
       "es": "Y abro los conductos de freno.",
       "fr": "Et j ouvre les ecopes de frein."
+    },
+    "engine_suffer": {
+      "cat": "motore",
+      "level": "critical",
+      "beep": true,
+      "it": "Il motore sta soffrendo: {cosa} da troppo tempo. Gestisci i giri e alla sosta apriamo la griglia.",
+      "variants_it": [
+        "Il motore sta soffrendo: {cosa} da troppo tempo. Gestisci i giri e alla sosta apriamo la griglia.",
+        "Temperature motore fuori scala, {cosa}: cambia marcia prima e dagli aria, non possiamo romperlo.",
+        "Attenzione al motore: {cosa}. Alza il cambio marcia e in sosta piu' raffreddamento."
+      ],
+      "en": "The engine is suffering: {cosa} for too long. Short-shift and we open the grille at the stop.",
+      "es": "El motor esta sufriendo: {cosa}. Cambia antes de marcha y en la parada abrimos la rejilla.",
+      "fr": "Le moteur souffre: {cosa}. Passe les rapports plus tot et on ouvre la calandre a l'arret."
     }
   }
 }

@@ -370,6 +370,7 @@ def _collect(brain, raw, ld, pace):
         (brain.rain_pace_call, (raw, ld)),        # slick sotto pioggia: passo crollato
         (brain.setup_advice_call, (raw, ld)),     # assetto-consapevole: bias/ala/garage (23/07)
         (brain.penalty_call, (raw,)),             # STOP&GO del pilota dal pit menu (23/07)
+        (brain.engine_health_call, (raw,)),       # salute motore: escalation surriscaldo (23/07)
         # (brain.welcome_call TOLTO: il benvenuto aveva rotto, 23/07)
         (brain.stint_debrief, (raw, ld)),         # debrief a voce a fine stint (garage)
         # 🔵 STRATEGY

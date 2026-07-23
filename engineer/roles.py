@@ -26,7 +26,7 @@ _role(["brief_strat_data", "brief_strat_new",
        "garage_wrong_tyre", "tyre_stock"], "strategist")
 _role(["brief_spot", "pit_exit_clean", "pit_exit_fast", "pit_exit_hole",
        "pit_exit_traffic", "pit_release_wait", "pit_release_clear"], "spotter")
-_role(["contact_ok_dmgd"], "engineer")
+_role(["contact_ok_dmgd", "engine_suffer"], "engineer")
 _role(["boxprep_press", "boxprep_press_one", "boxprep_wing",
        "boxprep_duct"], "strategist")
 _role(["contact_ok", "contact_who", "contact_ok_who",
@@ -93,23 +93,16 @@ def role_for(code):
 
 
 # ── ruolo -> voce edge-tts per lingua ─────────────────────────────────────
-# FORMAZIONE 23/07 (provino con l'utente, voci Multilingual = modello
-# nuovo, gratis come le vecchie): Florian ingegnere di gara (tedesco), Remy stratega (accento
-# francese, Le Mans), Ava performance. Scambio provato 23/07.
-# Le Multilingual parlano OGNI lingua: stessa voce su it/en/es/fr.
+# DEFAULT = MADRELINGUA FISSI (rich. 23/07 notte: le Multilingual online
+# ogni tanto scivolano in un accento incomprensibile — Giuseppe/Diego/
+# Isabella come prima). Le Multilingual restano nel menu per chi le vuole.
 ROLE_VOICES = {
-    "engineer":   {"it": "de-DE-FlorianMultilingualNeural",
-                   "en": "de-DE-FlorianMultilingualNeural",
-                   "es": "de-DE-FlorianMultilingualNeural",
-                   "fr": "de-DE-FlorianMultilingualNeural"},
-    "strategist": {"it": "fr-FR-RemyMultilingualNeural",
-                   "en": "fr-FR-RemyMultilingualNeural",
-                   "es": "fr-FR-RemyMultilingualNeural",
-                   "fr": "fr-FR-RemyMultilingualNeural"},
-    "spotter":    {"it": "en-US-AvaMultilingualNeural",
-                   "en": "en-US-AvaMultilingualNeural",
-                   "es": "en-US-AvaMultilingualNeural",
-                   "fr": "en-US-AvaMultilingualNeural"},
+    "engineer":   {"it": "it-IT-GiuseppeNeural", "en": "en-GB-RyanNeural",
+                   "es": "es-ES-AlvaroNeural",   "fr": "fr-FR-HenriNeural"},
+    "strategist": {"it": "it-IT-DiegoNeural",    "en": "en-US-ChristopherNeural",
+                   "es": "es-MX-JorgeNeural",     "fr": "fr-CA-JeanNeural"},
+    "spotter":    {"it": "it-IT-IsabellaNeural", "en": "en-GB-SoniaNeural",
+                   "es": "es-ES-ElviraNeural",    "fr": "fr-FR-DeniseNeural"},
 }
 
 ROLE_LABEL = {
