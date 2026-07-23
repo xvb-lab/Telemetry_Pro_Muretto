@@ -39,3 +39,6 @@ desktop.ini
 
 # Tooling locale Claude Code (config di macchina, non parte dell'app)
 .claude/
+
+# libri con copyright: restano LOCALI, mai su GitHub
+docs/_libro_*.pdf
