@@ -5104,25 +5104,13 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                      (_zp.get("points") or [])]
             except Exception:
                 self._eco_lmu_pts = []
-            # 2) fallback: curve apprese, ma SOLO frenate vere (drop
-            #    >= 30 km/h — la Curva Grande non e' un punto lico)
-            if not self._eco_lmu_pts:
-                try:
-                    from core import engineer_learn as _el
-                    from core.classes import class_tag as _ct
-                    prof = _el.load(_key[0], _ct(_key[1]) or _key[1])
-                    cs = ((prof.get("cond") or {}).get("dry") or {}) \
-                        .get("corners") or []
-                    self._eco_corners = [
-                        (float(c["d"]),
-                         min(max(float(c.get("brake_d") or 60.0),
-                                 25.0), 300.0))
-                        for c in cs
-                        if c.get("d") is not None
-                        and float(c.get("drop") or 0.0) >= 30.0]
-                except Exception:
-                    self._eco_corners = []
-        if not self._eco_corners and not getattr(self, "_eco_lmu_pts", None):
+            # NIENTE fallback dalle curve apprese (verificato 23/07:
+            # dati sporchi — brake_d 649m alla Parabolica, veleggiate
+            # nel traffico lette come frenate -> chiamate a caso, il
+            # famoso "meta' Curva Grande"). SENZA calibrazione i LED
+            # eco stanno MUTI: si calibra con 1-2 giri di eco NATIVO
+            # LMU (+1) e da li' i punti sono quelli veri.
+        if not getattr(self, "_eco_lmu_pts", None):
             return None
         # margine adattivo dal muretto (eco_state.json: used vs target)
         if _now - getattr(self, "_eco_rt", 0.0) > 1.0:
@@ -5144,30 +5132,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         _adat = min(max((_ratio - 1.0) * 200.0, -40.0), 40.0)
         _pts = getattr(self, "_eco_lmu_pts", None) or []
         best = None
-        if _pts:
-            # PUNTI VERI DI LMU: il punto registrato E' il rilascio al
-            # livello di calibrazione (+1). Ogni livello in piu' anticipa
-            # di ~50m; l'adattivo rifinisce.
-            _ant = 50.0 * (_lvl - 1) + _adat
-            for d in _pts:
-                lift = d - _ant
-                past = (ld - lift) % tl
-                if past < 160.0 + 50.0 * (_lvl - 1):
-                    return 1.0            # in zona rilascio: PIENO
-                dl = (lift - ld) % tl
-                if best is None or dl < best:
-                    best = dl
-        else:
-            margin = min(max(150.0 + 50.0 * (_lvl - 1) + _adat,
-                             100.0), 380.0)
-            for d, bd in self._eco_corners:
-                lift = d - bd - margin
-                past = (ld - lift) % tl
-                if past < margin + 20.0:
-                    return 1.0
-                dl = (lift - ld) % tl
-                if best is None or dl < best:
-                    best = dl
+        # PUNTI VERI DI LMU: il punto registrato E' il rilascio al
+        # livello di calibrazione (+1). Ogni livello in piu' anticipa
+        # di ~50m; l'adattivo rifinisce.
+        _ant = 50.0 * (_lvl - 1) + _adat
+        for d in _pts:
+            lift = d - _ant
+            past = (ld - lift) % tl
+            if past < 160.0 + 50.0 * (_lvl - 1):
+                return 1.0            # in zona rilascio: PIENO
+            dl = (lift - ld) % tl
+            if best is None or dl < best:
+                best = dl
         window = 220.0
         if best is not None and best <= window:
             return min(1.0, 1.0 - best / window + 0.001)
