@@ -4394,9 +4394,14 @@ class Engineer:
         # mai rimproveri sul coasting. In hotlap niente consumi/strategia:
         # conta solo il giro secco.
         _tm9 = raw.get("test_mode")
-        if _tm9 in ("longrun", "racesim") \
-                and code.startswith("coast_corner"):
-            return False, "gestione attiva: il veleggiare e' voluto"
+        # in GESTIONE ogni critica di passo e' anti-guida: alzare prima,
+        # frenare prima, portare meno velocita' E' la tecnica richiesta
+        # (i LED eco di LMU dicono proprio quello). Restano le sicurezze:
+        # bloccaggi (brake_earlier), pattinamenti, danni, bandiere.
+        if _tm9 in ("longrun", "racesim") and code.startswith((
+                "coast_corner", "brake_later", "carry_speed", "turn_slow",
+                "sector_loss", "lap_slow", "debrief_improve")):
+            return False, "gestione attiva: guida da risparmio, niente critiche di passo"
         if _tm9 == "hotlap" and (m or {}).get("level") != "critical" \
                 and code.startswith(("fuel_", "energy_", "strat", "plan",
                                      "manage", "status_", "chk_",
