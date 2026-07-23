@@ -9351,12 +9351,55 @@ class _TrackPage(QWidget):
         top = QHBoxLayout(); top.setSpacing(10)
         back = QPushButton("arrow_back")
         back.setCursor(Qt.PointingHandCursor); back.setFixedSize(38, 34)
-        back.setStyleSheet(
+        self._BKQSS = (
             "QPushButton{font-family:'Material Symbols Rounded';font-size:22px;"
             "color:#fff;background:rgba(255,255,255,0.08);border:none;"
             "border-radius:8px;}"
             "QPushButton:hover{background:rgba(255,29,67,0.55);}")
-        back.clicked.connect(lambda: self._on_back() if self._on_back else None)
+        self._BKQSS_LOCK = (
+            "QPushButton{font-family:'Material Symbols Rounded';font-size:22px;"
+            "color:#ff4d5a;background:rgba(255,77,90,0.14);border:none;"
+            "border-radius:8px;}")
+        back.setStyleSheet(self._BKQSS)
+        # LUCCHETTO VERO (rich. 23/07): a sessione ARMATA la freccia
+        # DIVENTA un lucchetto e il click e' morto — niente piu'
+        # rimbalzo dell'auto-focus che sembrava un bug ai clienti
+        self._backbtn = back
+        self._back_locked = False
+
+        def _locked_live():
+            try:
+                rec = self.window()._app._legacy._recorder
+                return bool(rec and rec.is_armed())
+            except Exception:
+                return False
+
+        def _back_click():
+            if _locked_live():
+                return                      # bloccato: non esce e basta
+            if self._on_back:
+                self._on_back()
+        back.clicked.connect(_back_click)
+
+        def _upd_lock():
+            _lk = _locked_live()
+            if _lk == self._back_locked:
+                return
+            self._back_locked = _lk
+            if _lk:
+                back.setText("lock")
+                back.setStyleSheet(self._BKQSS_LOCK)
+                back.setCursor(Qt.ForbiddenCursor)
+                back.setToolTip("Session live — STOP to exit")
+            else:
+                back.setText("arrow_back")
+                back.setStyleSheet(self._BKQSS)
+                back.setCursor(Qt.PointingHandCursor)
+                back.setToolTip("")
+        from PySide6.QtCore import QTimer as _QTbk
+        self._back_lock_t = _QTbk(self)
+        self._back_lock_t.timeout.connect(_upd_lock)
+        self._back_lock_t.start(800)
         top.addWidget(back, 0, Qt.AlignVCenter)
         self._flag = _SvgBox(); self._flag.setFixedSize(34, 24)
         self._flag.setStyleSheet("background:transparent;")
