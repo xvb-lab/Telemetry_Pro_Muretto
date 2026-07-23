@@ -7639,12 +7639,11 @@
       "cat": "garage",
       "level": "info",
       "beep": false,
-      "it": "Ok, motore acceso: il check lo facciamo per strada. Ti aggiorno in pista.",
+      "it": "Ok, motore acceso: tranquillo, il briefing lo facciamo in pista.",
       "variants_it": [
-        "Ok, motore acceso: il check lo facciamo per strada. Ti aggiorno in pista.",
-        "Va bene, si parte: il resto del quadro te lo do mentre giri.",
-        "Ricevuto, usciamo: controlli in corsa, ti dico tutto in pista.",
-        "Ok ok, niente attese: briefing volante, ti parlo appena sei fuori."
+        "Ok, motore acceso: tranquillo, il briefing lo facciamo in pista.",
+        "Va bene, partiamo: ti aggiorno mentre giri.",
+        "Ok, si parte: le informazioni te le do in pista."
       ],
       "en": "Okay, engine on: we'll do the checks on the move. I'll update you on track.",
       "es": "Vale, motor encendido: lo vemos en pista.",
