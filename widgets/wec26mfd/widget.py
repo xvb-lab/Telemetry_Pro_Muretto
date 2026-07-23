@@ -599,13 +599,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     _i4 = _seq.index(_cur4) if _cur4 in _seq else 0
                     _i4 = (_i4 + (1 if (b & _XI_DR) else -1)) % len(_seq)
                     self._test_mode = _seq[_i4]
-                    if self._test_mode:
-                        # un TEST attivo spegne l'ECO FREE da solo (23/07)
-                        self._eco_free = 0
-                        engineer_cfg.save(test_mode=self._test_mode,
-                                          eco_free=0)
-                    else:
-                        engineer_cfg.save(test_mode=None)
+                    engineer_cfg.save(test_mode=self._test_mode)
                     self._ap_ts = time.monotonic()
                     _lbl4 = {None: "TEST OFF",
                              "longrun": "LONG RUN - SET TARGET LAPS",
@@ -617,13 +611,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 elif self._m3_sel == 5:    # TEST TARGET (per la modalita')
                     _tm5 = getattr(self, "_test_mode", None)
                     if _tm5 == "longrun":
+                        # long run = LICO: stesso switch, stesso valore
                         _opts5 = [1, 2, 3, 4]
-                        _c5 = getattr(self, "_test_extra", 2)
+                        _c5 = getattr(self, "_eco_free", 0) or 2
                         _j5 = _opts5.index(_c5) if _c5 in _opts5 else 0
                         _j5 = (_j5 + (1 if (b & _XI_DR) else -1)) % len(_opts5)
-                        self._test_extra = _opts5[_j5]
-                        engineer_cfg.save(test_extra_laps=self._test_extra)
-                        self._m3_msg = ("LONG RUN +%d LAPS" % self._test_extra,
+                        self._eco_free = _opts5[_j5]
+                        engineer_cfg.save(eco_free=self._eco_free)
+                        self._m3_msg = ("LICO +%d LAPS" % self._eco_free,
                                         time.monotonic())
                     elif _tm5 == "racesim":
                         _opts5 = [30, 60, 90, 120]
@@ -668,8 +663,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._eco_free = _opts6[_j6]
                     engineer_cfg.save(eco_free=self._eco_free)
                     self._ap_ts = time.monotonic()
-                    self._m3_msg = (("ECO FREE OFF" if not self._eco_free
-                                     else "ECO FREE +%d LAPS" % self._eco_free),
+                    self._m3_msg = (("LICO OFF" if not self._eco_free
+                                     else "LICO +%d LAPS" % self._eco_free),
                                     time.monotonic())
                     self._page_beep()
                     self.update()
@@ -2580,7 +2575,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         """+N del risparmio attivo (test long run o ECO FREE), 0 se spento."""
         tm = getattr(self, "_test_mode", None)
         if tm == "longrun":
-            return getattr(self, "_test_extra", 2)
+            return getattr(self, "_eco_free", 0) or 2
         if tm == "racesim":
             return -1                    # gestione attiva senza +N
         return getattr(self, "_eco_free", 0)
@@ -2596,7 +2591,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         _tm_lbl = {None: "OFF", "longrun": "LONG RUN",
                    "racesim": "RACE SIM", "hotlap": "HOTLAP"}.get(_tmv, "OFF")
         if _tmv == "longrun":
-            _tg_lbl = "+%d LAPS" % getattr(self, "_test_extra", 2)
+            _tg_lbl = "LICO +%d" % (getattr(self, "_eco_free", 0) or 2)
         elif _tmv == "racesim":
             _tg_lbl = "%d MIN" % getattr(self, "_test_min", 60)
         else:
@@ -2612,7 +2607,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                   "ON" if self._radio_en else "OFF"),
                  ("TEST MODE", _tm_lbl),
                  ("TEST TARGET", _tg_lbl),
-                 ("ECO FREE",
+                 ("LICO",
                   ("+%d LAPS" % getattr(self, "_eco_free", 0))
                   if getattr(self, "_eco_free", 0) else "OFF"),
                  ("LIGHTS",
@@ -2782,13 +2777,28 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setPen(QPen(_gd))
                 p.drawText(_rm, Qt.AlignCenter, "MOD OFF")
                 p.setFont(f_e)          # ripristina per la spia ECO
+            # SPIA "SC" (mappa motore 0 = safety car map) nello slot
+            # che era dell'ECO: ambra fissa quando sei in mappa 0
+            _map0 = (getattr(self, "_mmap", None) == 0)
+            if _map0 or _lt:
+                _rsc = QRectF(_xl, gy + 20, 34, 19)
+                p.setPen(QPen(QColor("#ffb020"), 1.4))
+                p.setBrush(QColor(70, 48, 8, 150))
+                p.drawRoundedRect(_rsc, 4, 4)
+                f_sc = QFont("Archivo SemiExpanded")
+                f_sc.setPixelSize(12)
+                f_sc.setBold(True)
+                p.setFont(f_sc)
+                p.setPen(QPen(QColor("#ffb020")))
+                p.drawText(_rsc, Qt.AlignCenter, "SC")
+                p.setFont(f_e)
             _en = self._eco_active_laps()
             if _lt and not _en:
                 _en = -1                    # lamp test: icona accesa
             if not _en:
                 _re0 = self._svg_offmap.get("eco_spia")
                 if _re0 is not None and _re0.isValid():
-                    _re0.render(p, QRectF(_xl, gy + 41, 26, 26))
+                    _re0.render(p, QRectF(_xl, gy + 64, 26, 26))
             if _en:
                 # icona ECO verde (SVG utente) + eventuale +N accanto
                 if not hasattr(self, "_svg_eco9"):
@@ -2797,14 +2807,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         str(_ROOT / "assets" / "icons" / "eco_spia.svg"))
                 if self._svg_eco9.isValid():
                     self._svg_eco9.render(
-                        p, QRectF(_xl, gy + 41, 26, 26))
+                        p, QRectF(_xl, gy + 64, 26, 26))
                 if _en > 0:
                     f_ec = QFont("Archivo SemiExpanded")
                     f_ec.setPixelSize(11)
                     f_ec.setBold(True)
                     p.setFont(f_ec)
                     p.setPen(QPen(QColor("#00FF00")))
-                    p.drawText(QRectF(_xl + 28, gy + 41, 34, 26),
+                    p.drawText(QRectF(_xl + 28, gy + 64, 34, 26),
                                Qt.AlignLeft | Qt.AlignVCenter,
                                "+%d" % _en)
                     p.setFont(f_e)      # ripristina
