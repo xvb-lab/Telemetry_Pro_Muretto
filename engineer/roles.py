@@ -75,18 +75,18 @@ def role_for(code):
 
 # ── ruolo -> voce edge-tts per lingua ─────────────────────────────────────
 # FORMAZIONE 23/07 (provino con l'utente, voci Multilingual = modello
-# nuovo, gratis come le vecchie): Remy ingegnere di gara (accento
-# francese, Le Mans), Florian stratega (tedesco), Ava performance.
+# nuovo, gratis come le vecchie): Florian ingegnere di gara (tedesco), Remy stratega (accento
+# francese, Le Mans), Ava performance. Scambio provato 23/07.
 # Le Multilingual parlano OGNI lingua: stessa voce su it/en/es/fr.
 ROLE_VOICES = {
-    "engineer":   {"it": "fr-FR-RemyMultilingualNeural",
-                   "en": "fr-FR-RemyMultilingualNeural",
-                   "es": "fr-FR-RemyMultilingualNeural",
-                   "fr": "fr-FR-RemyMultilingualNeural"},
-    "strategist": {"it": "de-DE-FlorianMultilingualNeural",
+    "engineer":   {"it": "de-DE-FlorianMultilingualNeural",
                    "en": "de-DE-FlorianMultilingualNeural",
                    "es": "de-DE-FlorianMultilingualNeural",
                    "fr": "de-DE-FlorianMultilingualNeural"},
+    "strategist": {"it": "fr-FR-RemyMultilingualNeural",
+                   "en": "fr-FR-RemyMultilingualNeural",
+                   "es": "fr-FR-RemyMultilingualNeural",
+                   "fr": "fr-FR-RemyMultilingualNeural"},
     "spotter":    {"it": "en-US-AvaMultilingualNeural",
                    "en": "en-US-AvaMultilingualNeural",
                    "es": "en-US-AvaMultilingualNeural",
