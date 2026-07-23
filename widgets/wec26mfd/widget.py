@@ -2739,6 +2739,22 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._svg_warn9.render(
                         p, QRectF(_W / 2.0 + 106.0, gy - 48.0, 22, 22))
                 self.update()          # lampeggio fluido
+            # SPIA FRENI (icona utente): oltre il limite di classe
+            # (650 acciaio GT / 750 carbonio HY-P2-P3, soglie del doc)
+            _bk4s = getattr(self, "_brk4", None) or []
+            _carb9 = (getattr(self, "_cls_name", "") or "").upper()
+            _blim9 = 750.0 if any(k9 in _carb9 for k9 in
+                                  ("HYPER", "LMH", "LMDH", "LMP", "P2",
+                                   "P3")) else 650.0
+            if _bk4s and max(_bk4s) >= _blim9:
+                if not hasattr(self, "_svg_brk9"):
+                    from PySide6.QtSvg import QSvgRenderer as _QSRb
+                    self._svg_brk9 = _QSRb(
+                        str(_ROOT / "assets" / "icons" / "freni_warn.svg"))
+                if _blk9 and self._svg_brk9.isValid():
+                    self._svg_brk9.render(
+                        p, QRectF(_W / 2.0 + 134.0, gy - 48.0, 22, 22))
+                self.update()
         except Exception:
             pass
         return
