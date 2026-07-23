@@ -3015,7 +3015,15 @@ class _WorksheetTab(QWidget):
 
     def _rp_tick(self):
         _dir = getattr(self, "_rp_dir", 1)
-        self._rp_t += 0.033 * self._rp_speed * _dir
+        # dt REALE misurato (non fisso): a 60fps il passo fisso 0.033
+        # correva al doppio e a scatti — ora e' fluido e in tempo vero
+        import time as _tm
+        _nowr = _tm.monotonic()
+        _dtr = _nowr - getattr(self, "_rp_last_t", _nowr)
+        self._rp_last_t = _nowr
+        if not (0.0 < _dtr < 0.25):
+            _dtr = 0.016
+        self._rp_t += _dtr * self._rp_speed * _dir
         if self._rp_t < 0.0:
             self._rp_t = 0.0
         # loop A-B: aggancia/riaggancia quando i cursori cambiano
