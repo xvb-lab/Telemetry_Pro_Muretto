@@ -27,6 +27,8 @@ _role(["brief_strat_data", "brief_strat_new",
 _role(["brief_spot", "pit_exit_clean", "pit_exit_fast", "pit_exit_hole",
        "pit_exit_traffic", "pit_release_wait", "pit_release_clear"], "spotter")
 _role(["contact_ok_dmgd"], "engineer")
+_role(["boxprep_press", "boxprep_press_one", "boxprep_wing",
+       "boxprep_duct"], "strategist")
 _role(["contact_ok", "contact_who", "contact_ok_who",
        "contact_where", "contact_where_who", "driver_check",
        "contact_damage", "contact_damage_who",

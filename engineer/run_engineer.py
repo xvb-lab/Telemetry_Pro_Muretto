@@ -428,7 +428,7 @@ def _collect(brain, raw, ld, pace):
     return out
 
 
-def _auto_setup_apply(tg, vox, lang):
+def _auto_setup_apply(tg, vox, lang, brain=None):
     """AUTO-SETUP (23/07): scrive nel PIT MENU di LMU pressioni (e ala)
     dai target del cervello. Stessa scrittura collaudata della card
     (loadPitMenu, lista integrale con currentSetting cambiati)."""
@@ -537,122 +537,56 @@ def _auto_setup_apply(tg, vox, lang):
                     + chr(10))
         except Exception:
             pass
-        # VOCE UMANA (rich. 23/07: "niente elenco da robot"): dice la
-        # cosa semplice; il dettaglio sta nel registro
+        # VOCE UMANA E VARIA (rich. 23/07 notte: basta la stessa
+        # frase a ogni box) — passa dalle frasi con varianti; stessa
+        # correzione entro 5 minuti = APPLICA IN SILENZIO
         try:
-            from engineer.roles import voice_for
-            _WN = {"it": ("all'anteriore sinistra", "all'anteriore "
-                          "destra", "alla posteriore sinistra",
-                          "alla posteriore destra"),
-                   "en": ("on the front left", "on the front right",
-                          "on the rear left", "on the rear right"),
-                   "es": ("en la delantera izquierda",
-                          "en la delantera derecha",
-                          "en la trasera izquierda",
-                          "en la trasera derecha"),
-                   "fr": ("a l'avant gauche", "a l'avant droite",
-                          "a l'arriere gauche", "a l'arriere droite")}
-            _parts = []
-            _lg9 = lang if lang in _WN else "it"
-            if len(_pwh) == 1:
-                _parts.append({"it": "regolo la pressione %s",
-                               "en": "adjusting the pressure %s",
-                               "es": "ajusto la presion %s",
-                               "fr": "je regle la pression %s"}[_lg9]
-                              % _WN[_lg9][_pwh[0]])
-            elif len(_pwh) > 1:
-                _parts.append({"it": "sistemo le pressioni, erano "
-                                     "sballate",
-                               "en": "fixing the tyre pressures, they "
-                                     "were off",
-                               "es": "ajusto las presiones, estaban "
-                                     "mal",
-                               "fr": "je corrige les pressions, elles "
-                                     "etaient fausses"}[_lg9])
-            if _wng9:
-                _parts.append({"it": "tocco l'ala",
-                               "en": "one click on the wing",
-                               "es": "un click de alerón",
-                               "fr": "un cran d'aileron"}[_lg9])
-            if _dct9:
-                _parts.append({"it": "apro i condotti dei freni",
-                               "en": "opening the brake ducts",
-                               "es": "abro los conductos de freno",
-                               "fr": "j'ouvre les ecopes de frein"}[_lg9])
-            if _parts:
-                _J = {"it": " e ", "en": " and ", "es": " y ",
-                      "fr": " et "}[_lg9]
-                _H = {"it": "Quando arrivi al box ", "en": "At the stop ",
-                      "es": "En la parada ", "fr": "A l'arret "}[_lg9]
-                vox.speak(_H + _J.join(_parts) + ".",
-                          voice=voice_for("pit_ack", lang))
-        except Exception:
-            pass
-    except Exception:
-        pass
-
-
-def _auto_wet_apply(vox, lang):
-    """AUTO-PIT WET (23/07, ultimo buco della mappa capacita'): piove
-    e sei su slick -> l'ingegnere seleziona le RAIN nel pit menu
-    (master + 4 ruote, preferendo il treno NUOVO), cosi' al box trovi
-    gia' il treno giusto. Stessa scrittura collaudata (loadPitMenu)."""
-    try:
-        import json as _js
-        import urllib.request as _ur
-        from core.strategy import fetch_pit_menu
-        pm = fetch_pit_menu(timeout=1.2)
-        rawm = (pm or {}).get("_raw")
-        if not rawm:
-            return
-
-        def _wet_idx(ss):
-            best = None
-            for j, op in enumerate(ss):
-                tx = str((op or {}).get("text") or "").upper()
-                if "WET" in tx or "BAGNAT" in tx or "RAIN" in tx                         or "PIOGGIA" in tx:
-                    if "NUOV" in tx or "NEW" in tx:
-                        return j
-                    if best is None:
-                        best = j
-            return best
-
-        done = False
-        for it in rawm:
-            nm = str((it or {}).get("name") or "").upper()
-            ss = it.get("settings") or []
-            if not ss:
-                continue
-            if nm.startswith("TIRES") or (nm[:2] in ("FL", "FR", "RL",
-                                                     "RR")
-                                          and "TIRE" in nm):
-                j = _wet_idx(ss)
-                try:
-                    cur = int(it.get("currentSetting") or 0)
-                except (TypeError, ValueError):
-                    cur = 0
-                if j is not None and j != cur:
-                    it["currentSetting"] = j
-                    done = True
-        if not done:
-            return
-        req = _ur.Request(
-            "http://localhost:6397/rest/garage/PitMenu/loadPitMenu",
-            data=_js.dumps(rawm).encode("utf-8"),
-            headers={"Content-Type": "application/json"}, method="POST")
-        _ur.urlopen(req, timeout=1.5)
-        try:
-            from engineer.roles import voice_for
-            _T = {"it": "Piove e sei su slick: quando arrivi "
-                        "montiamo le wet.",
-                  "en": "It's raining and you're on slicks: when you "
-                        "come in we're fitting the wets.",
-                  "es": "Llueve y vas con slicks: cuando entres "
-                        "montamos las de lluvia.",
-                  "fr": "Il pleut et tu es en slicks: quand tu "
-                        "rentres on monte les pluie."}
-            vox.speak(_T.get(lang, _T["it"]),
-                      voice=voice_for("rain_box_now", lang))
+            import time as _tm7
+            _sig7 = (tuple(_pwh), bool(_wng9), bool(_dct9))
+            _as7 = globals().setdefault("_AS_VOICE", {"t": 0.0,
+                                                      "sig": None})
+            _quiet7 = (_as7["sig"] == _sig7
+                       and _tm7.monotonic() - _as7["t"] < 300.0)
+            _as7["sig"] = _sig7
+            _as7["t"] = _tm7.monotonic()
+            if not _quiet7:
+                from engineer.roles import voice_for
+                _WN = {"it": ("all'anteriore sinistra",
+                              "all'anteriore destra",
+                              "alla posteriore sinistra",
+                              "alla posteriore destra"),
+                       "en": ("on the front left", "on the front right",
+                              "on the rear left", "on the rear right"),
+                       "es": ("en la delantera izquierda",
+                              "en la delantera derecha",
+                              "en la trasera izquierda",
+                              "en la trasera derecha"),
+                       "fr": ("a l'avant gauche", "a l'avant droite",
+                              "a l'arriere gauche",
+                              "a l'arriere droite")}
+                _lg7 = lang if lang in _WN else "it"
+                _txts7 = []
+                if brain is not None:
+                    if len(_pwh) == 1:
+                        _m7 = brain.msg("boxprep_press_one",
+                                        ruota=_WN[_lg7][_pwh[0]])
+                    elif len(_pwh) > 1:
+                        _m7 = brain.msg("boxprep_press")
+                    else:
+                        _m7 = None
+                    if _m7:
+                        _txts7.append(_m7["text"])
+                    if _wng9:
+                        _m7 = brain.msg("boxprep_wing")
+                        if _m7:
+                            _txts7.append(_m7["text"])
+                    if _dct9:
+                        _m7 = brain.msg("boxprep_duct")
+                        if _m7:
+                            _txts7.append(_m7["text"])
+                if _txts7:
+                    vox.speak(" ".join(_txts7),
+                              voice=voice_for("pit_ack", lang))
         except Exception:
             pass
     except Exception:
@@ -925,7 +859,7 @@ def run():
                             _th9.Thread(
                                 target=_auto_setup_apply,
                                 args=(brain.setup_targets(raw), vox,
-                                      lang),
+                                      lang, brain),
                                 daemon=True).start()
                     elif not (_inp9 or _req9):
                         _asx["done"] = False

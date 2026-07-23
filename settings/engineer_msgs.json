@@ -8582,6 +8582,67 @@
       "en": "Nothing new from this contact, but the car was already marked: aero at {pct} percent. Keeping an eye on it.",
       "es": "Nada nuevo de este contacto, pero el coche ya estaba tocado: aero al {pct} por ciento.",
       "fr": "Rien de nouveau sur ce contact, mais la voiture etait deja marquee: aero a {pct} pour cent."
+    },
+    "boxprep_press": {
+      "cat": "box",
+      "level": "info",
+      "beep": false,
+      "it": "Quando arrivi al box sistemo le pressioni, erano fuori.",
+      "variants_it": [
+        "Quando arrivi al box sistemo le pressioni, erano fuori.",
+        "Al box ti correggo le pressioni: i numeri non erano in finestra.",
+        "Preparo la sosta: pressioni riviste, il resto resta com'e'.",
+        "Ho gia' impostato le pressioni giuste per la sosta.",
+        "Alla sosta gomme con le pressioni corrette: ci ho pensato io.",
+        "Pressioni ritoccate nel piano sosta: i dati dicevano di intervenire.",
+        "Sistemo io le pressioni per quando entri, tu pensa a guidare.",
+        "Piano sosta aggiornato: pressioni in finestra."
+      ],
+      "en": "When you come in I am fixing the pressures, they were off.",
+      "es": "Cuando entres te corrijo las presiones, estaban fuera.",
+      "fr": "Quand tu rentres je corrige les pressions, elles etaient fausses."
+    },
+    "boxprep_press_one": {
+      "cat": "box",
+      "level": "info",
+      "beep": false,
+      "it": "Quando arrivi al box regolo la pressione {ruota}.",
+      "variants_it": [
+        "Quando arrivi al box regolo la pressione {ruota}.",
+        "Alla sosta un ritocco di pressione {ruota}, il resto va bene.",
+        "Preparo la sosta: solo la gomma {ruota} da correggere.",
+        "Una sola correzione al box: la pressione {ruota}."
+      ],
+      "en": "At the stop I am adjusting the pressure {ruota}.",
+      "es": "En la parada ajusto la presion {ruota}.",
+      "fr": "A l arret je regle la pression {ruota}."
+    },
+    "boxprep_wing": {
+      "cat": "box",
+      "level": "info",
+      "beep": false,
+      "it": "E tocco l'ala come concordato.",
+      "variants_it": [
+        "E tocco l'ala come concordato.",
+        "In piu' un click d'ala.",
+        "Aggiungo il ritocco d'ala."
+      ],
+      "en": "And one click on the wing.",
+      "es": "Y un click de aleron.",
+      "fr": "Et un cran d aileron."
+    },
+    "boxprep_duct": {
+      "cat": "box",
+      "level": "info",
+      "beep": false,
+      "it": "E apro i condotti dei freni, hanno scaldato troppo.",
+      "variants_it": [
+        "E apro i condotti dei freni, hanno scaldato troppo.",
+        "In piu' condotti freni piu' aperti: le temperature erano alte."
+      ],
+      "en": "And opening the brake ducts, they ran hot.",
+      "es": "Y abro los conductos de freno.",
+      "fr": "Et j ouvre les ecopes de frein."
     }
   }
 }
