@@ -1263,14 +1263,15 @@ class _LiveMap(QWidget):
         self._events = evts or []
         if not hasattr(self, "_ev_show"):
             self._ev_show = {"contact": True, "tl": False,
-                             "lock": True, "slide": True}
+                             "lock": True, "slide": True,
+                             "tc": False, "abs": False}
         self.update()
 
-    def set_slide_segs(self, segs):
-        """SLIDES come TRATTI di strada (rich. 23/07): lista di
-        polilinee [(x,z), ...] — il pezzo di pista dove la macchina
-        e' scivolata, non un puntino."""
-        self._slide_segs = segs or []
+    def set_event_segs(self, segs):
+        """TRATTI di strada per tipo (rich. 23/07): dict
+        {slide|tc|abs: [polilinea, ...]} — il pezzo di pista dove
+        succede la cosa (scivolata / TC / ABS al lavoro)."""
+        self._event_segs = segs or {}
         self.update()
 
     @staticmethod
@@ -1474,8 +1475,9 @@ class _LiveMap(QWidget):
         zm = self._zoom_mult
         trk_w = max(8.0, min(200.0, 17.0 * zm))
         ln_w = max(1.4, min(16.0, 2.2 * zm))
-        # macchinine PIU' PICCOLE (rich. 23/07: erano grandi sulla mappa)
-        dot_r = max(3.5, min(22.0, 4.2 * zm))
+        # macchinine in SCALA VERA (rich. 23/07: in pista ci stanno 3
+        # auto affiancate -> il simbolo e' 1/3 della carreggiata)
+        dot_r = max(2.5, trk_w / 6.0)
 
         # pista larga (colore scuro pickabile) usando il giro Selected come tracciato
         # decima i punti SOLO per il disegno (cursore/dot usano i punti pieni)
@@ -1696,12 +1698,16 @@ class _LiveMap(QWidget):
         # sopra le traiettorie — layer dalla legenda cliccabile ──
         _evs = getattr(self, "_events", None) or []
         _evshow = getattr(self, "_ev_show", None) or {}
-        # SLIDES = tratto di strada rosa (non un dot)
-        _ssegs = getattr(self, "_slide_segs", None) or []
-        if _ssegs and _evshow.get("slide"):
-            _pens = QPen(QColor(255, 110, 199, 175), 4.5,
-                         Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
-            p.setPen(_pens)
+        # TRATTI evento (slide/tc/abs) = pezzi di strada colorati
+        _allsegs = getattr(self, "_event_segs", None) or {}
+        _SEGC = {"slide": QColor(255, 110, 199, 175),
+                 "tc": QColor(0, 200, 230, 165),
+                 "abs": QColor(74, 144, 226, 165)}
+        for _sk, _ssegs in _allsegs.items():
+            if not _ssegs or not _evshow.get(_sk):
+                continue
+            p.setPen(QPen(_SEGC.get(_sk, QColor(200, 200, 200, 160)),
+                          4.5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
             p.setBrush(Qt.NoBrush)
             for _sg in _ssegs:
                 if len(_sg) < 2:
@@ -1790,10 +1796,11 @@ class _LiveMap(QWidget):
         # accendono/spengono i layer contatti/tagli/bloccaggi ──
         self._ev_hit = {}
         _evs9 = getattr(self, "_events", None) or []
-        _nseg9 = len(getattr(self, "_slide_segs", None) or [])
+        _segd9 = getattr(self, "_event_segs", None) or {}
+        _nseg9 = sum(len(v) for v in _segd9.values())
         if _evs9 or _nseg9:
             _evshow9 = getattr(self, "_ev_show", None) or {}
-            _cnt9 = {"slide": _nseg9}
+            _cnt9 = {k: len(v) for k, v in _segd9.items()}
             for _k9, _x9, _z9 in _evs9:
                 _cnt9[_k9] = _cnt9.get(_k9, 0) + 1
             # etichette in INGLESE (l'app e' EN) — rich. 23/07;
@@ -1801,7 +1808,9 @@ class _LiveMap(QWidget):
             _EVL = (("contact", "Contacts", "#ff5a4d"),
                     ("tl", "Cuts", "#ff9f2e"),
                     ("lock", "Lock-ups", "#ffe24d"),
-                    ("slide", "Slides", "#c77dff"))
+                    ("slide", "Slides", "#ff6ec7"),
+                    ("tc", "TC", "#00c8e6"),
+                    ("abs", "ABS", "#4a90e2"))
             _ex9 = 12.0
             _ey9 = 34.0
             f9l = p.font()
@@ -3231,27 +3240,40 @@ class _WorksheetTab(QWidget):
                 # SLIDES (perdite di aderenza) DERIVATE dai samples,
                 # come TRATTI di strada (rich. 23/07): slip laterale
                 # medio >= 3.5 sostenuto -> il PEZZO di pista scivolato
-                _segs9 = []
+                _segs9 = {"slide": [], "tc": [], "abs": []}
                 try:
                     _rows9 = _con9.execute(
                         "SELECT pos_x, pos_z,"
                         " (ABS(slat_fl)+ABS(slat_fr)+ABS(slat_rl)"
-                        "  +ABS(slat_rr))/4.0, speed FROM samples"
+                        "  +ABS(slat_rr))/4.0, speed, tc_active,"
+                        " abs_active FROM samples"
                         " WHERE rowid % 3 = 0 ORDER BY rowid").fetchall()
-                    _cur9 = []
-                    for _px9, _pz9, _sl9, _sp9 in _rows9:
+                    _cur9 = {"slide": [], "tc": [], "abs": []}
+
+                    def _push9(k):
+                        if len(_cur9[k]) >= 4:      # ~0.5s sostenuto
+                            _segs9[k].append(_cur9[k])
+                        _cur9[k] = []
+                    for _px9, _pz9, _sl9, _sp9, _tc9, _ab9 in _rows9:
+                        _pt9 = (float(_px9), float(_pz9))
                         if (_sl9 or 0.0) >= 3.5 and (_sp9 or 0) > 60.0:
-                            _cur9.append((float(_px9), float(_pz9)))
+                            _cur9["slide"].append(_pt9)
                         elif (_sl9 or 0.0) < 2.0:
-                            if len(_cur9) >= 4:     # ~0.5s sostenuto
-                                _segs9.append(_cur9)
-                            _cur9 = []
-                    if len(_cur9) >= 4:
-                        _segs9.append(_cur9)
+                            _push9("slide")
+                        if _tc9:
+                            _cur9["tc"].append(_pt9)
+                        else:
+                            _push9("tc")
+                        if _ab9:
+                            _cur9["abs"].append(_pt9)
+                        else:
+                            _push9("abs")
+                    for _k9 in ("slide", "tc", "abs"):
+                        _push9(_k9)
                 except Exception:
                     pass
                 self.map_w.set_events(_out9)
-                self.map_w.set_slide_segs(_segs9)
+                self.map_w.set_event_segs(_segs9)
         except Exception:
             pass
         self._update_read(None)
