@@ -1848,6 +1848,34 @@ class _LiveMap(QWidget):
                         QPointF(c9.x(), c9.y() + 4.5),
                         QPointF(c9.x() - 4.5, c9.y())]))
 
+        # SCIE grigie dei rivali (la traiettoria che cagano, 23/07)
+        _oserp = getattr(self, "_opp_series", None) or {}
+        _oppt = getattr(self, "_opp_t", None)
+        if _oserp and _oppt is not None and _evshow.get("opp", True) \
+                and getattr(self, "_opp_pts", None) is not None:
+            p.setBrush(Qt.NoBrush)
+            p.setPen(QPen(QColor(154, 160, 171, 80), 1.2))
+            for _cidp, _serp in _oserp.items():
+                if _cidp == -1:
+                    continue
+                _pth8 = None
+                _lp8 = None
+                for _rw8 in _serp[::3]:
+                    if _rw8[0] > _oppt:
+                        break
+                    _q8 = P(_rw8[1], _rw8[2])
+                    if _pth8 is None or (_lp8 is not None and (
+                            (_q8.x() - _lp8.x()) ** 2
+                            + (_q8.y() - _lp8.y()) ** 2) > 80.0 ** 2):
+                        if _pth8 is not None:
+                            p.drawPath(_pth8)
+                        _pth8 = QPainterPath()
+                        _pth8.moveTo(_q8)
+                    else:
+                        _pth8.lineTo(_q8)
+                    _lp8 = _q8
+                if _pth8 is not None:
+                    p.drawPath(_pth8)
         # MACCHININE GRIGIE dei rivali (replay): stessa forma, grige
         _opp9 = getattr(self, "_opp_pts", None)
         if _opp9 and _evshow.get("opp", True):
@@ -1881,6 +1909,19 @@ class _LiveMap(QWidget):
             dot(pa, sel_c, _mk_ang(getattr(self, "_sel_srt", None), _ld_a))
             # DELTA accanto alla macchinina nel replay (cantiere 23/07):
             # +sei dietro il confronto / -sei davanti, alla stessa posizione
+            _ppn = getattr(self, "_play_pos_num", 0)
+            if _ppn and getattr(self, "_play_ld", None):
+                _c9n = P(pa[0], pa[1])
+                _fn9 = p.font()
+                _fn7 = p.font()
+                _fn7.setPointSize(max(6, int(dot_r)))
+                _fn7.setBold(True)
+                p.setFont(_fn7)
+                _tw9n = p.fontMetrics().horizontalAdvance(str(_ppn))
+                p.setPen(QColor(255, 255, 255, 250))
+                p.drawText(QPointF(_c9n.x() - _tw9n / 2.0,
+                                   _c9n.y() + dot_r * 0.5), str(_ppn))
+                p.setFont(_fn9)
             _pg = getattr(self, "_play_gap", None)
             if _pg is not None and getattr(self, "_play_ld", None):
                 c9 = P(pa[0], pa[1])
@@ -1913,6 +1954,7 @@ class _LiveMap(QWidget):
         # ── LEGENDA EVENTI cliccabile (cantiere 23/07): chip che
         # accendono/spengono i layer contatti/tagli/bloccaggi ──
         self._ev_hit = {}
+        self._ev_hit_dot = {}
         _evs9 = getattr(self, "_events", None) or []
         if not hasattr(self, "_ev_colors"):
             try:
@@ -1968,7 +2010,12 @@ class _LiveMap(QWidget):
                 p.setPen(QColor(235, 238, 245, 235 if _on9 else 120))
                 p.drawText(QPointF(_ex9 + 20.0, _ey9 + 9.0), _txt9)
                 if _n9 > 0:               # zero = non selezionabile
-                    self._ev_hit[_k9] = _rect9
+                    # DOT = pick color; TESTO = toggle (23/07)
+                    self._ev_hit_dot[_k9] = QRectF(
+                        _rect9.x(), _rect9.y(), 20.0, _rect9.height())
+                    self._ev_hit[_k9] = QRectF(
+                        _rect9.x() + 20.0, _rect9.y(),
+                        _rect9.width() - 20.0, _rect9.height())
                 _ey9 += 24.0
         for which, label, col in items:
             cxp, cyp = x + 6, 12
@@ -2083,34 +2130,51 @@ class _LiveMap(QWidget):
             self._pan_off = [off0[0] + d.x(), off0[1] + d.y()]
             self.update()
             return
-        if self._review and self.color_cb is not None:
-            on = any(r.contains(e.position()) for r in self._dot_hit.values())
-            self.setCursor(Qt.PointingHandCursor if on else Qt.ArrowCursor)
+        # MANINA su tutti i chip/dot cliccabili (legenda giri + eventi)
+        self._hover_cursor(e.position())
         self._scrub(e.position()); super().mouseMoveEvent(e)
 
+    def _pick_layer_color(self, _k9):
+        """Palette per il layer (dal DOT della legenda)."""
+        from PySide6.QtWidgets import QColorDialog
+        _cur9 = (getattr(self, "_ev_colors", None) or {}).get(_k9)
+        _c0 = QColor(_cur9) if _cur9 else QColor("#ffffff")
+        _c9 = QColorDialog.getColor(_c0, self, "Layer color")
+        if _c9.isValid():
+            _ec = getattr(self, "_ev_colors", None) or {}
+            _ec[_k9] = _c9.name()
+            self._ev_colors = _ec
+            try:
+                import json as _js
+                from core.paths import USER_DIR as _UD
+                (_UD / "map_event_colors.json").write_text(
+                    _js.dumps(_ec), encoding="utf-8")
+            except Exception:
+                pass
+            self.update()
+
     def mouseDoubleClickEvent(self, e):
-        # doppio click su un chip evento = PICK COLOR personalizzato
-        for _k9, rect in (getattr(self, "_ev_hit", None) or {}).items():
+        for _k9, rect in (getattr(self, "_ev_hit_dot", None)
+                          or {}).items():
             if rect.contains(e.position()):
-                from PySide6.QtWidgets import QColorDialog
-                _cur9 = (getattr(self, "_ev_colors", None)
-                         or {}).get(_k9)
-                _c0 = QColor(_cur9) if _cur9 else QColor("#ffffff")
-                _c9 = QColorDialog.getColor(_c0, self, "Layer color")
-                if _c9.isValid():
-                    _ec = getattr(self, "_ev_colors", None) or {}
-                    _ec[_k9] = _c9.name()
-                    self._ev_colors = _ec
-                    try:
-                        import json as _js
-                        from core.paths import USER_DIR as _UD
-                        (_UD / "map_event_colors.json").write_text(
-                            _js.dumps(_ec), encoding="utf-8")
-                    except Exception:
-                        pass
-                    self.update()
+                self._pick_layer_color(_k9)
                 return
         super().mouseDoubleClickEvent(e)
+
+    def _hover_cursor(self, pos):
+        """MANINA sui chip della legenda (rich. 23/07)."""
+        try:
+            for d9 in (getattr(self, "_ev_hit_dot", None) or {},
+                       getattr(self, "_ev_hit", None) or {},
+                       getattr(self, "_dot_hit", None) or {}):
+                for rect in d9.values():
+                    if rect.contains(pos):
+                        self.setCursor(Qt.PointingHandCursor)
+                        return True
+            self.setCursor(Qt.ArrowCursor)
+        except Exception:
+            pass
+        return False
 
     def mousePressEvent(self, e):
         if e.button() == Qt.RightButton:
@@ -2118,7 +2182,12 @@ class _LiveMap(QWidget):
             self._pan_start = (e.position(), tuple(self._pan_off))
             self.setCursor(Qt.ClosedHandCursor)
             return
-        # legenda EVENTI: click sul chip accende/spegne il layer
+        # legenda EVENTI: DOT = pick color, TESTO = accende/spegne
+        for _k9, rect in (getattr(self, "_ev_hit_dot", None)
+                          or {}).items():
+            if rect.contains(e.position()):
+                self._pick_layer_color(_k9)
+                return
         for _k9, rect in (getattr(self, "_ev_hit", None) or {}).items():
             if rect.contains(e.position()):
                 _sh = getattr(self, "_ev_show", None) or {}
@@ -3321,20 +3390,34 @@ class _WorksheetTab(QWidget):
                     _gap9 = None       # fuori scala: meglio niente
         self.map_w.set_play_pos(ld_a if ld_a is not None else ld_b,
                                 ld_b, _gap9)
-        # muovi le macchinine grigie al tempo del replay
+        # macchinine grigie: INTERPOLAZIONE fluida (23/07);
+        # cid=-1 = IL GIOCATORE (numero sul mio dot)
         try:
             _oser9 = getattr(self.map_w, "_opp_series", None) or {}
             _opts9 = []
-            for _ser9 in _oser9.values():
-                _pp9 = None
+            self.map_w._opp_t = self._rp_t
+            for _cid9, _ser9 in _oser9.items():
+                _prev9 = _next9 = None
                 for _row9 in _ser9:
                     if _row9[0] <= self._rp_t:
-                        _pp9 = (_row9[1], _row9[2],
-                                _row9[3] if len(_row9) > 3 else 0)
+                        _prev9 = _row9
                     else:
+                        _next9 = _row9
                         break
-                if _pp9 is not None:
-                    _opts9.append(_pp9)
+                if _prev9 is None:
+                    continue
+                if _next9 is not None and _next9[0] > _prev9[0]:
+                    _f9 = (self._rp_t - _prev9[0]) \
+                        / (_next9[0] - _prev9[0])
+                    _x9i = _prev9[1] + (_next9[1] - _prev9[1]) * _f9
+                    _z9i = _prev9[2] + (_next9[2] - _prev9[2]) * _f9
+                else:
+                    _x9i, _z9i = _prev9[1], _prev9[2]
+                _po9i = _prev9[3] if len(_prev9) > 3 else 0
+                if _cid9 == -1:
+                    self.map_w._play_pos_num = _po9i
+                else:
+                    _opts9.append((_x9i, _z9i, _po9i))
             self.map_w.set_opponents(_opts9)
         except Exception:
             pass
@@ -3502,28 +3585,41 @@ class _WorksheetTab(QWidget):
                     _cur9 = {"slide": [], "tc": [], "abs": [],
                              "lico": []}
 
+                    _lastp9 = {}
+
                     def _push9(k):
                         if len(_cur9[k]) >= 4:      # ~0.5s sostenuto
                             _segs9[k].append(_cur9[k])
                         _cur9[k] = []
+
+                    def _add9(k, pt):
+                        # SALTO (cambio giro/pit/reset): spezza, mai
+                        # righe dritte attraverso la mappa (23/07)
+                        _lp = _lastp9.get(k)
+                        if _lp is not None and (
+                                (pt[0] - _lp[0]) ** 2
+                                + (pt[1] - _lp[1]) ** 2) > 60.0 ** 2:
+                            _push9(k)
+                        _cur9[k].append(pt)
+                        _lastp9[k] = pt
                     for _px9, _pz9, _sl9, _sp9, _tc9, _ab9,                             _th9, _br9, _ld9 in _rows9:
                         _pt9 = (float(_px9), float(_pz9),
                                 float(_ld9 or 0.0))
                         if (_sl9 or 0.0) >= 3.5 and (_sp9 or 0) > 60.0:
-                            _cur9["slide"].append(_pt9)
+                            _add9("slide", _pt9)
                         elif (_sl9 or 0.0) < 2.0:
                             _push9("slide")
                         if _tc9:
-                            _cur9["tc"].append(_pt9)
+                            _add9("tc", _pt9)
                         else:
                             _push9("tc")
                         if _ab9:
-                            _cur9["abs"].append(_pt9)
+                            _add9("abs", _pt9)
                         else:
                             _push9("abs")
                         # LICO/veleggio: gas e freno a ZERO in velocita'
                         if (_th9 or 0.0) < 0.06 and (_br9 or 0.0) < 0.05                                 and (_sp9 or 0.0) > 80.0:
-                            _cur9["lico"].append(_pt9)
+                            _add9("lico", _pt9)
                         else:
                             _push9("lico")
                     for _k9 in ("slide", "tc", "abs", "lico"):

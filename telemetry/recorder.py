@@ -1756,18 +1756,19 @@ class TelemetryRecorder:
 
         # ── RIVALI per il replay (rich. 23/07: macchinine grigie sulla
         # mappa, si rivede il sorpasso): posizioni di TUTTE le auto in
-        # pista ~2.5 volte/s, stesso orologio dei samples ──
+        # pista a 10Hz (rich. 23/07: campionamento pieno), stesso orologio dei samples ──
         try:
             _nowo = time.monotonic()
-            if _nowo - getattr(self, "_opp_t9", 0.0) >= 0.4:
+            if _nowo - getattr(self, "_opp_t9", 0.0) >= 0.1:
                 self._opp_t9 = _nowo
                 _snap9 = self._mem.pit_scan() or {}
                 for _c9 in (_snap9.get("cars") or []):
-                    if _c9.get("is_player") or _c9.get("garage"):
+                    if _c9.get("garage"):
                         continue
                     self._db.add_opponent({
                         "lap": samp["lap"], "t": samp["t"],
-                        "cid": _c9.get("id"),
+                        "cid": -1 if _c9.get("is_player")
+                        else _c9.get("id"),
                         "x": _c9.get("x"), "z": _c9.get("z"),
                         "pos": _c9.get("place")})
         except Exception:
