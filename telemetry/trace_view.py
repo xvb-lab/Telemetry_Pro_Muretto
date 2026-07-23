@@ -1264,7 +1264,7 @@ class _LiveMap(QWidget):
         if not hasattr(self, "_ev_show"):
             self._ev_show = {"contact": True, "tl": False,
                              "lock": True, "slide": True,
-                             "tc": False, "abs": False}
+                             "tc": False, "abs": False, "lico": True}
         self.update()
 
     def set_event_segs(self, segs):
@@ -1704,7 +1704,8 @@ class _LiveMap(QWidget):
         # 23/07): stesso spessore della linea giro, colore evento
         _SEGC = {"slide": QColor(255, 138, 30, 220),
                  "tc": QColor(74, 144, 226, 200),
-                 "abs": QColor(199, 125, 255, 210)}
+                 "abs": QColor(199, 125, 255, 210),
+                 "lico": QColor(138, 63, 251, 205)}
         _segw = max(ln_w + 1.2, 3.0)
         for _sk, _ssegs in _allsegs.items():
             if not _ssegs or not _evshow.get(_sk):
@@ -1814,7 +1815,8 @@ class _LiveMap(QWidget):
                     ("lock", "Lock-ups", "#ffe24d"),
                     ("slide", "Slides", "#ff8a1e"),
                     ("tc", "TC", "#4a90e2"),
-                    ("abs", "ABS", "#c77dff"))
+                    ("abs", "ABS", "#c77dff"),
+                    ("lico", "LICO", "#8a3ffb"))
             _ex9 = 12.0
             _ey9 = 34.0
             f9l = p.font()
@@ -3264,21 +3266,23 @@ class _WorksheetTab(QWidget):
                 # SLIDES (perdite di aderenza) DERIVATE dai samples,
                 # come TRATTI di strada (rich. 23/07): slip laterale
                 # medio >= 3.5 sostenuto -> il PEZZO di pista scivolato
-                _segs9 = {"slide": [], "tc": [], "abs": []}
+                _segs9 = {"slide": [], "tc": [], "abs": [],
+                          "lico": []}
                 try:
                     _rows9 = _con9.execute(
                         "SELECT pos_x, pos_z,"
                         " (ABS(slat_fl)+ABS(slat_fr)+ABS(slat_rl)"
                         "  +ABS(slat_rr))/4.0, speed, tc_active,"
-                        " abs_active FROM samples"
+                        " abs_active, throttle, brake FROM samples"
                         " WHERE rowid % 3 = 0 ORDER BY rowid").fetchall()
-                    _cur9 = {"slide": [], "tc": [], "abs": []}
+                    _cur9 = {"slide": [], "tc": [], "abs": [],
+                             "lico": []}
 
                     def _push9(k):
                         if len(_cur9[k]) >= 4:      # ~0.5s sostenuto
                             _segs9[k].append(_cur9[k])
                         _cur9[k] = []
-                    for _px9, _pz9, _sl9, _sp9, _tc9, _ab9 in _rows9:
+                    for _px9, _pz9, _sl9, _sp9, _tc9, _ab9,                             _th9, _br9 in _rows9:
                         _pt9 = (float(_px9), float(_pz9))
                         if (_sl9 or 0.0) >= 3.5 and (_sp9 or 0) > 60.0:
                             _cur9["slide"].append(_pt9)
@@ -3292,7 +3296,12 @@ class _WorksheetTab(QWidget):
                             _cur9["abs"].append(_pt9)
                         else:
                             _push9("abs")
-                    for _k9 in ("slide", "tc", "abs"):
+                        # LICO/veleggio: gas e freno a ZERO in velocita'
+                        if (_th9 or 0.0) < 0.06 and (_br9 or 0.0) < 0.05                                 and (_sp9 or 0.0) > 80.0:
+                            _cur9["lico"].append(_pt9)
+                        else:
+                            _push9("lico")
+                    for _k9 in ("slide", "tc", "abs", "lico"):
                         _push9(_k9)
                 except Exception:
                     pass
