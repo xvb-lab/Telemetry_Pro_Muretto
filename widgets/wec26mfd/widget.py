@@ -4811,14 +4811,22 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                     QByteArray(_tf9.encode()))
                             except Exception:
                                 self._svg_fuel_w9 = None
-                        # numero PIU' GRANDE e blocco 5px a sinistra
-                        # (rifiniture 23/07)
-                        f_fu = QFont("Archivo SemiExpanded", 15)
-                        f_fu.setWeight(QFont.DemiBold)
-                        f_fu.setItalic(True)
-                        p.setFont(f_fu)
+                        # numero grande MA il FONT SI RESTRINGE da solo
+                        # se non c'entra nella cella (rich. 23/07: mai
+                        # spostare le celle, si adatta il testo — a 100
+                        # sbordava)
                         _ftx = "%d" % _bp10[0]
-                        _fw10 = QFontMetricsF(f_fu).horizontalAdvance(_ftx)
+                        _fsz10 = 15
+                        while _fsz10 > 9:
+                            f_fu = QFont("Archivo SemiExpanded", _fsz10)
+                            f_fu.setWeight(QFont.DemiBold)
+                            f_fu.setItalic(True)
+                            _fw10 = QFontMetricsF(f_fu) \
+                                .horizontalAdvance(_ftx)
+                            if 24.0 + _fw10 + 17.0 + 6.0 <= _lapw:
+                                break
+                            _fsz10 -= 1
+                        p.setFont(f_fu)
                         _fx10 = _bx1 - 17.0 - _fw10
                         p.setPen(QColor(255, 255, 255, 235))
                         p.drawText(QPointF(_fx10, _yb), _ftx)

@@ -2075,13 +2075,14 @@ class Engineer:
         return out
 
     def outlap_tech_call(self, raw, laps_done):
-        """OUT-LAP TECNICO PER CLASSE (solo PROVA): all'uscita dai box la
-        procedura vera da muretto — GT3 dischi in acciaio (scaldi tu, il
-        calore freni entra nella gomma), Hypercar carbonio + gestione SOC
-        (batteria satura = brake-by-wire che taglia un asse), P2/P3
-        carbonio e gomma che vuole due giri. Una volta per stint."""
+        """OUT-LAP TECNICO PER CLASSE (prova E GARA, rich. 23/07: "in
+        gara mi manca l'informazione della pratica"): all'uscita dai box
+        la procedura vera da muretto — GT3 dischi in acciaio, Hypercar
+        carbonio + gestione SOC, P2/P3 carbonio e gomma che vuole due
+        giri. Una volta per stint (in gara = dopo ogni sosta)."""
         raw = raw or {}
-        if session_kind(raw.get("session_type")) != "practice":
+        if session_kind(raw.get("session_type")) not in ("practice",
+                                                         "race"):
             return []
         in_box = bool(raw.get("garage") or raw.get("in_pits")
                       or raw.get("in_pitlane"))
