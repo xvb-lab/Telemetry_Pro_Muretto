@@ -522,6 +522,7 @@ def run():
             raw["test_mode"] = _cfg.get("test_mode") or None
             raw["test_extra"] = _cfg.get("test_extra_laps")
             raw["test_race_min"] = _cfg.get("test_race_min")
+            raw["eco_free"] = _cfg.get("eco_free")   # risparmio LIBERO (anche gara)
             raw["ts"] = time.monotonic()
             raw["on_track"] = True
             raw["lap_time"] = d.get("last_lap")       # per sector_delta / feedback

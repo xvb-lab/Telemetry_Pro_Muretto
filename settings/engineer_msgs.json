@@ -7903,6 +7903,36 @@
         "Pulito, tutto insieme: questo era il giro. Rifallo.",
         "Niente sbavature, giro completo. Ora serve solo la copia."
       ]
+    },
+    "eco_on": {
+      "cat": "strategy",
+      "level": "info",
+      "beep": false,
+      "it": "Risparmio libero attivo: obiettivo {laps} giri, più {extra}. Il numero è {target} a giro, ora sei sui {cur}. Imposta lo stesso più {extra} sul volante, i led ti accompagnano.",
+      "variants_it": [
+        "Risparmio libero attivo: obiettivo {laps} giri, più {extra}. Il numero è {target} a giro, ora sei sui {cur}. Imposta lo stesso più {extra} sul volante, i led ti accompagnano.",
+        "Eco attivo, più {extra} giri: {laps} totali a {target} l'uno. Metti più {extra} anche nel menu carburante e seguiamo gli stessi numeri.",
+        "Si risparmia: obiettivo {laps} giri, {target} a giro contro i {cur} attuali. Stesso più {extra} sul pannello e i led lavorano con noi."
+      ]
+    },
+    "eco_on_nodata": {
+      "cat": "strategy",
+      "level": "info",
+      "beep": false,
+      "it": "Risparmio libero attivo, più {extra} giri. Al primo giro pulito ti do il numero da tenere.",
+      "variants_it": [
+        "Risparmio libero attivo, più {extra} giri. Al primo giro pulito ti do il numero da tenere."
+      ]
+    },
+    "eco_off": {
+      "cat": "strategy",
+      "level": "info",
+      "beep": false,
+      "it": "Risparmio libero spento: si torna al passo pieno.",
+      "variants_it": [
+        "Risparmio libero spento: si torna al passo pieno.",
+        "Eco disattivato, riprendiamo il ritmo normale."
+      ]
     }
   }
 }

@@ -62,7 +62,8 @@ _role([
 
 # MODALITA' TEST: piani/consumi = STRATEGY; giro secco = PERFORMANCE
 _role(["longrun_on", "longrun_on_nodata", "racesim_on", "racesim_on_nodata",
-       "test_over", "test_margin", "test_good", "test_off"], "strategist")
+       "test_over", "test_margin", "test_good", "test_off",
+       "eco_on", "eco_on_nodata", "eco_off"], "strategist")
 _role(["hotlap_on", "hotlap_loss", "hotlap_clean"], "spotter")
 
 

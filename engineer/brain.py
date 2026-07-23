@@ -110,7 +110,7 @@ class Engineer:
                      "wheel_", "fuel_short", "engine_", "brakes_over",
                      "tyres_over", "limits_", "tlimits_", "debrief_",
                      "race_start", "green_restart", "session_end",
-                     "longrun_", "racesim_", "hotlap_", "test_")
+                     "longrun_", "racesim_", "hotlap_", "test_", "eco_")
     # QUALIFICA (sei da solo): lo spotter NON da' bandiere ne' traffico.
     # Restano tempi/settori/passo/gomme/grip: servono in quali.
     _LAW_QUALI_MUTE = ("blue_", "yellow", "local_yellow", "traffic_",
@@ -4249,16 +4249,32 @@ class Engineer:
         stanno in _sane_one."""
         raw = raw or {}
         mode = raw.get("test_mode") or None
+        # ECO FREE (mod 3): risparmio LIBERO fuori dai test — il pilota
+        # in gara lo attiva a mano (+N) e ha lo stesso registro gestione
+        eco = int(self._fnum(raw.get("eco_free")) or 0)
+        if not mode and eco > 0:
+            mode = "ecofree"
         st = self._st
-        prev = st.get("tm_mode", None)
+        # firma = modalita' + parametro: cambiare il +N RIannuncia il target
+        if mode == "longrun":
+            sig = (mode, int(self._fnum(raw.get("test_extra")) or 2))
+        elif mode == "ecofree":
+            sig = (mode, eco)
+        elif mode == "racesim":
+            sig = (mode, int(self._fnum(raw.get("test_race_min")) or 60))
+        else:
+            sig = (mode, None)
+        prev_sig = st.get("tm_sig", ("__boot__", None))
+        prev = prev_sig[0]
         out = []
-        if mode != prev:
+        if sig != prev_sig:
+            st["tm_sig"] = sig
             st["tm_mode"] = mode
             st["tm_lap"] = int(raw.get("laps_completed") or 0)
             st["tm_hl_lap"] = None
             st["tm_ok"] = 0
-            if mode == "longrun":
-                extra = int(self._fnum(raw.get("test_extra")) or 2)
+            if mode in ("longrun", "ecofree"):
+                extra = sig[1]
                 # consumo stimato DI LMU (stessa fonte del pannello
                 # Carburante): il target combacia coi numeri del gioco,
                 # cosi' il pilota imposta lo stesso +N sul volante e i
@@ -4271,13 +4287,16 @@ class Engineer:
                     tgt = ve / laps_t
                 st["tm_target"] = tgt
                 st["tm_ve_prev"] = ve
+                _code_on = "eco_on" if mode == "ecofree" else "longrun_on"
                 if tgt:
-                    out.append(self.msg("longrun_on", extra=extra,
+                    out.append(self.msg(_code_on, extra=extra,
                                         laps="%.0f" % laps_t,
                                         target="%.1f" % tgt,
                                         cur="%.1f" % per))
                 else:
-                    out.append(self.msg("longrun_on_nodata", extra=extra))
+                    out.append(self.msg(
+                        "eco_on_nodata" if mode == "ecofree"
+                        else "longrun_on_nodata", extra=extra))
             elif mode == "racesim":
                 mins = int(self._fnum(raw.get("test_race_min")) or 60)
                 est = self._fnum(raw.get("est_lap")) \
@@ -4295,8 +4314,9 @@ class Engineer:
                     out.append(self.msg("racesim_on_nodata", minuti=mins))
             elif mode == "hotlap":
                 out.append(self.msg("hotlap_on"))
-            elif prev:
-                out.append(self.msg("test_off"))
+            elif prev and prev != "__boot__":
+                out.append(self.msg("eco_off" if prev == "ecofree"
+                                    else "test_off"))
             return [x for x in out if x]
         if not mode:
             return []
@@ -4307,11 +4327,11 @@ class Engineer:
         st["tm_lap"] = ld
         if raw.get("in_pits") or raw.get("garage"):
             return []
-        if mode in ("longrun", "racesim"):
+        if mode in ("longrun", "ecofree", "racesim"):
             ve = self._fnum(raw.get("ve_pct"))
             prev_ve = st.get("tm_ve_prev")
             st["tm_ve_prev"] = ve
-            tgt = st.get("tm_target") if mode == "longrun" \
+            tgt = st.get("tm_target") if mode in ("longrun", "ecofree") \
                 else self._fnum(raw.get("lmu_per_lap"))
             if ve is None or prev_ve is None or not tgt:
                 return []
@@ -4394,11 +4414,12 @@ class Engineer:
         # mai rimproveri sul coasting. In hotlap niente consumi/strategia:
         # conta solo il giro secco.
         _tm9 = raw.get("test_mode")
+        _eco9 = bool(self._fnum(raw.get("eco_free")) or 0)
         # in GESTIONE ogni critica di passo e' anti-guida: alzare prima,
         # frenare prima, portare meno velocita' E' la tecnica richiesta
-        # (i LED eco di LMU dicono proprio quello). Restano le sicurezze:
-        # bloccaggi (brake_earlier), pattinamenti, danni, bandiere.
-        if _tm9 in ("longrun", "racesim") and code.startswith((
+        # (i LED eco di LMU dicono proprio quello). Vale per i test E per
+        # l'ECO FREE in gara. Restano le sicurezze: bloccaggi, pattinamenti.
+        if (_tm9 in ("longrun", "racesim") or _eco9) and code.startswith((
                 "coast_corner", "brake_later", "carry_speed", "turn_slow",
                 "sector_loss", "lap_slow", "debrief_improve")):
             return False, "gestione attiva: guida da risparmio, niente critiche di passo"

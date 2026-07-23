@@ -84,7 +84,7 @@ _mk(["brief_spot", "fin_eng_good", "fin_eng_ok", "fin_strat_good",
      "fin_strat_ok", "fin_spot_good", "fin_spot_ok"], 1)
 # MODALITA' TEST dal dash: attivazioni P1 (ack immediato), check P2
 _mk(["longrun_on", "longrun_on_nodata", "racesim_on", "racesim_on_nodata",
-     "hotlap_on", "test_off"], 1)
+     "hotlap_on", "test_off", "eco_on", "eco_on_nodata", "eco_off"], 1)
 _mk(["test_over", "test_margin", "test_good",
      "hotlap_loss", "hotlap_clean"], 2)
 # P2 stato vettura + check consumi

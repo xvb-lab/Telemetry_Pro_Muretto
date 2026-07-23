@@ -602,6 +602,19 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._ap_ts = time.monotonic()
                     self._page_beep()
                     self.update()
+                elif self._m3_sel == 6:    # ECO FREE: risparmio libero (anche gara)
+                    _opts6 = [0, 1, 2, 3, 4]
+                    _c6 = getattr(self, "_eco_free", 0)
+                    _j6 = _opts6.index(_c6) if _c6 in _opts6 else 0
+                    _j6 = (_j6 + (1 if (b & _XI_DR) else -1)) % len(_opts6)
+                    self._eco_free = _opts6[_j6]
+                    engineer_cfg.save(eco_free=self._eco_free)
+                    self._ap_ts = time.monotonic()
+                    self._m3_msg = (("ECO FREE OFF" if not self._eco_free
+                                     else "ECO FREE +%d LAPS" % self._eco_free),
+                                    time.monotonic())
+                    self._page_beep()
+                    self.update()
         # croce su/giu: cambio valore della casella selezionata
         elif (b & (_XI_DU | _XI_DD)) and not (prev & (_XI_DU | _XI_DD)):
             act = self._active_mods()
@@ -616,7 +629,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             elif mod == 3:
                 # nel menu SETTINGS: sposta la voce selezionata
                 self._m3_sel = (self._m3_sel
-                                + (1 if (b & _XI_DD) else -1)) % 6
+                                + (1 if (b & _XI_DD) else -1)) % 7
                 self._page_beep()
                 self.update()
             elif self._ctrl_sel is not None:
@@ -2140,25 +2153,39 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                    Qt.AlignCenter, "LEFT/RIGHT/UP/DOWN = Move")
 
     # ── MOD 3: SCHERMATA IMPOSTAZIONI del dash (menu stile DDU) ──
+    def _cfg_pull(self):
+        """engineer_cfg riletta throttled 1s: serve a MOD 3 (valori menu)
+        e a MOD 1 (spia ECO verde quando il risparmio e' attivo)."""
+        _now = time.monotonic()
+        if _now - self._ap_ts <= 1.0:
+            return
+        self._ap_ts = _now
+        try:
+            _ec = engineer_cfg.load()
+            self._auto_pit = bool(_ec.get("auto_pit", False))
+            self._radio_en = bool(_ec.get("engineer_on", False))
+            self._test_mode = _ec.get("test_mode") or None
+            self._test_extra = int(_ec.get("test_extra_laps") or 2)
+            self._test_min = int(_ec.get("test_race_min") or 60)
+            self._eco_free = int(_ec.get("eco_free") or 0)
+        except Exception:
+            pass
+
+    def _eco_active_laps(self):
+        """+N del risparmio attivo (test long run o ECO FREE), 0 se spento."""
+        tm = getattr(self, "_test_mode", None)
+        if tm == "longrun":
+            return getattr(self, "_test_extra", 2)
+        if tm == "racesim":
+            return -1                    # gestione attiva senza +N
+        return getattr(self, "_eco_free", 0)
+
     def _paint_mod3(self, p):
         FAM = "Archivo SemiExpanded"
         bx = _W / 1334.0
         by = (_H - self.HDR - self.ROW_T - self.ROW_B) / 750.0
         y0 = self.HDR + self.ROW_T
-        # AUTO PIT vive in engineer_cfg (lo scrive anche la config overlay):
-        # rilettura throttled 1s cosi' il valore mostrato resta allineato
-        _now = time.monotonic()
-        if _now - self._ap_ts > 1.0:
-            self._ap_ts = _now
-            try:
-                _ec = engineer_cfg.load()
-                self._auto_pit = bool(_ec.get("auto_pit", False))
-                self._radio_en = bool(_ec.get("engineer_on", False))
-                self._test_mode = _ec.get("test_mode") or None
-                self._test_extra = int(_ec.get("test_extra_laps") or 2)
-                self._test_min = int(_ec.get("test_race_min") or 60)
-            except Exception:
-                pass
+        self._cfg_pull()
         # MENU VERO: voci reali con valore
         _tmv = getattr(self, "_test_mode", None)
         _tm_lbl = {None: "OFF", "longrun": "LONG RUN",
@@ -2179,7 +2206,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                  ("RADIO",
                   "ON" if self._radio_en else "OFF"),
                  ("TEST MODE", _tm_lbl),
-                 ("TEST TARGET", _tg_lbl))
+                 ("TEST TARGET", _tg_lbl),
+                 ("ECO FREE",
+                  ("+%d LAPS" % getattr(self, "_eco_free", 0))
+                  if getattr(self, "_eco_free", 0) else "OFF"))
         f = QFont(FAM)
         f.setPixelSize(max(6, int(52 * by)))     # piu' GRANDE (rich. 23/07)
         f.setWeight(QFont.Medium)
@@ -2295,6 +2325,46 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawText(QRectF(_xr - 29, gy + 34, 44, 18),
                            Qt.AlignRight | Qt.AlignVCenter,
                            "%.0f°C" % self._oil)
+        except Exception:
+            pass
+        # SPIE a destra del cerchio (speculari ad acqua/olio):
+        # - MOD gialla: test attivo (1=long run, 2=race sim, 3=hotlap),
+        #   OFF in giallo tenue quando nessun test gira
+        # - ECO verde: risparmio attivo (long run / race sim / ECO FREE)
+        try:
+            self._cfg_pull()
+            f_e = QFont("Archivo SemiExpanded")
+            f_e.setPixelSize(12)
+            f_e.setBold(True)
+            p.setFont(f_e)
+            _xl = _W / 2.0 + 66.0
+            _tmv = getattr(self, "_test_mode", None)
+            _mn = {"longrun": "MOD 1", "racesim": "MOD 2",
+                   "hotlap": "MOD 3"}.get(_tmv)
+            _rm = QRectF(_xl, gy + 20, 62, 19)
+            if _mn:
+                _yc = QColor("#ffd400")
+                p.setPen(QPen(_yc, 1.4))
+                p.setBrush(QColor(70, 58, 8, 150))
+                p.drawRoundedRect(_rm, 4, 4)
+                p.setPen(QPen(_yc))
+                p.drawText(_rm, Qt.AlignCenter, _mn)
+            else:
+                _yd = QColor(255, 212, 0, 105)
+                p.setPen(QPen(_yd, 1.2))
+                p.setBrush(QColor(50, 44, 10, 90))
+                p.drawRoundedRect(_rm, 4, 4)
+                p.setPen(QPen(_yd))
+                p.drawText(_rm, Qt.AlignCenter, "MOD OFF")
+            _en = self._eco_active_laps()
+            if _en:
+                _txt = "ECO" if _en < 0 else "ECO +%d" % _en
+                _re = QRectF(_xl, gy + 43, 62, 19)
+                p.setPen(QPen(QColor("#37d67a"), 1.4))
+                p.setBrush(QColor(18, 58, 38, 150))
+                p.drawRoundedRect(_re, 4, 4)
+                p.setPen(QPen(QColor("#37d67a")))
+                p.drawText(_re, Qt.AlignCenter, _txt)
         except Exception:
             pass
         return
