@@ -2701,21 +2701,30 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 if self._svg_fuel9.isValid():
                     self._svg_fuel9.render(
                         p, QRectF(_W / 2.0 - 72.0, gy - 48.0, 22, 22))
-            # TRIANGOLO WARNING (icona utente): sospensione GRAVE (danno
-            # >=50%) o pneumatico danneggiato/perso -> lampeggia in alto
-            # a destra della corona, speculare ai fari
+            # ── gruppo spie DESTRO (icone utente), da dentro a fuori:
+            # MOTORE rossa (surriscaldo/danno), GOMMA TPMS (forata/persa),
+            # TRIANGOLO (sospensione GRAVE >=50%)
+            if not hasattr(self, "_svg_warn9"):
+                from PySide6.QtSvg import QSvgRenderer as _QSRt
+                _ipw = _ROOT / "assets" / "icons"
+                self._svg_warn9 = _QSRt(str(_ipw / "warning_light.svg"))
+                self._svg_tyre9 = _QSRt(str(_ipw / "tyre_warn.svg"))
+                self._svg_eng9 = _QSRt(str(_ipw / "engine_warn.svg"))
+            _blk9 = (time.monotonic() % 0.8) < 0.5
+            if getattr(self, "_overheat", False):
+                if _blk9 and self._svg_eng9.isValid():
+                    self._svg_eng9.render(
+                        p, QRectF(_W / 2.0 + 50.0, gy - 48.0, 22, 22))
+                self.update()
+            if (any(getattr(self, "_flat4", None) or [])
+                    or any(getattr(self, "_det4", None) or [])):
+                if _blk9 and self._svg_tyre9.isValid():
+                    self._svg_tyre9.render(
+                        p, QRectF(_W / 2.0 + 78.0, gy - 48.0, 22, 22))
+                self.update()
             _ws9 = getattr(self, "_wsusp", None) or []
-            _bad9 = (any(v is not None and v >= 0.5 for v in _ws9)
-                     or any(getattr(self, "_flat4", None) or [])
-                     or any(getattr(self, "_det4", None) or []))
-            if _bad9:
-                if not hasattr(self, "_svg_warn9"):
-                    from PySide6.QtSvg import QSvgRenderer as _QSRt
-                    self._svg_warn9 = _QSRt(
-                        str(_ROOT / "assets" / "icons"
-                            / "warning_light.svg"))
-                if (time.monotonic() % 0.8) < 0.5 \
-                        and self._svg_warn9.isValid():
+            if any(v is not None and v >= 0.5 for v in _ws9):
+                if _blk9 and self._svg_warn9.isValid():
                     self._svg_warn9.render(
                         p, QRectF(_W / 2.0 + 106.0, gy - 48.0, 22, 22))
                 self.update()          # lampeggio fluido
