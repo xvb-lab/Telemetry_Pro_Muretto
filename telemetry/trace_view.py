@@ -970,8 +970,12 @@ def _load_track_svg(track):
     from pathlib import Path
     if not track:
         return None, []
-    base = Path(__file__).resolve().parent.parent / "settings" / "trackmap"
-    if not base.exists():
+    _root9 = Path(__file__).resolve().parent.parent / "settings"
+    # PRIORITA' alla mappa AUTO-REGISTRATA (24/07): coordinate vere del
+    # gioco, versione pista attuale — la TinyPedal e' il ripiego
+    _bases9 = [b for b in (_root9 / "trackmap_auto", _root9 / "trackmap")
+               if b.exists()]
+    if not _bases9:
         return None, []
     def _norm9(s):
         s = re.sub(r"#U([0-9a-fA-F]{4})",
@@ -986,17 +990,20 @@ def _load_track_svg(track):
     # esatto lasciava la geometria buona inutilizzata
     _tn9 = _norm9(track)
     f = None
-    _best9 = -1
-    for sv in base.glob("*.svg"):
-        _sn9 = _norm9(sv.stem)
-        if not _sn9 or not _tn9:
-            continue
-        if _sn9 == _tn9:
-            f = sv
-            break
-        if (_sn9 in _tn9 or _tn9 in _sn9) and len(_sn9) > _best9:
-            _best9 = len(_sn9)
-            f = sv
+    for base in _bases9:
+        _best9 = -1
+        for sv in base.glob("*.svg"):
+            _sn9 = _norm9(sv.stem)
+            if not _sn9 or not _tn9:
+                continue
+            if _sn9 == _tn9:
+                f = sv
+                break
+            if (_sn9 in _tn9 or _tn9 in _sn9) and len(_sn9) > _best9:
+                _best9 = len(_sn9)
+                f = sv
+        if f is not None:
+            break                 # trovata nella cartella prioritaria
     if f is None:
         return None, []
     try:
@@ -5518,16 +5525,24 @@ class MappaView(QWidget):
         self._map_track = track
         pts = []
         try:
-            base = _ROOT / "settings" / "trackmap"
-            cand = base / (track + ".svg")
-            if not cand.exists():
-                low = track.lower()
-                for f in base.glob("*.svg"):
-                    st = f.stem.lower()
-                    if st in low or low in st:
-                        cand = f
-                        break
-            if cand.exists():
+            cand = None
+            # prima la mappa AUTO-REGISTRATA (coordinate vere di gioco)
+            for base in (_ROOT / "settings" / "trackmap_auto",
+                         _ROOT / "settings" / "trackmap"):
+                if not base.exists():
+                    continue
+                c9 = base / (track + ".svg")
+                if not c9.exists():
+                    low = track.lower()
+                    for f in base.glob("*.svg"):
+                        st = f.stem.lower()
+                        if st in low or low in st:
+                            c9 = f
+                            break
+                if c9.exists():
+                    cand = c9
+                    break
+            if cand is not None and cand.exists():
                 txt = cand.read_text(encoding="utf-8", errors="ignore")
                 mm = _re.search(r'points="([^"]+)"', txt)
                 if mm:

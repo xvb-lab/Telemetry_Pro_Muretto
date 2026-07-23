@@ -1818,6 +1818,15 @@ class TelemetryRecorder:
         # cambio settore -> scrivi aggregato del settore appena chiuso
         if sector != self._prev_sector:
             self._write_sector(d, self._prev_sector, self._cur_lap_id)
+            # confine settore in lapdist: serve alla mappa auto-registrata
+            # (indici S1/S2/S3 nella polyline)
+            try:
+                if sector in (1, 2):
+                    _sl9 = getattr(self, "_sec_ld9", None) or {}
+                    _sl9[sector] = float(d.get("lapdist") or 0.0)
+                    self._sec_ld9 = _sl9
+            except Exception:
+                pass
             self._prev_sector = sector
             self._reset_sector_acc(d)
 
@@ -1835,9 +1844,30 @@ class TelemetryRecorder:
         except (TypeError, ValueError):
             pass
 
+        # giro col passaggio in corsia/garage: non buono per la mappa auto
+        if d.get("in_pits") or d.get("in_pitlane") or d.get("garage"):
+            self._lap_pits9 = True
+
         # giro completato -> scrivi riga giro
         if self._prev_laps is not None and laps > self._prev_laps:
             self._write_lap(d, laps)
+            # MAPPA AUTO-REGISTRATA (24/07, idea utente): al primo giro
+            # completo e pulito scrivi la pista VERA (coordinate gioco)
+            # in settings/trackmap_auto — i lettori la preferiscono
+            try:
+                if not getattr(self, "_lap_pits9", False):
+                    from core.auto_trackmap import maybe_save as _ams9
+                    self._db.flush()
+                    _sl9 = getattr(self, "_sec_ld9", None) or {}
+                    if _ams9(self._evt_track or d.get("track"),
+                             self._db._con, self._cur_lap_id,
+                             d.get("track_len"),
+                             [_sl9.get(1), _sl9.get(2)]):
+                        self._st("trackmap auto scritta (%s)"
+                                 % (self._evt_track or ""))
+            except Exception:
+                pass
+            self._lap_pits9 = False
             self._prev_laps = laps
             self._cur_lap_id = laps + 1
             self._lap_start_fuel = fuel

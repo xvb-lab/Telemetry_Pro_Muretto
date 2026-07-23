@@ -270,6 +270,15 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 .read_text(encoding="utf-8-sig"))   # tollera il BOM
         except Exception:
             self._prefs = {}
+        # TEST e LICO NON si ricordano (rich. 24/07): ripartono spenti
+        # a ogni avvio — tutto il RESTO del menu resta salvato (lingua,
+        # temp gomme, unita', elettronica, auto pit/setup, radio)
+        try:
+            engineer_cfg.save(test_mode=None, eco_free=0)
+        except Exception:
+            pass
+        self._test_mode = None
+        self._eco_free = 0
         self._m3_sel = 0           # voce selezionata nel menu Mod 3
         # WEARABLES (sospensioni/aero) per la macchinina MOD 4: corsia
         # lenta dedicata (mai nel thread GUI), come faceva il dashboard v3
@@ -4035,8 +4044,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
 
     def _save_prefs(self):
         try:
+            # MERGE col file (24/07): il dash vive in PIU' processi;
+            # salvare il dict in memoria com'era buttava via le scelte
+            # fatte dall'altro processo (es. TYRE TEMP che si azzerava)
+            try:
+                _cur = json.loads((USER_DIR / "wec26mfd_prefs.json")
+                                  .read_text(encoding="utf-8-sig"))
+            except Exception:
+                _cur = {}
+            _cur.update(self._prefs)
+            self._prefs = _cur
             (USER_DIR / "wec26mfd_prefs.json").write_text(
-                json.dumps(self._prefs), encoding="utf-8")
+                json.dumps(_cur), encoding="utf-8")
         except Exception:
             pass
 
