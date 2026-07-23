@@ -707,6 +707,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             except Exception:
                 self._track = ""
             try:
+                self._track_len = float(sim.scoring.scoringInfo.mLapDist)
+            except Exception:
+                self._track_len = 0.0
+            try:
                 _end = float(sim.scoring.scoringInfo.mEndET)
                 self._sess_remain = max(0.0, _end - cur_et) \
                     if _end > 0 else 0.0
@@ -3633,6 +3637,76 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             out["L"] = out["R"] = C_TC
         return out
 
+    def _eco_lift_frac(self):
+        """LIFT&COAST NOSTRO (0..1 come mLiftAndCoastProgress): con l'eco
+        del muretto attivo, avvicinandosi a ogni curva frenata appresa i
+        LED si riempiono fino al punto di rilascio. Il punto = inizio
+        frenata appreso - margine ADATTIVO: piu' sei sopra il target di
+        consumo, prima ti fa alzare (si autocalibra giro dopo giro).
+        None = eco spento o dati non pronti (si torna al grip signal)."""
+        if not self._eco_active_laps():
+            return None
+        spd = self._speed or 0.0
+        if spd < 80.0:
+            return None                    # niente coach nel lento/pit
+        ld = getattr(self, "_lapdist", 0.0) or 0.0
+        tl = getattr(self, "_track_len", 0.0) or 0.0
+        if ld <= 0.0 or tl < 500.0:
+            return None
+        # curve apprese: cache per pista+classe (ricarica ogni 30s)
+        _now = time.monotonic()
+        _key = (getattr(self, "_track", ""), getattr(self, "_cls_name", ""))
+        if (getattr(self, "_eco_ck", None) != _key
+                or _now - getattr(self, "_eco_ct", 0.0) > 30.0):
+            self._eco_ck = _key
+            self._eco_ct = _now
+            self._eco_corners = []
+            try:
+                from core import engineer_learn as _el
+                from core.classes import class_tag as _ct
+                prof = _el.load(_key[0], _ct(_key[1]) or _key[1])
+                cs = ((prof.get("cond") or {}).get("dry") or {}) \
+                    .get("corners") or []
+                self._eco_corners = [
+                    (float(c["d"]),
+                     min(max(float(c.get("brake_d") or 60.0), 25.0), 300.0))
+                    for c in cs
+                    if c.get("d") is not None
+                    and float(c.get("drop") or 0.0) >= 12.0]
+            except Exception:
+                self._eco_corners = []
+        if not self._eco_corners:
+            return None
+        # margine adattivo dal muretto (eco_state.json: used vs target)
+        if _now - getattr(self, "_eco_rt", 0.0) > 1.0:
+            self._eco_rt = _now
+            try:
+                import json as _js
+                _st9 = _js.loads((USER_DIR / "eco_state.json")
+                                 .read_text(encoding="utf-8"))
+                _tg9 = float(_st9.get("target") or 0.0)
+                _us9 = float(_st9.get("used") or 0.0)
+                self._eco_ratio = (_us9 / _tg9) if _tg9 > 0 else 1.0
+            except Exception:
+                self._eco_ratio = 1.0
+        _ratio = min(max(getattr(self, "_eco_ratio", 1.0), 0.8), 1.4)
+        margin = min(max(60.0 + (_ratio - 1.0) * 450.0, 40.0), 180.0)
+        # prossima curva frenata (wrap sul giro); se ho APPENA superato un
+        # punto di rilascio e sono ancora in zona frenata: pieno (LIFT!)
+        best = None
+        for d, bd in self._eco_corners:
+            lift = d - bd - margin
+            past = (ld - lift) % tl
+            if past < margin + 20.0:
+                return 1.0
+            dl = (lift - ld) % tl
+            if best is None or dl < best:
+                best = dl
+        window = 220.0
+        if best is not None and best <= window:
+            return min(1.0, 1.0 - best / window + 0.001)
+        return None
+
     def _paint_rpm_row(self, p):
         """12 LED RPM al centro (verde->rosso, blu al limite, arancione
         col limitatore) + 4 LED per lato: lift&coast prioritario
@@ -3673,6 +3747,16 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         blk = ns * lws + (ns - 1) * gap
         lx, rx = 10.0, _W - 10.0 - blk
         frac = self._lico
+        # LICO NOSTRO: se il gioco tace (pannello LMU non impostato) e
+        # l'eco del muretto e' attivo, il segnale lift lo facciamo NOI
+        # dalle curve apprese — stessi LED, stesso linguaggio
+        if frac < 0.015:
+            try:
+                _own9 = self._eco_lift_frac()
+                if _own9 is not None:
+                    frac = _own9
+            except Exception:
+                pass
         if frac >= 0.015:
             if self._thr_in > 0.15:
                 on = int(time.monotonic() * 3) % 2 == 0

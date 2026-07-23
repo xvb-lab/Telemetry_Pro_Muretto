@@ -4338,6 +4338,16 @@ class Engineer:
             used = prev_ve - ve
             if used <= 0 or used > tgt * 3.0:
                 return []          # rifornimento/reset: giro sporco
+            # stato per i LED lico del dash (margine adattivo)
+            try:
+                import json as _js
+                from core.paths import USER_DIR as _UD
+                (_UD / "eco_state.json").write_text(
+                    _js.dumps({"ts": _time.time(),
+                               "target": tgt, "used": used}),
+                    encoding="utf-8")
+            except Exception:
+                pass
             k = used / tgt
             if k > 1.06:
                 return [x for x in [self.msg("test_over",
