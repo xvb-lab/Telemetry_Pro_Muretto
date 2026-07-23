@@ -1882,8 +1882,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _wy_f = (_h0d * 0.30 - sc9) / s
             _wy_r = (mc.height() - _h0d * 0.30 + sc9) / s
             corners = [(0, -1, 0), (1, +1, 0), (2, -1, 1), (3, +1, 1)]
-            p.setFont(QFont("Arial", 8, QFont.Bold))
-            _CW = 34.0
+            p.setFont(QFont("Arial", 11, QFont.Bold))
+            _CW = 46.0
             # chip COMPOUND (simboli nostri) sul lato esterno del blocco:
             # SOLO i simboli compound, sempre. Sigla dal NOME mescola
             # (regola collaudata: l'indice intero inganna sulle Hypercar),
@@ -1910,17 +1910,17 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _sgf = _signm(getattr(self, "_compound", ""))
             _sgr = _signm(getattr(self, "_comp_rr", ""))
             for wi, side, row in corners:
-                cx = gx - 14.0 if side < 0 else gx + gw + 14.0
+                cx = gx - 20.0 if side < 0 else gx + gw + 20.0
                 cy = gy + (_wy_f if row == 0 else _wy_r)
                 _lx = cx - _CW / 2.0
                 if tv[wi] is not None:
                     p.setPen(_ctt(tv[wi], _tag))
-                    p.drawText(QRectF(_lx, cy - 11.5, _CW, 11),
+                    p.drawText(QRectF(_lx, cy - 16.0, _CW, 15),
                                Qt.AlignHCenter | Qt.AlignVCenter,
                                "%d°C" % int(round(tv[wi])))
                 if wear[wi] is not None:
                     p.setPen(QColor("#f2f4f7"))
-                    p.drawText(QRectF(_lx, cy + 0.5, _CW, 11),
+                    p.drawText(QRectF(_lx, cy + 1.0, _CW, 15),
                                Qt.AlignHCenter | Qt.AlignVCenter,
                                "%d%%" % int(round(wear[wi] * 100)))
                 _ccx = _lx - 15.0 if side < 0 else _lx + _CW + 2.0
