@@ -4194,8 +4194,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             p.setPen(Qt.NoPen)
             p.setBrush(QColor(85, 74, 146, 255))       # #554A92, copre il nome
             p.drawRect(_rect)
-            # ── DATO DINAMICO (prova/quali): RUN corrente, stile ufficiale ──
-            if self._sess_type < 10:
+            # ── DATO DINAMICO: prova/quali (RUN) e GARA (STINT) — stesso
+            # header identico, cambia solo il contatore (rich. 23/07) ──
+            if True:
                 p.save()
                 p.setClipRect(_rect)
                 f_big = QFont("Archivo SemiExpanded", 15)
@@ -4240,7 +4241,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 if _lbl is not None:
                     p.drawText(QPointF(_tx, _yb), _lbl)
                     _tx += QFontMetricsF(f_big).horizontalAdvance(_lbl) + 16.0
-                elif int(getattr(self, "_sess_id", 0) or 0) >= 10:
+                elif int(getattr(self, "_sess_type", 0) or 0) >= 10:
                     # GARA: contatore STINT (soste + 1), stesso stile run
                     _stn = int(getattr(self, "_pits9", 0) or 0) + 1
                     _d3 = _stn % 100
