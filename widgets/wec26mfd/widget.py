@@ -2258,9 +2258,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         # blocco GEAR/tachimetro come in MOD 1, STESSA posizione (dietro la lista)
         _gy = self.HDR + self.ROW_T \
             + (_H - self.HDR - self.ROW_T - self.ROW_B) / 2.0 - 44.0
-        # regola motore condivisa (fade); in MOD 2 SENZA marcia: una sola,
-        # sta in MOD 1 (richiesta 23/07: "il cambio sia 1 e non doppio")
-        self._gauge_with_fade(p, _W / 2.0, _gy, 56.0, show_gear=False)
+        # gauge RIMOSSO dal MOD 2 (richiesta 23/07: pagina PIT pulita,
+        # in attesa di destinazione per questo spazio)
         rows = self._m2_rows()
         f = QFont(FAM)
         if not rows:
