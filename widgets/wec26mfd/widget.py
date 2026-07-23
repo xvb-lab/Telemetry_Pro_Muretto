@@ -1003,6 +1003,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                             float(t.mWheels[k].mTireInnerLayerTemperature[j])
                             - 273.15 for j in range(3)) / 3.0
                             for k in range(4)]
+                        self._wear4 = [float(t.mWheels[k].mWear)
+                                       for k in range(4)]
+                        self._batt9 = float(getattr(
+                            t, "mBatteryChargeFraction", 0.0) or 0.0)
+                        self._emo9 = int(getattr(
+                            t, "mElectricBoostMotorState", 0) or 0)
                         self._rpm = float(t.mEngineRPM)
                         self._crpm = float(t.mClutchRPM)
                         self._erpm = float(t.mElectricBoostMotorRPM)
@@ -1705,67 +1711,112 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         _cd.get("detached"))
         except Exception:
             pass
-        # ETICHETTE attorno (come il dashboard): gomma °C sopra, freno °C
-        # sotto, per ruota — FL/FR in alto, RL/RR in basso
+        # ── composizione ORIGINALE del dashboard v3 attorno alla macchinina:
+        # per ruota temp °C (inner, colorata) sopra usura % (bianca), blocco
+        # centrato sull'asse della ruota; ACQUA sopra l'auto, OLIO sotto,
+        # fulmine energia al centro (solo ibride). Compound chip piccolo
+        # sul lato esterno di ogni blocco.
         try:
             from widgets.list.colors import col_tyre_temp as _ctt
-            mw_u = mc.width() / s
-            mh_u = mc.height() / s
-            gx0 = _W / 2.0 - mw_u / 2.0
-            gy0 = y0 + (bodyh - mh_u) / 2.0
-            _c4 = getattr(self, "_inn4", None) or self._carc4 or [None] * 4
-            _b4 = getattr(self, "_brk4", None) or [None] * 4
-            f9 = QFont("Archivo SemiExpanded")
-            f9.setPixelSize(15)
-            f9.setBold(True)
-            p.setFont(f9)
-            # COMPOUND coi SIMBOLI NOSTRI (ui.icons: chip SVG con lettera),
-            # come standings/relative; foratura -> icona tyre_damage
-            from ui.icons import tyre_chip_svg as _tcs
+            from ui.icons import (WATER_SVG as _WSVG, OIL_SVG as _OSVG,
+                                  energy_bolt_svg as _ebolt,
+                                  tyre_chip_svg as _tcs)
             from PySide6.QtSvg import QSvgRenderer as _QSR
             from PySide6.QtCore import QByteArray as _QBA
+            if not hasattr(self, "_svg_cache9"):
+                self._svg_cache9 = {}
+
+            def _prnd(svg):
+                r9 = self._svg_cache9.get(svg)
+                if r9 is None:
+                    r9 = self._svg_cache9[svg] = _QSR(_QBA(svg.encode()))
+                return r9
+
+            gx = mc.x() / s
+            gy = mc.y() / s
+            gw = mc.width() / s
+            gh = mc.height() / s
+            sc9 = mc._scale
+            # centri ruota VERI dalla geometria di TyreBrakeGrid (row_y)
+            _h0d = 72.0 * sc9
+            cy_f = gy + (_h0d * 0.30 - sc9) / s
+            cy_r = gy + (mc.height() - _h0d * 0.30 + sc9) / s
+            _c4 = getattr(self, "_inn4", None) or self._carc4 or [None] * 4
+            _w4 = getattr(self, "_wear4", None) or [None] * 4
+            _co4 = _cd.get("comp4") or [None] * 4
+            _fl4 = _cd.get("tyre_flat") or [False] * 4
             _sig4 = {0: "S", 1: "M", 2: "H", 3: "W"}
-            if not hasattr(self, "_comp_svg"):
-                self._comp_svg = {}
-
-            def _crend(sig):
-                if sig not in self._comp_svg:
-                    try:
-                        self._comp_svg[sig] = _QSR(
-                            _QBA(_tcs(sig, True).encode()))
-                    except Exception:
-                        self._comp_svg[sig] = None
-                return self._comp_svg[sig]
-
             if not hasattr(self, "_px_tdmg"):
                 _ip8 = _ROOT / "assets" / "icons" / "tyre_damage.png"
                 self._px_tdmg = QPixmap(str(_ip8)) if _ip8.exists() else None
-
-            _co4 = _cd.get("comp4") or [None] * 4
-            _fl4 = _cd.get("tyre_flat") or [False] * 4
-            _lay = ((0, gx0 - 78, gy0 + mh_u * 0.10),
-                    (1, gx0 + mw_u + 10, gy0 + mh_u * 0.10),
-                    (2, gx0 - 78, gy0 + mh_u * 0.72),
-                    (3, gx0 + mw_u + 10, gy0 + mh_u * 0.72))
-            for _i9, _lx9, _ly9 in _lay:
-                _tv9 = _c4[_i9]
-                _bv9 = _b4[_i9]
-                if _fl4[_i9] and getattr(self, "_px_tdmg", None):
-                    p.drawPixmap(QRectF(_lx9 + 24, _ly9 - 24,
-                                        20, 20).toRect(), self._px_tdmg)
+            _CW = 44.0
+            f9 = QFont("Archivo SemiExpanded")
+            f9.setPixelSize(12)
+            f9.setBold(True)
+            p.setFont(f9)
+            corners = [(0, -1, cy_f), (1, +1, cy_f),
+                       (2, -1, cy_r), (3, +1, cy_r)]
+            for wi, side, cy in corners:
+                cx = gx - 18.0 if side < 0 else gx + gw + 18.0
+                _lx = cx - _CW / 2.0
+                if _c4[wi] is not None:
+                    p.setPen(QPen(_ctt(int(_c4[wi]), _tag)))
+                    p.drawText(QRectF(_lx, cy - 14.0, _CW, 13),
+                               Qt.AlignHCenter | Qt.AlignVCenter,
+                               "%d°C" % int(round(_c4[wi])))
+                if _w4[wi] is not None:
+                    p.setPen(QPen(QColor(242, 244, 247)))
+                    p.drawText(QRectF(_lx, cy + 1.0, _CW, 13),
+                               Qt.AlignHCenter | Qt.AlignVCenter,
+                               "%d%%" % int(round(_w4[wi] * 100)))
+                # compound chip sul lato ESTERNO del blocco
+                _ccx = _lx - 16.0 if side < 0 else _lx + _CW + 3.0
+                if _fl4[wi] and getattr(self, "_px_tdmg", None):
+                    p.drawPixmap(QRectF(_ccx, cy - 7.0, 14, 14).toRect(),
+                                 self._px_tdmg)
                 else:
-                    _sg9 = _sig4.get(_co4[_i9])
-                    _rd9 = _crend(_sg9) if _sg9 else None
-                    if _rd9 is not None and _rd9.isValid():
-                        _rd9.render(p, QRectF(_lx9 + 24, _ly9 - 24, 20, 20))
-                if _tv9 is not None:
-                    p.setPen(QPen(_ctt(int(_tv9), _tag)))
-                    p.drawText(QRectF(_lx9, _ly9, 68, 18),
-                               Qt.AlignCenter, "%.0f°" % _tv9)
-                if _bv9 is not None:
-                    p.setPen(QPen(QColor(255, 255, 255, 215)))
-                    p.drawText(QRectF(_lx9, _ly9 + 18, 68, 18),
-                               Qt.AlignCenter, "%.0f°" % _bv9)
+                    _sg9 = _sig4.get(_co4[wi])
+                    if _sg9:
+                        _prnd(_tcs(_sg9, True)).render(
+                            p, QRectF(_ccx, cy - 7.0, 14, 14))
+
+            def _eng_temp9(svg, temp, ccx, ccy, warn):
+                if temp is None:
+                    return
+                txt = "%.1f°C" % float(temp)
+                _fm9 = p.fontMetrics()
+                _tw9 = _fm9.horizontalAdvance(txt)
+                D9 = 13.0
+                x9 = ccx - (D9 + 3.0 + _tw9) / 2.0
+                _prnd(svg).render(p, QRectF(x9, ccy - D9 / 2.0, D9, D9))
+                p.setPen(QColor("#ff5044") if temp >= warn
+                         else QColor("#e6eaf0"))
+                p.drawText(QRectF(x9 + D9 + 3.0, ccy - 7, _tw9 + 4, 14),
+                           Qt.AlignVCenter | Qt.AlignLeft, txt)
+
+            _ccx9 = gx + gw / 2.0
+            _eng_temp9(_WSVG, self._water, _ccx9, gy - 9.0, 110.0)
+            _eng_temp9(_OSVG, self._oil, _ccx9, gy + gh + 9.0, 125.0)
+            # ENERGIA al centro (solo ibride): fulmine + SoC %
+            _bt9 = getattr(self, "_batt9", 0.0)
+            if getattr(self, "_emo9", 0) and _bt9 > 0.0:
+                _st9x = self._emo9
+                if _st9x == 3:
+                    _ec9 = "#00e676"
+                elif _st9x == 2:
+                    _ec9 = "#ff3cdc"
+                elif _bt9 < 0.20:
+                    _ec9 = "#ff9a30"
+                else:
+                    _ec9 = "#50a0eb"
+                _ex9 = gx + gw / 2.0
+                _ey9 = gy + gh / 2.0
+                _prnd(_ebolt(_ec9)).render(
+                    p, QRectF(_ex9 - 7.5, _ey9 - 12.5, 15, 15))
+                p.setPen(QColor(_ec9))
+                p.drawText(QRectF(_ex9 - 16, _ey9 + 3.5, 32, 11),
+                           Qt.AlignHCenter | Qt.AlignVCenter,
+                           "%d" % int(round(_bt9 * 100)))
         except Exception:
             pass
 
