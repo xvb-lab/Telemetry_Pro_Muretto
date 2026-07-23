@@ -579,7 +579,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 elif self._m3_sel == 5:    # TEST TARGET (per la modalita')
                     _tm5 = getattr(self, "_test_mode", None)
                     if _tm5 == "longrun":
-                        _opts5 = [2, 3, 4]
+                        _opts5 = [1, 2, 3, 4]
                         _c5 = getattr(self, "_test_extra", 2)
                         _j5 = _opts5.index(_c5) if _c5 in _opts5 else 0
                         _j5 = (_j5 + (1 if (b & _XI_DR) else -1)) % len(_opts5)
@@ -2350,12 +2350,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setPen(QPen(_yc))
                 p.drawText(_rm, Qt.AlignCenter, _mn)
             else:
-                _yd = QColor(255, 212, 0, 105)
-                p.setPen(QPen(_yd, 1.2))
-                p.setBrush(QColor(50, 44, 10, 90))
+                # spia SPENTA: grigia tenue, testo piccolo (rich. 23/07)
+                _gd = QColor(150, 156, 168, 110)
+                p.setPen(QPen(_gd, 1.0))
+                p.setBrush(QColor(30, 34, 40, 80))
                 p.drawRoundedRect(_rm, 4, 4)
-                p.setPen(QPen(_yd))
+                f_off9 = QFont("Archivo SemiExpanded")
+                f_off9.setPixelSize(9)
+                f_off9.setBold(True)
+                p.setFont(f_off9)
+                p.setPen(QPen(_gd))
                 p.drawText(_rm, Qt.AlignCenter, "MOD OFF")
+                p.setFont(f_e)          # ripristina per la spia ECO
             _en = self._eco_active_laps()
             if _en:
                 _txt = "ECO" if _en < 0 else "ECO +%d" % _en
