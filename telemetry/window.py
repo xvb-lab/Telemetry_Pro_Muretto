@@ -2331,6 +2331,12 @@ class _LegacyWindow(QMainWindow):
         registrati, preservando la selezione (sessione/stint/giro/compare)."""
         if self.stack.currentIndex() != 0:
             return                                   # solo quando la Review è visibile
+        # replay mappa in corso: NON interrompere il play con la ricostruzione
+        # delle liste (il tick da 8s riprova; appena in pausa il refresh passa)
+        _ws = getattr(self, "_worksheet", None)
+        _rp = getattr(_ws, "_rp_timer", None) if _ws is not None else None
+        if _rp is not None and _rp.isActive():
+            return
         rec = getattr(self, "_recorder", None)
         armed_now = bool(rec) and rec.is_armed()
         if armed_now and not getattr(self, "_was_armed_live", False):
@@ -5885,6 +5891,12 @@ class _AppPage(QWidget):
         registrati, preservando la selezione (sessione/stint/giro/compare)."""
         if self.stack.currentIndex() != 0:
             return                                   # solo quando la Review è visibile
+        # replay mappa in corso: NON interrompere il play con la ricostruzione
+        # delle liste (il tick da 8s riprova; appena in pausa il refresh passa)
+        _ws = getattr(self, "_worksheet", None)
+        _rp = getattr(_ws, "_rp_timer", None) if _ws is not None else None
+        if _rp is not None and _rp.isActive():
+            return
         rec = getattr(self, "_recorder", None)
         armed_now = bool(rec) and rec.is_armed()
         if armed_now and not getattr(self, "_was_armed_live", False):
