@@ -977,6 +977,18 @@ class TelemetryRecorder:
                 self._offtrack_t0 = None
                 self._last_et_close = None
 
+        # ── SPLIT 23/07: lavoro pesante a 10Hz, campionamento a passo pieno ──
+        # A passo pieno il blocco strategia+publish (centinaia di get e un
+        # dict gigante) mangiava meta' del budget: misurati 56Hz reali.
+        # I consumatori di _latest leggono a 0.5-1s: 10Hz avanza comunque.
+        _nowh = time.monotonic()
+        if _nowh - getattr(self, "_hv_ts", 0.0) >= 0.1:
+            self._hv_ts = _nowh
+            self._tick_heavy(d)
+        self._tick_tail(d)
+
+    def _tick_heavy(self, d):
+        """Strategia live, cache, rivali e publish di _latest (10Hz)."""
         # strategia live (sempre, anche senza registrazione)
         self._tracker.update(d)
         measured = self._tracker.measured(d)
@@ -1042,6 +1054,7 @@ class TelemetryRecorder:
                 _tl_steps = _tl.get("steps"); _tl_pen = _tl.get("per_penalty")
         except Exception:
             pass
+        self._tl_steps_now = _tl_steps      # letto dagli eventi in _tick_tail
         # rivali (nomi/gap/pit/gialla), aggiornati al massimo ogni ~1s
         _riv = None
         try:
@@ -1412,6 +1425,8 @@ class TelemetryRecorder:
                 "measured": measured,
             }
 
+    def _tick_tail(self, d):
+        """Stato registrazione + CAMPIONAMENTO puro: corre a passo pieno."""
         # ── AUTO-START: arma da solo quando entri in pista (prima del return) ──
         try:
             _ot_auto = self._mem.is_on_track()
@@ -1711,6 +1726,7 @@ class TelemetryRecorder:
         bpress_s = d.get("brake_press") or [None] * 4
         sforce_s = d.get("susp_force") or [None] * 4
         slat_s = d.get("slip_lat") or [None] * 4
+        grip_s = d.get("tyre_grip") or [None] * 4
         for i, wn in enumerate(("fl", "fr", "rl", "rr")):
             samp["tyre_t_" + wn] = carc[i]
             samp["tyre_ts_" + wn] = self._mean3(surf[i])
@@ -1723,10 +1739,19 @@ class TelemetryRecorder:
             samp["tyre_w_" + wn] = wear_s[i]
             samp["sforce_" + wn] = sforce_s[i]
             samp["slat_" + wn] = slat_s[i]
+            samp["grip_" + wn] = grip_s[i]
         # METEO per-sample (continuo): asfalto + pioggia
         _rn = d.get("raining")
         samp["track_temp"] = d.get("track_temp")
         samp["rain_pct"] = (float(_rn) * 100.0) if _rn is not None else None
+        # aero, traffico e grip pista (grip margin / scia / normalizzazione)
+        samp["df_front"] = d.get("df_front")
+        samp["df_rear"] = d.get("df_rear")
+        try:
+            samp["gap_ahead"] = (getattr(self, "_riv_cache", None) or {}).get("gap_ahead")
+        except Exception:
+            samp["gap_ahead"] = None
+        samp["track_grip"] = d.get("track_grip")
         self._db.add_sample(samp)
 
         # ── EVENTI puntuali su db (marker mappa / pagina FIA) ──
@@ -1741,14 +1766,15 @@ class TelemetryRecorder:
                         "x": d.get("pos_x"), "z": d.get("pos_z"),
                         "kind": "contact", "val": float(_img)})
             # track limits: gli steps salgono -> taglio QUI (val = totale steps)
+            _tls = getattr(self, "_tl_steps_now", None)
             _ptl = getattr(self, "_ev_tl_prev", None)
-            if _tl_steps is not None:
-                if _ptl is not None and _tl_steps > _ptl:
+            if _tls is not None:
+                if _ptl is not None and _tls > _ptl:
                     self._db.add_event({
                         "lap": samp["lap"], "t": samp["t"], "lapdist": _ld_cont,
                         "x": d.get("pos_x"), "z": d.get("pos_z"),
-                        "kind": "tl", "val": float(_tl_steps)})
-                self._ev_tl_prev = _tl_steps
+                        "kind": "tl", "val": float(_tls)})
+                self._ev_tl_prev = _tls
         except Exception:
             pass
 

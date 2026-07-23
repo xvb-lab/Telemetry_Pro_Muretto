@@ -319,7 +319,10 @@ class TelemetryDB:
                  "tyre_w_fl", "tyre_w_fr", "tyre_w_rl", "tyre_w_rr",
                  "sforce_fl", "sforce_fr", "sforce_rl", "sforce_rr",
                  "slat_fl", "slat_fr", "slat_rl", "slat_rr",
-                 "track_temp", "rain_pct"]
+                 "track_temp", "rain_pct",
+                 # grip margin / scia / normalizzazione (23/07)
+                 "grip_fl", "grip_fr", "grip_rl", "grip_rr",
+                 "df_front", "df_rear", "gap_ahead", "track_grip"]
 
     def flush(self):
         """Scrittura RESILIENTE e PARLANTE. Il vecchio flush aveva un solo

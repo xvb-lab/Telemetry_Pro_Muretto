@@ -253,6 +253,12 @@ class TelemetryReader:
             out["susp_force"] = sforce         # carico sospensione per ruota (N)
             out["slip_lat"] = slat             # velocita' laterale al contatto (slide)
             out["wheel_rot"] = wrot            # rotazione ruota (bloccaggi)
+            # carico aerodinamico (N): bilancio e perdita in scia
+            try:
+                out["df_front"] = float(t.mFrontDownforce)
+                out["df_rear"] = float(t.mRearDownforce)
+            except Exception:
+                out["df_front"] = out["df_rear"] = None
             # ── DANNI (dalla telemetria) ──
             try:
                 dents = [int(t.mDentSeverity[i]) for i in range(8)]   # 0/1/2 x8
