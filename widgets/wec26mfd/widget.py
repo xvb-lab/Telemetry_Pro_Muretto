@@ -4334,7 +4334,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             else:
                 side = ["#b678ff" if (frac * ns - i) > 0.1 else None
                         for i in range(ns)]
-            colsL = colsR = side
+            colsL = side
+            colsR = side[::-1]      # SPECULARE: a destra si riempie verso il centro
         else:
             sig = self._grip_signal()
             colsL = [sig["L"]] * ns
