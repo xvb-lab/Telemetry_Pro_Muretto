@@ -320,6 +320,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         self._pit_run = 0.0        # ultimo tempo sosta corso (per il FATTO)
         self._m2_sel = 0           # voce selezionata nella pagina PIT
         self._auto_pit = False     # AUTO PIT (engineer_cfg): mostrato nel Mod 3
+        self._auto_setup = False   # AUTO SETUP (engineer_cfg): idem
         self._ap_ts = 0.0          # throttle rilettura flag auto_pit/engineer_on
         self._radio_en = False     # RADIO on/off (engineer_on): come riga Radio Options
         try:
@@ -545,7 +546,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._ctrl_sel = 0 if (b & _XI_DR) else 8
                 else:
                     self._ctrl_sel = (self._ctrl_sel
-                                      + (1 if (b & _XI_DR) else -1)) % 9
+                                      + (1 if (b & _XI_DR) else -1)) % 10
                 self._ctrl_sel_t = time.monotonic()
                 self._page_beep()
                 self.update()
@@ -633,7 +634,21 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                     time.monotonic())
                     self._page_beep()
                     self.update()
-                elif self._m3_sel == 3:    # RADIO (engineer_on): come Options
+                elif self._m3_sel == 3:    # AUTO SETUP (pressioni/ala/duct)
+                    self._auto_setup = not getattr(self, "_auto_setup",
+                                                   False)
+                    self._ap_ts = time.monotonic()
+                    try:
+                        engineer_cfg.save(auto_setup=self._auto_setup)
+                    except Exception:
+                        pass
+                    self._m3_msg = (("AUTO SETUP ON - ENGINEER ADJUSTS"
+                                     " PIT MENU" if self._auto_setup
+                                     else "AUTO SETUP OFF"),
+                                    time.monotonic())
+                    self._page_beep()
+                    self.update()
+                elif self._m3_sel == 4:    # RADIO (engineer_on): come Options
                     self._radio_en = not self._radio_en
                     self._ap_ts = time.monotonic()
                     try:
@@ -644,7 +659,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                      else "RADIO OFF"), time.monotonic())
                     self._page_beep()
                     self.update()
-                elif self._m3_sel == 4:    # TEST MODE (ciclo unico coi minuti)
+                elif self._m3_sel == 5:    # TEST MODE (ciclo unico coi minuti)
                     _seq = [(None, 0), ("longrun", 0), ("racesim", 30),
                             ("racesim", 60), ("racesim", 90),
                             ("racesim", 120), ("hotlap", 0)]
@@ -669,7 +684,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._m3_msg = (_lbl4, time.monotonic())
                     self._page_beep()
                     self.update()
-                elif self._m3_sel == 6:    # LIGHTS: toggle fari (bind invisibile)
+                elif self._m3_sel == 7:    # LIGHTS: toggle fari (bind invisibile)
                     if getattr(self, "_prefs", {}).get("electric_control"):
                         _send_scancode(39)     # "Headlights" (DIK ;)
                         self._m3_msg = ("LIGHTS TOGGLE", time.monotonic())
@@ -678,7 +693,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                         time.monotonic())
                     self._page_beep()
                     self.update()
-                elif self._m3_sel == 7:    # WIPER: velocita' tergi
+                elif self._m3_sel == 8:    # WIPER: velocita' tergi
                     if getattr(self, "_prefs", {}).get("electric_control"):
                         _send_scancode(51 if (b & _XI_DR) else 52)
                         self._m3_msg = ("WIPER %s" %
@@ -689,7 +704,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                         time.monotonic())
                     self._page_beep()
                     self.update()
-                elif self._m3_sel == 8:    # LINGUA dash: EN <-> IT
+                elif self._m3_sel == 9:    # LINGUA dash: EN <-> IT
                     _cl9 = self._prefs.get("dash_lang", "EN")
                     self._prefs["dash_lang"] = \
                         "IT" if _cl9 == "EN" else "EN"
@@ -699,7 +714,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                     else "ENGLISH", time.monotonic())
                     self._page_beep()
                     self.update()
-                elif self._m3_sel == 5:    # LICO: risparmio libero (anche gara)
+                elif self._m3_sel == 6:    # LICO: risparmio libero (anche gara)
                     _opts6 = [0, 1, 2, 3, 4]
                     _c6 = getattr(self, "_eco_free", 0)
                     _j6 = _opts6.index(_c6) if _c6 in _opts6 else 0
@@ -742,7 +757,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             elif mod == 3:
                 # nel menu SETTINGS: sposta la voce selezionata
                 self._m3_sel = (self._m3_sel
-                                + (1 if (b & _XI_DD) else -1)) % 9
+                                + (1 if (b & _XI_DD) else -1)) % 10
                 self._page_beep()
                 self.update()
             elif self._ctrl_sel is not None:
@@ -3163,6 +3178,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         try:
             _ec = engineer_cfg.load()
             self._auto_pit = bool(_ec.get("auto_pit", False))
+            self._auto_setup = bool(_ec.get("auto_setup", False))
             self._radio_en = bool(_ec.get("engineer_on", False))
             self._test_mode = _ec.get("test_mode") or None
             self._test_extra = int(_ec.get("test_extra_laps") or 2)
@@ -3200,6 +3216,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                   else "OFF"),
                  ("AUTO PIT",
                   "ON" if self._auto_pit else "OFF"),
+                 ("AUTO SETUP",
+                  "ON" if getattr(self, "_auto_setup", False)
+                  else "OFF"),
                  ("RADIO",
                   "ON" if self._radio_en else "OFF"),
                  ("TEST MODE", _tm_lbl),
@@ -3215,7 +3234,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         f.setPixelSize(max(6, int(52 * by)))     # piu' GRANDE (rich. 23/07)
         f.setWeight(QFont.Medium)
         p.setFont(f)
-        _pitch = 68.0     # 9 righe (LINGUA inclusa) senza sbordare
+        _pitch = 62.0     # 10 righe (AUTO SETUP inclusa) senza sbordare
         lh = _pitch * by
         for i, (it, vv) in enumerate(ITEMS):
             sel = (i == self._m3_sel)
@@ -3229,9 +3248,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             p.drawText(QRectF(48 * bx, ry, 900 * bx, lh),
                        Qt.AlignLeft | Qt.AlignVCenter, self._it9(it))
             _vc3 = QColor(255, 255, 255, 235)
-            if i == 4 and vv != "OFF":
+            if i == 5 and vv != "OFF":
                 _vc3 = QColor("#2fa8e0")        # TEST: blu
-            elif i == 5 and vv != "OFF":
+            elif i == 6 and vv != "OFF":
                 _vc3 = QColor("#00e676")        # LICO: verde
             # valore + TRIANGOLINI stile LMU sulla voce selezionata
             # (rich. 23/07: come il menu pit del gioco, niente "<>")
