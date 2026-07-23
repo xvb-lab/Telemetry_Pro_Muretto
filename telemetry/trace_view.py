@@ -1860,9 +1860,12 @@ class _LiveMap(QWidget):
             p.setPen(QPen(QColor(154, 160, 171, 70), 1.3,
                           Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
             _t0tr8 = _oppt - 40.0
+            _near8 = getattr(self, "_opp_near", None)
             for _cidp, _serp in _oserp.items():
                 if _cidp == -1:
                     continue
+                if _near8 is not None and _cidp not in _near8:
+                    continue          # lontano: niente scia (23/07)
                 _pth8 = None
                 _lpw8 = None
                 for _rw8 in _serp:
@@ -1924,13 +1927,22 @@ class _LiveMap(QWidget):
                     self._car_num(p, _c9o, _ang9, _po9, dot_r)
         # dot INTERPOLATI (pa/pb calcolati in alto); indice solo di riserva
         if pb is not None:
-            dot(pb, cmp_c, _mk_ang(getattr(self, "_cmp_srt", None), _ld_b))
+            _angb9 = _mk_ang(getattr(self, "_cmp_srt", None), _ld_b)
+            _angb9 = self._ang_slip(_angb9,
+                                    getattr(self, "_slip_b", None), _ld_b)
+            dot(pb, cmp_c, _angb9)
+            # numero anche su QUESTA macchinina (sei sempre tu, 23/07)
+            _ppnb = getattr(self, "_play_pos_num", 0)
+            if _ppnb and getattr(self, "_play_ld", None):
+                self._car_num(p, P(pb[0], pb[1]), _angb9, _ppnb, dot_r)
         elif hi_cmp is not None and 0 <= hi_cmp < len(cmp):
             dot(cmp[hi_cmp], cmp_c,
                 _mk_ang(getattr(self, "_cmp_srt", None),
                         cmp[hi_cmp][2] if len(cmp[hi_cmp]) > 2 else None))
         if pa is not None:
             _angp9 = _mk_ang(getattr(self, "_sel_srt", None), _ld_a)
+            _angp9 = self._ang_slip(_angp9,
+                                    getattr(self, "_slip_a", None), _ld_a)
             dot(pa, sel_c, _angp9)
             # numero di posizione SULLA mia macchinina, come i rivali
             _ppn = getattr(self, "_play_pos_num", 0)
@@ -2147,6 +2159,21 @@ class _LiveMap(QWidget):
         # MANINA su tutti i chip/dot cliccabili (legenda giri + eventi)
         self._hover_cursor(e.position())
         self._scrub(e.position()); super().mouseMoveEvent(e)
+
+    def _ang_slip(self, ang, ser, ld):
+        """Somma alla direzione l'angolo di TRAVERSO alla lapdist
+        (gain 2x per leggibilita', tetto 28 gradi)."""
+        if ang is None or not ser or ld is None:
+            return ang
+        try:
+            import bisect
+            i = bisect.bisect_left(ser, (float(ld),))
+            if i >= len(ser):
+                i = len(ser) - 1
+            s = max(-28.0, min(28.0, ser[i][1] * 2.0))
+            return ang + s
+        except Exception:
+            return ang
 
     def _car_num(self, p, c, ang, num, dot_r):
         """Numero di gara SULLA macchinina: bold, centrato sulla
@@ -3007,18 +3034,8 @@ class _WorksheetTab(QWidget):
             "QPushButton:hover{background:rgba(255,29,67,0.55);}")
         self._abx.clicked.connect(self._clear_ab)
         _pl.addWidget(self._abx, 0, Qt.AlignVCenter)
-        # simbolo pilota sulla mappa: dot / macchinina / freccia GPS
-        self._mkbtn = QPushButton("navigation")    # Material Icons (ligature)
-        self._mkbtn.setCursor(Qt.PointingHandCursor)
-        self._mkbtn.setFixedSize(28, 28)
-        self._mkbtn.setToolTip("Map symbol: dot / car / GPS arrow")
-        self._mkbtn.setStyleSheet(
-            "QPushButton{font-family:'Material Icons';color:#ffffff;"
-            "font-size:16px;"
-            "background:rgba(255,255,255,0.08);border:none;border-radius:14px;}"
-            "QPushButton:hover{background:rgba(255,29,67,0.55);}")
-        self._mkbtn.clicked.connect(self._marker_menu)
-        _pl.addWidget(self._mkbtn, 0, Qt.AlignVCenter)
+        # solo MACCHININA (rich. 23/07): il menu dot/freccia e' andato,
+        # il modellino e' quello che racconta la pista
         _pl.addStretch(1)
         root.addWidget(_prow)                # fisso, sopra lo scroll
         from PySide6.QtCore import QTimer as _QT
@@ -3053,7 +3070,7 @@ class _WorksheetTab(QWidget):
             from core.profile import _load_profile
             _mon = bool(_load_profile().get("ws_map", True))
             # simbolo pilota scelto (dot/car/arrow), persistito
-            self.map_w._mk_style = _load_profile().get("ws_marker", "car")
+            self.map_w._mk_style = "car"      # solo macchinina (23/07)
         except Exception:
             _mon = True
         self.map_w.setVisible(_mon)
@@ -3138,6 +3155,29 @@ class _WorksheetTab(QWidget):
             d = _load_profile(); d["ws_map"] = bool(on); _save_profile(d)
         except Exception:
             pass
+
+    def _slip_series(self, lap, con=None):
+        """[(lapdist, gradi)] di TRAVERSO dal pattino laterale
+        posteriore (slat, m/s) vs velocita' — per la macchinina che
+        si scompone come quella vera (rich. 23/07)."""
+        try:
+            _c = con or getattr(self.data, "con", None)
+            if _c is None or lap is None:
+                return []
+            import math as _m
+            out = []
+            for _ld, _sr, _sp in _c.execute(
+                    "SELECT lapdist, (slat_rl+slat_rr)/2.0, speed"
+                    " FROM samples WHERE lap=? AND rowid % 2 = 0"
+                    " ORDER BY lapdist", (lap,)):
+                if _sp and float(_sp) > 40.0:
+                    out.append((float(_ld), _m.degrees(
+                        _m.atan2(float(_sr or 0.0), float(_sp) / 3.6))))
+                else:
+                    out.append((float(_ld), 0.0))
+            return out
+        except Exception:
+            return []
 
     def _marker_menu(self):
         """Scelta del simbolo pilota sulla mappa (persistita nel profilo)."""
@@ -3284,6 +3324,14 @@ class _WorksheetTab(QWidget):
             self.map_w._opp_series = _oser9
         except Exception:
             self.map_w._opp_series = {}
+        self._opp_ii = {}
+        # slip per la macchinina di traverso (giro sel + confronto)
+        try:
+            self.map_w._slip_a = self._slip_series(self._sel)
+            self.map_w._slip_b = self._slip_series(cmp_lap, con=cmp_con) \
+                if cmp_lap is not None else []
+        except Exception:
+            self.map_w._slip_a = self.map_w._slip_b = []
         self._play.setText("pause")
         self._rp_timer.start()
 
@@ -3436,30 +3484,65 @@ class _WorksheetTab(QWidget):
                     _gap9 = None       # fuori scala: meglio niente
         self.map_w.set_play_pos(ld_a if ld_a is not None else ld_b,
                                 ld_b, _gap9)
-        # macchinine grigie: INTERPOLAZIONE fluida (23/07);
-        # cid=-1 = IL GIOCATORE (numero sul mio dot)
+        # macchinine grigie: interpolazione con INDICE che avanza
+        # (23/07 notte: la scansione lineare per ogni rivale a ogni
+        # frame dava gli scatti); cid=-1 = IL GIOCATORE
         try:
             _oser9 = getattr(self.map_w, "_opp_series", None) or {}
             _opts9 = []
             self.map_w._opp_t = self._rp_t
-            for _cid9, _ser9 in _oser9.items():
-                _prev9 = _next9 = None
-                for _row9 in _ser9:
-                    if _row9[0] <= self._rp_t:
-                        _prev9 = _row9
-                    else:
-                        _next9 = _row9
-                        break
-                if _prev9 is None:
-                    continue
+            _ii9 = getattr(self, "_opp_ii", None)
+            if _ii9 is None:
+                _ii9 = self._opp_ii = {}
+
+            def _brk9(_cid, _ser):
+                """(prev, next) attorno a _rp_t partendo dall'indice
+                dell'ultimo frame; riparte da 0 solo su rewind."""
+                i = _ii9.get(_cid, 0)
+                if i >= len(_ser) or _ser[i][0] > self._rp_t:
+                    i = 0
+                while i + 1 < len(_ser) \
+                        and _ser[i + 1][0] <= self._rp_t:
+                    i += 1
+                _ii9[_cid] = i
+                if _ser[i][0] > self._rp_t:
+                    return None, None
+                return _ser[i], (_ser[i + 1]
+                                 if i + 1 < len(_ser) else None)
+
+            def _lerp9(_prev9, _next9):
                 if _next9 is not None and _next9[0] > _prev9[0]:
                     _f9 = (self._rp_t - _prev9[0]) \
                         / (_next9[0] - _prev9[0])
-                    _x9i = _prev9[1] + (_next9[1] - _prev9[1]) * _f9
-                    _z9i = _prev9[2] + (_next9[2] - _prev9[2]) * _f9
-                else:
-                    _x9i, _z9i = _prev9[1], _prev9[2]
+                    return (_prev9[1] + (_next9[1] - _prev9[1]) * _f9,
+                            _prev9[2] + (_next9[2] - _prev9[2]) * _f9)
+                return _prev9[1], _prev9[2]
+
+            # prima IL PLAYER (cid=-1): numero + posizione per la
+            # regola di vicinanza delle scie
+            _plx9 = _plz9 = None
+            _serp9 = _oser9.get(-1)
+            if _serp9:
+                _pv9, _nx9 = _brk9(-1, _serp9)
+                if _pv9 is not None:
+                    _plx9, _plz9 = _lerp9(_pv9, _nx9)
+                    self.map_w._play_pos_num = \
+                        _pv9[3] if len(_pv9) > 3 else 0
+            _near9 = set()
+            for _cid9, _ser9 in _oser9.items():
+                if _cid9 == -1:
+                    continue
+                _prev9, _next9 = _brk9(_cid9, _ser9)
+                if _prev9 is None:
+                    continue
+                _x9i, _z9i = _lerp9(_prev9, _next9)
                 _po9i = _prev9[3] if len(_prev9) > 3 else 0
+                # scia SOLO se il rivale e' vicino a me (<=300 m):
+                # tutte insieme erano uno scarabocchio (rich. 23/07)
+                if _plx9 is not None and (
+                        (_x9i - _plx9) ** 2
+                        + (_z9i - _plz9) ** 2) <= 300.0 ** 2:
+                    _near9.add(_cid9)
                 # direzione di marcia (per ruotare la macchinina):
                 # dal movimento prev->next; da fermo tiene l'ultima
                 _hd9 = getattr(self.map_w, "_opp_hd", None)
@@ -3474,13 +3557,12 @@ class _WorksheetTab(QWidget):
                         _hd9[_cid9] = (_dx, _dz)
                 if _dxh9 is None and _cid9 in _hd9:
                     _dxh9, _dzh9 = _hd9[_cid9]
-                if _cid9 == -1:
-                    self.map_w._play_pos_num = _po9i
-                elif _dxh9 is not None:
+                if _dxh9 is not None:
                     _opts9.append((_x9i, _z9i, _po9i,
                                    _x9i + _dxh9, _z9i + _dzh9))
                 else:
                     _opts9.append((_x9i, _z9i, _po9i))
+            self.map_w._opp_near = _near9
             self.map_w.set_opponents(_opts9)
         except Exception:
             pass
@@ -3597,7 +3679,7 @@ class _WorksheetTab(QWidget):
             except Exception:
                 pass
             for _en9, _fl9 in _mcl(self.map_w._track, _tl9):
-                for _dm9 in (200.0, 150.0, 100.0):
+                for _dm9 in (200.0, 150.0, 100.0, 50.0):
                     _pb9 = _en9 - _dm9
                     if _pb9 > 0:
                         _boards.append((_pb9, "%d" % int(_dm9)))
@@ -3638,13 +3720,17 @@ class _WorksheetTab(QWidget):
                 _segs9 = {"slide": [], "tc": [], "abs": [],
                           "lico": []}
                 try:
+                    # SOLO il giro SELEZIONATO (23/07 notte): le
+                    # strisce di tutta la sessione finivano DI FIANCO
+                    # alla traiettoria mostrata = scarabocchio
                     _rows9 = _con9.execute(
                         "SELECT pos_x, pos_z,"
                         " (ABS(slat_fl)+ABS(slat_fr)+ABS(slat_rl)"
                         "  +ABS(slat_rr))/4.0, speed, tc_active,"
                         " abs_active, throttle, brake, lapdist"
                         " FROM samples"
-                        " WHERE rowid % 3 = 0 ORDER BY rowid").fetchall()
+                        " WHERE lap=? AND rowid % 3 = 0"
+                        " ORDER BY rowid", (self._sel,)).fetchall()
                     _cur9 = {"slide": [], "tc": [], "abs": [],
                              "lico": []}
 
