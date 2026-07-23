@@ -317,15 +317,21 @@ def auto_fuel_target(menu_raw, laps_needed, margin=2):
         return None
     item = None
     for it in menu_raw:
-        if str((it or {}).get("name") or "").startswith("VIRTUAL ENERGY"):
+        nm = str((it or {}).get("name") or "")
+        if nm.startswith("VIRTUAL ENERGY"):
             item = it
             break
+        if item is None and nm.startswith("FUEL") \
+                and not nm.startswith("FUEL RATIO"):
+            item = it        # SOLO BENZINA (P2/P3/GTE, 23/07): litri
     if item is None:
         return None
     opts = item.get("settings") or []
     best = None
     for ix, op in enumerate(opts):
-        m = re.match(r"(\d+)%\s+(\d+)\s+laps", str((op or {}).get("text") or ""))
+        # VE: "55% 12 laps" — FUEL: "65L 23 laps" (o "giri" se IT)
+        m = re.match(r"(\d+)\s*(?:%|L)\s+(\d+)\s+(?:laps|giri)",
+                     str((op or {}).get("text") or ""), re.I)
         if m and int(m.group(2)) >= int(laps_needed) + margin:
             if best is None or int(m.group(1)) < best[1]:
                 best = (ix, int(m.group(1)))

@@ -2385,6 +2385,16 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         it = find("VIRTUAL ENERGY")
         if it:
             rows.append(it)
+        else:
+            # SOLO BENZINA (P2/P3/GTE, 23/07): il menu LMU espone
+            # "FUEL:" al posto della VE — senza questa riga il
+            # carburante non si poteva regolare dalla card
+            for it2 in items:
+                _nm2 = str((it2 or {}).get("name") or "").upper()
+                if _nm2.startswith("FUEL") \
+                        and not _nm2.startswith("FUEL RATIO"):
+                    rows.append(it2)
+                    break
         it = find("FUEL RATIO")               # ratio carburante
         if it:
             rows.append(it)
@@ -2762,7 +2772,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawText(QRectF(TX, ry, COLW - 24.0, ROWH),
                            Qt.AlignLeft | Qt.AlignVCenter,
                            "RATIO %s" % vt.strip())
-            elif up.startswith("VIRTUAL ENERGY"):
+            elif up.startswith("VIRTUAL ENERGY") \
+                    or (up.startswith("FUEL")
+                        and not up.startswith("FUEL RATIO")):
                 # NUMERO % su badge VIOLA bold; poi i GIRI + bandierina a
                 # scacchi (FLAG_SVG) al posto di "LAPS".
                 _ln = self._tr_pit(vt)
@@ -3334,10 +3346,22 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setPen(QPen(_gd))
                 p.drawText(_rm, Qt.AlignCenter, "MOD 0")
             # SPIA "SC" (mappa motore 0 = safety car map) nello slot
-            # che era dell'ECO: ambra fissa quando sei in mappa 0
+            # che era dell'ECO: ambra fissa quando sei in mappa 0.
+            # ECCEZIONE (23/07): P2/P3/GTE senza mappa regolabile stanno
+            # SEMPRE a 0 -> la SC accesa era un falso. Il chip appare
+            # solo su HY (dove mappa 0 = SC vera) o se la mappa e' > 0.
+            try:
+                from core.classes import class_tag as _ct9
+                _tagsc = _ct9(getattr(self, "_cls_name", "") or "") or ""
+            except Exception:
+                _tagsc = ""
+            _has_map9 = (_tagsc == "HY"
+                         or (getattr(self, "_mmap", 0) or 0) > 0)
             _map0 = (getattr(self, "_mmap", None) == 0)
             _rsc = QRectF(_xl + 66, gy + 20, 34, 19)
-            if _map0 or _lt:
+            if not _has_map9:
+                pass                       # niente chip: mappa fissa
+            elif _map0 or _lt:
                 p.setPen(QPen(QColor("#ffb020"), 1.4))
                 p.setBrush(QColor(70, 48, 8, 150))
                 p.drawRoundedRect(_rsc, 4, 4)
