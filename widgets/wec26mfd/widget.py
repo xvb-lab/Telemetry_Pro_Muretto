@@ -3198,9 +3198,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     except Exception:
                         self._svg_fuel_soft9 = None
                 if getattr(self, "_svg_fuel_soft9", None) is not None:
-                    # piu' piccola e vicina al numero (+12px, rich. 23/07)
+                    # piccola e attaccata al numero (rifiniture 23/07)
                     self._svg_fuel_soft9.render(
-                        p, QRectF(_xr - 15, gy + 52, 13, 13))
+                        p, QRectF(_xr - 9, gy + 52, 13, 13))
                 p.setPen(QColor(255, 255, 255, 240))
                 p.drawText(QRectF(_xr - 21, gy + 50, 44, 18),
                            Qt.AlignRight | Qt.AlignVCenter,
@@ -4661,8 +4661,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         p.setPen(QColor(255, 255, 255, 235))
                         p.drawText(QPointF(_fx10, _yb), _ftx)
                         if getattr(self, "_svg_fuel_w9", None) is not None:
+                            # centrata col testo (era alta di 6px)
                             self._svg_fuel_w9.render(
-                                p, QRectF(_fx10 - 24.0, 8.0, 20.0, 20.0))
+                                p, QRectF(_fx10 - 24.0, 14.0, 20.0, 20.0))
                     else:
                         p.setPen(QColor(255, 255, 255, 220))
                         p.drawText(QPointF(
