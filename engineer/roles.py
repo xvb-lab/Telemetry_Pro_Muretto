@@ -74,8 +74,9 @@ _role(["hotlap_on", "hotlap_loss", "hotlap_clean"], "spotter")
 _role(["camber_spread", "tyre_glaze", "brake_fade", "diffuser_stall",
        "press_high", "press_low", "power_clip"], "engineer")
 _role(["grip_margin", "grip_over", "abs_high", "tc_high", "dirty_air",
-       "opp_fading", "timeloss_focus"], "spotter")
-_role(["ve_burn"], "strategist")
+       "opp_fading", "timeloss_focus", "brake_potential", "coast_waste",
+       "brake_release_dirty", "gas_earlier"], "spotter")
+_role(["ve_burn", "grip_loss"], "strategist")
 
 
 def role_for(code):

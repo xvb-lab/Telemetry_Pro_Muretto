@@ -28,6 +28,11 @@ del coaching), one-shot per stint, reset al pit. Modulo `pro_findings_call`.
 | **Aria sporca** (>30% del giro incollato davanti) | ✅ | solo gara |
 | **Margine grip** (usi <86% del potenziale di classe) | ✅ | solo prova, combined-G vs target |
 | **Anti-ripetizione coaching** | ✅ | stesso finding mai entro 4 min (`emit_log` 240s); salute macchina esente |
+| **Grip perso** (grip factor per giro vs primi 3 dello stint) | ✅ | Segers cap.8 (23/07 sera): degrado OGGETTIVO, parla a passi di 5% |
+| **Frenata sotto il potenziale** (picco −G < 80% del laterale) | ✅ | Segers cap.5: regola del 95%, solo prova |
+| **Veleggio sprecato** (né gas né freno > 8% del giro) | ✅ | Segers cap.14: muto se eco/test attivi |
+| **Rilascio freno sporco** (vs la TUA baseline di stint) | ✅ | Segers cap.14 (Stewart): autocalibrante, 2 giri di fila |
+| **Gas troppo tardi** (throttle acceptance < 62%, target 80%) | ✅ | Segers cap.14 (Fey): media per giro sulle curve vere |
 
 ## Meteo / gomme
 | Capacità | Stato | Note |

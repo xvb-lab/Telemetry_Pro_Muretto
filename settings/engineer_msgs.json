@@ -8227,6 +8227,72 @@
       "en": "You're losing {sec} seconds at {turn}, lap after lap: focus there on the next pass.",
       "es": "Pierdes {sec} segundos en {turn}, vuelta tras vuelta: céntrate ahí en el próximo paso.",
       "fr": "Tu perds {sec} secondes à {turn}, tour après tour: concentre-toi là au prochain passage."
+    },
+    "grip_loss": {
+      "cat": "gomme",
+      "level": "warn",
+      "beep": false,
+      "it": "Le gomme hanno perso circa il {pct} per cento del grip da inizio stint: metti in conto il degrado.",
+      "variants_it": [
+        "Le gomme hanno perso circa il {pct} per cento del grip da inizio stint: metti in conto il degrado.",
+        "Grip in calo: il {pct} per cento in meno rispetto ai primi giri. Adatta i riferimenti di staccata.",
+        "I numeri dicono {pct} per cento di grip in meno da inizio stint: gestione, non forzare gli ingressi."
+      ],
+      "en": "The tyres have lost about {pct} percent of grip since the start of the stint: factor in the degradation.",
+      "es": "Los neumáticos han perdido alrededor del {pct} por ciento de agarre desde el inicio del stint: cuenta con la degradación.",
+      "fr": "Les pneus ont perdu environ {pct} pour cent de grip depuis le début du relais: prends la dégradation en compte."
+    },
+    "brake_potential": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "In staccata usi il {pct} per cento del potenziale: la macchina frena più forte di così. Costruisci prima la pressione.",
+      "variants_it": [
+        "In staccata usi il {pct} per cento del potenziale: la macchina frena più forte di così. Costruisci prima la pressione.",
+        "La frenata vale quasi quanto il laterale che fai in curva: sei al {pct} per cento. C'è margine, attacca di più il pedale."
+      ],
+      "en": "Under braking you're using {pct} percent of the potential: the car brakes harder than that. Build the pressure sooner.",
+      "es": "En frenada usas el {pct} por ciento del potencial: el coche frena más fuerte. Aplica la presión antes.",
+      "fr": "Au freinage tu utilises {pct} pour cent du potentiel: la voiture freine plus fort que ça. Monte la pression plus tôt."
+    },
+    "coast_waste": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Stai veleggiando troppo tra gas e freno: quasi {sec} secondi a giro. Tieni il gas fino al punto di staccata.",
+      "variants_it": [
+        "Stai veleggiando troppo tra gas e freno: quasi {sec} secondi a giro. Tieni il gas fino al punto di staccata.",
+        "Troppo tempo né sul gas né sul freno: {sec} secondi a giro regalati. Gas dentro fino alla staccata."
+      ],
+      "en": "You're coasting too much between throttle and brake: almost {sec} seconds a lap. Stay on the throttle until the braking point.",
+      "es": "Estás planeando demasiado entre gas y freno: casi {sec} segundos por vuelta. Mantén el gas hasta el punto de frenada.",
+      "fr": "Tu roules trop en roue libre entre gaz et frein: presque {sec} secondes au tour. Reste sur les gaz jusqu'au point de freinage."
+    },
+    "brake_release_dirty": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Il rilascio del freno si è sporcato rispetto ai tuoi primi giri: modulalo più lineare fino all'apice, è lì che si tiene la macchina in appoggio.",
+      "variants_it": [
+        "Il rilascio del freno si è sporcato rispetto ai tuoi primi giri: modulalo più lineare fino all'apice, è lì che si tiene la macchina in appoggio.",
+        "Come diceva Stewart: conta quando TOGLI il freno. Il rilascio è diventato nervoso, riportalo dolce fino all'apice."
+      ],
+      "en": "Your brake release has gotten messy compared to your first laps: modulate it more linearly to the apex, that's what keeps the car settled.",
+      "es": "La suelta del freno se ha ensuciado respecto a tus primeras vueltas: modúlala más lineal hasta el ápice.",
+      "fr": "Ton relâché de frein s'est dégradé par rapport à tes premiers tours: module-le plus linéairement jusqu'à la corde."
+    },
+    "gas_earlier": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "Apri il gas tardi in uscita: arrivi al gas pieno al {pct} per cento del laterale, il riferimento è ottanta. Anticipa l'apertura.",
+      "variants_it": [
+        "Apri il gas tardi in uscita: arrivi al gas pieno al {pct} per cento del laterale, il riferimento è ottanta. Anticipa l'apertura.",
+        "Il gas pieno arriva quando la curva è già finita: {pct} per cento del laterale. Appoggiati prima al gas, la trazione c'è."
+      ],
+      "en": "You're getting to full throttle late on exit: at {pct} percent of the lateral, the reference is eighty. Open up earlier.",
+      "es": "Llegas tarde al gas pleno en la salida: al {pct} por ciento del lateral, la referencia es ochenta. Abre antes.",
+      "fr": "Tu arrives tard aux pleins gaz en sortie: à {pct} pour cent du latéral, la référence est quatre-vingts. Ouvre plus tôt."
     }
   }
 }

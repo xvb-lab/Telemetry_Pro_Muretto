@@ -4524,6 +4524,9 @@ class Engineer:
             st["acc"] = {}
             st.pop("lap", None)
             st.setdefault("said", set()).clear()
+            for _k9s in ("gf_hist", "gf_next", "latmax_ref",
+                         "rel_hist", "pb", "stint_lap0"):
+                st.pop(_k9s, None)
             return []
         acc = st.setdefault("acc", {})
 
@@ -4612,6 +4615,36 @@ class Engineer:
                 _add("dirty", 0.0)
         except Exception:
             pass
+
+        # ── SEGERS (23/07): grip factor, potenziale frenata,
+        # veleggio, rilascio freno, throttle acceptance ──
+        _add("ticks", 1.0)
+        if comb > 1.0:
+            _add("grip", comb)          # grip factor overall (gated >1G)
+        if abs(gl) > acc.get("latmax", 0.0):
+            acc["latmax"] = abs(gl)
+        if thr < 0.05 and brk < 0.05 and spd > 80.0:
+            _add("coast", 1.0)          # ne' gas ne' freno
+        _nowp9 = _time.monotonic()
+        _pb9 = st.get("pb")
+        st["pb"] = (brk, _nowp9)
+        if _pb9 is not None and _nowp9 > _pb9[1]:
+            _dbr9 = (brk - _pb9[0]) / (_nowp9 - _pb9[1])
+            if _dbr9 < -0.05 and _pb9[0] > 0.15:
+                _add("rel", abs(_dbr9))  # velocita' nel RILASCIO
+        # throttle acceptance: latG quando arrivi al gas PIENO vs
+        # latG massimo della curva (Segers/Fey: target 80% oltre 400 CV)
+        if abs(gl) > 0.8 and spd > 90.0:
+            acc["c_lat"] = max(acc.get("c_lat", 0.0), abs(gl))
+        if acc.get("c_lat"):
+            if abs(gl) >= 0.3:
+                if thr > 0.95 and "c_acc" not in acc:
+                    acc["c_acc"] = abs(gl)
+            else:
+                if acc["c_lat"] > 1.0 and "c_acc" in acc:
+                    _add("tacc", acc["c_acc"] / acc["c_lat"])
+                acc.pop("c_lat", None)
+                acc.pop("c_acc", None)
 
         # ── VERDETTO al cambio giro ──
         lap = int(raw.get("laps_completed") or 0)
@@ -4715,6 +4748,73 @@ class Engineer:
             if _dv is not None and _dv > 0.30:
                 said.add("dirty")
                 out = self.msg("dirty_air")
+        # ── statistiche Segers: SEMPRE aggiornate (anche se il
+        # verdetto del giro e' gia' preso), senno' niente baseline ──
+        _a9g = acc.get("grip")
+        _gf9 = (_a9g[0] / _a9g[1]) if _a9g and _a9g[1] >= 40 else None
+        if _gf9 is not None:
+            st.setdefault("gf_hist", []).append(_gf9)
+        st["latmax_ref"] = max(st.get("latmax_ref", 0.0),
+                               acc.get("latmax", 0.0))
+        _rv9 = _avg("rel")
+        if _rv9 is not None:
+            st.setdefault("rel_hist", []).append(_rv9)
+        # S1. GRIP PERSO: grip factor vs i primi 3 giri dello stint —
+        # il degrado OGGETTIVO (parla a passi di 5%)
+        if out is None and _gf9 is not None:
+            _gh9 = st.get("gf_hist") or []
+            if len(_gh9) >= 4:
+                _base9 = max(_gh9[:3])
+                if _base9 > 0.5:
+                    _loss9 = (1.0 - _gf9 / _base9) * 100.0
+                    if _loss9 >= st.get("gf_next", 5.0):
+                        st["gf_next"] = _loss9 + 5.0
+                        out = self.msg("grip_loss",
+                                       pct=int(round(_loss9)))
+        # S2. FRENATA SOTTO IL POTENZIALE: il picco di -G deve valere
+        # ~95% del miglior laterale; sotto l'80% c'e' margine vero
+        if out is None and kind == "practice" and "bpot" not in said:
+            _lm9 = st.get("latmax_ref", 0.0)
+            _dec9 = abs(min(acc.get("decel", 0.0), 0.0))
+            if _lm9 > 1.5 and 0.3 < _dec9 < _lm9 * 0.80 \
+                    and lap >= int(st.get("stint_lap0") or 0) + 2:
+                said.add("bpot")
+                out = self.msg("brake_potential",
+                               pct=int(round(_dec9 / _lm9 * 100)))
+        # S3. VELEGGIO SPRECATO: ne' gas ne' freno oltre l'8% del giro
+        # (muto se stai risparmiando di proposito: eco/test)
+        if out is None and "coastw" not in said \
+                and not raw.get("test_mode") \
+                and not (self._fnum(raw.get("eco_free")) or 0):
+            _ct9 = acc.get("coast")
+            _tk9 = acc.get("ticks")
+            if _ct9 and _tk9 and _tk9[1] >= 200:
+                _cf9 = _ct9[1] / _tk9[1]
+                _ll9 = self._fnum(raw.get("last_lap")) or 0.0
+                if _cf9 > 0.08 and _ll9 > 30.0:
+                    said.add("coastw")
+                    out = self.msg("coast_waste",
+                                   sec="%.1f" % (_cf9 * _ll9))
+        # S4. RILASCIO FRENO SPORCO (Stewart: "conta quando lo togli"):
+        # 2 giri di fila oltre 1.5-1.6x la TUA baseline di inizio stint
+        if out is None and kind == "practice" and "relw" not in said:
+            _rh9 = st.get("rel_hist") or []
+            if len(_rh9) >= 4:
+                _med9 = sorted(_rh9[:3])[1]
+                if _med9 > 0.2 and _rh9[-1] > 1.6 * _med9 \
+                        and _rh9[-2] > 1.5 * _med9:
+                    said.add("relw")
+                    out = self.msg("brake_release_dirty")
+        # S5. GAS TROPPO TARDI: throttle acceptance medio del giro
+        # sotto il 62% (target >400 CV: 80%)
+        if out is None and kind == "practice" and "taccw" not in said:
+            _ta9 = acc.get("tacc")
+            if _ta9 and _ta9[1] >= 4:
+                _tv9 = _ta9[0] / _ta9[1]
+                if _tv9 < 0.62:
+                    said.add("taccw")
+                    out = self.msg("gas_earlier",
+                                   pct=int(round(_tv9 * 100)))
         # 10. GRIP: margine o oltre (prova/hotlap — coaching puro)
         if out is None and kind == "practice":
             _gm = acc.get("gmax")
@@ -5004,7 +5104,8 @@ class Engineer:
         _COACH9 = ("car_sliding", "kerb_zone", "flatspot_check",
                    "coast_corner", "grip_margin", "grip_over",
                    "tc_high", "abs_high", "dirty_air", "tl_corner",
-                   "timeloss_focus", "opp_fading")
+                   "timeloss_focus", "opp_fading", "brake_potential",
+                   "coast_waste", "brake_release_dirty", "gas_earlier")
         if code.startswith(_COACH9):
             _nowc9 = _time.time()
             for _e9 in self._st.get("emit_log", []):
