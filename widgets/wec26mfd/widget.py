@@ -997,6 +997,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                             - 273.15 for k in range(4)]
                         self._brk4 = [float(t.mWheels[k].mBrakeTemp)
                                       - 273.15 for k in range(4)]
+                        # INNER layer (media 3 zone): lo strato di
+                        # riferimento per la temperatura di lavoro gomma
+                        self._inn4 = [sum(
+                            float(t.mWheels[k].mTireInnerLayerTemperature[j])
+                            - 273.15 for j in range(3)) / 3.0
+                            for k in range(4)]
                         self._rpm = float(t.mEngineRPM)
                         self._crpm = float(t.mClutchRPM)
                         self._erpm = float(t.mElectricBoostMotorRPM)
@@ -1691,7 +1697,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         except Exception:
             _tag = ""
         try:
-            mc.set_data(self._carc4, getattr(self, "_brk4", None), _tag,
+            # colori gomma dall'INNER layer (strato di lavoro), non carcassa
+            _t4m = getattr(self, "_inn4", None) or self._carc4
+            mc.set_data(_t4m, getattr(self, "_brk4", None), _tag,
                         _cd.get("body_dent"), None, None,
                         _cd.get("tyre_flat"), _cd.get("tyre_detached"),
                         _cd.get("detached"))
@@ -1705,7 +1713,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             mh_u = mc.height() / s
             gx0 = _W / 2.0 - mw_u / 2.0
             gy0 = y0 + (bodyh - mh_u) / 2.0
-            _c4 = self._carc4 or [None] * 4
+            _c4 = getattr(self, "_inn4", None) or self._carc4 or [None] * 4
             _b4 = getattr(self, "_brk4", None) or [None] * 4
             f9 = QFont("Archivo SemiExpanded")
             f9.setPixelSize(15)
