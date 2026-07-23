@@ -786,6 +786,23 @@ class _PedalChart(QWidget):
                     p.setPen(QColor("#8a90a0"))
                     p.drawText(QPointF(xx - _twl / 2.0, mt + gh - 9), _lab)
             p.setFont(_ft)
+        # CARTELLI STACCATA (rich. 23/07): 200/150/100 prima delle curve,
+        # come i cartelli veri a bordo pista — linea leggera + numerino
+        _brd = getattr(self, "_board_marks", [])
+        if _brd:
+            _ft = p.font(); _ft6 = p.font(); _ft6.setPointSize(6)
+            p.setFont(_ft6)
+            for _ld, _lab in _brd:
+                if xmin <= _ld <= xmax:
+                    xx = X(_ld)
+                    p.setPen(QPen(QColor(255, 255, 255, 26), 1,
+                                  Qt.DashLine))
+                    p.drawLine(int(xx), mt, int(xx), mt + gh)
+                    _twl = p.fontMetrics().horizontalAdvance(_lab)
+                    p.setPen(QColor(160, 166, 178, 170))
+                    p.drawText(QPointF(xx - _twl / 2.0, mt + gh - 22),
+                               _lab)
+            p.setFont(_ft)
         f2 = p.font(); f2.setPointSize(7); p.setFont(f2)
         _draw_sector_times(p, X, bounds, self._la_secs, self._lb_secs, self._best_secs, xmin, xmax, mt + 22)
         p.setFont(f)
@@ -1644,6 +1661,35 @@ class _LiveMap(QWidget):
                 p.setPen(QColor(230, 235, 245, 235))
                 p.drawText(QPointF(lx - _tw / 2.0, ly + 3), lab)
 
+        # CARTELLI STACCATA sulla pista (rich. 23/07): tacche
+        # perpendicolari a 200/150/100m prima di ogni curva + numerino
+        _brdm = getattr(self, "_board_marks", [])
+        _srtb = getattr(self, "_sel_srt", None)
+        if _brdm and _srtb:
+            _fb6 = p.font(); _fb = p.font(); _fb.setPointSize(6)
+            p.setFont(_fb)
+            for _ldb, _labb in _brdm:
+                _a9 = self._pos_at_ld(_srtb, _ldb)
+                _b9 = self._pos_at_ld(_srtb, _ldb + 6.0)
+                if not _a9 or not _b9:
+                    continue
+                _qa = P(_a9[0], _a9[1]); _qb = P(_b9[0], _b9[1])
+                _dx = _qb.x() - _qa.x(); _dy = _qb.y() - _qa.y()
+                _l9 = (_dx * _dx + _dy * _dy) ** 0.5
+                if _l9 < 1e-6:
+                    continue
+                _nx = -_dy / _l9; _ny = _dx / _l9
+                _hw = trk_w / 2.0 + 2.0
+                p.setPen(QPen(QColor(255, 255, 255, 110), 1.4))
+                p.drawLine(QPointF(_qa.x() - _nx * _hw,
+                                   _qa.y() - _ny * _hw),
+                           QPointF(_qa.x() + _nx * _hw,
+                                   _qa.y() + _ny * _hw))
+                p.setPen(QColor(200, 206, 218, 190))
+                p.drawText(QPointF(_qa.x() + _nx * (_hw + 4.0),
+                                   _qa.y() + _ny * (_hw + 4.0) + 2.0),
+                           _labb)
+            p.setFont(_fb6)
         # traiettorie: linee colorate sopra la pista
         if cmp:
             line(cmp_draw, cmp_c, ln_w)
@@ -1708,6 +1754,11 @@ class _LiveMap(QWidget):
                  "tc": QColor(74, 144, 226, 200),
                  "abs": QColor(199, 125, 255, 210),
                  "lico": QColor(138, 63, 251, 205)}
+        for _ck9, _cv9 in (getattr(self, "_ev_colors", None)
+                           or {}).items():
+            _c9c = QColor(_cv9)
+            _c9c.setAlpha(210)
+            _SEGC[_ck9] = _c9c
         # TUTTI sulla traiettoria (scelta utente: in curva gli
         # eventi sono in sequenza — lico, poi ABS, poi TC — e
         # coi toggle si isola il resto)
@@ -1834,6 +1885,15 @@ class _LiveMap(QWidget):
         # accendono/spengono i layer contatti/tagli/bloccaggi ──
         self._ev_hit = {}
         _evs9 = getattr(self, "_events", None) or []
+        if not hasattr(self, "_ev_colors"):
+            try:
+                import json as _js
+                from core.paths import USER_DIR as _UD
+                self._ev_colors = _js.loads(
+                    (_UD / "map_event_colors.json")
+                    .read_text(encoding="utf-8"))
+            except Exception:
+                self._ev_colors = {}
         _segd9 = getattr(self, "_event_segs", None) or {}
         _nseg9 = sum(len(v) for v in _segd9.values())
         if _evs9 or _nseg9:
@@ -1856,25 +1916,29 @@ class _LiveMap(QWidget):
             f9l.setBold(False)
             f9l.setPointSize(8)
             p.setFont(f9l)
+            _ecl9 = getattr(self, "_ev_colors", None) or {}
             for _k9, _lab9, _col9 in _EVL:
-                # chip SEMPRE visibili, con lo zero smorzato (23/07)
+                # chip SEMPRE visibili, zero smorzato; dot 5.5 come la
+                # legenda giri; colore personalizzabile (doppio click)
+                _col9 = _ecl9.get(_k9, _col9)
                 _n9 = _cnt9.get(_k9, 0)
                 _on9 = bool(_evshow9.get(_k9)) and _n9 > 0
                 _txt9 = "%s %d" % (_lab9, _n9)
                 _tw9 = p.fontMetrics().horizontalAdvance(_txt9)
-                _rect9 = QRectF(_ex9, _ey9 - 4.0, 14.0 + _tw9 + 10.0,
-                                18.0)
+                _rect9 = QRectF(_ex9, _ey9 - 5.0, 18.0 + _tw9 + 10.0,
+                                20.0)
                 p.setPen(Qt.NoPen)
                 p.setBrush(QColor(20, 24, 32, 200 if _on9 else 120))
                 p.drawRoundedRect(_rect9, 4, 4)
+                p.setPen(QPen(QColor("#09090b"), 1))
                 p.setBrush(QColor(_col9) if _on9
                            else QColor(120, 126, 138, 140))
-                p.drawEllipse(QPointF(_ex9 + 8.0, _ey9 + 5.0), 4.0, 4.0)
+                p.drawEllipse(QPointF(_ex9 + 10.0, _ey9 + 5.0), 5.5, 5.5)
                 p.setPen(QColor(235, 238, 245, 235 if _on9 else 120))
-                p.drawText(QPointF(_ex9 + 16.0, _ey9 + 9.0), _txt9)
+                p.drawText(QPointF(_ex9 + 20.0, _ey9 + 9.0), _txt9)
                 if _n9 > 0:               # zero = non selezionabile
                     self._ev_hit[_k9] = _rect9
-                _ey9 += 22.0
+                _ey9 += 24.0
         for which, label, col in items:
             cxp, cyp = x + 6, 12
             p.setPen(QPen(QColor("#09090b"), 1)); p.setBrush(col)
@@ -1992,6 +2056,30 @@ class _LiveMap(QWidget):
             on = any(r.contains(e.position()) for r in self._dot_hit.values())
             self.setCursor(Qt.PointingHandCursor if on else Qt.ArrowCursor)
         self._scrub(e.position()); super().mouseMoveEvent(e)
+
+    def mouseDoubleClickEvent(self, e):
+        # doppio click su un chip evento = PICK COLOR personalizzato
+        for _k9, rect in (getattr(self, "_ev_hit", None) or {}).items():
+            if rect.contains(e.position()):
+                from PySide6.QtWidgets import QColorDialog
+                _cur9 = (getattr(self, "_ev_colors", None)
+                         or {}).get(_k9)
+                _c0 = QColor(_cur9) if _cur9 else QColor("#ffffff")
+                _c9 = QColorDialog.getColor(_c0, self, "Layer color")
+                if _c9.isValid():
+                    _ec = getattr(self, "_ev_colors", None) or {}
+                    _ec[_k9] = _c9.name()
+                    self._ev_colors = _ec
+                    try:
+                        import json as _js
+                        from core.paths import USER_DIR as _UD
+                        (_UD / "map_event_colors.json").write_text(
+                            _js.dumps(_ec), encoding="utf-8")
+                    except Exception:
+                        pass
+                    self.update()
+                return
+        super().mouseDoubleClickEvent(e)
 
     def mousePressEvent(self, e):
         if e.button() == Qt.RightButton:
@@ -2173,6 +2261,23 @@ class _TraceChart(QWidget):
                     _twl = p.fontMetrics().horizontalAdvance(_lab)
                     p.setPen(QColor("#8a90a0"))
                     p.drawText(QPointF(xx - _twl / 2.0, mt + gh - 9), _lab)
+            p.setFont(_ft)
+        # CARTELLI STACCATA (rich. 23/07): 200/150/100 prima delle curve,
+        # come i cartelli veri a bordo pista — linea leggera + numerino
+        _brd = getattr(self, "_board_marks", [])
+        if _brd:
+            _ft = p.font(); _ft6 = p.font(); _ft6.setPointSize(6)
+            p.setFont(_ft6)
+            for _ld, _lab in _brd:
+                if xmin <= _ld <= xmax:
+                    xx = X(_ld)
+                    p.setPen(QPen(QColor(255, 255, 255, 26), 1,
+                                  Qt.DashLine))
+                    p.drawLine(int(xx), mt, int(xx), mt + gh)
+                    _twl = p.fontMetrics().horizontalAdvance(_lab)
+                    p.setPen(QColor(160, 166, 178, 170))
+                    p.drawText(QPointF(xx - _twl / 2.0, mt + gh - 22),
+                               _lab)
             p.setFont(_ft)
         f2 = p.font(); f2.setPointSize(7); p.setFont(f2)
         _draw_sector_times(p, X, bounds, self._la_secs, self._lb_secs, self._best_secs, xmin, xmax, mt + 22)
@@ -3269,8 +3374,30 @@ class _WorksheetTab(QWidget):
             cmp_lap = self._cmp; cmp_con = None; gold = False
         secd = self._sec_dist(self._sel)
         _turns = self.map_w.turns_lapdist()      # punti curva sui grafici
+        # CARTELLI STACCATA: 200/150/100 prima dell'inizio di ogni curva
+        _boards = []
+        try:
+            from core.lico_points import map_corner_lifts as _mcl
+            _tl9 = max((q[0] for q in _turns), default=0.0) + 500.0
+            try:
+                from data.tracks import _track_logo_stem as _tls
+                from data.track_info import track_info as _ti9
+                _inf9 = _ti9((_tls(self.map_w._track) or "").lower())
+                if _inf9:
+                    _tl9 = float(_inf9[0])
+            except Exception:
+                pass
+            for _en9, _fl9 in _mcl(self.map_w._track, _tl9):
+                for _dm9 in (200.0, 150.0, 100.0):
+                    _pb9 = _en9 - _dm9
+                    if _pb9 > 0:
+                        _boards.append((_pb9, "%d" % int(_dm9)))
+        except Exception:
+            _boards = []
+        self.map_w._board_marks = _boards
         for ch in self.charts:
             ch._turn_marks = _turns
+            ch._board_marks = _boards
             name, c, unit, scale = ch._ws
             ch._cmp_gold = gold
             if c == "__delta":
