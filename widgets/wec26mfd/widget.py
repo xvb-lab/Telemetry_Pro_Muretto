@@ -5170,18 +5170,42 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _ant = 150.0 + 50.0 * (_lvl - 1) + _adat
         else:
             _ant = 50.0 * (_lvl - 1) + _adat
+        _full9 = False
         for d in _pts:
             lift = d - _ant
             past = (ld - lift) % tl
             if past < 160.0 + 50.0 * (_lvl - 1):
-                return 1.0            # in zona rilascio: PIENO
+                _full9 = True         # in zona rilascio: PIENO
+                break
             dl = (lift - ld) % tl
             if best is None or dl < best:
                 best = dl
         window = 220.0
-        if best is not None and best <= window:
-            return min(1.0, 1.0 - best / window + 0.001)
-        return None
+        _frac9 = None
+        if _full9:
+            _frac9 = 1.0
+        elif best is not None and best <= window:
+            _frac9 = min(1.0, 1.0 - best / window + 0.001)
+        # DIAGNOSTICA LICO (23/07, da togliere a collaudo ok): ogni
+        # ~0.5s scrive posizione/punti/frazione — un giro col lico e
+        # il log dice ESATTAMENTE dove accende e perche'
+        try:
+            if time.monotonic() - getattr(self, "_lico_dbg_t", 0.0) > 0.5:
+                self._lico_dbg_t = time.monotonic()
+                with open(USER_DIR / "lico_debug.log", "a",
+                          encoding="utf-8") as _fh:
+                    _fh.write("ld=%7.1f tl=%6.0f lvl=%d kind=%s ant=%.0f "
+                              "npts=%d next=%s frac=%s\n" % (
+                                  ld, tl, _lvl,
+                                  getattr(self, "_eco_pts_kind", "?"),
+                                  _ant, len(_pts),
+                                  "%.0f" % best if best is not None
+                                  else "-",
+                                  "%.2f" % _frac9 if _frac9 is not None
+                                  else "-"))
+        except Exception:
+            pass
+        return _frac9
 
     def _paint_rpm_row(self, p):
         """12 LED RPM al centro (verde->rosso, blu al limite, arancione
