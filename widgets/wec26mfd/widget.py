@@ -4133,7 +4133,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 _fmd = QFontMetricsF(f_d9)
                 _wd9 = _fmd.horizontalAdvance(_txt9) + 26.0
                 _hd9 = 22.0 * _kd
-                _x0d = _W - 14.0 - _wd9
+                # CENTRATA nel varco in alto del quadrante (il cerchio
+                # e' aperto li'): message center del dash
+                _x0d = (_W - _wd9) / 2.0
                 _y0d = self.HDR + self.ROW_T
                 _bgd = QColor("#101c3f")
                 _bgd.setAlpha(int(235 * _kd))
