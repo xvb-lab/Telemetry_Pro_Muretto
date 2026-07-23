@@ -2025,8 +2025,6 @@ class _LiveMap(QWidget):
             p.setBrush(Qt.NoBrush)
             # spessore = come le traiettorie del pilota (rich. 23/07:
             # la riga sottile non sembrava una scia)
-            p.setPen(QPen(QColor(154, 160, 171, 95), ln_w,
-                          Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
             _t0tr8 = _oppt - 40.0
             _near8 = getattr(self, "_opp_near", None)
             for _cidp, _serp in _oserp.items():
@@ -2034,26 +2032,31 @@ class _LiveMap(QWidget):
                     continue
                 if _near8 is not None and _cidp not in _near8:
                     continue          # lontano: niente scia (23/07)
-                _pth8 = None
                 _lpw8 = None
+                _lq8 = None
                 for _rw8 in _serp:
                     if _rw8[0] < _t0tr8:
                         continue
                     if _rw8[0] > _oppt:
                         break
                     _q8 = P(_rw8[1], _rw8[2])
-                    if _pth8 is None or (_lpw8 is not None and (
+                    if _lpw8 is not None and _lq8 is not None and (
                             (_rw8[1] - _lpw8[0]) ** 2
-                            + (_rw8[2] - _lpw8[1]) ** 2) > 50.0 ** 2):
-                        if _pth8 is not None:
-                            p.drawPath(_pth8)
-                        _pth8 = QPainterPath()
-                        _pth8.moveTo(_q8)
-                    else:
-                        _pth8.lineTo(_q8)
+                            + (_rw8[2] - _lpw8[1]) ** 2) <= 50.0 ** 2:
+                        # SFUMATURA (rich. 24/07): la coda EVAPORA —
+                        # piena dietro la macchina, trasparente verso
+                        # il fondo: l'effetto scia resta, la pista
+                        # non si sporca di mille righe
+                        _k8 = max(0.0, min(1.0,
+                                           (_rw8[0] - _t0tr8) / 40.0))
+                        _a8 = int(115 * (_k8 ** 1.6))
+                        if _a8 > 3:
+                            p.setPen(QPen(QColor(154, 160, 171, _a8),
+                                          ln_w, Qt.SolidLine,
+                                          Qt.RoundCap, Qt.RoundJoin))
+                            p.drawLine(_lq8, _q8)
                     _lpw8 = (_rw8[1], _rw8[2])
-                if _pth8 is not None:
-                    p.drawPath(_pth8)
+                    _lq8 = _q8
         # MACCHININE GRIGIE dei rivali: STESSA macchinina del pilota
         # (scocca + abitacolo), grigia, ruotata nella direzione di
         # marcia; numero bold DISEGNATO sulla scocca, gira con lei
