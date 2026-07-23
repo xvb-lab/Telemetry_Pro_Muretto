@@ -1914,6 +1914,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         scr = QRectF(0, self.HDR, _W, _H - self.HDR)
         _mc0 = getattr(self, "_minicar", None)
         if not ion:
+            self._lamp_t0 = None       # prossima accensione: nuovo lamp test
             if _mc0 is not None and _mc0.isVisible():
                 _mc0.hide()
             p.setPen(Qt.NoPen)
@@ -1947,6 +1948,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             return
         if self._anim_t.isActive():
             self._anim_t.stop()
+        # LAMP TEST da auto vera: alla prima schermata dopo il boot (o
+        # all'avvio app) TUTTE le spie accese per 2.5s, poi ognuna torna
+        # alla sua condizione
+        if getattr(self, "_lamp_t0", None) is None:
+            self._lamp_t0 = time.monotonic()
         if not act:
             return
         # RETROILLUMINAZIONE notte = SOLO fari verdi FISSI (debounce):
@@ -2477,14 +2483,16 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         _lf = getattr(self, "_light_flash", False)
         # spia FARI = stato FISSO (debounce): mai mossa dai lampeggi
         _bshow = getattr(self, "_beam_steady", _bm)
-        sv = self._svg_fari_on if _bshow else self._svg_fari_off
+        _lt9 = (getattr(self, "_lamp_t0", None) is not None
+                and time.monotonic() - self._lamp_t0 < 2.5)
+        sv = self._svg_fari_on if (_bshow or _lt9) else self._svg_fari_off
         if sv.isValid():
             sv.render(p, QRectF(_W / 2.0 - 128.0, gy - 48.0, 22, 22))
         # spia ABBAGLIANTI: A SE', ACCANTO — durante il lampeggio segue
         # LO STATO REALE dei fari di LMU (accesa quando il gioco li
         # accende), non un timer nostro
-        if _lf:
-            if _bm and self._svg_fari_hi.isValid():
+        if _lf or _lt9:
+            if (_bm or _lt9) and self._svg_fari_hi.isValid():
                 self._svg_fari_hi.render(
                     p, QRectF(_W / 2.0 - 156.0, gy - 48.0, 22, 22))
             self.update()          # segue il toggling del gioco
@@ -2590,7 +2598,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         temperature, fari/abbaglianti, tergi, ESP, LIM, benzina,
         motore, gomma, triangolo, freni, MOD/ECO): visibili sia a
         motore acceso che a QUADRO inserito con motore spento —
-        come un'auto vera. Solo la marcia resta nascosta da spenti."""
+        come un'auto vera. Solo la marcia resta nascosta da spenti.
+        LAMP TEST: nei primi 2.5s dopo il boot tutte accese."""
+        _lt = (getattr(self, "_lamp_t0", None) is not None
+               and time.monotonic() - self._lamp_t0 < 2.5)
+        if _lt:
+            self.update()
         # ACQUA e OLIO impilati a SINISTRA in basso: le ICONE PNG di
         # assets/icons (ok normale, warn quando il motore surriscalda)
         try:
@@ -2671,6 +2684,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawText(_rm, Qt.AlignCenter, "MOD OFF")
                 p.setFont(f_e)          # ripristina per la spia ECO
             _en = self._eco_active_laps()
+            if _lt and not _en:
+                _en = -1                    # lamp test: icona accesa
             if _en:
                 # icona ECO verde (SVG utente) + eventuale +N accanto
                 if not hasattr(self, "_svg_eco9"):
@@ -2693,7 +2708,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._paint_beam_spia(p, gy)
             # SPIA PIT LIMITER (icona utente LIM): FISSA col
             # limitatore inserito, accanto ai fari
-            if getattr(self, "_limiter", False):
+            if getattr(self, "_limiter", False) or _lt:
                 if not hasattr(self, "_svg_lim9"):
                     from PySide6.QtSvg import QSvgRenderer as _QSRl
                     self._svg_lim9 = _QSRl(
@@ -2703,7 +2718,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         p, QRectF(_W / 2.0 - 100.0, gy - 48.0, 22, 22))
             # SPIA BENZINA (icona utente): autonomia sotto i 2 giri
             # (stessa soglia/isteresi del cerchio), fissa gialla
-            if getattr(self, "_fuel_low", False):
+            if getattr(self, "_fuel_low", False) or _lt:
                 if not hasattr(self, "_svg_fuel9"):
                     from PySide6.QtSvg import QSvgRenderer as _QSRu
                     self._svg_fuel9 = _QSRu(
@@ -2718,7 +2733,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 self._px_wip9 = {k9: QPixmap(str(_ipt / ("wiper_%s.png" % k9)))
                                  for k9 in ("0", "slow", "fast", "off")}
             _wp9 = getattr(self, "_wiper9", 0)
-            if (self._rpm or 0.0) < 50.0:
+            if _lt:
+                _wk9 = "fast"
+            elif (self._rpm or 0.0) < 50.0:
                 _wk9 = "0"
             elif _wp9 >= 3:
                 _wk9 = "fast"
@@ -2730,7 +2747,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                 22, 22).toRect(), self._px_wip9[_wk9])
             # SPIA ESP/TC (icona utente): sfarfalla quando il controllo
             # trazione sta intervenendo, come su una stradale
-            if getattr(self, "_tc_on", False):
+            if getattr(self, "_tc_on", False) or _lt:
                 if not hasattr(self, "_svg_esp9"):
                     from PySide6.QtSvg import QSvgRenderer as _QSRz
                     self._svg_esp9 = _QSRz(
@@ -2749,20 +2766,20 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 self._svg_warn9 = _QSRt(str(_ipw / "warning_light.svg"))
                 self._svg_tyre9 = _QSRt(str(_ipw / "tyre_warn.svg"))
                 self._svg_eng9 = _QSRt(str(_ipw / "engine_warn.svg"))
-            _blk9 = (time.monotonic() % 0.8) < 0.5
-            if getattr(self, "_overheat", False):
+            _blk9 = _lt or (time.monotonic() % 0.8) < 0.5
+            if getattr(self, "_overheat", False) or _lt:
                 if _blk9 and self._svg_eng9.isValid():
                     self._svg_eng9.render(
                         p, QRectF(_W / 2.0 + 50.0, gy - 48.0, 22, 22))
                 self.update()
-            if (any(getattr(self, "_flat4", None) or [])
+            if (_lt or any(getattr(self, "_flat4", None) or [])
                     or any(getattr(self, "_det4", None) or [])):
                 if _blk9 and self._svg_tyre9.isValid():
                     self._svg_tyre9.render(
                         p, QRectF(_W / 2.0 + 78.0, gy - 48.0, 22, 22))
                 self.update()
             _ws9 = getattr(self, "_wsusp", None) or []
-            if any(v is not None and v >= 0.5 for v in _ws9):
+            if _lt or any(v is not None and v >= 0.5 for v in _ws9):
                 if _blk9 and self._svg_warn9.isValid():
                     self._svg_warn9.render(
                         p, QRectF(_W / 2.0 + 106.0, gy - 48.0, 22, 22))
@@ -2774,7 +2791,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _blim9 = 750.0 if any(k9 in _carb9 for k9 in
                                   ("HYPER", "LMH", "LMDH", "LMP", "P2",
                                    "P3")) else 650.0
-            if _bk4s and max(_bk4s) >= _blim9:
+            if _lt or (_bk4s and max(_bk4s) >= _blim9):
                 if not hasattr(self, "_svg_brk9"):
                     from PySide6.QtSvg import QSvgRenderer as _QSRb
                     self._svg_brk9 = _QSRb(
@@ -2783,6 +2800,15 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._svg_brk9.render(
                         p, QRectF(_W / 2.0 + 134.0, gy - 48.0, 22, 22))
                 self.update()
+            # batteria nel LAMP TEST (di norma vive nel check da spenti)
+            if _lt:
+                if not hasattr(self, "_svg_batt9"):
+                    from PySide6.QtSvg import QSvgRenderer as _QSRbt
+                    self._svg_batt9 = _QSRbt(
+                        str(_ROOT / "assets" / "icons" / "batteria.svg"))
+                if self._svg_batt9.isValid():
+                    self._svg_batt9.render(
+                        p, QRectF(_W / 2.0 + 162.0, gy - 48.0, 22, 22))
         except Exception:
             pass
 
