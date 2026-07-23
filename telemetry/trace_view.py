@@ -1004,7 +1004,7 @@ class _LiveMap(QWidget):
             "QPushButton:hover{background:rgba(255,29,67,0.55);}")
         self._locate.clicked.connect(self._recenter)
         self._locate.raise_()
-        self.setMinimumHeight(150)
+        self.setMinimumHeight(240)     # mappa piu' GRANDE (rich. 23/07)
         self.setMinimumWidth(120)
         if scrub_cb is not None:
             self.setMouseTracking(True)
@@ -1262,7 +1262,8 @@ class _LiveMap(QWidget):
         Layer accendibili dalla legenda cliccabile."""
         self._events = evts or []
         if not hasattr(self, "_ev_show"):
-            self._ev_show = {"contact": True, "tl": False, "lock": True}
+            self._ev_show = {"contact": True, "tl": False,
+                             "lock": True, "slide": True}
         self.update()
 
     @staticmethod
@@ -1466,7 +1467,8 @@ class _LiveMap(QWidget):
         zm = self._zoom_mult
         trk_w = max(8.0, min(200.0, 17.0 * zm))
         ln_w = max(1.4, min(16.0, 2.2 * zm))
-        dot_r = max(4.5, min(30.0, 6.0 * zm))
+        # macchinine PIU' PICCOLE (rich. 23/07: erano grandi sulla mappa)
+        dot_r = max(3.5, min(22.0, 4.2 * zm))
 
         # pista larga (colore scuro pickabile) usando il giro Selected come tracciato
         # decima i punti SOLO per il disegno (cursore/dot usano i punti pieni)
@@ -1708,10 +1710,19 @@ class _LiveMap(QWidget):
                         QPointF(c9.x(), c9.y() - 5.0),
                         QPointF(c9.x() - 4.5, c9.y() + 3.5),
                         QPointF(c9.x() + 4.5, c9.y() + 3.5)]))
-                else:                                   # lock
+                elif _kind == "lock":
                     p.setPen(Qt.NoPen)
                     p.setBrush(QColor("#ffe24d"))
                     p.drawEllipse(c9, 3.0, 3.0)
+                else:                                   # slide: rombo viola
+                    from PySide6.QtGui import QPolygonF as _QPFs
+                    p.setPen(Qt.NoPen)
+                    p.setBrush(QColor("#c77dff"))
+                    p.drawPolygon(_QPFs([
+                        QPointF(c9.x(), c9.y() - 4.5),
+                        QPointF(c9.x() + 4.5, c9.y()),
+                        QPointF(c9.x(), c9.y() + 4.5),
+                        QPointF(c9.x() - 4.5, c9.y())]))
 
         # dot INTERPOLATI (pa/pb calcolati in alto); indice solo di riserva
         if pb is not None:
@@ -1766,7 +1777,8 @@ class _LiveMap(QWidget):
             # verticale dall'ALTO a scendere, sotto la legenda giri
             _EVL = (("contact", "Contacts", "#ff5a4d"),
                     ("tl", "Cuts", "#ff9f2e"),
-                    ("lock", "Lock-ups", "#ffe24d"))
+                    ("lock", "Lock-ups", "#ffe24d"),
+                    ("slide", "Slides", "#c77dff"))
             _ex9 = 12.0
             _ey9 = 34.0
             f9l = p.font()
@@ -3192,8 +3204,29 @@ class _WorksheetTab(QWidget):
                 _ev9 = _con9.execute(
                     "SELECT kind, x, z FROM events"
                     " WHERE x IS NOT NULL AND z IS NOT NULL").fetchall()
-                self.map_w.set_events(
-                    [(str(k), float(x), float(z)) for k, x, z in _ev9])
+                _out9 = [(str(k), float(x), float(z)) for k, x, z in _ev9]
+                # SLIDES (perdite di aderenza) DERIVATE dai samples
+                # (rich. 23/07 "metti tutto il registrato"): slip
+                # laterale medio >= 3.5 sostenuto ~0.5s -> marker al
+                # punto d'inizio (pos mondo nei samples)
+                try:
+                    _rows9 = _con9.execute(
+                        "SELECT pos_x, pos_z,"
+                        " (ABS(slat_fl)+ABS(slat_fr)+ABS(slat_rl)"
+                        "  +ABS(slat_rr))/4.0, speed FROM samples"
+                        " WHERE rowid % 3 = 0 ORDER BY rowid").fetchall()
+                    _run9 = 0
+                    for _px9, _pz9, _sl9, _sp9 in _rows9:
+                        if (_sl9 or 0.0) >= 3.5 and (_sp9 or 0) > 60.0:
+                            _run9 += 1
+                            if _run9 == 4:      # ~0.5s sostenuto
+                                _out9.append(("slide", float(_px9),
+                                              float(_pz9)))
+                        elif (_sl9 or 0.0) < 2.0:
+                            _run9 = 0
+                except Exception:
+                    pass
+                self.map_w.set_events(_out9)
         except Exception:
             pass
         self._update_read(None)
