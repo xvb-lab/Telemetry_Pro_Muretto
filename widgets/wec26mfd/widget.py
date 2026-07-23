@@ -2706,6 +2706,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             "TELEMETRY OFF": "TELEMETRIA OFF",
             "WING": "ALA", "GRILLE": "GRIGLIA",
             "DUCT F": "COND A", "DUCT R": "COND P",
+            "OPEN": "APERTO", "CLOSED": "CHIUSO", "YES": "SI",
             "TYRE TEMP": "TEMP GOMME"}
 
     def _it9(self, s):
@@ -2732,6 +2733,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                      (r"medi[ae]", "MEDIUM"), (r"morbid[aei]", "SOFT"),
                      (r"dur[ae]", "HARD"), (r"bagnato", "WET"),
                      (r"asciutto", "DRY"),
+                     (r"\bapert[oa]\b", "OPEN"),      # condotti/griglia
+                     (r"\bchius[oa]\b", "CLOSED"),    # (bug lingua 24/07)
                      (r"\bgiri\b", "LAPS"), (r"\bgiro\b", "LAP")):
             o = re.sub(a, b, o, flags=re.I)
         return o.upper().strip()
@@ -3035,7 +3038,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setPen(QPen(QColor("#00e676" if _on9 else "#ffee00")))
                 p.drawText(QRectF(TX + 110.0, ry, 100.0, ROWH),
                            Qt.AlignLeft | Qt.AlignVCenter,
-                           "SI" if _on9 else "NO")
+                           self._it9("YES") if _on9 else "NO")
             elif up[:2] in ("FL", "FR", "RL", "RR"):
                 sig = self._it9(up[:2])      # IT: AS/AD/PS/PD
                 p.drawText(QRectF(TX, ry, 60.0, ROWH),
