@@ -270,6 +270,35 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         except Exception:
             self._prefs = {}
         self._m3_sel = 0           # voce selezionata nel menu Mod 3
+        # WEARABLES (sospensioni/aero) per la macchinina MOD 4: corsia
+        # lenta dedicata (mai nel thread GUI), come faceva il dashboard v3
+        self._wsusp = None
+        self._waero = None
+
+        def _wear_loop():
+            import json as _js
+            import urllib.request as _ur
+            import time as _tt
+            while True:
+                try:
+                    req = _ur.Request(
+                        "http://localhost:6397/rest/garage/UIScreen"
+                        "/RepairAndRefuel",
+                        headers={"Accept": "application/json"})
+                    with _ur.urlopen(req, timeout=0.4) as r:
+                        _dt9 = _js.loads(r.read())
+                    _w9 = (_dt9.get("wearables") or {})
+                    _su9 = _w9.get("suspension") or []
+                    self._wsusp = [float(x) for x in _su9[:4]] \
+                        if len(_su9) >= 4 else None
+                    _bd9 = _w9.get("body") or {}
+                    self._waero = float(_bd9.get("aero", 0.0)) \
+                        if "aero" in _bd9 else None
+                except Exception:
+                    pass
+                _tt.sleep(2.0)
+        import threading as _th9
+        _th9.Thread(target=_wear_loop, daemon=True).start()
         self._m2_sel = 0           # voce selezionata nella pagina PIT
         self._auto_pit = False     # AUTO PIT (engineer_cfg): mostrato nel Mod 3
         self._ap_ts = 0.0          # throttle rilettura flag auto_pit/engineer_on
@@ -1005,6 +1034,16 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                             for k in range(4)]
                         self._wear4 = [float(t.mWheels[k].mWear)
                                        for k in range(4)]
+                        # DANNI diretti (letture proprie: mai dipendere
+                        # dal blocco car_d per gomme/danni della MOD 4)
+                        self._dent8 = [int(x) for x in t.mDentSeverity]
+                        self._det_part = bool(t.mDetached)
+                        self._flat4 = [bool(t.mWheels[k].mFlat)
+                                       for k in range(4)]
+                        self._det4 = [bool(t.mWheels[k].mDetached)
+                                      for k in range(4)]
+                        self._comp4 = [int(t.mWheels[k].mCompoundType)
+                                       for k in range(4)]
                         self._batt9 = float(getattr(
                             t, "mBatteryChargeFraction", 0.0) or 0.0)
                         self._emo9 = int(getattr(
@@ -1703,12 +1742,17 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         except Exception:
             _tag = ""
         try:
-            # colori gomma dall'INNER layer (strato di lavoro), non carcassa
+            # colori gomma dall'INNER layer (strato di lavoro), non carcassa;
+            # danni/foratura/staccate da letture DIRETTE; sospensioni e aero
+            # dai wearables REST (thread dedicato), come nel dashboard v3
             _t4m = getattr(self, "_inn4", None) or self._carc4
             mc.set_data(_t4m, getattr(self, "_brk4", None), _tag,
-                        _cd.get("body_dent"), None, None,
-                        _cd.get("tyre_flat"), _cd.get("tyre_detached"),
-                        _cd.get("detached"))
+                        getattr(self, "_dent8", None),
+                        getattr(self, "_wsusp", None),
+                        getattr(self, "_waero", None),
+                        getattr(self, "_flat4", None),
+                        getattr(self, "_det4", None),
+                        getattr(self, "_det_part", False))
         except Exception:
             pass
         # ── VERBATIM dashboard v3 (_draw_minicar_labels): temp °C + usura %
@@ -1744,6 +1788,15 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             corners = [(0, -1, 0), (1, +1, 0), (2, -1, 1), (3, +1, 1)]
             p.setFont(QFont("Arial", 8, QFont.Bold))
             _CW = 34.0
+            # chip COMPOUND (simboli nostri) sul lato esterno del blocco;
+            # foratura -> icona tyre_damage
+            from ui.icons import tyre_chip_svg as _tcs
+            _sig4 = {0: "S", 1: "M", 2: "H", 3: "W"}
+            _co4 = getattr(self, "_comp4", None) or [None] * 4
+            _fl4x = getattr(self, "_flat4", None) or [False] * 4
+            if not hasattr(self, "_px_tdmg"):
+                _ip8 = _ROOT / "assets" / "icons" / "tyre_damage.png"
+                self._px_tdmg = QPixmap(str(_ip8)) if _ip8.exists() else None
             for wi, side, row in corners:
                 cx = gx - 14.0 if side < 0 else gx + gw + 14.0
                 cy = gy + (_wy_f if row == 0 else _wy_r)
@@ -1758,25 +1811,17 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.drawText(QRectF(_lx, cy + 0.5, _CW, 11),
                                Qt.AlignHCenter | Qt.AlignVCenter,
                                "%d%%" % int(round(wear[wi] * 100)))
+                _ccx = _lx - 15.0 if side < 0 else _lx + _CW + 2.0
+                if _fl4x[wi] and getattr(self, "_px_tdmg", None):
+                    p.drawPixmap(QRectF(_ccx, cy - 6.5, 13, 13).toRect(),
+                                 self._px_tdmg)
+                else:
+                    _sg9 = _sig4.get(_co4[wi])
+                    if _sg9:
+                        _prnd(_tcs(_sg9, True)).render(
+                            p, QRectF(_ccx, cy - 6.5, 13, 13))
 
-            def _eng_temp9(svg, temp, ccx, ccy, warn):
-                if temp is None:
-                    return
-                txt = "%.1f°C" % float(temp)
-                p.setFont(QFont("Arial", 8, QFont.Bold))
-                _fm9 = p.fontMetrics()
-                _tw9 = _fm9.horizontalAdvance(txt)
-                D9 = 13.0
-                x9 = ccx - (D9 + 3.0 + _tw9) / 2.0
-                _prnd(svg).render(p, QRectF(x9, ccy - D9 / 2.0, D9, D9))
-                p.setPen(QColor("#ff5044") if temp >= warn
-                         else QColor("#e6eaf0"))
-                p.drawText(QRectF(x9 + D9 + 3.0, ccy - 7, _tw9 + 4, 14),
-                           Qt.AlignVCenter | Qt.AlignLeft, txt)
-
-            _ccx9 = gx + gw / 2.0
-            _eng_temp9(_WSVG, self._water, _ccx9, gy - 8.0, 110.0)
-            _eng_temp9(_OSVG, self._oil, _ccx9, gy + gh + 8.0, 125.0)
+            # (acqua/olio TOLTI dal MOD 4 su richiesta: vivono in MOD 1)
             _bt9 = getattr(self, "_batt9", None)
             if getattr(self, "_emo9", 0) and _bt9 is not None:
                 _st9x = self._emo9
