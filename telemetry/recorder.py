@@ -1618,6 +1618,16 @@ class TelemetryRecorder:
                             from collections import deque as _mkd
                             _dq = self._lock_ev = _mkd(maxlen=200)
                         _dq.append((float(_ld_cont or 0.0), _i))
+                        # evento su db (marker mappa): ruota bloccata, dove
+                        try:
+                            self._db.add_event({
+                                "lap": self._cur_lap_id,
+                                "t": float(d.get("elapsed", 0)) - float(d.get("lap_start_et", 0)),
+                                "lapdist": _ld_cont,
+                                "x": d.get("pos_x"), "z": d.get("pos_z"),
+                                "kind": "lock", "val": float(_i)})
+                        except Exception:
+                            pass
                     self._lock_now = _lk
             else:
                 self._lock_now = set()
@@ -1691,6 +1701,29 @@ class TelemetryRecorder:
         samp["track_temp"] = d.get("track_temp")
         samp["rain_pct"] = (float(_rn) * 100.0) if _rn is not None else None
         self._db.add_sample(samp)
+
+        # ── EVENTI puntuali su db (marker mappa / pagina FIA) ──
+        try:
+            # contatto: mLastImpactET nuovo (soglia 120 = via il rumore cordoli)
+            _iet = d.get("impact_et"); _img = d.get("impact_mag")
+            if _iet and _iet != getattr(self, "_ev_imp_et", None):
+                self._ev_imp_et = _iet
+                if _img and float(_img) >= 120.0:
+                    self._db.add_event({
+                        "lap": samp["lap"], "t": samp["t"], "lapdist": _ld_cont,
+                        "x": d.get("pos_x"), "z": d.get("pos_z"),
+                        "kind": "contact", "val": float(_img)})
+            # track limits: gli steps salgono -> taglio QUI (val = totale steps)
+            _ptl = getattr(self, "_ev_tl_prev", None)
+            if _tl_steps is not None:
+                if _ptl is not None and _tl_steps > _ptl:
+                    self._db.add_event({
+                        "lap": samp["lap"], "t": samp["t"], "lapdist": _ld_cont,
+                        "x": d.get("pos_x"), "z": d.get("pos_z"),
+                        "kind": "tl", "val": float(_tl_steps)})
+                self._ev_tl_prev = _tl_steps
+        except Exception:
+            pass
 
         # DURATA SESSIONE: race_total all'apertura non e' assestato (legge 0/5/60),
         # cosi' la card mostrava "1m". Aggiorno col valore reale appena stabile.

@@ -121,6 +121,15 @@ CREATE TABLE IF NOT EXISTS samples (
 );
 CREATE INDEX IF NOT EXISTS idx_samples_lap ON samples(lap);
 CREATE INDEX IF NOT EXISTS idx_sectors_lap ON sectors(lap);
+CREATE TABLE IF NOT EXISTS events (
+    lap     INTEGER,
+    t       REAL,               -- tempo dall'inizio giro (s)
+    lapdist REAL,               -- distanza sul giro (m)
+    x REAL, z REAL,             -- posizione mondo (per i marker sulla mappa)
+    kind    TEXT,               -- 'contact' | 'tl' | 'lock'
+    val     REAL                -- contact: magnitudo urto | tl: steps totali | lock: ruota 0-3
+);
+CREATE INDEX IF NOT EXISTS idx_events_lap ON events(lap);
 """
 
 
@@ -214,6 +223,7 @@ class TelemetryDB:
         self._buf_laps = []
         self._buf_sectors = []
         self._buf_samples = []
+        self._buf_events = []
 
     def _migrate(self):
         """Aggiunge colonne mancanti a file esistenti (schema vecchio) così le
@@ -258,6 +268,7 @@ class TelemetryDB:
     def add_lap(self, row):       self._buf_laps.append(row)
     def add_sector(self, row):    self._buf_sectors.append(row)
     def add_sample(self, row):    self._buf_samples.append(row)
+    def add_event(self, row):     self._buf_events.append(row)
 
     def _flush_table(self, table, cols, buf):
         if not buf:
@@ -288,6 +299,8 @@ class TelemetryDB:
                  "p_fl", "p_fr", "p_rl", "p_rr",
                  "w_fl", "w_fr", "w_rl", "w_rr",
                  "b_fl", "b_fr", "b_rl", "b_rr"]
+    _EVT_COLS = ["lap", "t", "lapdist", "x", "z", "kind", "val"]
+
     _SMP_COLS = ["lap", "t", "lapdist", "pos_x", "pos_y", "pos_z", "speed",
                  "throttle", "brake", "steer", "g_long", "g_lat",
                  "tc_active", "abs_active", "brake_bias",
@@ -317,7 +330,8 @@ class TelemetryDB:
         la sessione = tracce a buchi e mappa vuota, zero spiegazioni."""
         for table, cols, buf in (("laps", self._LAP_COLS, self._buf_laps),
                                  ("sectors", self._SEC_COLS, self._buf_sectors),
-                                 ("samples", self._SMP_COLS, self._buf_samples)):
+                                 ("samples", self._SMP_COLS, self._buf_samples),
+                                 ("events", self._EVT_COLS, self._buf_events)):
             if not buf:
                 continue
             try:
