@@ -121,6 +121,13 @@ class Engineer:
     # Bandiere/safe-release NON mutate (se la prova fosse condivisa = sicurezza;
     # se e' privata non scattano comunque).
     _LAW_PRACTICE_MUTE = ("opp_", "fast_class", "gap_", "traffic_")
+    # FOCUS QUALI/GARA (rich. 23/07: "in q e race il muretto osserva e poi
+    # dice le stesse cose ma senza quelle cose dei test"): le ROUTINE da
+    # prove — modalita' test, coach assetto, briefing garage — non escono.
+    # Restano tempi, gomme, strategia, sicurezza (le "stesse cose").
+    # eco_/LICO NON e' qui: il risparmio serve anche in gara.
+    _LAW_FOCUS_MUTE = ("test_", "longrun_", "racesim_", "hotlap_",
+                       "setup_", "garage_brief", "garage_prep")
     # INCIDENTE (finestra crisi dopo botta forte) e GIALLA ATTIVA: passano
     # SOLO questi prefissi (sicurezza, danni, stato pilota, bandiere).
     _LAW_CRISIS_KEEP = ("contact_", "aero_", "susp_", "box_", "retire_",
@@ -4517,6 +4524,14 @@ class Engineer:
             return False, "quali: niente bandiere/traffico (sei solo)"
         if _kind == "practice" and code.startswith(self._LAW_PRACTICE_MUTE):
             return False, "prova privata: niente riferimenti agli altri"
+        # FOCUS: in quali e gara niente routine da prove/test (il muretto
+        # osserva e dice l'essenziale); il debrief garage resta fuori
+        # dalla GARA (li' il garage = qualcosa e' andato storto)
+        if _kind in ("qualy", "race") \
+                and code.startswith(self._LAW_FOCUS_MUTE):
+            return False, "focus quali/gara: niente routine da prove"
+        if _kind == "race" and code.startswith("debrief_"):
+            return False, "gara: niente debrief da garage"
         if _kind != "race" and code.startswith(("pit_exit",)):
             return False, "pit-exit traffic: solo in gara"
         # BRIEFING SOLO PRE-VIA (gara): i briefing si dicono nella rolling
