@@ -216,6 +216,10 @@ class MapCanvas(QWidget):
                  yellow_active=False, my_dist=0.0, track_len=0.0, yellow_bands=None):
         if track and track != self._track:
             self._track = track
+            # indice SVG RIFRESCATO a ogni cambio pista: la mappa
+            # auto-registrata puo' essere nata dopo l'avvio del widget
+            global _svg_index_cache
+            _svg_index_cache = None
             self._path, self._secs, self._pit9 = _load_map(track)
             self._record = []; self._rec_secs = []
             self._last_ld = None; self._cur_sec = None
