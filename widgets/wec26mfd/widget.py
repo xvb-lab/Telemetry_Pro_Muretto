@@ -3836,8 +3836,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             p.setPen(QPen(QColor(26, 34, 44), 3.0))
             p.drawEllipse(QRectF(_W / 2.0 - 56.0, gy - 56.0,
                                  112.0, 112.0))
-            _lcy = (self.HDR + _H) / 2.0 - 26.0        # STESSA posizione del boot
-            _lh = self._draw_car_logo(p, _W / 2.0, _lcy, 72.0)
+            # logo CENTRATO nel cerchio del cambio spento (rich. 23/07)
+            _lh = self._draw_car_logo(p, _W / 2.0, gy, 72.0)
             # ENGINE OFF fissa in basso; ma se l'ibrida SI MUOVE in
             # ELETTRICO (rpm zero, e-motor che gira o macchina che
             # cammina) la scritta DIVENTA verde E-MOTOR ON finche' non
