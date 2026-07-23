@@ -662,7 +662,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                         time.monotonic())
                     self._page_beep()
                     self.update()
-                elif self._m3_sel == 6:    # ECO FREE: risparmio libero (anche gara)
+                elif self._m3_sel == 5:    # LICO: risparmio libero (anche gara)
                     _opts6 = [0, 1, 2, 3, 4]
                     _c6 = getattr(self, "_eco_free", 0)
                     _j6 = _opts6.index(_c6) if _c6 in _opts6 else 0
