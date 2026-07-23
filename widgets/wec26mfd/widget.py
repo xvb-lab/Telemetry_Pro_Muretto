@@ -2464,14 +2464,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         sv = self._svg_fari_on if _bm else self._svg_fari_off
         if sv.isValid():
             sv.render(p, QRectF(_W / 2.0 - 128.0, gy - 48.0, 22, 22))
-        # spia ABBAGLIANTI: A SE', ACCANTO — appare blu lampeggiante
-        # durante il lampeggio (non sostituisce mai i fari)
+        # spia ABBAGLIANTI: A SE', ACCANTO — durante il lampeggio segue
+        # LO STATO REALE dei fari di LMU (accesa quando il gioco li
+        # accende), non un timer nostro
         if _lf:
-            if (time.monotonic() % 0.5) < 0.28 \
-                    and self._svg_fari_hi.isValid():
+            if _bm and self._svg_fari_hi.isValid():
                 self._svg_fari_hi.render(
                     p, QRectF(_W / 2.0 - 156.0, gy - 48.0, 22, 22))
-            self.update()          # blink fluido
+            self.update()          # segue il toggling del gioco
 
     def _cfg_pull(self):
         """engineer_cfg riletta throttled 1s: serve a MOD 3 (valori menu)
