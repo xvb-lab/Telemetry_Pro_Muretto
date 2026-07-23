@@ -92,10 +92,29 @@ class TrajectoryView(QWidget):
         self.setMinimumHeight(260)
 
     def set_path(self, pts):
-        self._pts = pts or []; self.update()
+        self._pts = pts or []
+        self._fit_map9()
+        self.update()
 
     def set_map(self, pts):
-        self._map = pts or []; self.update()
+        self._map_raw = list(pts or [])
+        self._map = pts or []
+        self._fit_map9()
+        self.update()
+
+    def _fit_map9(self):
+        """Aggancia la mappa SVG ai punti guidati (24/07): stesse
+        coordinate mondo ma versioni pista diverse = scarto visibile.
+        Il best-fit rifiuta da solo i giri parziali."""
+        try:
+            _r = getattr(self, "_map_raw", None)
+            if _r and len(self._pts) > 200:
+                _a = _align_svg_outline(
+                    _r, [(q[0], q[1]) for q in self._pts])
+                if _a:
+                    self._map = _a
+        except Exception:
+            pass
 
     def paintEvent(self, e):
         p = QPainter(self); p.setRenderHint(QPainter.Antialiasing)
@@ -999,6 +1018,86 @@ def _load_track_svg(track):
         return None, []
 
 
+def _align_svg_outline(ol, drv):
+    """Best-fit dell'outline SVG sui punti GUIDATI (24/07): gli SVG
+    TinyPedal sono in coordinate mondo, ma la pista di LMU puo' essere
+    di una versione diversa (offset/scala/rotazione leggeri) — la pista
+    grigia usciva PARALLELA alle traiettorie e i cartelli slittavano.
+    Minimi quadrati su numeri complessi (similitudine s*z + t) con
+    ricampionamento ad arco e piccolo scarto ciclico. Se la correzione
+    richiesta e' grande (match sbagliato o giro parziale) -> None e si
+    tiene l'originale."""
+    import cmath
+    n_res = 128
+    if not ol or not drv or len(ol) < 20 or len(drv) < 80:
+        return None
+
+    def _bb9(pts):
+        xs = [q[0] for q in pts]
+        zs = [q[1] for q in pts]
+        return (max(xs) - min(xs)), (max(zs) - min(zs))
+
+    aw, ah = _bb9(ol)
+    bw, bh = _bb9(drv)
+    if aw <= 0 or ah <= 0 or bw < 0.7 * aw or bh < 0.7 * ah:
+        return None                     # giro parziale: niente aggancio
+
+    def _res9(pts):
+        cum = [0.0]
+        for i in range(1, len(pts)):
+            cum.append(cum[-1] + math.hypot(pts[i][0] - pts[i - 1][0],
+                                            pts[i][1] - pts[i - 1][1]))
+        L = cum[-1]
+        if L <= 0:
+            return None
+        out = []
+        j = 0
+        for k in range(n_res):
+            t = L * k / float(n_res)
+            while j < len(cum) - 2 and cum[j + 1] < t:
+                j += 1
+            seg = cum[j + 1] - cum[j]
+            a = (t - cum[j]) / seg if seg > 0 else 0.0
+            out.append(complex(pts[j][0] * (1 - a) + pts[j + 1][0] * a,
+                               pts[j][1] * (1 - a) + pts[j + 1][1] * a))
+        return out
+
+    A = _res9([(q[0], q[1]) for q in ol])
+    # lisciatura leggera del guidato: il jitter gonfia l'arclength e
+    # sposta le corrispondenze del ricampionamento
+    _dv9 = [(q[0], q[1]) for q in drv]
+    _dvs = [((_dv9[max(0, i - 1)][0] + _dv9[i][0]
+              + _dv9[min(len(_dv9) - 1, i + 1)][0]) / 3.0,
+             (_dv9[max(0, i - 1)][1] + _dv9[i][1]
+              + _dv9[min(len(_dv9) - 1, i + 1)][1]) / 3.0)
+            for i in range(len(_dv9))]
+    B = _res9(_dvs)
+    if not A or not B:
+        return None
+    best = None
+    for sh in range(-6, 7):
+        Bs = [B[(i + sh) % n_res] for i in range(n_res)]
+        ma = sum(A) / n_res
+        mb = sum(Bs) / n_res
+        va = sum(abs(a - ma) ** 2 for a in A)
+        if va <= 0:
+            return None
+        cov = sum((Bs[i] - mb) * (A[i] - ma).conjugate()
+                  for i in range(n_res))
+        s = cov / va
+        t = mb - s * ma
+        err = sum(abs(Bs[i] - (s * A[i] + t)) ** 2
+                  for i in range(n_res)) / n_res
+        if best is None or err < best[0]:
+            best = (err, s, t)
+    err, s, t = best
+    if not (0.85 <= abs(s) <= 1.15) or abs(cmath.phase(s)) > 0.26 \
+            or err ** 0.5 > 25.0:
+        return None                     # correzione enorme = match sbagliato
+    return [((s * complex(x, z) + t).real, (s * complex(x, z) + t).imag)
+            for x, z in ol]
+
+
 class _LiveMap(QWidget):
     """Mini-mappa col tracciato SVG vero (settings/trackmap). Marker posizione
     (live) o scrub (review): muovendo il mouse evidenzia il punto -> scrub_cb(lapdist)."""
@@ -1059,9 +1158,11 @@ class _LiveMap(QWidget):
         path, secs = _load_track_svg(track)
         if path and len(path) > 10:
             self._outline = list(path)
+            self._outline_raw = list(path)
             self._secs = list(secs)
         else:
             self._outline = []   # niente SVG: si usa il path registrato
+            self._outline_raw = []
             self._secs = []
         self.update()
 
@@ -1179,6 +1280,21 @@ class _LiveMap(QWidget):
     def set_scrub_pts(self, pts):
         self._scrub_pts = pts or []
         self._hi = None
+        # AGGANCIO SVG->GUIDATO (24/07): la pista grigia usciva
+        # parallela alle traiettorie (SVG di una versione pista
+        # diversa) — best-fit sull'intero giro selezionato
+        try:
+            _raw9 = getattr(self, "_outline_raw", None)
+            if _raw9 and len(self._scrub_pts) > 80:
+                _drv9 = sorted((q[2], q[0], q[1])
+                               for q in self._scrub_pts
+                               if q[2] is not None)
+                _al9 = _align_svg_outline(_raw9,
+                                          [(q[1], q[2]) for q in _drv9])
+                if _al9:
+                    self._outline = _al9
+        except Exception:
+            pass
         self.update()
 
     def set_path(self, pts):
@@ -3737,14 +3853,29 @@ class _WorksheetTab(QWidget):
         try:
             from core.lico_points import map_corner_lifts as _mcl
             _tl9 = max((q[0] for q in _turns), default=0.0) + 500.0
+            _off9 = False
             try:
                 from data.tracks import _track_logo_stem as _tls
                 from data.track_info import track_info as _ti9
                 _inf9 = _ti9((_tls(self.map_w._track) or "").lower())
                 if _inf9:
                     _tl9 = float(_inf9[0])
+                    _off9 = True
             except Exception:
                 pass
+            # DOMINIO VERO (24/07): curve e cartelli vanno in lapdist
+            # DEL GIOCO (massima del giro selezionato), non lunghezza
+            # da scheda — la differenza (~1-2%) spostava i cartelli di
+            # decine di metri, fino a DENTRO la curva
+            try:
+                _xz9 = self._xz(self._sel)
+                _ldmax9 = max((q[2] or 0.0) for q in _xz9) if _xz9 else None
+            except Exception:
+                _ldmax9 = None
+            if _off9 and _ldmax9 and _ldmax9 > 0.7 * _tl9 and _tl9 > 0:
+                _f9 = _ldmax9 / _tl9
+                _turns = [(_d9 * _f9, _lb9) for _d9, _lb9 in _turns]
+                _tl9 = _ldmax9
             for _en9, _fl9 in _mcl(self.map_w._track, _tl9):
                 for _dm9 in (200.0, 150.0, 100.0, 50.0):
                     _pb9 = _en9 - _dm9
