@@ -214,6 +214,165 @@ class MapCanvas(QWidget):
         self._cum = cum
         self._cum_total = cum[-1]
 
+    def _turns_map(self):
+        """[(indice path, 'Tn')] — curve dalla CURVATURA del tracciato,
+        numerate dalla partenza; soglia calibrata sul numero di curve
+        UFFICIALE (stessa logica della mappa telemetria). Cache."""
+        key = (id(self._path), len(self._path or []))
+        if getattr(self, "_tm_key", None) == key:
+            return self._tm_cache
+        out = []
+        ol = self._path or []
+        n = len(ol)
+        if n > 20:
+            hd = []
+            for i in range(n):
+                a = ol[i]; b = ol[(i + 1) % n]
+                hd.append(math.atan2(b[1] - a[1], b[0] - a[0]))
+            dh = []
+            for i in range(n):
+                d = hd[(i + 1) % n] - hd[i]
+                while d > math.pi:
+                    d -= 2 * math.pi
+                while d < -math.pi:
+                    d += 2 * math.pi
+                dh.append(d)
+            sm = [(dh[i - 1] + dh[i] + dh[(i + 1) % n]) / 3.0
+                  for i in range(n)]
+            TH = math.radians(2.5)
+
+            def _detect(minang):
+                i = 0; turns = []
+                while i < n:
+                    if abs(sm[i]) > TH:
+                        j = i; tot = 0.0; apex = i; mx = 0.0
+                        sgn0 = 1.0 if sm[i] > 0 else -1.0
+                        while (j < n and abs(sm[j]) > TH * 0.6
+                               and (sm[j] * sgn0) > 0):
+                            tot += sm[j]
+                            if abs(sm[j]) > mx:
+                                mx = abs(sm[j]); apex = j
+                            j += 1
+                        if abs(tot) > minang:
+                            turns.append(apex)
+                        i = j if j > i else i + 1
+                    else:
+                        i += 1
+                return turns
+
+            official = None
+            try:
+                from data.tracks import _track_logo_stem
+                from data.track_info import track_info as _ti
+                _info = _ti((_track_logo_stem(self._track) or "").lower())
+                if _info:
+                    official = int(_info[1])
+            except Exception:
+                official = None
+            best = None
+            if official:
+                for deg in range(40, 5, -1):
+                    t = _detect(math.radians(deg))
+                    d = abs(len(t) - official)
+                    if best is None or d < best[0]:
+                        best = (d, t)
+                    if d == 0:
+                        break
+            turns = best[1] if best else _detect(math.radians(28.0))
+            out = [(idx, "T%d" % (k + 1)) for k, idx in enumerate(turns)]
+        self._tm_key = key
+        self._tm_cache = out
+        return out
+
+    def _draw_decor9(self, p, tf, lw):
+        """CORDOLI + tacche/etichette SETTORE + numeri CURVA esterni,
+        come la mappa della telemetria (rich. 24/07)."""
+        ol = self._path or []
+        n = len(ol)
+        if n < 20:
+            return
+        w = self.width(); h = self.height()
+        sc = self._scale
+
+        def _scr(i):
+            x, z = ol[i % n]
+            X, Y = tf(x, z)
+            return QPointF(X, Y)
+
+        def _norm(i):
+            a = _scr(i - 2); b = _scr(i + 2)
+            dx, dy = b.x() - a.x(), b.y() - a.y()
+            L = math.hypot(dx, dy) or 1.0
+            return (-dy / L, dx / L)
+
+        f9 = QFont("Archivo SemiExpanded")
+        f9.setPixelSize(max(7, int(9 * sc)))
+        f9.setBold(True)
+        p.setFont(f9)
+        _kw = max(2.5, lw * 0.5)
+        for _ti_idx, _lab in self._turns_map():
+            c0 = _scr(_ti_idx)
+            if not (-60 <= c0.x() <= w + 60 and -60 <= c0.y() <= h + 60):
+                continue
+            a = _scr(_ti_idx - 2); b = _scr(_ti_idx + 2)
+            ux, uy = c0.x() - a.x(), c0.y() - a.y()
+            vx, vy = b.x() - c0.x(), b.y() - c0.y()
+            _ins = 1.0 if (ux * vy - uy * vx) > 0 else -1.0   # lato interno
+            _off = lw / 2.0 + _kw / 2.0 + 1.0
+            kpath = QPainterPath(); started = False
+            for i in range(_ti_idx - 3, _ti_idx + 4):
+                cc = _scr(i)
+                nx, ny = _norm(i)
+                pt = QPointF(cc.x() + nx * _ins * _off,
+                             cc.y() + ny * _ins * _off)
+                if not started:
+                    kpath.moveTo(pt); started = True
+                else:
+                    kpath.lineTo(pt)
+            p.setBrush(Qt.NoBrush)
+            _kp = QPen(QColor(240, 240, 240, 235), _kw)
+            _kp.setCapStyle(Qt.FlatCap)
+            p.setPen(_kp); p.drawPath(kpath)          # base bianca
+            _kr = QPen(QColor(224, 40, 60, 235), _kw)
+            _kr.setCapStyle(Qt.FlatCap)
+            _kr.setDashPattern([2.0, 2.0])            # strisce rosse
+            p.setPen(_kr); p.drawPath(kpath)
+            # numero curva sul lato ESTERNO
+            nx, ny = _norm(_ti_idx)
+            _lx = c0.x() - nx * _ins * (lw / 2.0 + 10.0 * sc)
+            _ly = c0.y() - ny * _ins * (lw / 2.0 + 10.0 * sc)
+            _tw = p.fontMetrics().horizontalAdvance(_lab)
+            p.setPen(QColor(0, 0, 0, 210))
+            p.drawText(QPointF(_lx - _tw / 2.0 + 1, _ly + 4), _lab)
+            p.setPen(QColor(230, 235, 245, 235))
+            p.drawText(QPointF(_lx - _tw / 2.0, _ly + 3), _lab)
+        # tacche bianche ai confini settore + etichette S1/S2/S3
+        secs = [s for s in (self._secs or []) if 0 <= s < n]
+        for si in secs:
+            nx, ny = _norm(si)
+            c = _scr(si)
+            hw = lw / 2.0 + 3.0
+            p.setPen(QPen(QColor(255, 255, 255, 200),
+                          max(1.4, lw * 0.22)))
+            p.drawLine(QPointF(c.x() - nx * hw, c.y() - ny * hw),
+                       QPointF(c.x() + nx * hw, c.y() + ny * hw))
+        if secs:
+            _sb = [0] + secs + [n - 1]
+            for si in range(min(3, len(_sb) - 1)):
+                mid = (_sb[si] + _sb[si + 1]) // 2
+                c = _scr(mid)
+                if not (-40 <= c.x() <= w + 40 and -40 <= c.y() <= h + 40):
+                    continue
+                nx, ny = _norm(mid)
+                off = lw / 2.0 + 15.0 * sc
+                lab = "S%d" % (si + 1)
+                _tw = p.fontMetrics().horizontalAdvance(lab)
+                lx, ly = c.x() + nx * off, c.y() + ny * off
+                p.setPen(QColor(0, 0, 0, 210))
+                p.drawText(QPointF(lx - _tw / 2.0 + 1, ly + 4), lab)
+                p.setPen(QColor(255, 255, 255, 235))
+                p.drawText(QPointF(lx - _tw / 2.0, ly + 3), lab)
+
     def set_data(self, track, cars, player, sector_flags, player_sector,
                  yellow_active=False, my_dist=0.0, track_len=0.0, yellow_bands=None):
         if track and track != self._track:
@@ -384,6 +543,11 @@ class MapCanvas(QWidget):
         p.drawPath(base)
         p.setPen(QPen(QColor("#f3f4f8"), lw))
         p.drawPath(base)
+        # cordoli + settori + numeri curva (come la mappa telemetria)
+        try:
+            self._draw_decor9(p, tf, lw)
+        except Exception:
+            pass
 
         # ── giallo: una banda da OGNI colpevole verso 500m DIETRO di lui (tutte le gialle) ──
         if (self._yellow_bands and self._cum and self._cum_total > 0
