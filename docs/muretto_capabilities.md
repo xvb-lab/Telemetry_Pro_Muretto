@@ -42,7 +42,7 @@ del coaching), one-shot per stint, reset al pit. Modulo `pro_findings_call`.
 | Wet = ORDINE quando scivola | ✅ | `rain_live` → `rain_box_now` (state-aware: muto se già wet) |
 | **Perdo passo per la pioggia su slick → box** | ✅ | `rain_pace_call` (23/07): passo vs la TUA mediana asciutta, −3s su slick col bagnato → `rain_box_pace` |
 | Slick = solo CONSIGLIO (temp/stint/usura) | ✅ | avvisi, non ordini |
-| **Auto-pit monta la WET da sé** | ❌ | **unico buco grosso rimasto**: auto-pit setta solo l'energia; la scrittura pit-menu via REST (`loadPitMenu`) è già collaudata, manca solo il collegamento |
+| **Auto-pit monta la WET da sé** | ✅ | (23/07 notte) bagnato vero S397 + slick montate + AUTO PIT on → wet selezionate SUBITO nel pit menu (master+4 ruote, treno nuovo preferito) con annuncio |
 | **Inventario gomme parlato** (treni nuovi/usati) | ✅ | `tyre_stock` (in box, dato REST dotazione) |
 
 ## Strategia
@@ -88,10 +88,7 @@ del coaching), one-shot per stint, reset al pit. Modulo `pro_findings_call`.
 ---
 
 ## Buchi rimasti (in ordine)
-1. **Auto-pit monta la wet** quando è bagnato — scrittura pit-menu REST già
-   collaudata, manca il collegamento nel flusso auto-pit. *(unico buco "dati
-   pronti")*
-2. Backlog non ancora portato: modalità quali-info (confronto pole/rivale),
+1. Backlog non ancora portato: modalità quali-info (confronto pole/rivale),
    debrief di stint in garage, riscrittura "frasi umane" (contatto+danno in
    una frase sola), `opp_slow` arricchito col danno del rivale. Vedi memoria
    di progetto.

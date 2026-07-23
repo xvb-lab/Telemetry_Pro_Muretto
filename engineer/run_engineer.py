@@ -529,6 +529,73 @@ def _auto_setup_apply(tg, vox, lang):
         pass
 
 
+def _auto_wet_apply(vox, lang):
+    """AUTO-PIT WET (23/07, ultimo buco della mappa capacita'): piove
+    e sei su slick -> l'ingegnere seleziona le RAIN nel pit menu
+    (master + 4 ruote, preferendo il treno NUOVO), cosi' al box trovi
+    gia' il treno giusto. Stessa scrittura collaudata (loadPitMenu)."""
+    try:
+        import json as _js
+        import urllib.request as _ur
+        from core.strategy import fetch_pit_menu
+        pm = fetch_pit_menu(timeout=1.2)
+        rawm = (pm or {}).get("_raw")
+        if not rawm:
+            return
+
+        def _wet_idx(ss):
+            best = None
+            for j, op in enumerate(ss):
+                tx = str((op or {}).get("text") or "").upper()
+                if "WET" in tx or "BAGNAT" in tx or "RAIN" in tx                         or "PIOGGIA" in tx:
+                    if "NUOV" in tx or "NEW" in tx:
+                        return j
+                    if best is None:
+                        best = j
+            return best
+
+        done = False
+        for it in rawm:
+            nm = str((it or {}).get("name") or "").upper()
+            ss = it.get("settings") or []
+            if not ss:
+                continue
+            if nm.startswith("TIRES") or (nm[:2] in ("FL", "FR", "RL",
+                                                     "RR")
+                                          and "TIRE" in nm):
+                j = _wet_idx(ss)
+                try:
+                    cur = int(it.get("currentSetting") or 0)
+                except (TypeError, ValueError):
+                    cur = 0
+                if j is not None and j != cur:
+                    it["currentSetting"] = j
+                    done = True
+        if not done:
+            return
+        req = _ur.Request(
+            "http://localhost:6397/rest/garage/PitMenu/loadPitMenu",
+            data=_js.dumps(rawm).encode("utf-8"),
+            headers={"Content-Type": "application/json"}, method="POST")
+        _ur.urlopen(req, timeout=1.5)
+        try:
+            from engineer.roles import voice_for
+            _T = {"it": "Piove e sei su slick: le wet sono gia' "
+                        "pronte nel menu box.",
+                  "en": "It's raining and you're on slicks: the wets "
+                        "are already set in the pit menu.",
+                  "es": "Llueve y vas con slicks: las de lluvia ya "
+                        "estan puestas en el menu de boxes.",
+                  "fr": "Il pleut et tu es en slicks: les pluie sont "
+                        "deja pretes dans le menu des stands."}
+            vox.speak(_T.get(lang, _T["it"]),
+                      voice=voice_for("rain_box_now", lang))
+        except Exception:
+            pass
+    except Exception:
+        pass
+
+
 def _lang():
     return (engineer_cfg.load().get("lang") or "it")
 
@@ -759,6 +826,25 @@ def run():
                 # mappa tempi community su questa pista (fetch bg, non blocca)
                 raw["limits_review"] = mem.player_limits_review()   # taglio sotto esame
                 raw["field"] = mem.field_drivers()
+                # ── AUTO-PIT WET: bagnato vero (soglie S397) + slick
+                # montate + AUTO PIT acceso -> wet SUBITO nel menu, una
+                # volta per arco di pioggia ──
+                try:
+                    _awx = globals().setdefault("_AW_ST", {})
+                    _rn9 = float(raw.get("raining") or 0.0)
+                    _wt9 = float(raw.get("wetness") or 0.0)
+                    _need9 = (_wt9 > 0.20 or _rn9 >= 0.4)
+                    if _need9 and not _awx.get("done")                             and not brain._wet_mounted(raw)                             and bool(engineer_cfg.load()
+                                     .get("auto_pit")):
+                        _awx["done"] = True
+                        import threading as _th8
+                        _th8.Thread(target=_auto_wet_apply,
+                                    args=(vox, lang),
+                                    daemon=True).start()
+                    elif not _need9:
+                        _awx["done"] = False
+                except Exception:
+                    pass
                 # ── AUTO-SETUP: entrando in corsia box (una volta per
                 # sosta) l'ingegnere regola il pit menu dai findings ──
                 try:
