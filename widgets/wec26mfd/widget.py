@@ -1940,11 +1940,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.drawText(QRectF(_lx, cy + 1.0, _CW, 15),
                                Qt.AlignHCenter | Qt.AlignVCenter,
                                "%d%%" % int(round(wear[wi] * 100)))
-                _ccx = _lx - 15.0 if side < 0 else _lx + _CW + 2.0
+                _ccx = _lx - 30.0 if side < 0 else _lx + _CW + 4.0
                 _sg9 = (_sgf if wi < 2 else _sgr) or _sig4.get(_co4[wi])
                 if _sg9:
                     _prnd(_tcs(_sg9, True)).render(
-                        p, QRectF(_ccx, cy - 6.5, 13, 13))
+                        p, QRectF(_ccx, cy - 13.0, 26, 26))
 
             # (acqua/olio TOLTI dal MOD 4 su richiesta: vivono in MOD 1)
             _bt9 = getattr(self, "_batt9", None)
