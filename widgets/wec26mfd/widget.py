@@ -2803,7 +2803,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _en = self._eco_active_laps()
             if _lt and not _en:
                 _en = -1                    # lamp test: icona accesa
-            _rl0 = QRectF(_W / 2.0 - 128.0, gy - 12.0, 64, 19)
+            _rl0 = QRectF(_W / 2.0 - 150.0, gy - 12.0, 64, 19)
             if not _en:
                 # chip LICO SPENTO: grigio tenue come MOD OFF
                 _gd0 = QColor(150, 156, 168, 110)
@@ -4019,11 +4019,6 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.setPen(Qt.NoPen)
                     p.setBrush(QColor("#181246"))
                     p.drawRect(QRectF(_lap_x0, 0.0, _lapw, self.HDR))
-                    # ── COLONNA DELTA: bg #0a0031, dalle barrette fino alla LAP ──
-                    _dl_x0 = _tx
-                    _dl_x1 = _lap_x0
-                    p.setBrush(QColor("#0a0031"))
-                    p.drawRect(QRectF(_dl_x0, 0.0, _dl_x1 - _dl_x0, self.HDR))
                     # ── testo: freeze (5s) / INVALID / milestone sessione / DELTA ──
                     if time.monotonic() < self._freeze_until \
                             and self._freeze_txt:
@@ -4044,6 +4039,24 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         _vc, _lim = QColor(255, 255, 255, 200), False
                     else:
                         _vt, _vc, _lim = self._delta_txt, self._delta_col, False
+                    # ── COLONNA DELTA col COLLASSO: senza testo scivola
+                    # verso la cella LAP e sfuma; col testo si riapre ──
+                    _tgt9 = 0.0 if _vt else 1.0
+                    _k9 = getattr(self, "_dl_coll", _tgt9)
+                    _k9 += (_tgt9 - _k9) * 0.12
+                    if abs(_tgt9 - _k9) > 0.005:
+                        self.update()
+                    else:
+                        _k9 = _tgt9
+                    self._dl_coll = _k9
+                    _dl_x0 = _tx + (_lap_x0 - _tx) * _k9
+                    _dl_x1 = _lap_x0
+                    _bgc9 = QColor("#0a0031")
+                    _bgc9.setAlpha(int(255 * (1.0 - _k9 * 0.9)))
+                    p.setPen(Qt.NoPen)
+                    p.setBrush(_bgc9)
+                    p.drawRect(QRectF(_dl_x0, 0.0, _dl_x1 - _dl_x0,
+                                      self.HDR))
                     if _lim:                     # INVALID: bold dritto, bianco soft
                         f_v = QFont("Archivo SemiExpanded", 12)
                         f_v.setWeight(QFont.Bold)
