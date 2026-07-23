@@ -10965,7 +10965,8 @@ class TelemetryWindow(QMainWindow):
         # 10 secondi senza spostare il layout (rich. 23/07 notte)
         _ppwrap = QWidget(); _ppwrap.setFixedSize(20, 24)
         _ppwrap.setStyleSheet("background:transparent;")
-        _pp = _SvgBox(_ppwrap); _pp.setGeometry(0, 4, 20, 20)
+        _pp = _SvgBox(); _pp.setParent(_ppwrap)
+        _pp.setGeometry(0, 4, 20, 20)
         _pp.setStyleSheet("background:transparent;")
         _pp.load(str(Path(__file__).resolve().parent.parent / "assets"
                      / "support_cup.svg"))
