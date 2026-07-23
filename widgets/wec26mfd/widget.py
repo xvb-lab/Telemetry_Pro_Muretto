@@ -1750,14 +1750,13 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.setPen(QPen(QColor(255, 255, 255, 215)))
                     p.drawText(QRectF(_lx9, _ly9 + 18, 68, 18),
                                Qt.AlignCenter, "%.0f°" % _bv9)
-            # titolo pagina in fondo (come la legenda del MOD 3)
+            # titolo pagina in fondo: STESSO stile/misura della legenda MOD 3
             by4 = bodyh / 750.0
             ft4 = QFont("Archivo SemiExpanded")
-            ft4.setPixelSize(max(6, int(26 * by4 * 2.8)))
-            ft4.setBold(True)
+            ft4.setPixelSize(max(6, int(26 * by4)))
             p.setFont(ft4)
             p.setPen(QPen(QColor(255, 255, 255, 180)))
-            p.drawText(QRectF(0, y0 + bodyh - 24.0, _W, 22.0),
+            p.drawText(QRectF(0, y0 + 706 * by4, _W, 34 * by4),
                        Qt.AlignCenter, "CAR STATUS")
         except Exception:
             pass
