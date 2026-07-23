@@ -1700,12 +1700,15 @@ class _LiveMap(QWidget):
         _evshow = getattr(self, "_ev_show", None) or {}
         # TRATTI evento (slide/tc/abs) = pezzi di strada colorati
         _allsegs = getattr(self, "_event_segs", None) or {}
-        # e' la TRAIETTORIA che cambia colore nel tratto (rich.
-        # 23/07): stesso spessore della linea giro, colore evento
+        # CORSIE PARALLELE stile cordolo (rich. 23/07): eventi
+        # sovrapposti nello stesso punto -> ognuno sulla SUA striscia
+        # affiancata alla traiettoria. Slide = sulla linea (e' la linea
+        # che scivola), LICO fuori, TC dentro, ABS due fuori.
         _SEGC = {"slide": QColor(255, 138, 30, 220),
                  "tc": QColor(74, 144, 226, 200),
                  "abs": QColor(199, 125, 255, 210),
                  "lico": QColor(138, 63, 251, 205)}
+        _LANE = {"slide": 0, "lico": 1, "tc": -1, "abs": 2}
         _segw = max(ln_w + 1.2, 3.0)
         for _sk, _ssegs in _allsegs.items():
             if not _ssegs or not _evshow.get(_sk):
@@ -1714,13 +1717,31 @@ class _LiveMap(QWidget):
                           _segw, Qt.SolidLine, Qt.RoundCap,
                           Qt.RoundJoin))
             p.setBrush(Qt.NoBrush)
+            _offl = _LANE.get(_sk, 0) * (_segw + 1.4)
             for _sg in _ssegs:
                 if len(_sg) < 2:
                     continue
+                _qs = [P(_x9, _z9) for _x9, _z9 in _sg]
+                if _offl:
+                    _qo = []
+                    _nq = len(_qs)
+                    for _i9 in range(_nq):
+                        _a9 = _qs[max(0, _i9 - 1)]
+                        _b9 = _qs[min(_nq - 1, _i9 + 1)]
+                        _dx9 = _b9.x() - _a9.x()
+                        _dy9 = _b9.y() - _a9.y()
+                        _ln9 = (_dx9 * _dx9 + _dy9 * _dy9) ** 0.5
+                        if _ln9 < 1e-6:
+                            _qo.append(_qs[_i9])
+                            continue
+                        _qo.append(QPointF(
+                            _qs[_i9].x() - _dy9 / _ln9 * _offl,
+                            _qs[_i9].y() + _dx9 / _ln9 * _offl))
+                    _qs = _qo
                 _pth9 = QPainterPath()
-                _pth9.moveTo(P(_sg[0][0], _sg[0][1]))
-                for _q9 in _sg[1:]:
-                    _pth9.lineTo(P(_q9[0], _q9[1]))
+                _pth9.moveTo(_qs[0])
+                for _q9 in _qs[1:]:
+                    _pth9.lineTo(_q9)
                 p.drawPath(_pth9)
         if _evs:
             for _kind, _ex, _ez in _evs:
