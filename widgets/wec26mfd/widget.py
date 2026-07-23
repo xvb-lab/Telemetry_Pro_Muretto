@@ -1044,6 +1044,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                       for k in range(4)]
                         self._comp4 = [int(t.mWheels[k].mCompoundType)
                                        for k in range(4)]
+                        self._comp_rr = bytes(t.mRearTireCompoundName) \
+                            .split(b"\x00")[0].decode("utf-8",
+                                                      "ignore").strip()
                         self._batt9 = float(getattr(
                             t, "mBatteryChargeFraction", 0.0) or 0.0)
                         self._emo9 = int(getattr(
@@ -1789,11 +1792,30 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             p.setFont(QFont("Arial", 8, QFont.Bold))
             _CW = 34.0
             # chip COMPOUND (simboli nostri) sul lato esterno del blocco:
-            # SOLO i simboli compound, sempre (la foratura la dice la
-            # gomma arancione sulla macchinina, MAI icone estranee)
+            # SOLO i simboli compound, sempre. Sigla dal NOME mescola
+            # (regola collaudata: l'indice intero inganna sulle Hypercar),
+            # indice come fallback.
             from ui.icons import tyre_chip_svg as _tcs
             _sig4 = {0: "S", 1: "M", 2: "H", 3: "W"}
             _co4 = getattr(self, "_comp4", None) or [None] * 4
+
+            def _signm(nm):
+                n9 = (nm or "").strip().lower()
+                if not n9:
+                    return ""
+                if any(k9 in n9 for k9 in ("wet", "rain", "inter", "full")):
+                    return "W"
+                if "hard" in n9:
+                    return "H"
+                if "med" in n9:
+                    return "M"
+                if "soft" in n9:
+                    return "S"
+                if "slick" in n9:
+                    return "M"
+                return ""
+            _sgf = _signm(getattr(self, "_compound", ""))
+            _sgr = _signm(getattr(self, "_comp_rr", ""))
             for wi, side, row in corners:
                 cx = gx - 14.0 if side < 0 else gx + gw + 14.0
                 cy = gy + (_wy_f if row == 0 else _wy_r)
@@ -1809,7 +1831,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                Qt.AlignHCenter | Qt.AlignVCenter,
                                "%d%%" % int(round(wear[wi] * 100)))
                 _ccx = _lx - 15.0 if side < 0 else _lx + _CW + 2.0
-                _sg9 = _sig4.get(_co4[wi])
+                _sg9 = (_sgf if wi < 2 else _sgr) or _sig4.get(_co4[wi])
                 if _sg9:
                     _prnd(_tcs(_sg9, True)).render(
                         p, QRectF(_ccx, cy - 6.5, 13, 13))
