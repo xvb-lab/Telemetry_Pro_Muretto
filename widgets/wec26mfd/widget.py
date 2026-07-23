@@ -2364,9 +2364,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             p.setPen(Qt.NoPen)
             p.setBrush(QColor(6, 7, 9))
             p.drawRect(scr)
-            # LOGO AUTO in fade (sopra), poi lo spinner PIU' IN BASSO
+            # LOGO AUTO in fade: STESSA posizione del logo MOD1
+            # (centro del cerchio cambio) — rich. 23/07 notte
             _cy0 = scr.center().y()
-            self._draw_car_logo(p, _W / 2.0, _cy0 - 26.0, 72.0,
+            _gy9 = self.HDR + self.ROW_T                 + (_H - self.HDR - self.ROW_T - self.ROW_B) / 2.0 - 44.0
+            self._draw_car_logo(p, _W / 2.0, _gy9, 72.0,
                                  opacity=max(0.0, min(1.0, boot / 0.6)))
             # spinner a 4 QUADRATINI (rich. 23/07) + firma TELEMETRY PRO
             side, gap = 4.5, 2.0
@@ -2412,6 +2414,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         _mc1 = getattr(self, "_minicar1", None)
         if mod != 1 and _mc1 is not None and _mc1.isVisible():
             _mc1.hide()          # la mini vive SOLO nel MOD 1
+        # FADE-IN veloce di TUTTO il dash a fine boot (rich. 23/07)
+        _fd9 = (boot - 3.0) / 0.4
+        if 0.0 <= _fd9 < 1.0:
+            p.setOpacity(max(0.05, min(1.0, _fd9)))
+            self.update()
         fn = getattr(self, "_paint_mod%d" % mod, None)
         if fn is not None:
             fn(p)
