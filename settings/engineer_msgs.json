@@ -8568,6 +8568,20 @@
       "en": "Remember: it is a drive through. Do NOT stop: drive the whole lane on the limiter and carry on.",
       "es": "Recuerda: es un drive through. NO pares: recorre el pit lane con el limitador.",
       "fr": "Rappel: c est un drive through. Ne t arrete PAS: parcours la voie au limiteur."
+    },
+    "contact_ok_dmgd": {
+      "cat": "danni",
+      "level": "warn",
+      "beep": false,
+      "it": "Da questo contatto niente di nuovo, ma la macchina era gia segnata: aero al {pct} per cento. Continuo a monitorare.",
+      "variants_it": [
+        "Da questo contatto niente di nuovo, ma la macchina era gia segnata: aero al {pct} per cento. Continuo a monitorare.",
+        "Il tocco non ha aggiunto danni, pero ricordati che giri gia con l aero al {pct} per cento.",
+        "Nessun danno nuovo dalla botta; quello che avevi resta: aero {pct} per cento, teniamolo d occhio."
+      ],
+      "en": "Nothing new from this contact, but the car was already marked: aero at {pct} percent. Keeping an eye on it.",
+      "es": "Nada nuevo de este contacto, pero el coche ya estaba tocado: aero al {pct} por ciento.",
+      "fr": "Rien de nouveau sur ce contact, mais la voiture etait deja marquee: aero a {pct} pour cent."
     }
   }
 }

@@ -113,7 +113,7 @@ _mk(["leader", "pole_pos", "pos_race", "pos_qualy", "pos_lead", "pos_pole",
      "grip_status", "grip_up", "grip_down",
      "gap_attack", "gap_attack_simple", "gap_defend", "gap_defend_simple"], 3)
 # contatto+danno: il verdetto post-impatto parla presto
-_mk(["contact_damage", "contact_damage_who"], 2)
+_mk(["contact_damage", "contact_damage_who", "contact_ok_dmgd"], 2)
 # ruota piegata (assetto storto dal trace): informazione danni, presto
 _mk(["wheel_bent", "wheel_bent_bad"], 2)
 # causa ritiro certificata dal trace (motore/telaio morto): P1

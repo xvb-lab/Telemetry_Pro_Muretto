@@ -871,8 +871,13 @@ class Engineer:
                 _s0 = tuple(float(x or 0.0) for x in _su[:4]) \
                     if isinstance(_su, (list, tuple)) and len(_su) >= 4 \
                     else (0.0, 0.0, 0.0, 0.0)
+                _d0 = tuple(int(x or 0)
+                            for x in (raw.get("dent_sev")
+                                      or [0] * 8)[:8])
                 self._st["dmg_eval"] = {"t": _nowc, "who": _who,
-                                        "aero": _a0, "susp": _s0}
+                                        "aero": _a0, "susp": _s0,
+                                        "dents": _d0, "mag": _mag,
+                                        "ext": False}
             elif _who and not self._st["dmg_eval"].get("who"):
                 self._st["dmg_eval"]["who"] = _who
         # ── CHECK DANNO ──
@@ -919,6 +924,22 @@ class Engineer:
         # ── VERDETTO post-impatto (UN report umano, ~6s dopo la botta) ──
         ev = self._st.get("dmg_eval")
         if ev and _time.monotonic() - ev["t"] >= 6.0:
+            # BOTTA FORTE coi dati ancora fermi: aspetta ALTRI 4 secondi
+            # prima del verdetto (i wearables arrivano in ritardo).
+            # Una sola estensione, mai due.
+            try:
+                _an9 = float(raw.get("aero") or 0.0)
+            except (TypeError, ValueError):
+                _an9 = 0.0
+            _dn9 = tuple(int(x or 0)
+                         for x in (raw.get("dent_sev") or [0] * 8)[:8])
+            _moved9 = (_an9 - ev["aero"] >= 0.03
+                       or _dn9 != tuple(ev.get("dents") or ()))
+            if ev.get("mag", 0.0) >= 500.0 and not _moved9 \
+                    and not ev.get("ext"):
+                ev["ext"] = True
+                ev["t"] = _time.monotonic() - 2.0
+                return [m for m in out if m]
             self._st.pop("dmg_eval", None)
             try:
                 a1 = float(raw.get("aero") or 0.0)
@@ -956,6 +977,26 @@ class Engineer:
                 if s1[i] - ev["susp"][i] >= 0.08:
                     parts.append(_WN[i])
                     _sd.add(i)                   # niente doppio annuncio
+            # CARROZZERIA: dents NUOVI rispetto alla foto pre-botta
+            _dprev9 = tuple(ev.get("dents") or ())
+            _dnow9 = tuple(int(x or 0)
+                           for x in (raw.get("dent_sev") or [0] * 8)[:8])
+            if _dprev9 and any(
+                    _dnow9[i] > _dprev9[i]
+                    for i in range(min(len(_dnow9), len(_dprev9)))):
+                parts.append(self._L("la carrozzeria", "the bodywork",
+                                     "la carroceria", "la carrosserie"))
+            # RUOTA PIEGATA dal trace nella finestra della botta
+            try:
+                from core.race_control import recent_wheel_bends
+                if any(b[1] >= 0.20 for b in
+                       recent_wheel_bends(window=10.0)):
+                    parts.append(self._L("una ruota storta",
+                                         "a bent wheel",
+                                         "una rueda doblada",
+                                         "une roue faussee"))
+            except Exception:
+                pass
             who = ev.get("who")
             if parts:
                 _e = self._L(" e ", " and ", " y ", " et ")
@@ -964,8 +1005,16 @@ class Engineer:
                 code = "contact_damage_who" if who else "contact_damage"
                 out.append(self.msg(code, name=who or "", parts=_pl))
             else:
-                out.append(self.msg("contact_ok_who", name=who)
-                           if who else self.msg("contact_ok"))
+                # niente danno NUOVO: ma se la macchina era GIA rotta
+                # dillo — mai chiamarla pulita (rich. 23/07 notte)
+                _tot9 = (a1 >= 0.05 or any(x >= 0.10 for x in s1)
+                         or any(v >= 2 for v in _dnow9))
+                if _tot9:
+                    out.append(self.msg("contact_ok_dmgd",
+                                        pct=int(round(a1 * 100))))
+                else:
+                    out.append(self.msg("contact_ok_who", name=who)
+                               if who else self.msg("contact_ok"))
         return [m for m in out if m]
 
     def wheel_bend_call(self, raw):
