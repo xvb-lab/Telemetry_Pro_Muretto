@@ -95,6 +95,13 @@ def _single_instance():
 def main():
     if not _single_instance():
         return
+    # MODALITA' TEST/ECO: azzerate a OGNI avvio (mai ereditare la
+    # sessione precedente); i target +N/minuti restano come preferenze
+    try:
+        from core import engineer_cfg
+        engineer_cfg.save(test_mode=None, eco_free=0)
+    except Exception:
+        pass
     _set_win_taskbar_id()
     _sharp_dpi()
     app = QApplication(sys.argv)
