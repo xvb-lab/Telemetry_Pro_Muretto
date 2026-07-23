@@ -362,7 +362,7 @@ def _collect(brain, raw, ld, pace):
         (brain.stopped_check_call, (raw, ld)),    # fermo in pista + spia motore
         (brain.corner_coach_call, (raw, ld)),     # coach staccate/trazione per curva (prova)
         (brain.stint_findings_call, (raw, ld)),   # ingegneria stint: findings in garage
-        (brain.welcome_call, (raw,)),             # benvenuto in pista (v2)
+        # (brain.welcome_call TOLTO: il benvenuto aveva rotto, 23/07)
         (brain.stint_debrief, (raw, ld)),         # debrief a voce a fine stint (garage)
         # 🔵 STRATEGY
         (brain.race_briefing, (raw,)),           # briefing meteo al rolling start
