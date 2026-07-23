@@ -576,6 +576,15 @@ e domani diventera' il Garage advisor con valori cliccabili.
    - calibrazione del nostro modello degrado con centinaia di gare
      d'archivio GIA' presenti
    → Parser XML = prossimo mattone dati ad altissimo rendimento.
+   **⚠ VERITA' VERIFICATA (23/07)**: questi XML locali esistono solo per
+   sessioni OFFLINE/custom (`ConnectionType=Custom`); le gare ONLINE
+   RaceControl NON li scrivono in locale (S397 protegge i dati altrui in
+   MP — niente app-spia). STRATEGIA A DUE STADI, come i team veri:
+   1) OFFLINE: calibrare il modello usura→perdita di passo per
+      auto/pista/mescola sull'archivio (migliaia di giri gia' sul disco);
+   2) ONLINE: applicare il modello alla curva dei TEMPI dei rivali
+      (sempre pubblici) → degrado e finestre pit STIMATI da ingegnere,
+      non letti. Nemmeno i team WEC vedono la telemetria altrui.
 4. **Trace log** (`trace*.txt`) — gia' usato: penalita' verbatim,
    track limits lifecycle, pass monitoring (coi suoi limiti di flush).
 5. **REST localhost:6397** — gia' usato: pit menu, wearables, strategia,
