@@ -1703,8 +1703,8 @@ class _LiveMap(QWidget):
         # e' la TRAIETTORIA che cambia colore nel tratto (rich.
         # 23/07): stesso spessore della linea giro, colore evento
         _SEGC = {"slide": QColor(255, 138, 30, 220),
-                 "tc": QColor(0, 200, 230, 200),
-                 "abs": QColor(74, 144, 226, 200)}
+                 "tc": QColor(74, 144, 226, 200),
+                 "abs": QColor(199, 125, 255, 210)}
         _segw = max(ln_w + 1.2, 3.0)
         for _sk, _ssegs in _allsegs.items():
             if not _ssegs or not _evshow.get(_sk):
@@ -1813,8 +1813,8 @@ class _LiveMap(QWidget):
                     ("tl", "Cuts", "#ff9f2e"),
                     ("lock", "Lock-ups", "#ffe24d"),
                     ("slide", "Slides", "#ff8a1e"),
-                    ("tc", "TC", "#00c8e6"),
-                    ("abs", "ABS", "#4a90e2"))
+                    ("tc", "TC", "#4a90e2"),
+                    ("abs", "ABS", "#c77dff"))
             _ex9 = 12.0
             _ey9 = 34.0
             f9l = p.font()
@@ -1837,7 +1837,8 @@ class _LiveMap(QWidget):
                 p.drawEllipse(QPointF(_ex9 + 8.0, _ey9 + 5.0), 4.0, 4.0)
                 p.setPen(QColor(235, 238, 245, 235 if _on9 else 120))
                 p.drawText(QPointF(_ex9 + 16.0, _ey9 + 9.0), _txt9)
-                self._ev_hit[_k9] = _rect9
+                if _n9 > 0:               # zero = non selezionabile
+                    self._ev_hit[_k9] = _rect9
                 _ey9 += 22.0
         for which, label, col in items:
             cxp, cyp = x + 6, 12
