@@ -1098,10 +1098,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                             .split(b"\x00")[0].decode("utf-8",
                                                       "ignore").strip()
                         self._wiper9 = int(getattr(t, "mWiperState", 0) or 0)
-                        # HAZARD: fermo in pista >5s a motore acceso
+                        # HAZARD: fermo in pista >5s — ANCHE a motore
+                        # spento (in panne le frecce servono); mai in garage
                         try:
                             _spd0 = (self._speed or 0.0)
-                            if _spd0 < 0.5 and self._rpm > 100.0:
+                            if _spd0 < 0.5                                     and not getattr(self, "_in_garage",
+                                                    False):
                                 if getattr(self, "_stop_t0", None) is None:
                                     self._stop_t0 = time.monotonic()
                             else:
