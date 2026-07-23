@@ -681,6 +681,16 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                         time.monotonic())
                     self._page_beep()
                     self.update()
+                elif self._m3_sel == 8:    # LINGUA dash: EN <-> IT
+                    _cl9 = self._prefs.get("dash_lang", "EN")
+                    self._prefs["dash_lang"] = \
+                        "IT" if _cl9 == "EN" else "EN"
+                    self._save_prefs()
+                    self._m3_msg = ("LINGUA ITALIANA"
+                                    if self._prefs["dash_lang"] == "IT"
+                                    else "ENGLISH", time.monotonic())
+                    self._page_beep()
+                    self.update()
                 elif self._m3_sel == 5:    # LICO: risparmio libero (anche gara)
                     _opts6 = [0, 1, 2, 3, 4]
                     _c6 = getattr(self, "_eco_free", 0)
@@ -724,7 +734,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             elif mod == 3:
                 # nel menu SETTINGS: sposta la voce selezionata
                 self._m3_sel = (self._m3_sel
-                                + (1 if (b & _XI_DD) else -1)) % 8
+                                + (1 if (b & _XI_DD) else -1)) % 9
                 self._page_beep()
                 self.update()
             elif self._ctrl_sel is not None:
@@ -2488,6 +2498,36 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         threading.Thread(target=_post, args=(self._pm_items,),
                          daemon=True).start()
 
+    # LINGUA DASH (rich. 23/07): IT traduce le PAROLE (danno/energia/
+    # benzina/gomme/ripara...); i termini classici (STINT, RUN, BOX,
+    # GARAGE, LAP, LICO, MDF, MOD/SC, ON/OFF, elettronica) restano
+    # in inglese SEMPRE. L'app principale non c'entra: solo la card.
+    _IT9 = {"DAMAGE": "DANNO", "ENERGY": "ENERGIA", "FUEL": "BENZINA",
+            "4 TYRES": "4 GOMME", "TYRES": "GOMME", "ALL": "TUTTE",
+            "REPAIR ALL": "RIPARA TUTTO",
+            "REPAIR BODY": "RIPARA CARROZZERIA",
+            "REPAIR SUSP": "RIPARA SOSPENSIONI",
+            "REPAIR AERO": "RIPARA AERO",
+            "NO REPAIR": "NON RIPARARE",
+            "NO DAMAGE": "NESSUN DANNO",
+            "NO CHANGE": "NESSUNA MODIFICA",
+            "MIXED": "MISTE",
+            "PENALTY": "PENALITA'", "BRAKES": "FRENI",
+            "DRIVER": "PILOTA", "DUCTS": "PRESE",
+            "SPEED UNIT": "UNITA' VELOCITA'",
+            "ELECTRIC CONTROL": "CONTROLLI ELETTRONICI",
+            "TEST MODE": "MODALITA' TEST",
+            "LIGHTS": "LUCI", "WIPER": "TERGICRISTALLI",
+            "LANGUAGE": "LINGUA",
+            "TELEMETRY ON": "TELEMETRIA ON",
+            "TELEMETRY OFF": "TELEMETRIA OFF"}
+
+    def _it9(self, s):
+        """Traduzione display EN->IT se la lingua dash e' IT."""
+        if self._prefs.get("dash_lang", "EN") != "IT":
+            return s
+        return self._IT9.get(s, s)
+
     @staticmethod
     def _tr_pit(txt):
         """Testo opzione LMU (spesso in italiano) -> INGLESE, UPPER."""
@@ -2752,7 +2792,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     elif _ln == "REPAIR BODY":
                         p.setPen(QPen(QColor("#ffee00")))   # giallo acceso
                 p.drawText(QRectF(TX, ry, COLW - 24.0, ROWH),
-                           Qt.AlignLeft | Qt.AlignVCenter, _ln)
+                           Qt.AlignLeft | Qt.AlignVCenter,
+                           self._it9(_ln))
         # ── frecce SCROLL: se ci sono voci sopra/sotto la finestra ──
         from PySide6.QtGui import QPolygonF as _QPF
         _ax = XC + COLW - 14.0
@@ -2869,7 +2910,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _yy9 = 186.0
             for _v9, _l9 in _parts9[:4]:
                 p.setPen(QPen(QColor(255, 255, 255, 140)))
-                p.drawText(QPointF(_pxc - 62.0, _yy9), _l9)
+                p.drawText(QPointF(_pxc - 62.0, _yy9), self._it9(_l9))
                 p.setPen(QPen(QColor(255, 255, 255, 220)))
                 _vt9 = "%.1fs" % _v9
                 p.drawText(QPointF(_pxc + 62.0
@@ -2967,7 +3008,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                   if getattr(self, "_eco_free", 0) else "OFF"),
                  ("LIGHTS",
                   "ON" if getattr(self, "_beam_steady", False) else "OFF"),
-                 ("WIPER", str(getattr(self, "_wiper9", 0))))
+                 ("WIPER", str(getattr(self, "_wiper9", 0))),
+                 ("LANGUAGE",
+                  self._prefs.get("dash_lang", "EN")))
         f = QFont(FAM)
         f.setPixelSize(max(6, int(52 * by)))     # piu' GRANDE (rich. 23/07)
         f.setWeight(QFont.Medium)
@@ -2984,7 +3027,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                   1278 * bx, lh - 8 * by))
             p.setPen(QPen(QColor(255, 255, 255, 235)))
             p.drawText(QRectF(48 * bx, ry, 900 * bx, lh),
-                       Qt.AlignLeft | Qt.AlignVCenter, it)
+                       Qt.AlignLeft | Qt.AlignVCenter, self._it9(it))
             _vc3 = QColor(255, 255, 255, 235)
             if i == 4 and vv != "OFF":
                 _vc3 = QColor("#2fa8e0")        # TEST: blu
@@ -4485,10 +4528,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     _g9 = "R" if _g9v < 0 else \
                         ("N" if _g9v == 0 else str(_g9v))
                     _mph9 = self._prefs.get("speed_unit", "KPH") == "MPH"
-                    _sp9 = (self._speed or 0.0) * (2.23694 if _mph9
-                                                   else 3.6)
-                    _un9 = "MPH" if _mph9 else "KPH"
-                    _gw9 = 118.0
+                    # _speed e' GIA' in km/h (convertito alla lettura):
+                    # niente x3.6 doppio (mostrava ~630, visto in pista)
+                    _sp9 = (self._speed or 0.0) / (1.609344 if _mph9
+                                                   else 1.0)
+                    _gw9 = 92.0     # solo marcia+numero (niente KPH/MPH)
                     p.setPen(Qt.NoPen)
                     p.setBrush(QColor("#181246"))
                     p.drawRect(QRectF(_bx1 - _gw9, 0.0, _gw9, self.HDR))
@@ -4507,13 +4551,6 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.setFont(f_sp)
                     p.setPen(QColor(255, 255, 255, 235))
                     p.drawText(QPointF(_gx9, _yb), "%d" % round(_sp9))
-                    _gx9 += QFontMetricsF(f_sp).horizontalAdvance(
-                        "%d" % round(_sp9)) + 5.0
-                    f_u9 = QFont("Archivo SemiExpanded", 8)
-                    f_u9.setWeight(QFont.Medium)
-                    p.setFont(f_u9)
-                    p.setPen(QColor(255, 255, 255, 170))
-                    p.drawText(QPointF(_gx9, _yb), _un9)
                 p.restore()
         # ── ROW ALTA: <MDF> celeste a sinistra, pagina 1/3 a destra
         #    (font del dash; i numeri header sono stati spostati qui)
@@ -4535,7 +4572,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         _r_on = getattr(self, "_radio_en", False)
         _t_on = getattr(self, "_tele_rec", False)
         _rtxt = "RADIO ON" if _r_on else "RADIO OFF"
-        _ttxt = "TELEMETRY ON" if _t_on else "TELEMETRY OFF"
+        _ttxt = self._it9("TELEMETRY ON" if _t_on else "TELEMETRY OFF")
         _gap2 = 24.0
         _tot2 = _fm2.horizontalAdvance(_rtxt) + _gap2 \
             + _fm2.horizontalAdvance(_ttxt)
