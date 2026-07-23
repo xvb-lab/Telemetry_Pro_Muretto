@@ -1826,23 +1826,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         # blocco GEAR/tachimetro come in MOD 1, STESSA posizione (dietro la lista)
         _gy = self.HDR + self.ROW_T \
             + (_H - self.HDR - self.ROW_T - self.ROW_B) / 2.0 - 44.0
-        # MOTORE SPENTO: in MOD 2 gauge e marcia NON appaiono; alla
-        # accensione tornano subito ma con un fade morbido (~0.35s)
-        _eon2 = (self._rpm or 0.0) >= 50.0
-        _now2 = time.monotonic()
-        if _eon2 and not getattr(self, "_m2_eon_prev", False):
-            self._m2_fade_t0 = _now2
-        self._m2_eon_prev = _eon2
-        if _eon2:
-            _ft2 = (_now2 - getattr(self, "_m2_fade_t0", 0.0)) / 0.35
-            if _ft2 < 1.0:
-                p.save()
-                p.setOpacity(max(0.05, min(1.0, _ft2)))
-                self._paint_neon_gauge(p, _W / 2.0, _gy, 56.0)
-                p.restore()
-                self.update()          # frame successivo del fade
-            else:
-                self._paint_neon_gauge(p, _W / 2.0, _gy, 56.0)
+        # regola motore condivisa (fade); in MOD 2 SENZA marcia: una sola,
+        # sta in MOD 1 (richiesta 23/07: "il cambio sia 1 e non doppio")
+        self._gauge_with_fade(p, _W / 2.0, _gy, 56.0, show_gear=False)
         rows = self._m2_rows()
         f = QFont(FAM)
         if not rows:
@@ -2206,7 +2192,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawText(QRectF(0, _oy + 28.0, _W, 24),
                            Qt.AlignCenter, "E-MOTOR ON")
             return
-        self._paint_neon_gauge(p, _W / 2.0, gy, 56.0)
+        self._gauge_with_fade(p, _W / 2.0, gy, 56.0, show_gear=True)
         # ACQUA e OLIO impilati a SINISTRA in basso: le ICONE PNG di
         # assets/icons (ok normale, warn quando il motore surriscalda)
         try:
@@ -2430,7 +2416,27 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                               bw, 23 if _sel9 else 21),
                        Qt.AlignCenter, val)
 
-    def _paint_neon_gauge(self, p, cx, cy, r):
+    def _gauge_with_fade(self, p, cx, cy, r, show_gear=True):
+        """Regola MOTORE per il gauge (mod 1 e 2): spento = non appare;
+        all'accensione riappare subito ma con fade morbido (~0.35s)."""
+        _eon = (self._rpm or 0.0) >= 50.0
+        _nowf = time.monotonic()
+        if _eon and not getattr(self, "_eng_on_prev", False):
+            self._ign_fade_t0 = _nowf
+        self._eng_on_prev = _eon
+        if not _eon:
+            return
+        _ft = (_nowf - getattr(self, "_ign_fade_t0", 0.0)) / 0.35
+        if _ft < 1.0:
+            p.save()
+            p.setOpacity(max(0.05, min(1.0, _ft)))
+            self._paint_neon_gauge(p, cx, cy, r, show_gear=show_gear)
+            p.restore()
+            self.update()          # frame successivo del fade
+        else:
+            self._paint_neon_gauge(p, cx, cy, r, show_gear=show_gear)
+
+    def _paint_neon_gauge(self, p, cx, cy, r, show_gear=True):
         """Tachimetro NEON: disco di fondo, tacche, arco RPM fluido
         (valori AMMORBIDITI frame per frame: il dato arriva a scatti,
         il video no), punta luminosa e velocita' grande al centro."""
@@ -2640,8 +2646,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         fg = QFontMetricsF(f_g)
         p.setPen(QColor(255, 255, 255, 245))
         gear = _gsym(g)
-        p.drawText(QPointF(cx - fg.horizontalAdvance(gear) / 2.0,
-                           _gcy9 + fg.capHeight() / 2.0), gear)
+        if show_gear:      # in MOD 2 la marcia NON si disegna (una sola, in MOD 1)
+            p.drawText(QPointF(cx - fg.horizontalAdvance(gear) / 2.0,
+                               _gcy9 + fg.capHeight() / 2.0), gear)
         if k9 > 0.0 and _state9 is not None and _state9 != "POPUP":
             # meta' bassa col COLORE dello stato attivo + testo grande
             _bg9, _tx9, _tc9 = _state9

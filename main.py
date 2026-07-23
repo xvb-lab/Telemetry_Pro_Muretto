@@ -60,8 +60,28 @@ def _stop_muretto():
         pass
 
 
+def _sharp_dpi():
+    """Font NITIDI su monitor scalati (125/150%) e multi-monitor: DPI
+    per-monitor V2 + scaling Qt passante. Senza, Windows fa lo stretch
+    bitmap della finestra -> testo sgranato (segnalato 23/07)."""
+    try:
+        import ctypes
+        # -4 = DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
+        ctypes.windll.user32.SetProcessDpiAwarenessContext(
+            ctypes.c_void_p(-4))
+    except Exception:
+        pass
+    try:
+        from PySide6.QtCore import Qt as _Qt
+        QApplication.setHighDpiScaleFactorRoundingPolicy(
+            _Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+    except Exception:
+        pass
+
+
 def main():
     _set_win_taskbar_id()
+    _sharp_dpi()
     app = QApplication(sys.argv)
     app.setApplicationName("LMU Telemetry Pro")
     # PALETTE SCURA DI DEFAULT: testo chiaro come fallback per QUALSIASI widget

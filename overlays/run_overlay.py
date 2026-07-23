@@ -39,6 +39,18 @@ def main():
         print("[run_overlay] chiave sconosciuta: '%s'. Valide: %s" % (key, valid))
         return 2
 
+    # font nitidi su monitor scalati/multi-monitor (stessa cura di main.py)
+    try:
+        import ctypes as _ct
+        _ct.windll.user32.SetProcessDpiAwarenessContext(_ct.c_void_p(-4))
+    except Exception:
+        pass
+    try:
+        from PySide6.QtCore import Qt as _Qt
+        QApplication.setHighDpiScaleFactorRoundingPolicy(
+            _Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+    except Exception:
+        pass
     app = QApplication(sys.argv)
     app.setApplicationName("LMU Overlay — %s" % label)
 
