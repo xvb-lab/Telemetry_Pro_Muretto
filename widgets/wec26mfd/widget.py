@@ -2595,8 +2595,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         try:
             if not hasattr(self, "_px_wat_ok"):
                 _ip = _ROOT / "assets" / "icons"
+                # ACQUA: SVG nuove dell'utente (warn rossa / ok neutra)
+                from PySide6.QtSvg import QSvgRenderer as _QSRw
+                self._svg_wat_ok = _QSRw(str(_ip / "acqua_ok.svg"))
+                self._svg_wat_wn = _QSRw(str(_ip / "acqua_warn.svg"))
                 self._px_wat_ok = QPixmap(str(_ip / "water_ok.png"))
-                self._px_wat_wn = QPixmap(str(_ip / "water_warn.png"))
                 self._px_oil_ok = QPixmap(str(_ip / "oil_ok.png"))
                 self._px_oil_wn = QPixmap(str(_ip / "oil_warn.png"))
             # spie come il vecchio HUD: acqua >=110, olio >=125
@@ -2606,8 +2609,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _ot9 = self._oil or 0.0
             _pw9 = _wt9 >= 110.0
             _po9 = _ot9 >= 125.0
-            wpx = self._px_wat_wn if (_pw9 or _eoff9) \
-                else self._px_wat_ok
+            wsvg = self._svg_wat_wn if (_pw9 or _eoff9) \
+                else self._svg_wat_ok
             opx = self._px_oil_wn if (_po9 or _eoff9) \
                 else self._px_oil_ok
             # blocco COMPATTO e ordinato, appoggiato al cerchio:
@@ -2617,8 +2620,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             p.setFont(f_t)
             p.setPen(QColor(255, 255, 255, 240))
             _xr = _W / 2.0 - 72.0        # bordo destro del blocco
-            p.drawPixmap(QRectF(_xr - 44, gy + 18, 18, 18).toRect(),
-                         wpx)
+            if wsvg.isValid():
+                wsvg.render(p, QRectF(_xr - 44, gy + 18, 18, 18))
             if self._water is not None:
                 p.drawText(QRectF(_xr - 40, gy + 18, 44, 18),
                            Qt.AlignRight | Qt.AlignVCenter,
