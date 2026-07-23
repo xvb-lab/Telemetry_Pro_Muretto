@@ -2512,6 +2512,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             "NO DAMAGE": "NESSUN DANNO",
             "NO CHANGE": "NESSUNA MODIFICA",
             "MIXED": "MISTE",
+            "FL": "AS", "FR": "AD", "RL": "PS", "RR": "PD",
             "PENALTY": "PENALITA'", "BRAKES": "FRENI",
             "DRIVER": "PILOTA", "DUCTS": "PRESE",
             "SPEED UNIT": "UNITA' VELOCITA'",
@@ -2757,9 +2758,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.drawText(QRectF(TX, ry, COLW - 24.0, ROWH),
                                Qt.AlignLeft | Qt.AlignVCenter, _ln)
             elif up.startswith("TIRES"):
+                _all9 = self._it9("ALL")
                 p.drawText(QRectF(TX, ry, 200.0, ROWH),
-                           Qt.AlignLeft | Qt.AlignVCenter, "ALL")
-                _ix = TX + _fm.horizontalAdvance("ALL") + 16
+                           Qt.AlignLeft | Qt.AlignVCenter, _all9)
+                _ix = TX + _fm.horizontalAdvance(_all9) + 16
                 _mix = "MIX" in vt.upper()
                 if self._tyre_opt_parse(vt) or _mix:
                     _ico(self._m2_icon_svg(it, rows), _ix, cy, _isz)
@@ -2769,8 +2771,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         p.setPen(QPen(QColor(255, 255, 255, 235)))
                         p.drawText(QRectF(_ix + 28, ry, 120.0, ROWH),
                                    Qt.AlignLeft | Qt.AlignVCenter, _pt)
+                else:
+                    # gomme NON selezionate: dillo (prima riga vuota)
+                    f.setPixelSize(14)
+                    p.setFont(f)
+                    p.setPen(QPen(QColor(255, 255, 255, 120)))
+                    p.drawText(QRectF(_ix, ry, 170.0, ROWH),
+                               Qt.AlignLeft | Qt.AlignVCenter,
+                               self._it9("NO CHANGE"))
+                    f.setPixelSize(18)
+                    p.setFont(f)
             elif up[:2] in ("FL", "FR", "RL", "RR"):
-                sig = up[:2]
+                sig = self._it9(up[:2])      # IT: AS/AD/PS/PD
                 p.drawText(QRectF(TX, ry, 60.0, ROWH),
                            Qt.AlignLeft | Qt.AlignVCenter, sig)
                 _ix = TX + 32.0        # colonna icona FISSA (non spinta dal testo)
@@ -2781,6 +2793,16 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.setPen(QPen(QColor(255, 255, 255, 235)))
                     p.drawText(QRectF(_ix + 28, ry, 120.0, ROWH),
                                Qt.AlignLeft | Qt.AlignVCenter, _pt)
+                else:
+                    # ruota senza cambio selezionato: dillo, non vuoto
+                    f.setPixelSize(14)
+                    p.setFont(f)
+                    p.setPen(QPen(QColor(255, 255, 255, 120)))
+                    p.drawText(QRectF(_ix, ry, 170.0, ROWH),
+                               Qt.AlignLeft | Qt.AlignVCenter,
+                               self._it9("NO CHANGE"))
+                    f.setPixelSize(18)
+                    p.setFont(f)
             else:
                 _ln = self._tr_pit(vt)
                 if up.startswith("DAMAGE"):
@@ -4524,19 +4546,33 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     _mcur9 = _mods9[self._page % max(1, len(_mods9))]
                 except Exception:
                     _mcur9 = 1
-                if _mcur9 != 1:
+                # entrata/uscita a SCORRIMENTO laterale da destra (stile
+                # WEC, come le celle delta/eventi); sfondo viola chiaro
+                # del box PIT/GARAGE (rich. 23/07)
+                _tgtg = 1.0 if _mcur9 != 1 else 0.0
+                _kg = getattr(self, "_gcell_k", 0.0)
+                _kg += (_tgtg - _kg) * 0.18
+                if abs(_tgtg - _kg) > 0.005:
+                    self.update()
+                else:
+                    _kg = _tgtg
+                self._gcell_k = _kg
+                if _kg > 0.001:
                     _g9v = self._gear if self._gear is not None else 0
                     _g9 = "R" if _g9v < 0 else \
                         ("N" if _g9v == 0 else str(_g9v))
                     _mph9 = self._prefs.get("speed_unit", "KPH") == "MPH"
-                    # _speed e' GIA' in km/h (convertito alla lettura):
-                    # niente x3.6 doppio (mostrava ~630, visto in pista)
+                    # _speed e' GIA' in km/h: niente x3.6 doppio
                     _sp9 = (self._speed or 0.0) / (1.609344 if _mph9
                                                    else 1.0)
                     _gw9 = 92.0     # solo marcia+numero (niente KPH/MPH)
+                    _gx0 = _bx1 - _gw9 * _kg
+                    p.save()
+                    p.setClipRect(QRectF(_gx0, 0.0, _bx1 - _gx0,
+                                         self.HDR))
                     p.setPen(Qt.NoPen)
-                    p.setBrush(QColor("#181246"))
-                    p.drawRect(QRectF(_bx1 - _gw9, 0.0, _gw9, self.HDR))
+                    p.setBrush(QColor("#554A92"))   # viola chiaro PIT
+                    p.drawRect(QRectF(_gx0, 0.0, _bx1 - _gx0, self.HDR))
                     f_gg = QFont("Archivo SemiExpanded", 24)
                     f_gg.setWeight(QFont.Black)
                     p.setFont(f_gg)
@@ -4552,6 +4588,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.setFont(f_sp)
                     p.setPen(QColor(255, 255, 255, 235))
                     p.drawText(QPointF(_gx9, _yb), "%d" % round(_sp9))
+                    p.restore()
                 p.restore()
         # ── ROW ALTA: <MDF> celeste a sinistra, pagina 1/3 a destra
         #    (font del dash; i numeri header sono stati spostati qui)
