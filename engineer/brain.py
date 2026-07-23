@@ -1925,7 +1925,7 @@ class Engineer:
         except (TypeError, ValueError):
             return []
         sl = raw.get("slip_lat")
-        if not isinstance(sl, (list, tuple)) or len(sl) < 4 or spd < 12.0:
+        if not isinstance(sl, (list, tuple)) or len(sl) < 4 or spd < 45.0:
             self._st["slide_n"] = 0
             return []
         try:
@@ -2027,7 +2027,7 @@ class Engineer:
             spd = float(raw.get("speed") or 0.0)
         except (TypeError, ValueError):
             return []
-        if spd < 15.0:
+        if spd < 30.0:
             return []
         self._st["ol_armed"] = False
         tag = class_tag(raw.get("car_class") or "")
@@ -2071,7 +2071,7 @@ class Engineer:
                 ld = float(raw.get("lapdist") or -1.0)
             except (TypeError, ValueError):
                 return out
-            if spd < 12.0 or ld < 0:
+            if spd < 40.0 or ld < 0:
                 return out
             st["an_on"] = True
             if "an_w0" not in st:
@@ -2108,6 +2108,15 @@ class Engineer:
                         acc[0] += fa
                         acc[1] += ra
                         acc[2] += 1
+                        # slip PER RUOTA per curva: per attribuire l'usura
+                        # ("consumi la posteriore destra all'uscita di 9")
+                        try:
+                            wc = st.setdefault("an_wc", {}) \
+                                .setdefault(near, [0.0, 0.0, 0.0, 0.0])
+                            for _wi in range(4):
+                                wc[_wi] += abs(float(sl[_wi] or 0.0))
+                        except (TypeError, ValueError):
+                            pass
                 # 3 ZONE gomma (strato interno) in appoggio: per camber
                 # e pressioni a fine stint (docs/ingegneria 2.1-2.2)
                 if fa > 0.4 or ra > 0.4:
@@ -2126,7 +2135,8 @@ class Engineer:
                                     tz[wi][3] += 1
                                 except (TypeError, ValueError):
                                     pass
-            # FRENI per assale in staccata (squilibrio bias/ducts)
+            # FRENI per assale in staccata (squilibrio bias/ducts) +
+            # SURRISCALDO attribuito alla STACCATA (curva davanti <250m)
             try:
                 if float(raw.get("brake") or 0.0) > 0.4:
                     bk = raw.get("brake_temp") or []
@@ -2135,12 +2145,26 @@ class Engineer:
                         ab[0] += (float(bk[0] or 0) + float(bk[1] or 0)) / 2.0
                         ab[1] += (float(bk[2] or 0) + float(bk[3] or 0)) / 2.0
                         ab[2] += 1
+                        _gt = class_tag(raw.get("car_class") or "") \
+                            in ("GT3", "GTE")
+                        _lim = 650.0 if _gt else 750.0
+                        if max(float(x or 0) for x in bk[:4]) > _lim:
+                            for c in self._learned_corners(raw):
+                                try:
+                                    cd = float(c.get("d"))
+                                except (TypeError, ValueError):
+                                    continue
+                                if c.get("n") is not None \
+                                        and 0.0 <= cd - ld <= 250.0:
+                                    bc = st.setdefault("an_bkc", {})
+                                    bc[c["n"]] = bc.get(c["n"], 0) + 1
+                                    break
             except (TypeError, ValueError):
                 pass
             # BOTTOMING: ride height a terra in velocita'
             try:
                 rh = raw.get("ride_h") or []
-                if spd > 25.0 and any(
+                if spd > 90.0 and any(
                         x is not None and float(x) < 2.0 for x in rh[:4]):
                     st["an_bot"] = st.get("an_bot", 0) + 1
             except (TypeError, ValueError):
@@ -2149,7 +2173,7 @@ class Engineer:
             try:
                 dff = float(raw.get("df_front") or 0.0)
                 dfr = float(raw.get("df_rear") or 0.0)
-                if spd > 45.0 and (dff + dfr) > 500.0:
+                if spd > 150.0 and (dff + dfr) > 500.0:
                     ad = st.setdefault("an_df", [0.0, 0])
                     ad[0] += dff / (dff + dfr)
                     ad[1] += 1
@@ -2192,7 +2216,20 @@ class Engineer:
                      self._L("posteriore destra", "rear right",
                              "trasera derecha", "arriere droite"))
                 mi = max(range(4), key=lambda i: dw[i])
-                out.append(self.msg("debrief_wear_wheel", ruota=W[mi]))
+                # ATTRIBUZIONE: la curva dove QUELLA ruota slitta di piu'
+                wc = st.pop("an_wc", {}) or {}
+                topn, tops = None, 0.0
+                for n2, ws in wc.items():
+                    try:
+                        if ws[mi] > tops and ws[mi] >= 25.0:
+                            topn, tops = n2, ws[mi]
+                    except (TypeError, IndexError):
+                        continue
+                if topn is not None:
+                    out.append(self.msg("debrief_wear_wheel_corner",
+                                        ruota=W[mi], turn=topn))
+                else:
+                    out.append(self.msg("debrief_wear_wheel", ruota=W[mi]))
         # ── INGEGNERIA v2: pressioni/camber (3 zone), freni, fondo, aero ──
         extras = []
         _AX = (self._L("anteriore", "front", "delantero", "avant"),
@@ -2222,6 +2259,12 @@ class Engineer:
                 elif spread < 2.0:
                     extras.append(self.msg("debrief_camber_little",
                                            asse=_AX[ax]))
+        st.pop("an_wc", None)
+        bc = st.pop("an_bkc", None) or {}
+        if bc:
+            nb = max(bc, key=bc.get)
+            if bc[nb] >= 3:
+                extras.append(self.msg("debrief_brake_corner", turn=nb))
         ab = st.pop("an_bk", None)
         if ab and ab[2] >= 20:
             d = ab[0] / ab[2] - ab[1] / ab[2]
@@ -2289,6 +2332,25 @@ class Engineer:
                     said.add(n)
                     out.append(self.msg("brake_later", turn=n,
                                         meters=int(round(-bd / 5.0) * 5)))
+            elif bd >= 12.0 and n not in said:
+                # stacchi PIU' TARDI del tuo best E in quella zona blocchi:
+                # stai overdriving la staccata -> frena prima
+                try:
+                    _cd = float(best.get("d"))
+                    _bk2 = float(best.get("brake_d") or 0.0)
+                except (TypeError, ValueError):
+                    _cd = _bk2 = 0.0
+                _locked = any(
+                    isinstance(le, (list, tuple)) and le
+                    and (_cd - _bk2 - 120.0) <= float(le[0]) <= _cd
+                    for le in (raw.get("lock_events") or []))
+                if _locked:
+                    c2 = self._st.setdefault("cc2", {})
+                    c2[n] = c2.get(n, 0) + 1
+                    if c2[n] >= 2:
+                        said.add(n)
+                        out.append(self.msg("brake_earlier", turn=n,
+                                            meters=int(round(bd / 5.0) * 5)))
         # ── PATTINAMENTO in uscita ──
         try:
             thr = float(raw.get("throttle") or 0.0)
@@ -2299,7 +2361,7 @@ class Engineer:
                 if len(sl) >= 4 else 0.0
         except (TypeError, ValueError):
             return out
-        if thr > 0.7 and rear >= 2.0 and 8.0 < spd < 45.0 and ld >= 0:
+        if thr > 0.7 and rear >= 2.0 and 30.0 < spd < 160.0 and ld >= 0:
             wsc = self._st.setdefault("ws_cnt", {})
             wsaid = self._st.setdefault("ws_said", set())
             for c in corners:
@@ -3599,7 +3661,10 @@ class Engineer:
             if worst_n is not None and worst_def >= 6.0:   # >= 6 km/h piu' lento
                 said[worst_n] = laps_done
                 self._st["dbr_corner"] = worst_n      # per il debrief di stint
-                out = [self.msg("turn_slow", turn=worst_n)]
+                _myv = ref.get(worst_n, 0.0) - worst_def
+                out = [self.msg("carry_speed", turn=worst_n,
+                                v=int(round(_myv)),
+                                vref=int(round(ref.get(worst_n, 0.0))))]
         return out
 
     def _rival_name(self, name):

@@ -639,18 +639,11 @@
       "level": "warn",
       "beep": true,
       "en": "Rain now · manage throttle",
-      "it": "Piove, attento al gas.",
+      "it": "Ha iniziato a piovere: primo giro d'acqua, prudenza sui cordoli.",
       "variants_it": [
-        "Piove, attento al gas.",
-        "Acqua in pista.",
-        "Sta piovendo, guida pulito.",
-        "Pioggia, occhio al gas.",
-        "Piove ora, morbido.",
-        "Asfalto bagnato.",
-        "Acqua, niente strappi.",
-        "Piove, traiettorie larghe.",
-        "Pioggia, attento.",
-        "Bagnato, guida fluido."
+        "Ha iniziato a piovere: primo giro d'acqua, prudenza sui cordoli.",
+        "Piove. Frenate allungate e niente cordoli finché non capiamo il grip.",
+        "Acqua in pista: alza i riferimenti di frenata, parliamo tra un giro di gomme."
       ],
       "es": "Lluvia ahora · gestiona el acelerador",
       "fr": "Pluie maintenant · gère l'accélérateur"
@@ -660,18 +653,11 @@
       "level": "info",
       "beep": false,
       "en": "Track drying · slicks soon",
-      "it": "La pista si asciuga, slick a breve.",
+      "it": "La pista si sta asciugando: tra poco le slick tornano l'opzione giusta.",
       "variants_it": [
-        "La pista si asciuga, slick a breve.",
-        "Asciuga, prepara le slick.",
-        "Pista in asciugatura.",
-        "Si asciuga, pensa alle slick.",
-        "Acqua in calo, slick vicine.",
-        "Pista migliora, slick a breve.",
-        "Asciugatura in corso.",
-        "Meno acqua, valuta le slick.",
-        "La linea si asciuga.",
-        "Presto slick, asciuga."
+        "La pista si sta asciugando: tra poco le slick tornano l'opzione giusta.",
+        "Si asciuga: si forma la linea. Prepariamo il passaggio alle slick.",
+        "Acqua in calo giro dopo giro: ragioniamo sul cambio."
       ],
       "es": "Pista secándose · slicks pronto",
       "fr": "Piste qui sèche · slicks bientôt"
@@ -742,18 +728,12 @@
       "level": "info",
       "beep": false,
       "en": "{turn} brake {meters}m earlier · {delta}",
-      "it": "In {turn} frena {meters} metri prima, perdi {delta_v}.",
+      "it": "In curva {turn} stai staccando {meters} metri oltre il tuo riferimento e blocchi: frena prima e più progressivo.",
       "variants_it": [
-        "In {turn} frena {meters} metri prima, perdi {delta_v}.",
-        "Anticipa la frenata in {turn}, {delta_v}.",
-        "Curva {turn}, stacca prima di {meters} metri, {delta_v}.",
-        "Stai overfrenando in {turn}, anticipa di {meters} metri per non perdere {delta_v}.",
-        "Per evitare il bloccaggio in {turn}, frena {meters} metri prima, perdi {delta_v}.",
-        "Anticipa la staccata in {turn} di {meters} metri, ottimizzi l'uscita di {delta_v}.",
-        "Alza il piede prima in {turn}, stacca {meters} metri prima, vale {delta_v}.",
-        "Ingresso troppo violento in {turn}, anticipa di {meters} metri, accusi {delta_v}.",
-        "Modula la frenata arretrandola di {meters} metri in {turn}, perdi {delta_v}.",
-        "Proteggi la linea alla {turn}, frena {meters} metri prima, monitoriamo {delta_v}."
+        "In curva {turn} stai staccando {meters} metri oltre il tuo riferimento e blocchi: frena prima e più progressivo.",
+        "Curva {turn}: staccata troppo profonda, {meters} metri oltre il best, e la ruota si blocca. Anticipa.",
+        "Stai overdrivando l'ingresso di curva {turn}: {meters} metri più tardi del riferimento e arrivano i bloccaggi. Frena prima, esci meglio.",
+        "Dati alla mano, in curva {turn} entri troppo forte: anticipa la staccata di {meters} metri e la frenata torna pulita."
       ],
       "es": "{turn} frena {meters}m antes · {delta}",
       "fr": "{turn} freine {meters}m plus tôt · {delta}"
@@ -763,18 +743,12 @@
       "level": "info",
       "beep": false,
       "en": "{turn} carry speed · Vmin {v} vs {vref} · {delta}",
-      "it": "In {turn} porta più velocità, sei a {v} contro {vref}, {delta_v}.",
+      "it": "In curva {turn} lasci velocità: minima a {v} contro i {vref} del tuo best. Fai scorrere la macchina.",
       "variants_it": [
-        "In {turn} porta più velocità, sei a {v} contro {vref}, {delta_v}.",
-        "Curva {turn}, più minima, {v} contro {vref}.",
-        "Tieni velocità in {turn}, {delta_v}.",
-        "Fai scorrere la vettura in {turn}, minima a {v} rispetto a {vref}, perdi {delta_v}.",
-        "Incrementa la velocità di percorrenza in {turn}, {v} contro {vref}, differenza {delta_v}.",
-        "Più velocità a centro curva in {turn}, attuale {v}, target {vref}, gap di {delta_v}.",
-        "Fai correre la macchina in {turn}, la minima è {v} contro il {vref} del tuo best, vale {delta_v}.",
-        "Non piantare la macchina in {turn}, porta velocità: {v} contro {vref}, perdi {delta_v}.",
-        "Velocità d'ingresso insufficiente in {turn}, {v} rispetto ai {vref} ideali, perdi {delta_v}.",
-        "Lascia scorrere in {turn}, sei lento di minima con {v} contro {vref}, recupera {delta_v}."
+        "In curva {turn} lasci velocità: minima a {v} contro i {vref} del tuo best. Fai scorrere la macchina.",
+        "Curva {turn}: stai passando a {v}, il tuo riferimento è {vref}. Porta più velocità in percorrenza.",
+        "La minima di curva {turn} è bassa, {v} contro {vref}: non piantare la macchina, lasciala correre.",
+        "Dati di curva {turn}: {v} all'apice, il best dice {vref}. Ingresso più fluido e la ritrovi."
       ],
       "es": "{turn} lleva velocidad · Vmin {v} vs {vref} · {delta}",
       "fr": "{turn} garde la vitesse · Vmin {v} vs {vref} · {delta}"
@@ -1412,7 +1386,7 @@
       "cat": "flags",
       "level": "warn",
       "beep": true,
-      "en": "Track limits · lap deleted{sector}",
+      "en": "Lap time deleted, track limits.",
       "it": "Giro cancellato, track limits.",
       "variants_it": [
         "Giro cancellato, track limits.",
@@ -1427,7 +1401,12 @@
         "Giro non valido."
       ],
       "es": "Límites de pista · vuelta anulada{sector}",
-      "fr": "Limites de piste · tour annulé{sector}"
+      "fr": "Limites de piste · tour annulé{sector}",
+      "variants_en": [
+        "Lap time deleted, track limits.",
+        "That lap won't count — limits.",
+        "Lap invalidated for track limits."
+      ]
     },
     "tlimits_warn": {
       "cat": "flags",
@@ -1628,30 +1607,13 @@
         "Blu! {classe} più veloce, non ostacolare.",
         "Blu! Lascia passare la {classe}."
       ],
-      "en": "Blue for you, let them by without wrecking your lap.",
+      "en": "Blue! A {classe} is coming, give way.",
       "es": "Azul para ti, déjalo pasar sin arruinar tu vuelta.",
       "fr": "Bleu pour toi, laisse passer sans gâcher ton tour.",
       "variants_en": [
-        "Blue for you, let them by without wrecking your lap.",
-        "Blue flag, let them past.",
-        "Blue, give way.",
-        "Blue: let them through, don't lose time.",
-        "Faster car coming, blue: give room.",
-        "Blue flag, let them by cleanly.",
-        "Blue for you, don't hold them up.",
-        "Blue, give way at a safe spot.",
-        "Move aside, blue flag.",
-        "Blue: let them past and pick your pace back up.",
-        "Faster car behind, blue: room.",
-        "Blue, don't fight it, let them go.",
-        "Blue flag, concede the position.",
-        "Blue for you: open up and let them by.",
-        "Blue, release them smoothly.",
-        "They're coming by, blue: help the pass.",
-        "Blue, leave the line for a moment.",
-        "Blue flag, clean pass.",
-        "Blue: give way, then back to your rhythm.",
-        "Blue for you, let them through, no risks."
+        "Blue! A {classe} is coming, give way.",
+        "Blue flag! {classe} behind, make room.",
+        "Blue! Let the {classe} through."
       ],
       "variants_es": [
         "Azul para ti, déjalo pasar sin arruinar tu vuelta.",
@@ -1933,13 +1895,12 @@
       "cat": "strategy",
       "level": "info",
       "beep": true,
-      "it": "Sei al comando, {pos}. Amministra.",
+      "it": "Sei al comando: {pos}. Gestisci gomme e traffico.",
       "variants_it": [
-        "Sei al comando, {pos}. Amministra.",
-        "Testa della corsa, {pos}. Gestisci il vantaggio.",
-        "Primo, {pos}. Tieni il ritmo.",
-        "Sei in testa, {pos}. Lucido.",
-        "Comandi tu, {pos}. Non strafare."
+        "Sei al comando: {pos}. Gestisci gomme e traffico.",
+        "In testa! Ora la gara è tua da amministrare.",
+        "Comando preso: passo pulito e niente rischi nel traffico.",
+        "Primo in classe: dettiamo noi il ritmo."
       ],
       "en": "You're leading, {pos}. Manage it.",
       "es": "Vas primero, {pos}. Administra.",
@@ -1948,13 +1909,13 @@
     "pos_gain": {
       "beep": true,
       "level": "green",
-      "it": "Sorpasso fatto, ora sei {pos}.",
+      "it": "Sorpasso completato: sei {pos}.",
       "variants_it": [
-        "Sorpasso fatto, ora sei {pos}.",
-        "Guadagnata una posizione, {pos}.",
-        "Passato! Ora {pos}.",
-        "Una posizione in più, sei {pos}.",
-        "Avanti di una posizione, {pos}."
+        "Sorpasso completato: sei {pos}.",
+        "Bel lavoro, posizione guadagnata: ora {pos}.",
+        "Sei passato: {pos}. Consolida con un paio di giri puliti.",
+        "Posizione presa, {pos}: adesso allunga.",
+        "Fatto: {pos}. Testa al prossimo."
       ],
       "en": "Move done, you're {pos} now.",
       "es": "Adelantamiento hecho, ahora eres {pos}.",
@@ -1963,13 +1924,12 @@
     "pos_loss": {
       "beep": false,
       "level": "warn",
-      "it": "Ti hanno passato, ora sei {pos}.",
+      "it": "Ti hanno passato: sei {pos}. Resta agganciato.",
       "variants_it": [
-        "Ti hanno passato, ora sei {pos}.",
-        "Persa una posizione, {pos}.",
-        "Ti ha scavalcato, ora {pos}.",
-        "Una posizione persa, sei {pos}.",
-        "Indietro di una posizione, {pos}."
+        "Ti hanno passato: sei {pos}. Resta agganciato.",
+        "Persa una posizione, ora {pos}: niente panico, il passo c'è.",
+        "Sei {pos}: rimettiti in scia e ragioniamo sul contrattacco.",
+        "Posizione ceduta, {pos}. Gomme e testa: si riprende."
       ],
       "en": "You've been passed, you're {pos} now.",
       "es": "Te han pasado, ahora eres {pos}.",
@@ -2030,18 +1990,12 @@
       "cat": "system",
       "level": "info",
       "beep": true,
-      "it": "Mancano {minutes} minuti alla fine.",
+      "it": "Mancano {minutes} minuti alla bandiera.",
       "variants_it": [
-        "Mancano {minutes} minuti alla fine.",
-        "{minutes} minuti al termine.",
-        "Restano {minutes} minuti.",
-        "{minutes} minuti alla bandiera.",
-        "Ancora {minutes} minuti alla fine.",
-        "Mancano {minutes} minuti.",
-        "{minutes} minuti alla fine sessione.",
-        "Restano {minutes} minuti alla fine.",
-        "{minutes} minuti al traguardo.",
-        "Tempo: {minutes} minuti alla fine."
+        "Mancano {minutes} minuti alla bandiera.",
+        "{minutes} minuti alla fine.",
+        "Siamo a {minutes} minuti dal termine.",
+        "Ultimi {minutes} minuti: teniamo questo ritmo."
       ],
       "en": "{minutes} minutes to the end.",
       "es": "Quedan {minutes} minutos para el final.",
@@ -2885,9 +2839,14 @@
         "Verde, riparte la gara.",
         "Fine gialla, verde, si va."
       ],
-      "en": "Green flag, we go again.",
+      "en": "Green, back to racing.",
       "es": "Verde, seguimos.",
-      "fr": "Vert, on repart."
+      "fr": "Vert, on repart.",
+      "variants_en": [
+        "Green, back to racing.",
+        "Green flag, we go again.",
+        "Restart — green!"
+      ]
     },
     "race_start": {
       "level": "info",
@@ -2902,7 +2861,12 @@
       ],
       "en": "Green, go!",
       "es": "Verde, vamos!",
-      "fr": "Vert, c'est parti !"
+      "fr": "Vert, c'est parti !",
+      "variants_en": [
+        "Green, go!",
+        "Green flag, we're racing!",
+        "Lights out — push!"
+      ]
     },
     "wet_patchy": {
       "level": "warn",
@@ -3436,30 +3400,14 @@
         "Gialla a {dist}! Niente sorpassi.",
         "Gialla, {dist} metri! Pronto a rallentare."
       ],
-      "en": "Yellow, {dist} metres.",
+      "en": "Yellow! Careful, {dist} metres.",
       "es": "Amarilla, {dist} metros.",
       "fr": "Jaune, {dist} mètres.",
       "variants_en": [
-        "Yellow, {dist} metres.",
-        "Yellow flag in {dist} metres.",
-        "Yellow at {dist} metres, lift.",
-        "Careful, yellow at {dist} metres.",
-        "Yellow close, {dist} metres.",
-        "Yellow at {dist} metres: ready to slow.",
-        "Yellow coming, {dist} metres.",
-        "{dist} metres to the yellow.",
-        "Heads up, yellow at {dist} metres.",
-        "Yellow at {dist}: no overtaking.",
-        "Slow down, yellow in {dist} metres.",
-        "Yellow zone at {dist} metres.",
-        "Yellow ahead, {dist} metres.",
-        "Caution, yellow at {dist} metres.",
-        "Yellow at {dist} metres, hands ready.",
-        "Yellow reported at {dist} metres.",
-        "Yellow, {dist} metres: ready to back off.",
-        "At {dist} metres there's yellow.",
-        "Yellow at {dist}, careful on the brakes.",
-        "Yellow flag, {dist} metres ahead."
+        "Yellow! Careful, {dist} metres.",
+        "Yellow ahead, {dist} metres!",
+        "Caution, yellow at {dist}.",
+        "Yellow, {dist} metres! No overtaking."
       ],
       "variants_es": [
         "Amarilla, {dist} metros.",
@@ -3762,14 +3710,13 @@
     },
     "best_lap_new": {
       "beep": true,
-      "it": "Nuovo miglior tempo: {tempo}.",
+      "it": "Nuovo riferimento personale: {tempo}. Così si fa.",
       "level": "best",
       "variants_it": [
-        "Nuovo miglior tempo: {tempo}.",
-        "Ottimo, miglior giro: {tempo}.",
-        "Hai migliorato, {tempo}.",
-        "Bel giro, {tempo}, è il tuo migliore.",
-        "Personal best: {tempo}."
+        "Nuovo riferimento personale: {tempo}. Così si fa.",
+        "Best abbassato: {tempo}.",
+        "{tempo}: è il tuo nuovo miglior giro.",
+        "Record personale, {tempo}: la direzione è giusta."
       ],
       "en": "New personal best: {tempo}.",
       "es": "Nuevo mejor tiempo: {tempo}.",
@@ -3793,20 +3740,11 @@
     "lap_fast": {
       "level": "good",
       "beep": true,
-      "it": "Giro veloce, {tempo}. Puoi ancora migliorare nel settore {settore}.",
+      "it": "Bel giro: {tempo}. C'è ancora margine nel settore {settore}.",
       "variants_it": [
-        "Giro veloce, {tempo}. Puoi ancora migliorare nel settore {settore}.",
-        "Bel giro, {tempo}. Nel settore {settore} c'è ancora qualcosa da prendere.",
-        "Nuovo tuo miglior tempo, {tempo}. Lavora sul settore {settore} per limare ancora.",
-        "Ottimo, {tempo}. Il settore {settore} è dove puoi guadagnare altro.",
-        "Miglior giro, {tempo}. Concentrati sul settore {settore} per il prossimo.",
-        "Gran giro, {tempo}. Ti resta margine nel settore {settore}.",
-        "Personale abbassato, {tempo}. Spingi nel settore {settore} e trovi di più.",
-        "Tempo forte, {tempo}. Il punto da migliorare è il settore {settore}.",
-        "Sei migliorato, {tempo}. Ancora un po' nel settore {settore}.",
-        "Bel passaggio, {tempo}. Prossimo obiettivo, il settore {settore}.",
-        "Nuovo riferimento, {tempo}. Nel settore {settore} puoi fare meglio.",
-        "Giro veloce, {tempo}. Attacca il settore {settore} al prossimo giro."
+        "Bel giro: {tempo}. C'è ancora margine nel settore {settore}.",
+        "{tempo}, giro solido. Il settore {settore} può dare di più.",
+        "Buon tempo, {tempo}: se sistemi il settore {settore} lo abbassiamo ancora."
       ],
       "en": "Quick lap, {tempo}. You can still improve in sector {settore}.",
       "es": "Vuelta rápida, {tempo}. Aún puedes mejorar en el sector {settore}.",
@@ -3837,11 +3775,11 @@
     "lap_slow": {
       "level": "info",
       "beep": true,
-      "it": "Rispetto al tuo passo perdi {perdita} nel settore {settore}, guarda lì.",
+      "it": "Nel settore {settore} hai lasciato {perdita}: guarda lì al prossimo giro.",
       "variants_it": [
-        "Rispetto al tuo passo perdi {perdita} nel settore {settore}, guarda lì.",
-        "Nel settore {settore} lasci {perdita} rispetto al tuo passo.",
-        "Passo ok ma nel settore {settore} perdi {perdita}: margine lì."
+        "Nel settore {settore} hai lasciato {perdita}: guarda lì al prossimo giro.",
+        "Il giro ha perso {perdita} nel settore {settore}: il resto era in linea.",
+        "Settore {settore} da rivedere: {perdita} rispetto al tuo passo."
       ],
       "en": "Against your own pace you're losing {perdita} in sector {settore}, look there.",
       "es": "Respecto a tu ritmo pierdes {perdita} en el sector {settore}, mira ahí.",
@@ -4059,30 +3997,14 @@
         "Blu! Non ostacolare.",
         "Blu! Dai strada subito."
       ],
-      "en": "Blue flag, let them past.",
+      "en": "Blue! Give way.",
       "es": "Bandera azul, déjalo pasar.",
       "fr": "Drapeau bleu, laisse passer.",
       "variants_en": [
-        "Blue flag, let them past.",
-        "Blue, let them by.",
-        "Blue, give way.",
-        "Blue, let them through.",
-        "Blue, concede.",
-        "Blue flag, give room.",
-        "Blue, don't hold up.",
-        "Blue, let them go.",
-        "Blue, move aside.",
-        "Blue flag, clear the way.",
-        "Blue, open up.",
-        "Blue, drop the position.",
-        "Blue, give way now.",
-        "Blue flag, let them pass.",
-        "Blue, let them slip by.",
-        "Blue, don't fight.",
-        "Blue, move over.",
-        "Blue flag, yield.",
-        "Blue, release them.",
-        "Blue, clean pass."
+        "Blue! Give way.",
+        "Blue flag! Let them by.",
+        "Blue! Don't hold them up.",
+        "Blue, make room."
       ],
       "variants_es": [
         "Bandera azul, déjalo pasar.",
@@ -5727,7 +5649,8 @@
       "en": "Big hit. You okay?",
       "variants_en": [
         "Big hit. You okay?",
-        "All good? How's the car?"
+        "All good? How's the car?",
+        "Heavy one — everything okay?"
       ],
       "es": "¡Golpe fuerte! ¿Estás bien? Háblame.",
       "fr": "Gros choc ! Ça va ? Parle-moi."
@@ -5748,28 +5671,11 @@
         "Ti ha toccato {name}.",
         "Toccato con {name}. Controlla lo sterzo."
       ],
-      "en": "Contact with {name}.",
+      "en": "Contact with {name}. Check the car.",
       "variants_en": [
-        "Contact with {name}.",
-        "Made contact with {name}.",
-        "Contact: {name}.",
-        "You made contact with {name}.",
-        "You touched with {name}.",
-        "Contact with {name}, check the car.",
-        "Bump with {name}.",
-        "Contact with {name}, watch for damage.",
-        "Touched {name}.",
-        "Wheel-to-wheel contact with {name}.",
-        "There was contact with {name}.",
-        "Knock with {name}.",
-        "Contact with {name}, feel the car.",
-        "{name} touched you.",
-        "Contact with {name}, confirm all okay.",
-        "Light clash with {name}.",
-        "Contact with {name} in that corner.",
-        "Touched with {name}, stay focused.",
-        "Contact with {name}, check the steering.",
-        "Contact: that was {name}."
+        "Contact with {name}. Check the car.",
+        "Touched {name} — how's it feel?",
+        "Contact with {name}, watch the steering."
       ],
       "es": "Contacto con {name}.",
       "fr": "Contact avec {name}.",
@@ -5845,28 +5751,11 @@
         "Contatto con {name}, tutto integro.",
         "Con {name} solo sfiorati, prosegui."
       ],
-      "en": "Touched with {name}, no damage, carry on.",
+      "en": "Touched {name}, no damage, carry on.",
       "variants_en": [
-        "Touched with {name}, no damage, carry on.",
-        "Contact with {name}, all good.",
-        "Bump with {name} but the car's fine.",
-        "Touched {name}, no damage.",
-        "Contact with {name}, car intact.",
-        "With {name}, contact with no consequences.",
-        "Touched with {name}, press on.",
-        "Contact with {name}, nothing broken.",
-        "Knock with {name}, all under control.",
-        "Just a touch with {name}, we go.",
-        "Contact with {name}, no damage.",
-        "Touched with {name}, car responds well.",
-        "Contact with {name}, no problem.",
-        "Light contact with {name}, carry on.",
-        "Touched {name}, all normal.",
-        "Contact with {name}, car healthy.",
-        "No damage with {name}, head down.",
-        "Touched with {name}, stay on pace.",
-        "Contact with {name}, all intact.",
-        "Only grazed with {name}, press on."
+        "Touched {name}, no damage, carry on.",
+        "Contact with {name}: car is clean.",
+        "All fine after the touch with {name}."
       ],
       "es": "Toque con {name}, sin daños, seguimos.",
       "fr": "Touché avec {name}, aucun dégât, on continue.",
@@ -7493,9 +7382,14 @@
         "Track limits sul conto: {tot} su {max}.",
         "Warning: sei a {tot}, la penalità scatta a {max}."
       ],
-      "en": "Warning for the cut: you're at {tot} points of {max}.",
+      "en": "Warning for the cut: {tot} of {max}.",
       "es": "Warning por el corte: {tot} puntos de {max}.",
-      "fr": "Avertissement : {tot} points sur {max}."
+      "fr": "Avertissement : {tot} points sur {max}.",
+      "variants_en": [
+        "Warning for the cut: {tot} of {max}.",
+        "Track limits: tally {tot} of {max}.",
+        "Warning — penalty comes at {max}, you're on {tot}."
+      ]
     },
     "limits_warning": {
       "cat": "race_control",
@@ -7540,9 +7434,13 @@
         "Sorpasso fuori pista: restituisci la posizione subito.",
         "Posizione guadagnata col taglio: ridalla o è penalità."
       ],
-      "en": "You passed while off track: give the place back, fifteen seconds.",
+      "en": "You passed off track: give the place back, fifteen seconds.",
       "es": "Adelantaste cortando: devuelve la posición.",
-      "fr": "Dépassement hors piste : rends la position."
+      "fr": "Dépassement hors piste : rends la position.",
+      "variants_en": [
+        "You passed off track: give the place back, fifteen seconds.",
+        "Illegal pass on the cut — hand it back now."
+      ]
     },
     "limits_review": {
       "cat": "race_control",
@@ -7843,6 +7741,34 @@
       "en": "Bilancio aero medio dello stint: {pct} per cento sull'anteriore. Tienilo come riferimento per le modifiche d'ala.",
       "es": "Bilancio aero medio dello stint: {pct} per cento sull'anteriore. Tienilo come riferimento per le modifiche d'ala.",
       "fr": "Bilancio aero medio dello stint: {pct} per cento sull'anteriore. Tienilo come riferimento per le modifiche d'ala."
+    },
+    "debrief_wear_wheel_corner": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "Per il long run: stiamo consumando soprattutto la {ruota}, e il grosso arriva dalla curva {turn}. Più dolce lì e il set respira.",
+      "variants_it": [
+        "Per il long run: stiamo consumando soprattutto la {ruota}, e il grosso arriva dalla curva {turn}. Più dolce lì e il set respira.",
+        "L'usura è sbilanciata sulla {ruota}: nei dati la maltrattiamo in curva {turn}. Gestione in quel punto o rivediamo l'assetto.",
+        "Dai dati gomme: la {ruota} paga più delle altre, principalmente in curva {turn}. Tienilo a mente per il passo gara."
+      ],
+      "en": "For the long run: we're wearing mostly the {ruota}, and most of it comes from turn {turn}.",
+      "es": "Gastamos sobre todo la {ruota}, principalmente en la curva {turn}.",
+      "fr": "On use surtout la {ruota}, principalement au virage {turn}."
+    },
+    "debrief_brake_corner": {
+      "cat": "debrief",
+      "level": "info",
+      "beep": false,
+      "it": "In staccata di curva {turn} i freni superano la soglia: o apriamo i ducts o gestisci quella frenata, magari scalando prima.",
+      "variants_it": [
+        "In staccata di curva {turn} i freni superano la soglia: o apriamo i ducts o gestisci quella frenata, magari scalando prima.",
+        "La frenata di curva {turn} manda i freni oltre temperatura: è lì che cuociono. Ducts più aperti o staccata più progressiva.",
+        "Dai dati freni: il punto critico è la staccata di curva {turn}. Se in gara fa caldo, lì si gestisce."
+      ],
+      "en": "Braking for turn {turn} sends the brakes over the limit: open the ducts or manage that stop.",
+      "es": "En la frenada de la curva {turn} los frenos pasan el límite.",
+      "fr": "Au freinage du virage {turn} les freins depassent la limite."
     }
   }
 }

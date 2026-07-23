@@ -532,20 +532,21 @@ def run():
                 _sdf = d.get("susp_defl") or []
                 _srf = d.get("surface_type") or []
                 if _spd > 8.0 and _ldm >= 0:
-                    if len(_rot) >= 4:
+                    _spd_ms = _spd / 3.6      # 'speed' e' in KM/H nel reader
+                    if len(_rot) >= 4 and _spd > 40.0:
                         for _wi in range(4):
                             try:
                                 _ws = abs(float(_rot[_wi] or 0.0)) * 0.33
                             except (TypeError, ValueError):
                                 continue
-                            _ratio = _ws / _spd
+                            _ratio = _ws / _spd_ms
                             # bloccaggio = TRANSIZIONE: la ruota GIRAVA
                             # (ratio>0.7 da <0.8s) e ora e' quasi ferma in
                             # frenata DECISA. Se il campo rot e' morto/zero
                             # fisso non scatta mai (niente falsi in GT3).
                             if _ratio > 0.7:
                                 _lock_last[("ok", _wi)] = _now
-                            elif _brk > 0.4 and _spd > 15.0 \
+                            elif _brk > 0.4 and _spd > 40.0 \
                                     and _ratio < 0.3 \
                                     and _now - _lock_last.get(("ok", _wi),
                                                               0.0) < 0.8 \
@@ -571,7 +572,7 @@ def run():
                     _prev_sdf = list(_sdf)
                 # INIZIO STACCATA (fronte di salita del freno): per il
                 # coach frenate ("puoi staccare N metri dopo in curva X")
-                if _spd > 15.0 and _ldm >= 0 \
+                if _spd > 60.0 and _ldm >= 0 \
                         and _brk > 0.35 and _brk_prev <= 0.35:
                     _brake_ev.append((_now, _ldm))
                 _brk_prev = _brk

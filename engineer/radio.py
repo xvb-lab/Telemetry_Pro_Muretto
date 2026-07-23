@@ -95,6 +95,7 @@ _mk(["tyres_cold", "tyres_warm", "brakes_cold", "tyres_hot", "brakes_hot",
      "debrief_press_hi", "debrief_press_lo", "debrief_camber_much",
      "debrief_camber_little", "debrief_brake_front", "debrief_brake_rear",
      "debrief_bottoming", "debrief_aero_bal",
+     "debrief_wear_wheel_corner", "debrief_brake_corner",
      "flatspot_confirmed",
      "lap_time_call"], 2)
 # P3 info gara
