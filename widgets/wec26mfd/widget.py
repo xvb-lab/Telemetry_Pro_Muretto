@@ -2429,25 +2429,28 @@ class Wec26MfdOverlay(WecOnboardOverlay):
 
     # ── MOD 3: SCHERMATA IMPOSTAZIONI del dash (menu stile DDU) ──
     def _paint_beam_spia(self, p, gy):
-        """SPIA FARI dell'IconBar HUD v2, fedele: SEMPRE visibile —
-        light_off da spenti, light_on fissa da accesi, blink sul
-        lampeggio. Vive anche a MOTORE SPENTO (fari usabili da fermi)."""
-        if not hasattr(self, "_px_light_on"):
+        """SPIA FARI: SVG fari_on (verde, dall'utente) / fari_off (grigia
+        spenta). Sempre visibile; blink sul lampeggio. Vive anche a
+        MOTORE SPENTO (i fari si usano da fermi)."""
+        if not hasattr(self, "_svg_fari_on"):
+            from PySide6.QtSvg import QSvgRenderer as _QSRf
             _ip9 = _ROOT / "assets" / "icons"
-            self._px_light_on = QPixmap(str(_ip9 / "light_on.png"))
-            self._px_light_off = QPixmap(str(_ip9 / "light_off.png"))
+            self._svg_fari_on = _QSRf(str(_ip9 / "fari_on.svg"))
+            self._svg_fari_off = _QSRf(str(_ip9 / "fari_off.svg"))
+            self._svg_fari_hi = _QSRf(str(_ip9 / "abbaglianti.svg"))
         _bm = getattr(self, "_beam", False)
         _lf = getattr(self, "_light_flash", False)
         if _lf:
+            # LAMPEGGIO = abbaglianti BLU che lampeggiano (cruscotto vero)
             _on = (time.monotonic() % 0.5) < 0.28
-            px = self._px_light_on if _on else self._px_light_off
+            sv = self._svg_fari_hi if _on else self._svg_fari_off
             self.update()          # blink fluido
         elif _bm:
-            px = self._px_light_on
+            sv = self._svg_fari_on
         else:
-            px = self._px_light_off
-        p.drawPixmap(QRectF(_W / 2.0 - 128.0, gy - 48.0, 22, 22).toRect(),
-                     px)
+            sv = self._svg_fari_off
+        if sv.isValid():
+            sv.render(p, QRectF(_W / 2.0 - 128.0, gy - 48.0, 22, 22))
 
     def _cfg_pull(self):
         """engineer_cfg riletta throttled 1s: serve a MOD 3 (valori menu)
