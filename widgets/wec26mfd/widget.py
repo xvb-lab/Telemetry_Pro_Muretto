@@ -2863,6 +2863,15 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 if self._svg_engoff9.isValid():
                     self._svg_engoff9.render(
                         p, QRectF(_W / 2.0 + 50.0, gy - 48.0, 22, 22))
+                # FRENI accesi fissi nel check (auto vera: batteria +
+                # motore + olio + freni a quadro inserito)
+                if not hasattr(self, "_svg_brk9"):
+                    from PySide6.QtSvg import QSvgRenderer as _QSRb
+                    self._svg_brk9 = _QSRb(
+                        str(_ROOT / "assets" / "icons" / "freni_warn.svg"))
+                if self._svg_brk9.isValid():
+                    self._svg_brk9.render(
+                        p, QRectF(_W / 2.0 + 134.0, gy - 48.0, 22, 22))
                 if self._svg_batt9.isValid():
                     # slot TUTTO SUO (+162, dopo i freni): mai sovrapposta
                     self._svg_batt9.render(
