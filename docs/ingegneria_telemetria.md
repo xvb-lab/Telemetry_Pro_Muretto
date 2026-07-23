@@ -603,17 +603,43 @@ SimHub rF2 plugin, wrapper "rFactor 2 Shared Memory Python".
 
 | Livello | Scelta NOSTRA | Perche' |
 |---|---|---|
-| Estrazione | Python mmap+ctypes, **64 Hz** (misurato) | copre tutto il §5 salvo damper fini; un plugin C++ nel gioco = iniezione (rischi anti-cheat online), manutenzione a ogni patch, toolchain per gli utenti |
+| Estrazione | Python mmap+ctypes; la fonte scrive a **50 Hz** (sonda §14.1) | il nostro 64 Hz gia' sovracampiona: si cattura TUTTO cio' che LMU espone; un plugin C++ nel gioco = iniezione (rischi anti-cheat online), manutenzione a ogni patch, toolchain per gli utenti |
 | Trasporto | NESSUN bus: 3 processi leggono la shared memory in modo indipendente | zero single-point-of-failure, zero serializzazione; ZeroMQ ha senso TRA pc, non sullo stesso host |
 | Storage | SQLite batched (WAL) | regge 64 Hz, interrogabile in SQL; la critica al CSV e' giusta ma non ci riguarda; parquet solo per export/analisi |
 | Analisi | Python + **NumPy/SciPy** (dal §5 in poi) | filtri, derivate, resampling, Time-Loss; ML con sklearn/numpy prima di qualsiasi framework pesante (§8) |
 | UI | PySide6 nativo | 10k utenti vogliono un exe, non un server; web/Grafana = complessita' operativa spostata su di loro |
 
 **Opzioni future nel cassetto** (solo se il bisogno diventa reale):
-- sidecar **C# esterno** (shared memory → ring binario 200+ Hz) per gli
-  istogrammi damper spinti — MAI un plugin dentro il gioco;
 - mini-server FastAPI per un **pit-display su tablet** (muretto sul
   secondo schermo di casa).
+- ~~sidecar nativo 200+ Hz~~ **ARCHIVIATO dalla sonda 14.1**: la fonte
+  pubblica 50 Hz — nessun lettore, in nessun linguaggio, puo' leggere
+  dati che il gioco non scrive. Torna attuale solo se S397 alza il rate.
+
+### 14.1 Sonda shared memory — MISURATO sul vivo (23/07/2026)
+
+Sonda a loop stretto (1,65 M controlli/s, ben oltre ogni rate possibile),
+LMU aperto in sessione:
+
+| Canale | Rate misurato | Note |
+|---|---|---|
+| Telemetria (mElapsedTime player) | **50 Hz** (mediana 20 ms, min 14,6, max 25,2) | il TETTO di tutta la pipeline |
+| mDeltaTime dichiarato dal gioco | 10 ms costante | fisica interna a 100 Hz, pubblicata 1 volta su 2 |
+| Scoring (mCurrentET) | **5 Hz** (0,2 s) | il loop muretto a 5 Hz e' gia' allineato perfetto |
+| Contatori eventi SME_UPDATE_* | fermi | NON sono version counter: inutilizzabili |
+| Tearing su copia in blocco (324 KB) | **0 su 2000** | il rischio reale e' ~zero; guardia pseudo-tick con mElapsedTime = cintura gratis |
+
+**Conseguenze (chiuse, decise):**
+1. Il recorder a 64 Hz gia' SOVRACAMPIONA la fonte: catturiamo il 100%
+   di cio' che LMU espone. Nessun dato viene perso.
+2. Niente motore C++: il collo di bottiglia e' il GIOCO, non Python.
+   Tutte le energie vanno sull'analisi (parser XML, Time-Loss, NumPy).
+3. Istogrammi damper: possibili solo nelle bande lente/medie (Nyquist
+   25 Hz); i colpi di cordolo restano al detector sulle delta.
+4. ΔP/Δt freno: 20 ms per campione — utilizzabile in forma grossolana.
+5. Anti-tearing: leggere mElapsedTime prima/dopo la copia, se cambia
+   si ricopia (max 2 tentativi). Costo nullo, elimina anche il caso
+   raro del blip mInRealtime (oggi solo debounced).
 
 *Fonti: [YourDataDriven](https://www.yourdatadriven.com/guide-to-interpreting-tyre-temperatures-in-motorsports/),
 [Autosport Labs](https://www.autosportlabs.com/using_tire_temperatures_for_better_grip_and_faster_lap_times/),
