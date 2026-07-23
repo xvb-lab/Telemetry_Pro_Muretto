@@ -2679,6 +2679,36 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setPen(QPen(QColor("#37d67a")))
                 p.drawText(_re, Qt.AlignCenter, _txt)
             self._paint_beam_spia(p, gy)
+            # SPIA PIT LIMITER (icona utente LIM): lampeggia col
+            # limitatore inserito, accanto ai fari
+            if getattr(self, "_limiter", False):
+                if not hasattr(self, "_svg_lim9"):
+                    from PySide6.QtSvg import QSvgRenderer as _QSRl
+                    self._svg_lim9 = _QSRl(
+                        str(_ROOT / "assets" / "icons" / "pit_limiter.svg"))
+                if (time.monotonic() % 0.7) < 0.4 \
+                        and self._svg_lim9.isValid():
+                    self._svg_lim9.render(
+                        p, QRectF(_W / 2.0 - 100.0, gy - 48.0, 22, 22))
+                self.update()          # lampeggio fluido
+            # TRIANGOLO WARNING (icona utente): sospensione GRAVE (danno
+            # >=50%) o pneumatico danneggiato/perso -> lampeggia in alto
+            # a destra della corona, speculare ai fari
+            _ws9 = getattr(self, "_wsusp", None) or []
+            _bad9 = (any(v is not None and v >= 0.5 for v in _ws9)
+                     or any(getattr(self, "_flat4", None) or [])
+                     or any(getattr(self, "_det4", None) or []))
+            if _bad9:
+                if not hasattr(self, "_svg_warn9"):
+                    from PySide6.QtSvg import QSvgRenderer as _QSRt
+                    self._svg_warn9 = _QSRt(
+                        str(_ROOT / "assets" / "icons"
+                            / "warning_light.svg"))
+                if (time.monotonic() % 0.8) < 0.5 \
+                        and self._svg_warn9.isValid():
+                    self._svg_warn9.render(
+                        p, QRectF(_W / 2.0 + 106.0, gy - 48.0, 22, 22))
+                self.update()          # lampeggio fluido
         except Exception:
             pass
         return
