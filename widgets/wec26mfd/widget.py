@@ -2775,9 +2775,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                    "hotlap": "MOD 3"}.get(_tmv)
             _rm = QRectF(_xl, gy + 20, 62, 19)
             if _mn:
-                _yc = QColor("#ffd400")
+                _yc = QColor("#b06bff")            # test = VIOLA
                 p.setPen(QPen(_yc, 1.4))
-                p.setBrush(QColor(70, 58, 8, 150))
+                p.setBrush(QColor(46, 26, 74, 150))
                 p.drawRoundedRect(_rm, 4, 4)
                 p.setPen(QPen(_yc))
                 p.drawText(_rm, Qt.AlignCenter, _mn)
@@ -2802,40 +2802,36 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setPen(QPen(QColor("#ffb020"), 1.4))
                 p.setBrush(QColor(70, 48, 8, 150))
                 p.drawRoundedRect(_rsc, 4, 4)
-                f_sc = QFont("Archivo SemiExpanded")
-                f_sc.setPixelSize(12)
-                f_sc.setBold(True)
-                p.setFont(f_sc)
+                p.setFont(f_e)                     # stesso font del MOD
                 p.setPen(QPen(QColor("#ffb020")))
                 p.drawText(_rsc, Qt.AlignCenter, "SC")
-                p.setFont(f_e)
             _en = self._eco_active_laps()
             if _lt and not _en:
                 _en = -1                    # lamp test: icona accesa
+            _rl0 = QRectF(_W / 2.0 - 128.0, gy - 12.0, 64, 19)
             if not _en:
-                _re0 = self._svg_offmap.get("eco_spia")
-                if _re0 is not None and _re0.isValid():
-                    _re0.render(p, QRectF(_W / 2.0 - 124.0, gy - 14.0,
-                                          28, 28))
+                # chip LICO SPENTO: grigio tenue come MOD OFF
+                _gd0 = QColor(150, 156, 168, 110)
+                p.setPen(QPen(_gd0, 1.0))
+                p.setBrush(QColor(30, 34, 40, 80))
+                p.drawRoundedRect(_rl0, 4, 4)
+                f_l0 = QFont("Archivo SemiExpanded")
+                f_l0.setPixelSize(9)
+                f_l0.setBold(True)
+                p.setFont(f_l0)
+                p.setPen(QPen(_gd0))
+                p.drawText(_rl0, Qt.AlignCenter, "LICO")
+                p.setFont(f_e)
             if _en:
-                # icona ECO verde (SVG utente) + eventuale +N accanto
-                if not hasattr(self, "_svg_eco9"):
-                    from PySide6.QtSvg import QSvgRenderer as _QSRe
-                    self._svg_eco9 = _QSRe(
-                        str(_ROOT / "assets" / "icons" / "eco_spia.svg"))
-                if self._svg_eco9.isValid():
-                    self._svg_eco9.render(
-                        p, QRectF(_W / 2.0 - 124.0, gy - 14.0, 28, 28))
-                if _en > 0:
-                    f_ec = QFont("Archivo SemiExpanded")
-                    f_ec.setPixelSize(16)
-                    f_ec.setBold(True)
-                    p.setFont(f_ec)
-                    p.setPen(QPen(QColor("#00FF00")))
-                    p.drawText(QRectF(_W / 2.0 - 92.0, gy - 14.0, 40, 28),
-                               Qt.AlignLeft | Qt.AlignVCenter,
-                               "+%d" % _en)
-                    p.setFont(f_e)      # ripristina
+                # chip LICO ACCESO: come SC ma VERDE
+                _gc0 = QColor("#00e676")
+                p.setPen(QPen(_gc0, 1.4))
+                p.setBrush(QColor(10, 58, 32, 150))
+                p.drawRoundedRect(_rl0, 4, 4)
+                p.setFont(f_e)                     # stesso font del MOD
+                p.setPen(QPen(_gc0))
+                p.drawText(_rl0, Qt.AlignCenter,
+                           "LICO +%d" % _en if _en > 0 else "LICO")
             self._paint_beam_spia(p, gy)
             # SPIA PIT LIMITER (icona utente LIM): FISSA col
             # limitatore inserito, accanto ai fari
