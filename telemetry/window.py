@@ -10920,17 +10920,19 @@ class TelemetryWindow(QMainWindow):
         _dw.setObjectName("ftDonateBox")
         _dw.setCursor(Qt.PointingHandCursor)
         _dw.setStyleSheet("#ftDonateBox{background:transparent;}")
+        # SUPPORT ME con la tazzina col cuore (rich. 23/07, al posto
+        # del vecchio Donate/PayPal — il link resta lo stesso)
         _dl = QHBoxLayout(_dw); _dl.setContentsMargins(14, 4, 14, 4)
-        _dl.setSpacing(5)
-        _dn = QLabel("Donate")
+        _dl.setSpacing(7)
+        _pp = _SvgBox(); _pp.setFixedSize(20, 20)
+        _pp.setStyleSheet("background:transparent;")
+        _pp.load(str(Path(__file__).resolve().parent.parent / "assets"
+                     / "support_cup.svg"))
+        _dl.addWidget(_pp, 0, Qt.AlignVCenter)
+        _dn = QLabel("Support me")
         _dn.setStyleSheet("color:#ffffff;font-size:14px;font-weight:800;"
                           "background:transparent;")
         _dl.addWidget(_dn, 0, Qt.AlignVCenter)
-        _pp = _SvgBox(); _pp.setFixedSize(16, 16)
-        _pp.setStyleSheet("background:transparent;")
-        _pp.load(str(Path(__file__).resolve().parent.parent / "assets"
-                     / "paypal-mark-color_new.svg"))
-        _dl.addWidget(_pp, 0, Qt.AlignVCenter)
         _dw.mousePressEvent = (
             lambda e: QDesktopServices.openUrl(QUrl(_DONATE_URL)))
         fl.addWidget(_dw, 0, Qt.AlignVCenter)
