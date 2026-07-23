@@ -2599,9 +2599,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 from PySide6.QtSvg import QSvgRenderer as _QSRw
                 self._svg_wat_ok = _QSRw(str(_ip / "acqua_ok.svg"))
                 self._svg_wat_wn = _QSRw(str(_ip / "acqua_warn.svg"))
-                self._px_wat_ok = QPixmap(str(_ip / "water_ok.png"))
-                self._px_oil_ok = QPixmap(str(_ip / "oil_ok.png"))
-                self._px_oil_wn = QPixmap(str(_ip / "oil_warn.png"))
+                self._svg_oil_ok = _QSRw(str(_ip / "olio_ok.svg"))
+                self._svg_oil_wn = _QSRw(str(_ip / "olio_warn.svg"))
+                self._px_wat_ok = True    # sentinella: init fatto
             # spie come il vecchio HUD: acqua >=110, olio >=125
             # (pulsano), warn fisso a motore spento
             _eoff9 = (self._rpm or 0.0) < 50.0
@@ -2611,8 +2611,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _po9 = _ot9 >= 125.0
             wsvg = self._svg_wat_wn if (_pw9 or _eoff9) \
                 else self._svg_wat_ok
-            opx = self._px_oil_wn if (_po9 or _eoff9) \
-                else self._px_oil_ok
+            osvg = self._svg_oil_wn if (_po9 or _eoff9) \
+                else self._svg_oil_ok
             # blocco COMPATTO e ordinato, appoggiato al cerchio:
             # icona 18px + valore 11px, due righe allineate a destra
             f_t = QFont("Archivo SemiExpanded")
@@ -2626,8 +2626,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawText(QRectF(_xr - 40, gy + 18, 44, 18),
                            Qt.AlignRight | Qt.AlignVCenter,
                            "%.0f°C" % self._water)
-            p.drawPixmap(QRectF(_xr - 35, gy + 34, 18, 18).toRect(),
-                         opx)
+            if osvg.isValid():
+                osvg.render(p, QRectF(_xr - 35, gy + 34, 18, 18))
             if self._oil is not None:
                 p.drawText(QRectF(_xr - 29, gy + 34, 44, 18),
                            Qt.AlignRight | Qt.AlignVCenter,
