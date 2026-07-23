@@ -1573,6 +1573,7 @@ class Engineer:
         if (not in_box) and spd > 60.0:
             self._st.pop("gb_said", None)
             self._st.pop("gb_wrong", None)
+            self._st.pop("gb_ready", None)   # il rientro NON e' un'uscita
         # ── ROUTINE PRE-USCITA (prova lunga, motore SPENTO in garage):
         # come un muretto vero — "dammi due minuti, controllo la macchina
         # e decidiamo il programma". Se accendi subito: "ok, te lo dico
@@ -1599,7 +1600,17 @@ class Engineer:
         if not in_box:
             self._st.pop("gp_said", None)
             self._st.pop("gp_go", None)
-        if not in_box or rpm < 300.0 or spd > 25.0:
+        # USCITA vs RIENTRO (fix 23/07: dopo il long run, in corsia box,
+        # partiva "esci con le usate al 93%"). Il briefing d'uscita parte
+        # SOLO dalla piazzola, e solo se li' il motore e' stato SPENTO
+        # prima (stato "tra due run"): chi rientra dalla pista arriva
+        # col motore acceso -> muto fino al prossimo spegnimento.
+        in_stall = bool(raw.get("garage"))
+        if in_stall and rpm < 300.0:
+            self._st["gb_ready"] = True
+        if not in_stall or not self._st.get("gb_ready"):
+            return []
+        if rpm < 300.0 or spd > 25.0:
             return []
         out = []
         # ── AVVISO SLICK SOTTO LA PIOGGIA (sicurezza, prima di tutto) ──

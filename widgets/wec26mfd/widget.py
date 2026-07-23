@@ -4726,6 +4726,13 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         _vc, _lim = QColor(255, 255, 255, 200), False
                     else:
                         _vt, _vc, _lim = None, None, False
+                    # bordo destro utile: se la cella CAMBIO (mod 2/3/4)
+                    # e' aperta, delta ed eventi scivolano alla sua
+                    # SINISTRA invece di finirci sotto (rich. 23/07 sera)
+                    _rlim9 = _lap_x0
+                    _kgd9 = getattr(self, "_gcell_k", 0.0)
+                    if _kgd9 > 0.001:
+                        _rlim9 = min(_rlim9, _bx1 - 104.0 * _kgd9)
                     # ── CELLA DELTA (ardesia, STRETTA sul testo): stessa
                     # animazione LATERALE WEC, ancorata alla colonna LAP ──
                     _dtx = self._delta_txt or ""
@@ -4746,7 +4753,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     _dtx_show = _dtx or getattr(self, "_d_last", "")
                     _dwf = QFontMetricsF(f_d9).horizontalAdvance(
                         _dtx_show or "+0.000") + 14.0
-                    _dx1 = _lap_x0
+                    _dx1 = _rlim9
                     _dx0 = _dx1 - _dwf * (1.0 - _kd)
                     if _kd < 0.999 and _dtx_show:
                         _bgd9 = QColor("#262c38")
@@ -4774,7 +4781,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     else:
                         _k9 = _tgt9
                     self._dl_coll = _k9
-                    _ex1 = _lap_x0
+                    _ex1 = _rlim9
                     _dl_x0 = _tx + (_ex1 - _tx) * _k9
                     _dl_x1 = _ex1
                     _bgc9 = QColor("#0a0031")
