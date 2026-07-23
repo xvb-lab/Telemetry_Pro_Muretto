@@ -111,7 +111,8 @@ _mk(["leader", "pole_pos", "pos_race", "pos_qualy", "pos_lead", "pos_pole",
 _mk(["contact_damage", "contact_damage_who"], 2)
 # coaching guida "caldo" (scivolate, spiattellamento, cordoli, out-lap): P2
 _mk(["car_sliding", "flatspot_check", "kerb_zone_corner", "kerb_zone",
-     "outlap_gt3", "outlap_hy", "outlap_p2", "outlap_p3"], 2)
+     "outlap_gt3", "outlap_hy", "outlap_p2", "outlap_p3",
+     "coast_corner"], 2)
 # default 4 = coaching (passo, settori, note curva)
 
 _TIER_TTL = {0: 999, 1: 30, 2: 12, 3: 8, 4: 10}

@@ -7769,6 +7769,21 @@
       "en": "Braking for turn {turn} sends the brakes over the limit: open the ducts or manage that stop.",
       "es": "En la frenada de la curva {turn} los frenos pasan el límite.",
       "fr": "Au freinage du virage {turn} les freins depassent la limite."
+    },
+    "coast_corner": {
+      "cat": "coach",
+      "level": "info",
+      "beep": false,
+      "it": "In curva {turn} veleggi tra freno e gas: raccorda i pedali, quel tempo morto è tutto cronometro.",
+      "variants_it": [
+        "In curva {turn} veleggi tra freno e gas: raccorda i pedali, quel tempo morto è tutto cronometro.",
+        "Curva {turn}: c'è un buco tra rilascio freno e apertura gas. O freni ancora, o acceleri — mai in mezzo.",
+        "Stai veleggiando in curva {turn}: accorcia la transizione freno-gas, la macchina vuole sempre un pedale.",
+        "Tempo morto sui pedali in curva {turn}: entra col trail braking più lungo o apri prima il gas."
+      ],
+      "en": "You're coasting in turn {turn}: connect brake and throttle, that dead time is pure lap time.",
+      "es": "Estás planeando en la curva {turn}: conecta freno y gas.",
+      "fr": "Tu plane au virage {turn} : relie frein et gaz."
     }
   }
 }

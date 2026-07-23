@@ -2351,6 +2351,42 @@ class Engineer:
                         said.add(n)
                         out.append(self.msg("brake_earlier", turn=n,
                                             meters=int(round(bd / 5.0) * 5)))
+        # ── COASTING per curva (Bentley "lazy throttle"): tempo morto
+        # tra rilascio freno e prima apertura gas > 0.45s, 2 volte nella
+        # stessa curva -> "raccorda freno e gas in curva X" ──
+        try:
+            _b = float(raw.get("brake") or 0.0)
+            _th = float(raw.get("throttle") or 0.0)
+            _ld2 = float(raw.get("lapdist") or -1.0)
+        except (TypeError, ValueError):
+            _b = _th = 0.0; _ld2 = -1.0
+        _nowc = _time.monotonic()
+        _bprev = self._st.get("co_b", 0.0)
+        _tprev = self._st.get("co_t", 0.0)
+        self._st["co_b"] = _b
+        self._st["co_t"] = _th
+        if _bprev > 0.3 and _b < 0.1 and _th < 0.2:
+            self._st["co_off_t"] = _nowc          # freno mollato, gas chiuso
+            self._st["co_off_d"] = _ld2
+        if _th > 0.2 and _tprev <= 0.2 and "co_off_t" in self._st:
+            _dt = _nowc - self._st.pop("co_off_t")
+            _od = self._st.pop("co_off_d", -1.0)
+            if _dt > 0.45 and _od >= 0:
+                _cn, _cd = None, 150.0
+                for c in corners:
+                    try:
+                        _g = abs(float(c.get("d")) - _od)
+                    except (TypeError, ValueError):
+                        continue
+                    if c.get("n") is not None and _g < _cd:
+                        _cn, _cd = c.get("n"), _g
+                if _cn is not None:
+                    _cs = self._st.setdefault("co_cnt", {})
+                    _csaid = self._st.setdefault("co_said", set())
+                    _cs[_cn] = _cs.get(_cn, 0) + 1
+                    if _cs[_cn] >= 2 and _cn not in _csaid:
+                        _csaid.add(_cn)
+                        out.append(self.msg("coast_corner", turn=_cn))
         # ── PATTINAMENTO in uscita ──
         try:
             thr = float(raw.get("throttle") or 0.0)

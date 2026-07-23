@@ -490,6 +490,58 @@ e domani diventera' il Garage advisor con valori cliccabili.
 - **Pressioni gomme**: si settano SOLO al momento di uscire (instabili
   da ferme) — coerente col nostro brief d'uscita.
 
+---
+
+## 11. Il lato PILOTA — Bentley, "Data for Drivers" (Speed Secrets, free)
+
+> Il complemento del Goodman: come un COACH legge 4 canali (Speed, G,
+> Throttle, Brake) per migliorare il pilota. Regole semplici, tutte
+> rilevabili coi nostri dati:
+
+- **U vs V nella traccia velocita'**: curva a U = rolling speed portata
+  (bene nei curvoni), V = punta-e-gira (bene nei tornanti). Il TIPO
+  sbagliato per quella curva = tempo perso → confronto forma vs best.
+- **Coasting / "lazy throttle"** (LA regola d'oro): tempo tra rilascio
+  freno e prima apertura gas. Se veleggi (niente pedali) piu' di ~0,4s
+  nella stessa curva ripetutamente → *"raccorda freno e gas in curva X"*.
+  → IMPLEMENTATO live (coast detector per curva nel corner coach).
+- **Sloppy footwork**: blip/sovrapposizioni freno-gas sporche in scalata
+  (visibili incrociando throttle, brake e LongG) → analisi post.
+- **Forma della frenata**: colpo iniziale deciso + rilascio dolce = buona;
+  gradini/esitazioni = "hesitant lap" (post, dal gradiente §5.2).
+- **Min speed su PIU' giri, non solo il best**: la consistenza delle
+  minime per curva vale piu' del giro singolo (gia' nel nostro §8 PCA
+  e nel confronto vmin per curva).
+- **In fast - out slow**: sterzo mantenuto a lungo + LatG estesa +
+  "secondary deceleration" = sei entrato troppo forte e stai
+  strusciando via velocita' → firma: sterzo che non si apre dopo
+  l'apex mentre la velocita' cala ancora.
+- **Processo di revisione** (ordine fisso): Speed → LatG → LongG →
+  Throttle → Brake → Steering — buon ordine anche per i tab della
+  pagina telemetria.
+- Fonte: PDF ufficiale gratuito Speed Secrets (2018), 68 pp — scaricato
+  e verificato. Cita a sua volta il Segers come riferimento avanzato.
+
+---
+
+## 12. OptimumG Tech Tips (Giaraffa/Rouelle) — molle e frequenze
+
+> Serie gratuita ufficiale OptimumG. Tip 1 "Springs & Dampers — The
+> Phantom Knowledge": la BASE NUMERICA per le molle del Garage advisor.
+
+- **Frequenze di ride**: si parte dalla frequenza naturale desiderata,
+  non dalla molla: `f = (1/2π)·√(K/m)` → la molla si RICAVA da massa
+  sospesa per ruota + motion ratio + frequenza target.
+- **Regola del 10%**: il POSTERIORE va ~10% piu' alto di frequenza
+  dell'anteriore — dopo un bump il retro "raggiunge" il fronte e il
+  beccheggio si smorza (fondamento della riga bottoming/heave §9.1).
+- Range tipici (letteratura OptimumG): stradali 0,5-1,5 Hz · racing
+  senza effetto suolo ~1,5-2,5 Hz · aero car 3-5+ Hz. Il Garage advisor
+  usera' la classe per proporre la finestra giusta.
+- Prossimi tip della serie (bump singolo, damping in ride/roll/pitch)
+  = la matematica per gli istogrammi §5.5.
+- Fonte: PDF ufficiale optimumg.com (scaricato e letto).
+
 *Fonti: [YourDataDriven](https://www.yourdatadriven.com/guide-to-interpreting-tyre-temperatures-in-motorsports/),
 [Autosport Labs](https://www.autosportlabs.com/using_tire_temperatures_for_better_grip_and_faster_lap_times/),
 [Alsense](https://www.alsense.eu/racecar-engineering-tire-brake-temperature-sensors/),
