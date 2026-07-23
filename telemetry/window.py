@@ -5035,7 +5035,16 @@ class _AppPage(QWidget):
     def _back_clicked(self):
         """A sessione ARMATA l'uscita e' bloccata (l'auto-focus ti
         riporterebbe comunque qui): il lucchetto lo DICHIARA, invece di
-        sembrare un bug. Il click mostra il perche' in rosso."""
+        sembrare un bug. Il click mostra il perche' in rosso.
+        REGOLA (23/07): le pagine aperte DALLO stint (Setups) tornano
+        allo stint = dentro la sessione -> MAI bloccate."""
+        try:
+            if getattr(self.window(), "_app_return_stint", False):
+                if self._on_back:
+                    self._on_back()
+                return
+        except Exception:
+            pass
         if getattr(self, "_armed", False):
             try:
                 self._lock_note.setText("SESSION LIVE — STOP TO EXIT")
@@ -5051,6 +5060,8 @@ class _AppPage(QWidget):
     def _apply_back_lock(self, armed):
         """Freccia indietro <-> LUCCHETTO con la nota rossa di stato."""
         try:
+            if getattr(self.window(), "_app_return_stint", False):
+                armed = False        # pagina interna: freccia libera
             if armed:
                 self._back.setText("lock")
                 self._back.setStyleSheet(self._BACK_QSS_LOCK)
@@ -11242,6 +11253,11 @@ class TelemetryWindow(QMainWindow):
         except Exception:
             pass
         self._app_return_stint = True         # back -> pagina stint
+        try:                                   # freccia subito libera
+            self._app._apply_back_lock(getattr(self._app, "_armed",
+                                               False))
+        except Exception:
+            pass
         self._stack.setCurrentWidget(self._app)
         self._music_sync()                    # forza la traccia setups (stato ora completo)
 
