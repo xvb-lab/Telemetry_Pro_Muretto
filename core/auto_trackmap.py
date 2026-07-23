@@ -17,9 +17,14 @@ def _safe_name(track):
     return re.sub(r'[<>:"/\\|?*]', "_", s) or None
 
 
+# suffisso nel NOME file (rich. 24/07): "_2026" = mappa NOSTRA, unica,
+# aggiornata da noi — i lettori lo ignorano nel match della pista
+_SUF = "_2026"
+
+
 def has_map(track):
     n = _safe_name(track)
-    return bool(n and (_DIR / (n + ".svg")).exists())
+    return bool(n and (_DIR / (n + _SUF + ".svg")).exists())
 
 
 def maybe_save(track, con, lap, track_len=None, sec_lds=None):
@@ -28,7 +33,7 @@ def maybe_save(track, con, lap, track_len=None, sec_lds=None):
     n = _safe_name(track)
     if not n or con is None or lap is None:
         return False
-    dest = _DIR / (n + ".svg")
+    dest = _DIR / (n + _SUF + ".svg")
     if dest.exists():
         # senza indici settore (scritta da sessione vecchia): rifalla
         # appena i confini sono noti; altrimenti la prima resta
@@ -79,7 +84,7 @@ def add_pitlane(track, pts):
     n = _safe_name(track)
     if not n or not pts or len(pts) < 40:
         return False
-    dest = _DIR / (n + ".svg")
+    dest = _DIR / (n + _SUF + ".svg")
     if not dest.exists():
         return False                        # prima serve la mappa
     try:

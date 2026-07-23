@@ -981,8 +981,8 @@ def _load_track_svg(track):
         s = re.sub(r"#U([0-9a-fA-F]{4})",
                    lambda m: chr(int(m.group(1), 16)), s).lower()
         for w in ("grand prix", "circuit", "international",
-                  "raceway", "speedway", "the "):
-            s = s.replace(w, " ")
+                  "raceway", "speedway", "the ", "2026"):
+            s = s.replace(w, " ")     # 2026 = suffisso delle mappe NOSTRE
         return re.sub(r"[^a-z0-9]+", "", s)
 
     # match TOLLERANTE (23/07 notte): il nome LMU e il file SVG
@@ -1707,10 +1707,13 @@ class _LiveMap(QWidget):
         _po9 = getattr(self, "_pit_out", None)
         if _po9 and len(_po9) >= 4:
             _pp9 = _spath(_decim(_po9))
-            _bq = QPen(QColor(0, 0, 0, 150), trk_w * 0.55 + 3)
+            _bq = QPen(QColor(0, 0, 0, 90), trk_w * 0.55 + 3)
             _bq.setJoinStyle(Qt.RoundJoin); _bq.setCapStyle(Qt.RoundCap)
             p.setPen(_bq); p.drawPath(_pp9)
-            _aq = QPen(QColor(96, 102, 114, 210), trk_w * 0.55)
+            # stile LMU: stessa tinta della pista, OPACIZZATA
+            _ct9 = QColor(trk_c)
+            _ct9.setAlpha(115)
+            _aq = QPen(_ct9, trk_w * 0.55)
             _aq.setJoinStyle(Qt.RoundJoin); _aq.setCapStyle(Qt.RoundCap)
             p.setPen(_aq); p.drawPath(_pp9)
         # corsia PIT: asfalto stretto sotto i tratti fuori tracciato.

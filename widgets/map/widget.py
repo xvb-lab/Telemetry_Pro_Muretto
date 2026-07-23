@@ -61,6 +61,8 @@ def _svg_index():
                 for f in _dir9.glob("*.svg"):
                     name = re.sub(r"#U([0-9a-fA-F]{4})",
                                   lambda m: chr(int(m.group(1), 16)), f.stem)
+                    if name.endswith("_2026"):
+                        name = name[:-5]      # suffisso delle mappe NOSTRE
                     idx[name] = f
         except Exception:
             idx = {}
@@ -363,9 +365,11 @@ class MapCanvas(QWidget):
                 X, Y = tf(x, z); pl9.lineTo(X, Y)
             _plw = max(2.5, 3.0 * sc) * track_w_mult
             p.setBrush(Qt.NoBrush)
-            p.setPen(QPen(QColor(0, 0, 0, 130), _plw + 2.0))
+            p.setPen(QPen(QColor(0, 0, 0, 80), _plw + 2.0))
             p.drawPath(pl9)
-            p.setPen(QPen(QColor(150, 156, 168, 200), _plw))
+            # come la grafica LMU: stessa tinta della pista ma
+            # OPACIZZATA/trasparente — si capisce subito che e' corsia
+            p.setPen(QPen(QColor(243, 244, 248, 105), _plw))
             p.drawPath(pl9)
 
         # ── tracciato: bordo nero opacizzato sotto + linea chiara sopra ──
