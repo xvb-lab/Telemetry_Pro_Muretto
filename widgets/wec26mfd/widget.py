@@ -4471,6 +4471,49 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.drawText(QPointF(
                         _bx1 - 12.0 - _lm.horizontalAdvance(_laptxt),
                         _yb), _laptxt)
+                # ── MOD 2/3/4: il gauge col cambio non c'e' -> la cella
+                # DESTRA dell'header diventa MARCIA + VELOCITA' (rich.
+                # 23/07). Z-sopra qualunque cosa ci fosse (LAP o TEMP);
+                # al MOD 1 non si disegna e la cella torna com'era. ──
+                try:
+                    _mods9 = self._active_mods()
+                    _mcur9 = _mods9[self._page % max(1, len(_mods9))]
+                except Exception:
+                    _mcur9 = 1
+                if _mcur9 != 1:
+                    _g9v = self._gear if self._gear is not None else 0
+                    _g9 = "R" if _g9v < 0 else \
+                        ("N" if _g9v == 0 else str(_g9v))
+                    _mph9 = self._prefs.get("speed_unit", "KPH") == "MPH"
+                    _sp9 = (self._speed or 0.0) * (2.23694 if _mph9
+                                                   else 3.6)
+                    _un9 = "MPH" if _mph9 else "KPH"
+                    _gw9 = 118.0
+                    p.setPen(Qt.NoPen)
+                    p.setBrush(QColor("#181246"))
+                    p.drawRect(QRectF(_bx1 - _gw9, 0.0, _gw9, self.HDR))
+                    f_gg = QFont("Archivo SemiExpanded", 24)
+                    f_gg.setWeight(QFont.Black)
+                    p.setFont(f_gg)
+                    p.setPen(QColor("#ffb020") if _g9 in ("R", "N")
+                             else QColor(255, 255, 255, 245))
+                    _gx9 = _bx1 - _gw9 + 14.0
+                    p.drawText(QPointF(_gx9, _yb + 2.0), _g9)
+                    _gx9 += QFontMetricsF(f_gg).horizontalAdvance(_g9) \
+                        + 12.0
+                    f_sp = QFont("Archivo SemiExpanded", 15)
+                    f_sp.setWeight(QFont.DemiBold)
+                    f_sp.setItalic(True)
+                    p.setFont(f_sp)
+                    p.setPen(QColor(255, 255, 255, 235))
+                    p.drawText(QPointF(_gx9, _yb), "%d" % round(_sp9))
+                    _gx9 += QFontMetricsF(f_sp).horizontalAdvance(
+                        "%d" % round(_sp9)) + 5.0
+                    f_u9 = QFont("Archivo SemiExpanded", 8)
+                    f_u9.setWeight(QFont.Medium)
+                    p.setFont(f_u9)
+                    p.setPen(QColor(255, 255, 255, 170))
+                    p.drawText(QPointF(_gx9, _yb), _un9)
                 p.restore()
         # ── ROW ALTA: <MDF> celeste a sinistra, pagina 1/3 a destra
         #    (font del dash; i numeri header sono stati spostati qui)
