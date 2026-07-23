@@ -3202,7 +3202,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._svg_fuel_soft9.render(
                         p, QRectF(_xr - 9, gy + 52, 13, 13))
                 p.setPen(QColor(255, 255, 255, 240))
-                p.drawText(QRectF(_xr - 21, gy + 50, 44, 18),
+                p.drawText(QRectF(_xr - 18, gy + 50, 44, 18),
                            Qt.AlignRight | Qt.AlignVCenter,
                            "%d" % _bp9[0])
         except Exception:
@@ -4655,15 +4655,21 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                     QByteArray(_tf9.encode()))
                             except Exception:
                                 self._svg_fuel_w9 = None
+                        # numero PIU' GRANDE e blocco 5px a sinistra
+                        # (rifiniture 23/07)
+                        f_fu = QFont("Archivo SemiExpanded", 15)
+                        f_fu.setWeight(QFont.DemiBold)
+                        f_fu.setItalic(True)
+                        p.setFont(f_fu)
                         _ftx = "%d" % _bp10[0]
-                        _fw10 = _lm.horizontalAdvance(_ftx)
-                        _fx10 = _bx1 - 12.0 - _fw10
+                        _fw10 = QFontMetricsF(f_fu).horizontalAdvance(_ftx)
+                        _fx10 = _bx1 - 17.0 - _fw10
                         p.setPen(QColor(255, 255, 255, 235))
                         p.drawText(QPointF(_fx10, _yb), _ftx)
                         if getattr(self, "_svg_fuel_w9", None) is not None:
-                            # centrata col testo (era alta di 6px)
                             self._svg_fuel_w9.render(
                                 p, QRectF(_fx10 - 24.0, 14.0, 20.0, 20.0))
+                        p.setFont(f_lap)
                     else:
                         p.setPen(QColor(255, 255, 255, 220))
                         p.drawText(QPointF(
