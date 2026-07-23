@@ -2645,7 +2645,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             "LIGHTS": "LUCI", "WIPER": "TERGICRISTALLI",
             "LANGUAGE": "LINGUA",
             "TELEMETRY ON": "TELEMETRIA ON",
-            "TELEMETRY OFF": "TELEMETRIA OFF"}
+            "TELEMETRY OFF": "TELEMETRIA OFF",
+            "WING": "ALA", "GRILLE": "GRIGLIA",
+            "DUCT F": "PRESA ANT", "DUCT R": "PRESA POST"}
 
     def _it9(self, s):
         """Traduzione display EN->IT se la lingua dash e' IT."""
@@ -2944,28 +2946,31 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             elif "BRAKE DUCT" in up:
                 p.drawText(QRectF(TX, ry, 120.0, ROWH),
                            Qt.AlignLeft | Qt.AlignVCenter,
-                           "DUCT %s" % ("F" if up.startswith("F")
-                                        else "R"))
+                           self._it9("DUCT F" if up.startswith("F")
+                                     else "DUCT R"))
                 p.setPen(QPen(QColor("#2fa8e0")))
                 p.drawText(QRectF(TX + 96.0, ry, 160.0, ROWH),
                            Qt.AlignLeft | Qt.AlignVCenter,
                            self._it9(self._tr_pit(vt)))
             elif "WING" in up or "AILERON" in up:
                 p.drawText(QRectF(TX, ry, 110.0, ROWH),
-                           Qt.AlignLeft | Qt.AlignVCenter, "WING")
+                           Qt.AlignLeft | Qt.AlignVCenter,
+                           self._it9("WING"))
                 p.setPen(QPen(QColor("#2fa8e0")))
                 p.drawText(QRectF(TX + 78.0, ry, 140.0, ROWH),
                            Qt.AlignLeft | Qt.AlignVCenter, vt.strip())
             elif "GRILLE" in up:
                 p.drawText(QRectF(TX, ry, 120.0, ROWH),
-                           Qt.AlignLeft | Qt.AlignVCenter, "GRILLE")
+                           Qt.AlignLeft | Qt.AlignVCenter,
+                           self._it9("GRILLE"))
                 p.setPen(QPen(QColor("#2fa8e0")))
                 p.drawText(QRectF(TX + 96.0, ry, 140.0, ROWH),
                            Qt.AlignLeft | Qt.AlignVCenter,
                            self._it9(self._tr_pit(vt)))
             elif "REPLACE BRAKES" in up:
                 p.drawText(QRectF(TX, ry, 140.0, ROWH),
-                           Qt.AlignLeft | Qt.AlignVCenter, "BRAKES")
+                           Qt.AlignLeft | Qt.AlignVCenter,
+                           self._it9("BRAKES"))
                 _low9 = vt.strip().lower()
                 _on9 = _low9.startswith("s") or _low9.startswith("y")
                 p.setPen(QPen(QColor("#00e676" if _on9 else "#ffee00")))
