@@ -2671,13 +2671,24 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setFont(f_e)          # ripristina per la spia ECO
             _en = self._eco_active_laps()
             if _en:
-                _txt = "ECO" if _en < 0 else "ECO +%d" % _en
-                _re = QRectF(_xl, gy + 43, 62, 19)
-                p.setPen(QPen(QColor("#37d67a"), 1.4))
-                p.setBrush(QColor(18, 58, 38, 150))
-                p.drawRoundedRect(_re, 4, 4)
-                p.setPen(QPen(QColor("#37d67a")))
-                p.drawText(_re, Qt.AlignCenter, _txt)
+                # icona ECO verde (SVG utente) + eventuale +N accanto
+                if not hasattr(self, "_svg_eco9"):
+                    from PySide6.QtSvg import QSvgRenderer as _QSRe
+                    self._svg_eco9 = _QSRe(
+                        str(_ROOT / "assets" / "icons" / "eco_spia.svg"))
+                if self._svg_eco9.isValid():
+                    self._svg_eco9.render(
+                        p, QRectF(_xl, gy + 41, 26, 26))
+                if _en > 0:
+                    f_ec = QFont("Archivo SemiExpanded")
+                    f_ec.setPixelSize(11)
+                    f_ec.setBold(True)
+                    p.setFont(f_ec)
+                    p.setPen(QPen(QColor("#00FF00")))
+                    p.drawText(QRectF(_xl + 28, gy + 41, 34, 26),
+                               Qt.AlignLeft | Qt.AlignVCenter,
+                               "+%d" % _en)
+                    p.setFont(f_e)      # ripristina
             self._paint_beam_spia(p, gy)
             # SPIA PIT LIMITER (icona utente LIM): lampeggia col
             # limitatore inserito, accanto ai fari
