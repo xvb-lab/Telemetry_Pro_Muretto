@@ -4098,9 +4098,32 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._dl_coll = _k9
                     _dl_x0 = _tx + (_lap_x0 - _tx) * _k9
                     _dl_x1 = _lap_x0
-                    _bgc9 = QColor(_bgb9)
-                    _bgc9.setAlpha(int(255 * (1.0 - _k9 * 0.9)))
+                    # ── FADE D'ENTRATA degli EVENTI: il blu sfuma
+                    # SOPRA l'ardesia del delta anche a cella gia' aperta
+                    _is_ev9 = (_bgb9 == "#0a0031")
+                    if _is_ev9:
+                        _sg0 = (_vt, round(getattr(self, "_freeze_until",
+                                                   0.0), 1))
+                        if getattr(self, "_ev_sig9", None) != _sg0:
+                            self._ev_sig9 = _sg0
+                            self._ev_t0 = time.monotonic()
+                        _ka9 = min(1.0, (time.monotonic()
+                                         - self._ev_t0) / 0.30)
+                        if _ka9 < 1.0:
+                            self.update()
+                    else:
+                        self._ev_sig9 = None
+                        _ka9 = 1.0
+                    _op9 = 255 * (1.0 - _k9 * 0.9)
                     p.setPen(Qt.NoPen)
+                    if _is_ev9 and _ka9 < 1.0:
+                        _base9 = QColor("#262c38")     # sotto: ardesia delta
+                        _base9.setAlpha(int(_op9))
+                        p.setBrush(_base9)
+                        p.drawRect(QRectF(_dl_x0, 0.0, _dl_x1 - _dl_x0,
+                                          self.HDR))
+                    _bgc9 = QColor(_bgb9)
+                    _bgc9.setAlpha(int(_op9 * (_ka9 if _is_ev9 else 1.0)))
                     p.setBrush(_bgc9)
                     p.drawRect(QRectF(_dl_x0, 0.0, _dl_x1 - _dl_x0,
                                       self.HDR))
@@ -4117,7 +4140,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         _txt_w = QFontMetricsF(f_v).horizontalAdvance(_vt)
                         _gx = _dl_x0 + max(6.0, (_dl_x1 - _dl_x0 - _txt_w) / 2.0)
                         p.setFont(f_v)
-                        p.setPen(_vc or QColor(255, 255, 255, 235))
+                        _pc9 = QColor(_vc or QColor(255, 255, 255, 235))
+                        if _is_ev9 and _ka9 < 1.0:
+                            _pc9.setAlpha(int(_pc9.alpha() * _ka9))
+                        p.setPen(_pc9)
                         p.drawText(QPointF(_gx, _yb), _vt)
                     # ── LAP N: dentro la colonna, a destra ──
                     p.setFont(f_lap)
