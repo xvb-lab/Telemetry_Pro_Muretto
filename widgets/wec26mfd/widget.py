@@ -2773,13 +2773,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setPen(QPen(_gd, 1.0))
                 p.setBrush(QColor(30, 34, 40, 80))
                 p.drawRoundedRect(_rm, 4, 4)
-                f_off9 = QFont("Archivo SemiExpanded")
-                f_off9.setPixelSize(9)
-                f_off9.setBold(True)
-                p.setFont(f_off9)
+                p.setFont(f_e)          # STESSO font da acceso e spento
                 p.setPen(QPen(_gd))
                 p.drawText(_rm, Qt.AlignCenter, "MOD OFF")
-                p.setFont(f_e)          # ripristina per la spia ECO
             # SPIA "SC" (mappa motore 0 = safety car map) nello slot
             # che era dell'ECO: ambra fissa quando sei in mappa 0
             _map0 = (getattr(self, "_mmap", None) == 0)
@@ -2801,13 +2797,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setPen(QPen(_gd0, 1.0))
                 p.setBrush(QColor(30, 34, 40, 80))
                 p.drawRoundedRect(_rl0, 4, 4)
-                f_l0 = QFont("Archivo SemiExpanded")
-                f_l0.setPixelSize(9)
-                f_l0.setBold(True)
-                p.setFont(f_l0)
+                p.setFont(f_e)          # STESSO font da acceso e spento
                 p.setPen(QPen(_gd0))
                 p.drawText(_rl0, Qt.AlignCenter, "LICO")
-                p.setFont(f_e)
             if _en:
                 # chip LICO ACCESO: come SC ma VERDE
                 _gc0 = QColor("#00e676")
