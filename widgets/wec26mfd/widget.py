@@ -2569,48 +2569,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         p.drawText(QRectF(0, yb, _W, 34 * by), Qt.AlignCenter,
                    "LEFT/RIGHT/UP/DOWN = Move")
 
-    # ── MOD 1: DASHBOARD DDU (dal pack "BMW M4 GT3 Borsh DDU10") ──
-    # Geometria TRASPOSTA dal .djson originale (tela 1334x750 -> corpo
-    # card), font CP Mono del pack. Colori nostri: nero -> trasparente
-    # (resta il navy della card), arancione -> bianco 90%; le celle
-    # piene hanno i numeri "in negativo" col navy. Dato assente = tace.
-    def _paint_mod1(self, p):
-        # (corrente/boot gestiti a monte in _paint_page)
-        # DASH: SOLO il tachimetro NEON al centro (il gear 2024 e'
-        # stato rimosso il 21/07).
-        # Il codice sotto il return resta come riferimento, non gira.
-        gy = self.HDR + self.ROW_T \
-            + (_H - self.HDR - self.ROW_T - self.ROW_B) / 2.0 - 44.0
-        # fila regolazioni (MapBar del vecchio HUD) sopra l'ultima riga
-        self._paint_ctrl_row(p)
-        # MOTORE SPENTO (rpm a zero): LOGO AUTO che resta + scritte sotto
-        if self._rpm is not None and self._rpm < 1.0:
-            # il gauge qui NON viene disegnato: azzera il flag motore,
-            # senno' alla riaccensione la transizione non scatta e il
-            # fade in MOD 1 non parte MAI (bug segnalato 23/07)
-            self._eng_on_prev = False
-            _lcy = (self.HDR + _H) / 2.0 - 26.0        # STESSA posizione del boot
-            _lh = self._draw_car_logo(p, _W / 2.0, _lcy, 72.0)
-            _oy = _lcy + (_lh or 40.0) / 2.0 + 12.0    # sotto il logo
-            f_off = QFont("Archivo SemiExpanded")
-            f_off.setPixelSize(20)
-            p.setFont(f_off)
-            p.setPen(QPen(QColor(255, 45, 45)))
-            p.drawText(QRectF(0, _oy, _W, 28), Qt.AlignCenter,
-                       "ENGINE OFF")
-            if not self._is_gt3 and self._erpm > 10.0:
-                f_off.setPixelSize(15)
-                p.setFont(f_off)
-                p.setPen(QPen(QColor(0, 220, 90)))
-                p.drawText(QRectF(0, _oy + 28.0, _W, 24),
-                           Qt.AlignCenter, "E-MOTOR ON")
-            # fari accesi da fermo: la spia si vede anche a motore spento
-            try:
-                self._paint_beam_spia(p, gy)
-            except Exception:
-                pass
-            return
-        self._gauge_with_fade(p, _W / 2.0, gy, 56.0, show_gear=True)
+    def _paint_spie(self, p, gy):
+        """TUTTE le spie del cruscotto (acqua/olio con
+        temperature, fari/abbaglianti, tergi, ESP, LIM, benzina,
+        motore, gomma, triangolo, freni, MOD/ECO): visibili sia a
+        motore acceso che a QUADRO inserito con motore spento —
+        come un'auto vera. Solo la marcia resta nascosta da spenti."""
         # ACQUA e OLIO impilati a SINISTRA in basso: le ICONE PNG di
         # assets/icons (ok normale, warn quando il motore surriscalda)
         try:
@@ -2807,6 +2771,66 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 self.update()
         except Exception:
             pass
+
+    # ── MOD 1: DASHBOARD DDU (dal pack "BMW M4 GT3 Borsh DDU10") ──
+    # Geometria TRASPOSTA dal .djson originale (tela 1334x750 -> corpo
+    # card), font CP Mono del pack. Colori nostri: nero -> trasparente
+    # (resta il navy della card), arancione -> bianco 90%; le celle
+    # piene hanno i numeri "in negativo" col navy. Dato assente = tace.
+    def _paint_mod1(self, p):
+        # (corrente/boot gestiti a monte in _paint_page)
+        # DASH: SOLO il tachimetro NEON al centro (il gear 2024 e'
+        # stato rimosso il 21/07).
+        # Il codice sotto il return resta come riferimento, non gira.
+        gy = self.HDR + self.ROW_T \
+            + (_H - self.HDR - self.ROW_T - self.ROW_B) / 2.0 - 44.0
+        # fila regolazioni (MapBar del vecchio HUD) sopra l'ultima riga
+        self._paint_ctrl_row(p)
+        # MOTORE SPENTO (rpm a zero): LOGO AUTO che resta + scritte sotto
+        if self._rpm is not None and self._rpm < 1.0:
+            # il gauge qui NON viene disegnato: azzera il flag motore,
+            # senno' alla riaccensione la transizione non scatta e il
+            # fade in MOD 1 non parte MAI (bug segnalato 23/07)
+            self._eng_on_prev = False
+            _lcy = (self.HDR + _H) / 2.0 - 26.0        # STESSA posizione del boot
+            _lh = self._draw_car_logo(p, _W / 2.0, _lcy, 72.0)
+            _oy = _lcy + (_lh or 40.0) / 2.0 + 12.0    # sotto il logo
+            f_off = QFont("Archivo SemiExpanded")
+            f_off.setPixelSize(20)
+            p.setFont(f_off)
+            p.setPen(QPen(QColor(255, 45, 45)))
+            p.drawText(QRectF(0, _oy, _W, 28), Qt.AlignCenter,
+                       "ENGINE OFF")
+            if not self._is_gt3 and self._erpm > 10.0:
+                f_off.setPixelSize(15)
+                p.setFont(f_off)
+                p.setPen(QPen(QColor(0, 220, 90)))
+                p.drawText(QRectF(0, _oy + 28.0, _W, 24),
+                           Qt.AlignCenter, "E-MOTOR ON")
+            # QUADRO inserito, motore spento: TUTTE le spie visibili
+            # (auto vera); in piu' BATTERIA e MOTORE fisse accese
+            self._paint_spie(p, gy)
+            try:
+                # QUADRO inserito, motore spento: spie BATTERIA e MOTORE
+                # accese fisse come su un'auto vera; si spengono
+                # all'avviamento (il ramo live non le disegna)
+                if not hasattr(self, "_svg_batt9"):
+                    from PySide6.QtSvg import QSvgRenderer as _QSRbt
+                    _ipb = _ROOT / "assets" / "icons"
+                    self._svg_batt9 = _QSRbt(str(_ipb / "batteria.svg"))
+                    self._svg_engoff9 = _QSRbt(
+                        str(_ipb / "engine_warn.svg"))
+                if self._svg_engoff9.isValid():
+                    self._svg_engoff9.render(
+                        p, QRectF(_W / 2.0 + 50.0, gy - 48.0, 22, 22))
+                if self._svg_batt9.isValid():
+                    self._svg_batt9.render(
+                        p, QRectF(_W / 2.0 + 78.0, gy - 48.0, 22, 22))
+            except Exception:
+                pass
+            return
+        self._gauge_with_fade(p, _W / 2.0, gy, 56.0, show_gear=True)
+        self._paint_spie(p, gy)
         return
         gx = 110.0
         gr = 30.0
