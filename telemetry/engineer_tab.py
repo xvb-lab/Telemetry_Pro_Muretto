@@ -196,6 +196,53 @@ class _EngineerTab(QWidget):
         vh.addWidget(vlb)
         root.addWidget(vw)
 
+        # ── VOCI del muretto: una per ruolo, cambio LIVE (23/07).
+        # Tendina = tutte le voci edge-tts libere; ▶ = provino subito.
+        try:
+            from PySide6.QtWidgets import QComboBox
+            from engineer.roles import VOICE_CHOICES
+            linev = QFrame()
+            linev.setFrameShape(QFrame.HLine)
+            linev.setStyleSheet("color:#2a2d38;")
+            root.addWidget(linev)
+            _vcfg = cfg.get("voices") or {}
+            self._voice_combos = {}
+            _CBQSS = ("QComboBox{color:#fff;background:#2a2d38;border:none;"
+                      "border-radius:8px;padding:3px 10px;min-width:210px;}"
+                      "QComboBox QAbstractItemView{color:#e8ebf2;"
+                      "background:#1c1e26;selection-background-color:%s;}"
+                      % _RED)
+            for _rl, _lbl in (("engineer", "Race engineer voice"),
+                              ("strategist", "Strategy voice"),
+                              ("spotter", "Performance voice")):
+                rw, rh = self._row(_lbl)
+                cb = QComboBox()
+                cb.setCursor(Qt.PointingHandCursor)
+                cb.setStyleSheet(_CBQSS)
+                _curv = _vcfg.get(_rl) or ""
+                for _i, (_vl, _vid) in enumerate(VOICE_CHOICES):
+                    cb.addItem(_vl, _vid)
+                    if _vid == _curv:
+                        cb.setCurrentIndex(_i)
+                cb.currentIndexChanged.connect(
+                    lambda _=0, r=_rl: self._set_voice(r))
+                self._voice_combos[_rl] = cb
+                pv = QPushButton("▶")
+                pv.setFixedSize(28, 28)
+                pv.setCursor(Qt.PointingHandCursor)
+                pv.setToolTip("Preview")
+                pv.setStyleSheet(
+                    "QPushButton{color:#fff;background:#2a2d38;border:none;"
+                    "border-radius:8px;}"
+                    "QPushButton:hover{background:%s;}" % _RED)
+                pv.clicked.connect(lambda _=False, r=_rl:
+                                   self._preview_voice(r))
+                rh.addWidget(cb)
+                rh.addWidget(pv)
+                root.addWidget(rw)
+        except Exception:
+            pass
+
         # ── Beep radio on/off ──
         bw, bh = self._row("Radio beep")
         bh.addWidget(self._toggle(bool(cfg.get("beep_on", True)),
@@ -246,3 +293,39 @@ class _EngineerTab(QWidget):
         for c, b in getattr(self, "_lang_btns", {}).items():
             b.setChecked(c == code)
         self._save(lang=code)
+
+    def _set_voice(self, role):
+        """Salva la formazione voci completa (vuoto = titolare). Il
+        muretto la rilegge a ogni frase: cambio LIVE."""
+        combos = getattr(self, "_voice_combos", {})
+        voices = {r: (cb.currentData() or "") for r, cb in combos.items()}
+        self._save(voices=voices)
+
+    _PV_TXT = {"it": "Ricevuto, controllo radio: forte e chiaro.",
+               "en": "Copy that, radio check: loud and clear.",
+               "es": "Recibido, prueba de radio: alto y claro.",
+               "fr": "Bien reçu, essai radio: fort et clair."}
+
+    def _preview_voice(self, role):
+        """Provino della voce selezionata, nella lingua corrente."""
+        try:
+            from core.engineer_cfg import load
+            cfg = load()
+            lang = (cfg.get("lang") or "it")
+            cb = getattr(self, "_voice_combos", {}).get(role)
+            vid = (cb.currentData() if cb else "") or ""
+            if not vid:
+                from engineer.roles import ROLE_VOICES
+                vv = ROLE_VOICES.get(role) or {}
+                vid = vv.get(lang) or vv.get("it")
+            from core.voice import Voice
+            if getattr(self, "_pv_voice", None) is None:
+                self._pv_voice = Voice(lang=lang)
+            try:
+                self._pv_voice._volume = int(cfg.get("voice_vol", 100))
+            except Exception:
+                pass
+            self._pv_voice.speak(self._PV_TXT.get(lang, self._PV_TXT["it"]),
+                                 voice=vid)
+        except Exception:
+            pass
