@@ -1693,6 +1693,20 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         sbs = self._sess_bs or [None, None, None]
         # ── NUOVO GIRO: valuta il giro chiuso come reference + freeze tempo giro
         if self._laps != self._dl_lap:
+            # PROVA DELTA (verifica 23/07, da togliere a collaudo ok): al
+            # traguardo il delta mostrato deve convergere a (giro - best).
+            try:
+                if self._dl_ref_time and self._last and self._last > 0:
+                    _att = self._last - self._dl_ref_time
+                    with open(USER_DIR / "delta_check.log", "a",
+                              encoding="utf-8") as _fh:
+                        _fh.write("lap %d: giro %.3f ref %.3f -> atteso "
+                                  "%+.3f | mostrato %s\n" % (
+                                      self._laps, self._last,
+                                      self._dl_ref_time, _att,
+                                      getattr(self, "_d_final", "n/d")))
+            except Exception:
+                pass
             if self._lap_aborted:            # giro CHIUSO era buttato -> nuovo RUN
                 self._abort_prev = True      # tacche: riparti pulito da S1
                 self._run += 1
@@ -1789,6 +1803,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                             pass
                     self._lap_aborted = True      # molto piu' lento -> giro buttato
                 _dd = max(-_LIM, min(_LIM, d))    # cappato: aborted non esplode
+                self._d_final = "%+.3f" % d       # ultimo delta VERO (prova)
                 # ABORTED: nascondo il numero pinnato (+3.000) -> solo la scritta
                 self._delta_txt = "" if self._lap_aborted else ("%+.3f" % _dd)
                 # COLORE DINAMICO (su proiezione = mio best + delta attuale):
@@ -4114,7 +4129,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                             p.drawText(QPointF(
                                 _dx0 + (_dwf - _twd) / 2.0, _yb), _dtx_show)
                     # ── CELLA EVENTI (blu): l'ORIGINALE con l'animazione
-                    # laterale, ancorata al bordo sinistro della cella delta ──
+                    # laterale. Z-INDEX SOPRA la cella delta: stesso
+                    # ancoraggio a LAP, aprendosi la COPRE e chiudendosi
+                    # la scopre (rich. 23/07: "i tempi stanno un zindex
+                    # sopra, non nello stesso livello") ──
                     _tgt9 = 0.0 if _vt else 1.0
                     _k9 = getattr(self, "_dl_coll", _tgt9)
                     _k9 += (_tgt9 - _k9) * 0.12
@@ -4123,7 +4141,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     else:
                         _k9 = _tgt9
                     self._dl_coll = _k9
-                    _ex1 = _dx0
+                    _ex1 = _lap_x0
                     _dl_x0 = _tx + (_ex1 - _tx) * _k9
                     _dl_x1 = _ex1
                     _bgc9 = QColor("#0a0031")
