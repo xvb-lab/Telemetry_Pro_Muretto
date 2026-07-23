@@ -531,3 +531,73 @@ Percorso completo del collaudo, per i team:
    ELAPSED. Esito test finale pilota: "perfetto".
 DA COLLAUDARE (sessione dedicata): tempi RIPARAZIONE DANNI (carrozzeria/
 sospensioni/aero) — provocare danni crescenti e censire la voce `damage`.
+
+---
+
+## 23/07/2026 (pomeriggio/sera) — LICO geometrico, mappa-analisi, Cantiere 2: l'ingegnere PRO
+
+**LICO — il sistema geometrico universale (CERTIFICATO in pista 6/6 curve).**
+Il coach lift&coast aveva punti di chiamata casuali (metà Curva Grande...).
+Riscritto col design del pilota: gli ingressi curva arrivano dalla GEOMETRIA
+della mappa SVG (curvatura), il punto di rilascio è ingresso − 200/250/300/350m
+per livello (+1..+4), con pavimento fisico (mai dentro/subito dopo la curva
+prima: fine curva precedente + 60m) e chicane deduplicate (250m = una chiamata
+sola). Zero taratura per pista: funziona OVUNQUE come i cartelli della gialla.
+LED accesi ESATTAMENTE al beep (niente rampa — regola ferma del pilota),
+pieni per tutto il coast, adattivo ±40m dal consumo reale. BANCA del
+risparmio: quando hai guadagnato il giro obiettivo il coach tace da solo,
+se erodi il tesoretto sotto il 90% riprende (come fa LMU).
+
+**Worksheet mappa = suite di analisi (iterata in pista col pilota).**
+- EVENTI sulla traiettoria: contatti (X rosse), tagli, bloccaggi come punti;
+  slide/TC/ABS/LICO come TRATTI colorati della traiettoria, che nascono con
+  la scia dietro la macchina nel replay (mai davanti), SOLO del giro
+  selezionato (quelli di tutta la sessione finivano di fianco = scarabocchio).
+- Legenda cliccabile: testo = on/off layer, DOT = pick color (persistito);
+  conteggi visibili anche a zero; manina su tutto il cliccabile.
+- CARTELLI STACCATE a 200/150/100/50m prima di ogni curva (tacche sulla
+  mappa + righe tratteggiate sui grafici).
+- RIVALI nel replay: registrati a 10Hz (player compreso, cid=-1), macchinina
+  VERA grigia che ruota con la marcia, numero da corsa disegnato sulla scocca
+  (gira con lei, mai a testa in giù), scie spesse come le traiettorie ma SOLO
+  quando il rivale è entro 300m (tutte insieme = groviglio), interpolazione a
+  indice + inseguitore morbido (il jitter dei dt faceva "pompare" la velocità
+  = scatti; dati verificati a ~9Hz reali).
+- Macchinina di TRAVERSO: slip vero dai canali slat posteriori vs velocità
+  (gain 2×, tetto 28°) — si scompone come la macchina vera. Solo macchinina:
+  menu dot/freccia rimosso.
+- Replay 60fps a dt reale, velocità fino a 8×; gap ±s accanto alla mia
+  macchinina; numero anche sulla macchinina del confronto.
+
+**CANTIERE 2 — l'ingegnere PRO (findings da ingegneria vera).**
+`pro_findings_call`: accumula i math channel nel giro e dà UN verdetto al
+giro, in ordine di priorità (salute macchina prima del coaching), one-shot
+per stint: freni in fade (beep) → pressioni vs finestra classe (HY 182-188,
+P2 172-178, GT3 163-168 kPa) → gomma vetrificata (superficie≫carcassa) →
+camber (spread I-E >15°) → stallo diffusore (ride_h posteriore) → TC >8% /
+ABS >15% (GT) → power clip (HY) → burn MJ/km (HY) → aria sporca (gara) →
+margine grip (prova, combined-G vs target classe). Più: penalità rivali col
+NOME (dal field), rivale davanti che cala (gap in discesa 4 giri → "lo
+prendi"), track limits NOMINATI con la curva (geometria mappa: "di nuovo
+T4"), curva peggiore ricorrente dal Time-Loss (prova), slick sotto pioggia
+(passo vs la TUA mediana asciutta → box per le wet). ANTI-RIPETIZIONE:
+stesso finding di coaching mai entro 4 minuti (salute macchina esente).
+17 frasi nuove in 4 lingue. `track_len` aggiunto al raw del reader.
+
+**Voci (provini in pista col pilota).** Titolari: Florian (race engineer,
+DE), Remy (stratega, FR — in valutazione), Ava (performance, US) — tutte
+Multilingual (parlano le 4 lingue; nota: su singole parole possono scivolare
+d'accento, limite del modello). NOVITÀ: selettore voci nel menu Engineer —
+20 voci edge-tts free (multilingual + madrelingua classiche), tasto provino,
+salvataggio in engineer_cfg riletto A OGNI FRASE = cambio live senza riavvio.
+
+**Fix di giornata (collaudati a secco):**
+- Garage: il briefing d'uscita ("esci con le usate al 93%") parte SOLO dalla
+  piazzola dopo motore spento; il RIENTRO dalla corsia box è muto (prima
+  partiva mentre rientravi dal long run).
+- Dash: delta libero fino a ±9.999 come LMU (mai più pinnato a 3.000; l'abort
+  interno resta a 3s); delta ed eventi header scivolano a sinistra della
+  cella cambio quando si apre (mai più coperti).
+- docs/muretto_capabilities.md riallineata: degli 8 buchi storici ne resta
+  UNO (auto-pit che monta la wet — scrittura REST già collaudata, manca il
+  collegamento).
