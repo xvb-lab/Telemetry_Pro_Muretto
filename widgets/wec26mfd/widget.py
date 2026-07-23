@@ -2839,7 +2839,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         p, QRectF(_W / 2.0 + 50.0, gy - 48.0, 22, 22))
                 if self._svg_batt9.isValid():
                     self._svg_batt9.render(
-                        p, QRectF(_W / 2.0 + 78.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 + 106.0, gy - 48.0, 22, 22))
             except Exception:
                 pass
             return
