@@ -4657,11 +4657,16 @@ class _AppPage(QWidget):
         self._back = QPushButton("arrow_back")
         self._back.setCursor(Qt.PointingHandCursor)
         self._back.setFixedWidth(34)
-        self._back.setStyleSheet(
+        self._BACK_QSS = (
             "QPushButton { font-family:'Material Icons'; font-size:26px; color:#ffffff;"
             " background:transparent; border:none; padding:0; }"
             "QPushButton:hover { color:rgba(255,29,67,1.0); }")
-        self._back.clicked.connect(lambda: self._on_back() if self._on_back else None)
+        self._BACK_QSS_LOCK = (
+            "QPushButton { font-family:'Material Icons'; font-size:24px;"
+            " color:#ff4d5a; background:transparent; border:none; padding:0; }"
+            "QPushButton:hover { color:#ff8089; }")
+        self._back.setStyleSheet(self._BACK_QSS)
+        self._back.clicked.connect(self._back_clicked)
         self._title = QLabel("")
         # titoli pagina in ARCHIVO (font WEC originale), corsivo 900
         self._title.setStyleSheet(
@@ -4670,6 +4675,13 @@ class _AppPage(QWidget):
             " font-size:26px; background:transparent;")
         head.addWidget(self._back, 0, Qt.AlignVCenter)
         head.addWidget(self._title, 0, Qt.AlignVCenter)
+        # nota LUCCHETTO: visibile SOLO a sessione armata (auto-focus attivo)
+        self._lock_note = QLabel("")
+        self._lock_note.setStyleSheet(
+            "color:#ff4d5a; font-family:'Archivo SemiExpanded';"
+            " font-weight:700; font-size:12px; background:transparent;")
+        self._lock_note.hide()
+        head.addWidget(self._lock_note, 0, Qt.AlignVCenter)
         head.addStretch(1)
         # top tab al centro
         self._cur_top = 0
@@ -5020,6 +5032,39 @@ class _AppPage(QWidget):
             self._armed = not self._armed
         self._sync_start_btn(self._armed, force=True)
 
+    def _back_clicked(self):
+        """A sessione ARMATA l'uscita e' bloccata (l'auto-focus ti
+        riporterebbe comunque qui): il lucchetto lo DICHIARA, invece di
+        sembrare un bug. Il click mostra il perche' in rosso."""
+        if getattr(self, "_armed", False):
+            try:
+                self._lock_note.setText("SESSION LIVE — STOP TO EXIT")
+                QTimer.singleShot(2500, lambda: (
+                    self._lock_note.setText("SESSION LIVE")
+                    if getattr(self, "_armed", False) else None))
+            except Exception:
+                pass
+            return
+        if self._on_back:
+            self._on_back()
+
+    def _apply_back_lock(self, armed):
+        """Freccia indietro <-> LUCCHETTO con la nota rossa di stato."""
+        try:
+            if armed:
+                self._back.setText("lock")
+                self._back.setStyleSheet(self._BACK_QSS_LOCK)
+                self._back.setToolTip("Session live: exit locked (STOP to leave)")
+                self._lock_note.setText("SESSION LIVE")
+                self._lock_note.show()
+            else:
+                self._back.setText("arrow_back")
+                self._back.setStyleSheet(self._BACK_QSS)
+                self._back.setToolTip("")
+                self._lock_note.hide()
+        except Exception:
+            pass
+
     def _sync_start_btn(self, armed, force=False):
         if (not force) and armed == getattr(self, "_armed", False):
             # stato invariato: aggiorna comunque l'hook (bottone unico) e basta
@@ -5031,6 +5076,7 @@ class _AppPage(QWidget):
                     pass
             return
         self._armed = armed
+        self._apply_back_lock(armed)    # freccia <-> lucchetto (uscita bloccata)
         self._apply_live_dim()          # dim/undim sessioni precedenti
         hook = getattr(self, "_armed_hook", None)
         if hook is not None:
@@ -8113,11 +8159,16 @@ class _AppPage(QWidget):
         self._back = QPushButton("arrow_back")
         self._back.setCursor(Qt.PointingHandCursor)
         self._back.setFixedWidth(34)
-        self._back.setStyleSheet(
+        self._BACK_QSS = (
             "QPushButton { font-family:'Material Icons'; font-size:26px; color:#ffffff;"
             " background:transparent; border:none; padding:0; }"
             "QPushButton:hover { color:rgba(255,29,67,1.0); }")
-        self._back.clicked.connect(lambda: self._on_back() if self._on_back else None)
+        self._BACK_QSS_LOCK = (
+            "QPushButton { font-family:'Material Icons'; font-size:24px;"
+            " color:#ff4d5a; background:transparent; border:none; padding:0; }"
+            "QPushButton:hover { color:#ff8089; }")
+        self._back.setStyleSheet(self._BACK_QSS)
+        self._back.clicked.connect(self._back_clicked)
         self._title = QLabel("")
         # titoli pagina in ARCHIVO (font WEC originale), corsivo 900
         self._title.setStyleSheet(
@@ -8126,6 +8177,13 @@ class _AppPage(QWidget):
             " font-size:26px; background:transparent;")
         head.addWidget(self._back, 0, Qt.AlignVCenter)
         head.addWidget(self._title, 0, Qt.AlignVCenter)
+        # nota LUCCHETTO: visibile SOLO a sessione armata (auto-focus attivo)
+        self._lock_note = QLabel("")
+        self._lock_note.setStyleSheet(
+            "color:#ff4d5a; font-family:'Archivo SemiExpanded';"
+            " font-weight:700; font-size:12px; background:transparent;")
+        self._lock_note.hide()
+        head.addWidget(self._lock_note, 0, Qt.AlignVCenter)
         head.addStretch(1)
         # top tab al centro
         self._cur_top = 0
@@ -8476,6 +8534,39 @@ class _AppPage(QWidget):
             self._armed = not self._armed
         self._sync_start_btn(self._armed, force=True)
 
+    def _back_clicked(self):
+        """A sessione ARMATA l'uscita e' bloccata (l'auto-focus ti
+        riporterebbe comunque qui): il lucchetto lo DICHIARA, invece di
+        sembrare un bug. Il click mostra il perche' in rosso."""
+        if getattr(self, "_armed", False):
+            try:
+                self._lock_note.setText("SESSION LIVE — STOP TO EXIT")
+                QTimer.singleShot(2500, lambda: (
+                    self._lock_note.setText("SESSION LIVE")
+                    if getattr(self, "_armed", False) else None))
+            except Exception:
+                pass
+            return
+        if self._on_back:
+            self._on_back()
+
+    def _apply_back_lock(self, armed):
+        """Freccia indietro <-> LUCCHETTO con la nota rossa di stato."""
+        try:
+            if armed:
+                self._back.setText("lock")
+                self._back.setStyleSheet(self._BACK_QSS_LOCK)
+                self._back.setToolTip("Session live: exit locked (STOP to leave)")
+                self._lock_note.setText("SESSION LIVE")
+                self._lock_note.show()
+            else:
+                self._back.setText("arrow_back")
+                self._back.setStyleSheet(self._BACK_QSS)
+                self._back.setToolTip("")
+                self._lock_note.hide()
+        except Exception:
+            pass
+
     def _sync_start_btn(self, armed, force=False):
         if (not force) and armed == getattr(self, "_armed", False):
             # stato invariato: aggiorna comunque l'hook (bottone unico) e basta
@@ -8487,6 +8578,7 @@ class _AppPage(QWidget):
                     pass
             return
         self._armed = armed
+        self._apply_back_lock(armed)    # freccia <-> lucchetto (uscita bloccata)
         self._apply_live_dim()          # dim/undim sessioni precedenti
         hook = getattr(self, "_armed_hook", None)
         if hook is not None:
