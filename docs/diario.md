@@ -457,3 +457,53 @@ Agganciate in `_collect`, testate. Con sector_delta = **4 di 6** funzioni v2 fat
   (porta 6397) perché il muretto legga i dati. Prerequisiti passo-passo.
 - **Carrellata/overview**: una panoramica leggibile delle varie sezioni (cosa fa
   ogni parte, come si usa) — README esteso / guida utente.
+
+---
+
+## 23/07/2026 — Indagine incidente Ascari: i danni fisici entrano nel muretto
+
+**Il caso.** In gara una Hypercar si gira all'Ascari, la prendiamo in pieno e
+LMU dà un "avvertimento giallo per guida antisportiva". Domanda: dov'è quel
+dato? Indagine su TUTTI i canali.
+
+**Esito indagine (negativo ma prezioso):**
+- L'avvertimento antisportivo **non esiste in nessun dato accessibile**: non
+  nel trace (al secondo della botta il motore scrive solo le ruote piegate),
+  non nella shared memory (`mNumPenalties` resta 0), non nel REST. È un
+  messaggio solo-grafica del motore (Coherent UI). Censite anche TUTTE le
+  rotte REST dai binari del gioco: nessun canale messaggi.
+
+**Scoperte collaterali (queste sì, d'oro):**
+1. `hdvehicle.cpp: Bending wheel #N with severity S (toe: T; camber: C)` —
+   ruota del GIOCATORE piegata, con gravità e geometrie storte. I wearables
+   NON la vedono (suspensionDamage resta 0): è l'unica fonte del danno
+   "macchina che tira da un lato".
+2. `score.cpp: LocalDNF for driver "X" due to Engine/Suspension/Accident` —
+   la CAUSA vera del ritiro (il "motore morto" che cercavamo da giorni).
+   Attenzione: la riga esce anche in prova rientrando al monitor con danni,
+   quindi va gatata alla sola gara.
+3. Rotte REST scoperte dai binari: `strategy/pitstop-estimate` (tempo sosta
+   GIÀ scomposto: benzina/gomme/freni/danni/penalità/totale — sblocca il
+   countdown pit), `garage/getVehicleCondition` (vehicleDamage aggregato),
+   `watch/standings/history` (storico giri per slot), `sessions/
+   raceControlVerification` (da esplorare).
+
+**Cosa è entrato in macchina (collaudato a secco):**
+- `core/race_control.py`: parsing `Bending wheel` (per-ruota, finestra 8s,
+  peggiore) + `LocalDNF` → `recent_wheel_bends()` / `latest_dnf()`; azzerati
+  a ogni Steward::Restart; preload muto (mai annunciare il passato).
+- `engineer/brain.py`: `wheel_bend_call` — annuncia la ruota piegata (soglia
+  0.20, "forte" ≥ 0.50, mai ripetersi, parla DOPO il verdetto contatto) e il
+  ritiro certificato (motore/sospensioni/incidente, SOLO in gara). Frasi in
+  4 lingue, ruolo engineer, priorità radio P2 (piega) / P1 (ritiro).
+- Il bottoming c'era già (finding di debrief a fine stint da `ride_h`).
+
+**Dash (stesso giorno, richieste pilota):**
+- Frecce hazard: dopo 5s da fermo in pista ANCHE a motore spento (in panne
+  servono); mai in garage.
+- Header: cella eventi (tempi/INVALID) ora z-sopra la cella delta — stessa
+  ancora alla colonna LAP, aprendosi la copre, chiudendosi la scopre.
+- Prova delta: a ogni giro chiuso `delta_check.log` scrive atteso (giro −
+  best) vs mostrato — la certificazione che il delta converge al traguardo.
+  Delta = SEMPRE vs il proprio best di sessione; fuxia/verde/bianco = solo
+  contesto colore (P1 di classe / best personale / non migliori).

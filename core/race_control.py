@@ -43,6 +43,17 @@ _RX = re.compile(r"(Queued local|Local|Network) penalty"
 #   Startinig pitstop at X, will run till: Y. Description: Stop and go 10 sec
 _RX_SERVE = re.compile(r"Startini?g pitstop .*?Description:\s*(.+?)\s*$",
                        re.I)
+# DANNI FISICI dal trace (scoperti 23/07 sull'incidente Ascari):
+#   hdvehicle "Bending wheel #N with severity S (toe: T; camber: C)"
+#   -> ruota del GIOCATORE piegata (hdvehicle = fisica alta = solo player);
+#   0=ant.sx 1=ant.dx 2=post.sx 3=post.dx. severity 0..1, toe/camber = di
+#   quanto e' storto l'assetto (la macchina tira da un lato).
+_RX_BEND = re.compile(r"Bending wheel #(\d) with severity ([\d.]+)"
+                      r" \(toe: ([-\d.]+); camber: ([-\d.]+)\)")
+# score.cpp: LocalDNF for driver "Nome" due to Engine/Suspension/Accident
+# -> CAUSA del ritiro (il motore morto che REST/shared memory non danno)
+_RX_DNF = re.compile(r'LocalDNF for driver "([^"]+)" due to (\w+)')
+_DMG = {"bends": [], "dnf_t": 0.0, "dnf_driver": "", "dnf_reason": ""}
 
 
 def _parse(rest):
@@ -120,6 +131,21 @@ def _feed(line, live):
                     _STATE["pending"].append((kind, reason))
                     del _STATE["pending"][:-6]
         return
+    m = _RX_BEND.search(line)
+    if m and live:                    # preload muto: solo botte da ADESSO
+        with _LOCK:
+            _DMG["bends"].append((time.monotonic(), int(m.group(1)),
+                                  float(m.group(2)), float(m.group(3)),
+                                  float(m.group(4))))
+            del _DMG["bends"][:-12]
+        return
+    m = _RX_DNF.search(line)
+    if m and live:
+        with _LOCK:
+            _DMG["dnf_t"] = time.monotonic()
+            _DMG["dnf_driver"] = m.group(1).strip()
+            _DMG["dnf_reason"] = m.group(2).strip()
+        return
     m = _RX_SERVE.search(line)
     if m:
         desc = m.group(1).lower()
@@ -146,6 +172,8 @@ def _feed(line, live):
         with _LOCK:
             del _STATE["pending"][:]         # le penalita' non
                                              # sopravvivono al restart
+            del _DMG["bends"][:]             # nuova sessione: danni azzerati
+            _DMG["dnf_t"] = 0.0
             _TL.update({"state": "idle", "t": 0.0, "outcome": None,
                         "out_t": 0.0, "warn": 0.0, "pts": 0.0,
                         "placediff": 0.0})
@@ -206,6 +234,29 @@ def latest_penalty_parts():
     with _LOCK:
         return (_STATE["t"], _STATE["kind"], _STATE["reason"],
                 _STATE["local"])
+
+
+def recent_wheel_bends(window=8.0):
+    """Ruote piegate del giocatore negli ultimi `window` secondi:
+    [(wheel 0..3, severity, toe, camber)] con la PEGGIORE per ruota.
+    Vuoto se nessuna botta recente. Avvia il tail alla prima chiamata."""
+    latest_penalty()               # assicura il tail avviato
+    now = time.monotonic()
+    worst = {}
+    with _LOCK:
+        for t, w, sev, toe, cam in _DMG["bends"]:
+            if now - t <= window and sev > worst.get(w, (0.0,))[0]:
+                worst[w] = (sev, toe, cam)
+    return [(w, s[0], s[1], s[2]) for w, s in sorted(worst.items())]
+
+
+def latest_dnf():
+    """(t_monotonic, driver, causa) dell'ultimo ritiro visto nel trace.
+    Cause vere di LMU: Engine, Suspension, Accident, Unknown. t=0 se
+    nessuno da quando l'app e' partita."""
+    latest_penalty()               # assicura il tail avviato
+    with _LOCK:
+        return _DMG["dnf_t"], _DMG["dnf_driver"], _DMG["dnf_reason"]
 
 
 def track_limits_state(review_min=2.5, outcome_ttl=6.0, review_max=10.0):

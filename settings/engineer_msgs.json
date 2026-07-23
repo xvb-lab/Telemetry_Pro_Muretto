@@ -2669,6 +2669,76 @@
       "es": "Aero comprometida, {pct} por ciento: inestable en las curvas rápidas. Reparar en la parada es una opción, tú decides.",
       "fr": "Aéro compromise, {pct} pour cent : instable dans les courbes rapides. Réparer à l'arrêt est une option, à toi de voir."
     },
+    "wheel_bent": {
+      "cat": "damage",
+      "level": "warn",
+      "beep": true,
+      "it": "Hai piegato la ruota {ruota}: convergenza sporca, la macchina può tirare da un lato.",
+      "variants_it": [
+        "Hai piegato la ruota {ruota}: convergenza sporca, la macchina può tirare da un lato.",
+        "Ruota {ruota} piegata nella botta: geometrie storte, aspettati lo sterzo non centrato.",
+        "La ruota {ruota} è leggermente piegata: occhio, l'assetto non è più quello."
+      ],
+      "en": "You've bent the {ruota} wheel: toe is off, the car may pull to one side.",
+      "es": "Has doblado la rueda {ruota}: convergencia torcida, el coche puede tirar hacia un lado.",
+      "fr": "Tu as plié la roue {ruota} : le parallélisme est faussé, la voiture peut tirer d'un côté."
+    },
+    "wheel_bent_bad": {
+      "cat": "damage",
+      "level": "warn",
+      "beep": true,
+      "it": "Ruota {ruota} piegata forte: assetto compromesso, valuta il box per sistemarla.",
+      "variants_it": [
+        "Ruota {ruota} piegata forte: assetto compromesso, valuta il box per sistemarla.",
+        "Botta seria sulla ruota {ruota}: è piegata parecchio, la macchina tirerà. Valuta il box.",
+        "La ruota {ruota} è messa male, geometrie stravolte: se peggiora, dentro a sistemarla."
+      ],
+      "en": "{ruota} wheel badly bent: alignment compromised, consider boxing to fix it.",
+      "es": "Rueda {ruota} muy doblada: geometría comprometida, considera entrar a boxes.",
+      "fr": "Roue {ruota} fortement pliée : géométrie compromise, envisage le box pour réparer."
+    },
+    "retire_engine": {
+      "cat": "damage",
+      "level": "critical",
+      "beep": true,
+      "it": "Il motore è andato, non c'è più niente da fare. Ritiro confermato dalla direzione.",
+      "variants_it": [
+        "Il motore è andato, non c'è più niente da fare. Ritiro confermato dalla direzione.",
+        "Motore fuori uso, la corsa finisce qui. Ci rifaremo.",
+        "Ci fermiamo: motore andato. Ritiro registrato."
+      ],
+      "en": "Engine is gone, nothing more we can do. Retirement confirmed.",
+      "es": "El motor está roto, no hay nada que hacer. Retiro confirmado.",
+      "fr": "Le moteur est mort, plus rien à faire. Abandon confirmé."
+    },
+    "retire_susp": {
+      "cat": "damage",
+      "level": "critical",
+      "beep": true,
+      "it": "Sospensioni distrutte, la macchina non è più guidabile. Ritiro confermato.",
+      "variants_it": [
+        "Sospensioni distrutte, la macchina non è più guidabile. Ritiro confermato.",
+        "Telaio andato, non si può continuare. Ritiro registrato.",
+        "Le sospensioni sono finite: chiudiamo qui. Ci rifaremo."
+      ],
+      "en": "Suspension is destroyed, the car is undriveable. Retirement confirmed.",
+      "es": "Suspensión destrozada, el coche no se puede conducir. Retiro confirmado.",
+      "fr": "Suspension détruite, la voiture n'est plus pilotable. Abandon confirmé."
+    },
+    "retire_accident": {
+      "cat": "damage",
+      "level": "critical",
+      "beep": true,
+      "it": "Danni da incidente troppo gravi, la corsa finisce qui. Ritiro confermato.",
+      "variants_it": [
+        "Danni da incidente troppo gravi, la corsa finisce qui. Ritiro confermato.",
+        "Troppi danni dopo l'incidente: non si continua. Ritiro registrato.",
+        "La macchina è troppo danneggiata: chiudiamo qui. Ci rifaremo."
+      ],
+      "en": "Accident damage is too severe, that's the end of our race. Retirement confirmed.",
+      "es": "Daños del accidente demasiado graves, la carrera termina aquí. Retiro confirmado.",
+      "fr": "Dégâts trop importants après l'accident, la course s'arrête ici. Abandon confirmé."
+    },
     "susp_damage": {
       "cat": "damage",
       "level": "warn",

@@ -28,7 +28,9 @@ _role(["brief_spot", "pit_exit_clean", "pit_exit_fast", "pit_exit_hole",
        "pit_exit_traffic", "pit_release_wait", "pit_release_clear"], "spotter")
 _role(["contact_ok", "contact_who", "contact_ok_who",
        "contact_where", "contact_where_who", "driver_check",
-       "contact_damage", "contact_damage_who"], "engineer")
+       "contact_damage", "contact_damage_who",
+       "wheel_bent", "wheel_bent_bad",
+       "retire_engine", "retire_susp", "retire_accident"], "engineer")
 _role(["gap_attack", "gap_attack_simple", "gap_defend",
        "gap_defend_simple"], "spotter")
 _role(["lap_fast", "lap_fast_clean", "lap_slow", "sector_loss",

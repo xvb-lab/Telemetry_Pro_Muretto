@@ -47,6 +47,15 @@ Verificato nel codice (0.3b). Legenda: ✅ c'è e wired · 🟡 parziale · ❌ 
 | Avviso track limits + penalità | ✅ | `tlimits_call` (conteggio + soglia) |
 | **Dove/quale curva li prendo** | ❌ | serve la posizione (lapdist → curva appresa) |
 
+## Danni fisici (dal trace + shared memory)
+| Capacità | Stato | Note |
+|---|---|---|
+| Verdetto post-impatto (aero/sospensioni, con chi) | ✅ | `damage_call` (~6s dopo la botta) |
+| **Ruota piegata (toe/camber storti)** | ✅ | `wheel_bend_call` — dal trace `Bending wheel #N severity` (23/07): wearables NON la vedono, è l'unica fonte. Soglia 0.20, "forte" ≥ 0.50 |
+| **Causa ritiro certificata (motore/telaio)** | ✅ | `wheel_bend_call` — dal trace `LocalDNF due to Engine/Suspension/Accident`; solo in gara |
+| Fondo che tocca (bottoming) | ✅ | finding di debrief a fine stint (≥5 tocchi, `ride_h` < 2mm oltre 90 km/h) |
+| Avvertimento antisportiva di LMU | ❌ | **verificato 23/07: non esiste in NESSUN dato** (né trace né SM né REST, è solo grafica del gioco). Alternativa: chiamata contatto nostra da `mLastImpact` |
+
 ---
 
 ## Buchi da colmare (proposta di priorità)

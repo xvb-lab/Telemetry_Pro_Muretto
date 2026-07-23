@@ -954,6 +954,65 @@ class Engineer:
                            if who else self.msg("contact_ok"))
         return [m for m in out if m]
 
+    def wheel_bend_call(self, raw):
+        """DANNI FISICI dal trace (scoperta 23/07, incidente Ascari):
+        1) RUOTA PIEGATA — hdvehicle 'Bending wheel #N severity (toe/
+           camber)': fisica alta = SOLO il giocatore. La piega NON e' la
+           rottura: suspensionDamage puo' restare 0 ma la convergenza e'
+           storta e la macchina tira da un lato. Wearables non la vedono:
+           questa e' l'unica fonte.
+        2) CAUSA RITIRO — 'LocalDNF due to Engine/Suspension/Accident':
+           la conferma ufficiale del motore/telaio morto che REST e
+           shared memory non danno.
+        Aspetta che il verdetto contatto (~6s) abbia parlato; per ruota
+        ri-annuncia solo se la piega PEGGIORA (mai ripetersi)."""
+        raw = raw or {}
+        out = []
+        try:
+            from core.race_control import recent_wheel_bends, latest_dnf
+        except Exception:
+            return []
+        # ── RUOTE PIEGATE (dopo il verdetto danni, mai in contemporanea)
+        try:
+            bends = recent_wheel_bends(window=10.0)
+        except Exception:
+            bends = []
+        if bends and not self._st.get("dmg_eval"):
+            W = (self._L("anteriore sinistra", "front left",
+                         "delantera izquierda", "avant gauche"),
+                 self._L("anteriore destra", "front right",
+                         "delantera derecha", "avant droite"),
+                 self._L("posteriore sinistra", "rear left",
+                         "trasera izquierda", "arriere gauche"),
+                 self._L("posteriore destra", "rear right",
+                         "trasera derecha", "arriere droite"))
+            said = self._st.setdefault("bend_said", {})
+            w, sev, _toe, _cam = max(bends, key=lambda b: b[1])
+            # sotto 0.20 e' il rumore dei cordoli (visto 0.03 nei trace)
+            if 0 <= w <= 3 and sev >= 0.20 \
+                    and sev > said.get(w, 0.0) + 0.10:
+                said[w] = sev
+                out.append(self.msg("wheel_bent_bad" if sev >= 0.5
+                                    else "wheel_bent", ruota=W[w]))
+        # ── CAUSA RITIRO (solo il giocatore, una volta per evento)
+        try:
+            t, drv, why = latest_dnf()
+        except Exception:
+            t = 0.0
+        # SOLO in gara: in prova/quali il rientro al monitor con danni
+        # genera la stessa riga ma non e' un ritiro (visto nei trace)
+        if t and t != self._st.get("dnf_said_t") \
+                and session_kind(raw.get("session_type")) == "race":
+            pl = (raw.get("driver") or "").strip().lower()
+            if pl and pl == (drv or "").strip().lower():
+                self._st["dnf_said_t"] = t
+                code = {"Engine": "retire_engine",
+                        "Suspension": "retire_susp",
+                        "Accident": "retire_accident"}.get(why)
+                if code:
+                    out.append(self.msg(code))
+        return [m for m in out if m]
+
     def contact_call(self, raw):
         """SPOTTER contatti: alla botta fotografa i danni; se dopo ~3s
         sono invariati -> 'toccato, tutto ok'. Cooldown 30s."""

@@ -114,6 +114,10 @@ _mk(["leader", "pole_pos", "pos_race", "pos_qualy", "pos_lead", "pos_pole",
      "gap_attack", "gap_attack_simple", "gap_defend", "gap_defend_simple"], 3)
 # contatto+danno: il verdetto post-impatto parla presto
 _mk(["contact_damage", "contact_damage_who"], 2)
+# ruota piegata (assetto storto dal trace): informazione danni, presto
+_mk(["wheel_bent", "wheel_bent_bad"], 2)
+# causa ritiro certificata dal trace (motore/telaio morto): P1
+_mk(["retire_engine", "retire_susp", "retire_accident"], 1)
 # coaching guida "caldo" (scivolate, spiattellamento, cordoli, out-lap): P2
 _mk(["car_sliding", "flatspot_check", "kerb_zone_corner", "kerb_zone",
      "outlap_gt3", "outlap_hy", "outlap_p2", "outlap_p3",

@@ -343,6 +343,7 @@ def _collect(brain, raw, ld, pace):
         # 🟠 RACE ENGINEER — sicurezza / auto
         (brain.flags_call, (raw,)),
         (brain.damage_call, (raw,)),
+        (brain.wheel_bend_call, (raw,)),          # ruota piegata + causa ritiro (dal trace)
         (brain.terminal_damage, (raw,)),          # combo contatto+danno+motore morto -> ritiro
         (brain.aero_call, (raw,)),        # UNICO modulo danni: contatto + danno
         (brain.engine_check, (raw,)),
