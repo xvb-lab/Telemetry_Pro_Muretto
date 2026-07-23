@@ -2238,13 +2238,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     _ec9 = "#ff9a30"
                 else:
                     _ec9 = "#50a0eb"
+                # DOPPIO piu' grande (rich. 23/07): fulmine 30px, num 14
                 _ex9 = gx + gw / 2.0
                 _ey9 = gy + gh / 2.0
                 _prnd(_ebolt(_ec9)).render(
-                    p, QRectF(_ex9 - 7.5, _ey9 - 12.5, 15, 15))
-                p.setFont(QFont("Arial", 7, QFont.Bold))
+                    p, QRectF(_ex9 - 15.0, _ey9 - 25.0, 30, 30))
+                p.setFont(QFont("Arial", 14, QFont.Bold))
                 p.setPen(QColor(_ec9))
-                p.drawText(QRectF(_ex9 - 16, _ey9 + 3.5, 32, 9),
+                p.drawText(QRectF(_ex9 - 32, _ey9 + 6.0, 64, 18),
                            Qt.AlignHCenter | Qt.AlignVCenter,
                            "%d" % int(round(_bt9 * 100)))
         except Exception:
@@ -2286,19 +2287,28 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _cy0 = scr.center().y()
             self._draw_car_logo(p, _W / 2.0, _cy0 - 26.0, 72.0,
                                  opacity=max(0.0, min(1.0, boot / 0.6)))
+            # spinner a 4 QUADRATINI (rich. 23/07) + firma TELEMETRY PRO
             side, gap = 4.5, 2.0
             step = side + gap
             cx = _W / 2.0 - step
             cy = _cy0 + 44.0                    # spinner abbassato
-            POS = ((0, 0), (1, 0), (1, 1),
-                   (1, 2), (0, 2), (0, 1))
-            head = int(boot * 10) % 6
+            POS = ((0, 0), (1, 0), (1, 1), (0, 1))
+            head = int(boot * 8) % 4
             for i, (gx, gy) in enumerate(POS):
-                k = (head - i) % 6
+                k = (head - i) % 4
                 p.setBrush(QColor(255, 255, 255,
-                                  max(30, 217 - k * 45)))
+                                  max(30, 217 - k * 62)))
                 p.drawRect(QRectF(cx + gx * step, cy + gy * step,
                                   side, side))
+            f_tp = QFont("Archivo SemiExpanded", 9)
+            f_tp.setWeight(QFont.Bold)
+            f_tp.setLetterSpacing(QFont.AbsoluteSpacing, 2.0)
+            p.setFont(f_tp)
+            p.setPen(QColor(255, 255, 255,
+                            int(160 * max(0.0, min(1.0, boot / 0.8)))))
+            p.drawText(QRectF(0, cy + 2 * step + 10.0, _W, 16.0),
+                       Qt.AlignHCenter | Qt.AlignVCenter,
+                       "TELEMETRY PRO")
             return
         if self._anim_t.isActive():
             self._anim_t.stop()
@@ -3859,10 +3869,36 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             if _emo == 3:
                 _csoc = QColor("#00e676")           # rigenera
             elif _emo == 2:
-                _csoc = QColor("#ffb020")           # scarica (boost)
+                _csoc = QColor("#ff3cdc")           # boost: FUCSIA (23/07)
+            _span9 = 55.0 * max(0.0, min(1.0, _soc9))
             p.setPen(QPen(_csoc, 3.0, Qt.SolidLine, Qt.RoundCap))
-            p.drawArc(rect2, int(117.5 * 16),
-                      int(-55 * max(0.0, min(1.0, _soc9)) * 16))
+            p.drawArc(rect2, int(117.5 * 16), int(-_span9 * 16))
+            # PULSAZIONE direzionale: segmento chiaro che CORRE lungo
+            # la striscia — verso il pieno quando carica, verso il
+            # vuoto quando scarica (rich. 23/07)
+            if _emo in (2, 3) and _span9 > 6.0:
+                _ph9 = (time.monotonic() % 0.9) / 0.9
+                if _emo == 3:                        # carica: tail->head
+                    _pa9 = 117.5 - _ph9 * (_span9 - 5.0)
+                else:                                # scarica: head->tail
+                    _pa9 = 117.5 - (1.0 - _ph9) * (_span9 - 5.0)
+                p.setPen(QPen(QColor(255, 255, 255, 210), 3.0,
+                              Qt.SolidLine, Qt.RoundCap))
+                p.drawArc(rect2, int(_pa9 * 16), int(-5 * 16))
+                self.update()                        # anima fluido
+            # NUMERO SOC a sinistra dell'arco, stessa taglia del fuel
+            f_sc9 = QFont("Archivo SemiExpanded")
+            f_sc9.setPixelSize(11)
+            f_sc9.setWeight(QFont.Bold)
+            p.setFont(f_sc9)
+            p.setPen(_csoc)
+            _r2s = rect2.width() / 2.0
+            p.drawText(QPointF(
+                cx - 0.4617 * _r2s - 8.0
+                - QFontMetricsF(f_sc9).horizontalAdvance(
+                    "%d" % round(_soc9 * 100)),
+                cy - 0.8870 * _r2s + 4.0),
+                "%d" % round(_soc9 * 100))
         # RPM: arco sul lato SINISTRO in basso (meno di mezzo cerchio),
         # parte dal fondo e sale a sinistra — BLU che sfuma al BIANCO
         # (arco RPM RIMOSSO il 21/07: resta solo l'effetto cambiata)
