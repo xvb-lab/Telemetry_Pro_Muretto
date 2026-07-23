@@ -3699,7 +3699,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             return
         CW, CH, GAP = 46.0, 27.0, 6.0     # celle usura piu' piccole
         x0 = 20.0                          # (i badge temp restano uguali)
-        y0 = _H - self.ROW_B - 60.0 - (CH * 2 + GAP)
+        y0 = _H - self.ROW_B - 75.0 - (CH * 2 + GAP)
         f_big = QFont("Archivo SemiExpanded")
         f_big.setPixelSize(13)
         f_big.setWeight(QFont.Bold)
@@ -3756,7 +3756,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                                 rear_ext=0.3)
             mc.setParent(self)
         mc.move(int((_W / 2.0 + 150.0) * s),
-                int((gy - 18.0) * s))
+                int((gy - 8.0) * s))
         if not mc.isVisible():
             mc.show()
         mc.raise_()
@@ -3822,6 +3822,20 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             # senno' alla riaccensione la transizione non scatta e il
             # fade in MOD 1 non parte MAI (bug segnalato 23/07)
             self._eng_on_prev = False
+            # CERCHIO del cambio anche a motore spento: il gauge c'e',
+            # dentro NIENTE (rich. 23/07 notte) — solo disco e binario
+            _g0e = QRadialGradient(QPointF(_W / 2.0, gy), 56.0 * 1.35)
+            _g0e.setColorAt(0.0, QColor(14, 20, 27, 235))
+            _g0e.setColorAt(0.75, QColor(14, 20, 27, 160))
+            _g0e.setColorAt(1.0, QColor(14, 20, 27, 0))
+            p.setBrush(_g0e)
+            p.setPen(Qt.NoPen)
+            p.drawEllipse(QPointF(_W / 2.0, gy), 56.0 * 1.35,
+                          56.0 * 1.35)
+            p.setBrush(Qt.NoBrush)
+            p.setPen(QPen(QColor(26, 34, 44), 3.0))
+            p.drawEllipse(QRectF(_W / 2.0 - 56.0, gy - 56.0,
+                                 112.0, 112.0))
             _lcy = (self.HDR + _H) / 2.0 - 26.0        # STESSA posizione del boot
             _lh = self._draw_car_logo(p, _W / 2.0, _lcy, 72.0)
             # ENGINE OFF fissa in basso; ma se l'ibrida SI MUOVE in
