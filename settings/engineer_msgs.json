@@ -8293,6 +8293,97 @@
       "en": "You're getting to full throttle late on exit: at {pct} percent of the lateral, the reference is eighty. Open up earlier.",
       "es": "Llegas tarde al gas pleno en la salida: al {pct} por ciento del lateral, la referencia es ochenta. Abre antes.",
       "fr": "Tu arrives tard aux pleins gaz en sortie: à {pct} pour cent du latéral, la référence est quatre-vingts. Ouvre plus tôt."
+    },
+    "bias_ack": {
+      "cat": "assetto",
+      "level": "info",
+      "beep": false,
+      "it": "Visto: bias a {bias}. Ricalibro le staccate.",
+      "variants_it": [
+        "Visto: bias a {bias}. Ricalibro le staccate.",
+        "Ok, bias freni a {bias}: ne tengo conto."
+      ],
+      "en": "Copy: brake bias at {bias}. Recalibrating the braking references.",
+      "es": "Visto: reparto de frenada en {bias}. Lo tengo en cuenta.",
+      "fr": "Bien vu: repartition de freinage a {bias}. J'en tiens compte."
+    },
+    "adv_bias_back": {
+      "cat": "assetto",
+      "level": "info",
+      "beep": false,
+      "it": "Sei a {bias} di bias e l'ABS pesta davanti: prova mezzo punto indietro, liberi l'anteriore in staccata.",
+      "variants_it": [
+        "Sei a {bias} di bias e l'ABS pesta davanti: prova mezzo punto indietro, liberi l'anteriore in staccata.",
+        "Bias {bias} e anteriore che satura in frenata: mezzo punto indietro e la macchina entra meglio."
+      ],
+      "en": "You're at {bias} bias and the ABS is hammering the front: try half a point rearward, you'll free the front under braking.",
+      "es": "Estás en {bias} de reparto y el ABS castiga delante: prueba medio punto atrás.",
+      "fr": "Tu es a {bias} de repartition et l'ABS martele l'avant: essaie un demi-point vers l'arriere."
+    },
+    "adv_bias_fwd": {
+      "cat": "assetto",
+      "level": "info",
+      "beep": false,
+      "it": "Bias a {bias} e frenata sotto il potenziale: prova mezzo punto avanti, la macchina ne ha.",
+      "variants_it": [
+        "Bias a {bias} e frenata sotto il potenziale: prova mezzo punto avanti, la macchina ne ha.",
+        "Con {bias} di bias stai frenando sotto il possibile: mezzo punto avanti e attacca di piu' il pedale."
+      ],
+      "en": "Bias at {bias} and braking below potential: try half a point forward, the car can take it.",
+      "es": "Reparto en {bias} y frenada por debajo del potencial: prueba medio punto adelante.",
+      "fr": "Repartition a {bias} et freinage sous le potentiel: essaie un demi-point vers l'avant."
+    },
+    "adv_wing_front": {
+      "cat": "assetto",
+      "level": "info",
+      "beep": false,
+      "it": "Nei curvoni veloci manca l'anteriore: è aria, non meccanica. Al pit proviamo un click di carico in più davanti.",
+      "variants_it": [
+        "Nei curvoni veloci manca l'anteriore: è aria, non meccanica. Al pit proviamo un click di carico in più davanti.",
+        "La macchina spinge dritto solo in appoggio veloce: bilancio aero indietro. Un click d'ala al pit e torna."
+      ],
+      "en": "The front washes out only in the fast corners: that's aero, not mechanical. At the stop let's try one more click of front load.",
+      "es": "Falta el delantero solo en las curvas rápidas: es aire, no mecánica. En la parada probamos un click más de carga delante.",
+      "fr": "L'avant manque seulement dans les courbes rapides: c'est l'aero. A l'arret on essaie un cran de charge en plus a l'avant."
+    },
+    "adv_wing_less": {
+      "cat": "assetto",
+      "level": "info",
+      "beep": false,
+      "it": "Il posteriore balla solo nei curvoni veloci: bilancio aero troppo avanti. Al pit togliamo un click davanti o carichiamo dietro.",
+      "variants_it": [
+        "Il posteriore balla solo nei curvoni veloci: bilancio aero troppo avanti. Al pit togliamo un click davanti o carichiamo dietro.",
+        "Sovrasterzo in appoggio veloce: è aria. Un click in meno davanti al pit e si calma."
+      ],
+      "en": "The rear moves only in the fast corners: aero balance too far forward. At the stop take a click off the front or add rear load.",
+      "es": "La trasera baila solo en las curvas rápidas: balance aero muy adelante. En la parada quitamos un click delante.",
+      "fr": "L'arriere bouge seulement dans les courbes rapides: equilibre aero trop avance. A l'arret on enleve un cran a l'avant."
+    },
+    "setup_garage_front": {
+      "cat": "assetto",
+      "level": "info",
+      "beep": false,
+      "it": "Sottosterzo nelle curve lente: è meccanica, non aria. Quando torni al garage: barra anteriore più morbida o un filo di camber in più davanti.",
+      "variants_it": [
+        "Sottosterzo nelle curve lente: è meccanica, non aria. Quando torni al garage: barra anteriore più morbida o un filo di camber in più davanti.",
+        "Nelle lente l'anteriore non gira: da garage — ammorbidisci la barra davanti, o guadagna grip meccanico con le pressioni."
+      ],
+      "en": "Understeer in the slow corners: that's mechanical, not aero. Back in the garage: softer front bar or a touch more front camber.",
+      "es": "Subviraje en las curvas lentas: es mecánica. En el garaje: barra delantera más blanda o algo más de caída delante.",
+      "fr": "Sous-virage dans les courbes lentes: c'est mecanique. Au garage: barre avant plus souple ou un peu plus de carrossage avant."
+    },
+    "setup_garage_rear": {
+      "cat": "assetto",
+      "level": "info",
+      "beep": false,
+      "it": "Il posteriore scappa nelle curve lente: meccanica. Quando torni al garage: barra posteriore più morbida o posteriore un filo più alto di pressioni.",
+      "variants_it": [
+        "Il posteriore scappa nelle curve lente: meccanica. Quando torni al garage: barra posteriore più morbida o posteriore un filo più alto di pressioni.",
+        "Sovrasterzo nelle lente, in trazione: da garage — ammorbidisci dietro, la gomma deve appoggiare."
+      ],
+      "en": "The rear steps out in the slow corners: mechanical. Back in the garage: softer rear bar or slightly different rear pressures.",
+      "es": "La trasera se escapa en las curvas lentas: mecánica. En el garaje: barra trasera más blanda.",
+      "fr": "L'arriere decroche dans les courbes lentes: mecanique. Au garage: barre arriere plus souple."
     }
   }
 }

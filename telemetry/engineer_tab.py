@@ -249,6 +249,13 @@ class _EngineerTab(QWidget):
                                   lambda on: self._save(beep_on=on)))
         root.addWidget(bw)
 
+        # ── AUTO SETUP al pit: l'ingegnere regola pressioni/ala nel
+        # pit menu in base a cio' che ha visto nello stint (23/07) ──
+        sw, sh = self._row("Auto setup at pit stop")
+        sh.addWidget(self._toggle(bool(cfg.get("auto_setup", False)),
+                                  lambda on: self._save(auto_setup=on)))
+        root.addWidget(sw)
+
         # ── Ritardo tono radio (0-5 s) ──
         dw, dh = self._row("Radio tone delay")
         sp = QSpinBox()

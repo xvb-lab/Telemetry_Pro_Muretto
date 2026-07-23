@@ -2436,6 +2436,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             it = find(pfx)
             if it:
                 rows.append(it)
+        # PRESSIONI e ALA (rich. 23/07): regolabili anche dalla card
+        for _sub9 in ("PRESS", "WING", "AILERON", "GRILLE"):
+            for it2 in items:
+                _n2 = str((it2 or {}).get("name") or "").upper()
+                if _sub9 in _n2 and it2 not in rows:
+                    rows.append(it2)
         # STOP/GO (serve penalità sì/no): SEMPRE in cima quando LMU lo espone,
         # switchabile — NON sparisce se metti "No"
         it = find("STOP/GO") or find("STOP AND GO") or find("STOP")

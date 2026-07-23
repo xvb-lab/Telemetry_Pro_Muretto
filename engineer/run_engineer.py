@@ -368,6 +368,7 @@ def _collect(brain, raw, ld, pace):
         (brain.tl_where_call, (raw,)),            # track limits NOMINATI (in che curva)
         (brain.timeloss_focus_call, (raw, ld)),   # dove perdi: curva ricorrente (prova)
         (brain.rain_pace_call, (raw, ld)),        # slick sotto pioggia: passo crollato
+        (brain.setup_advice_call, (raw, ld)),     # assetto-consapevole: bias/ala/garage (23/07)
         # (brain.welcome_call TOLTO: il benvenuto aveva rotto, 23/07)
         (brain.stint_debrief, (raw, ld)),         # debrief a voce a fine stint (garage)
         # 🔵 STRATEGY
@@ -424,6 +425,92 @@ def _collect(brain, raw, ld, pace):
         except Exception:
             pass
     return out
+
+
+def _auto_setup_apply(tg, vox, lang):
+    """AUTO-SETUP (23/07): scrive nel PIT MENU di LMU pressioni (e ala)
+    dai target del cervello. Stessa scrittura collaudata della card
+    (loadPitMenu, lista integrale con currentSetting cambiati)."""
+    try:
+        import re as _re2
+        import json as _js
+        import urllib.request as _ur
+        from core.strategy import fetch_pit_menu
+        pm = fetch_pit_menu(timeout=1.2)
+        rawm = (pm or {}).get("_raw")
+        if not rawm:
+            return
+        deltas = tg.get("press_delta") or [0.0] * 4
+        wing = int(tg.get("wing") or 0)
+        _ordw = ("FL", "FR", "RL", "RR")
+
+        def _num(s):
+            m = _re2.search(r"(\d+(?:[.,]\d+)?)", str(s or ""))
+            return float(m.group(1).replace(",", ".")) if m else None
+
+        done = []
+        for it in rawm:
+            nm = str((it or {}).get("name") or "").upper()
+            ss = it.get("settings") or []
+            if not ss:
+                continue
+            if "PRESS" in nm:
+                _wi = None
+                for j, w in enumerate(_ordw):
+                    if nm.startswith(w):
+                        _wi = j
+                        break
+                if _wi is None or abs(deltas[_wi]) < 2.0:
+                    continue
+                try:
+                    cur = int(it.get("currentSetting") or 0)
+                except (TypeError, ValueError):
+                    cur = 0
+                curv = _num((ss[cur] or {}).get("text")) \
+                    if 0 <= cur < len(ss) else None
+                if curv is None:
+                    continue
+                tgtv = curv + deltas[_wi]
+                best, bj = None, cur
+                for j, op in enumerate(ss):
+                    v = _num((op or {}).get("text"))
+                    if v is None:
+                        continue
+                    d = abs(v - tgtv)
+                    if best is None or d < best:
+                        best, bj = d, j
+                if bj != cur:
+                    it["currentSetting"] = bj
+                    done.append("%s %d" % (_ordw[_wi], int(round(
+                        _num((ss[bj] or {}).get("text")) or 0))))
+            elif wing and ("WING" in nm or "AILERON" in nm):
+                try:
+                    cur = int(it.get("currentSetting") or 0)
+                except (TypeError, ValueError):
+                    cur = 0
+                nj = max(0, min(len(ss) - 1, cur + wing))
+                if nj != cur:
+                    it["currentSetting"] = nj
+                    done.append("wing %+d" % wing)
+        if not done:
+            return
+        req = _ur.Request(
+            "http://localhost:6397/rest/garage/PitMenu/loadPitMenu",
+            data=_js.dumps(rawm).encode("utf-8"),
+            headers={"Content-Type": "application/json"}, method="POST")
+        _ur.urlopen(req, timeout=1.5)
+        try:
+            from engineer.roles import voice_for
+            _T = {"it": "Auto-setup: al pit sistemo %s.",
+                  "en": "Auto-setup: at the stop I'm adjusting %s.",
+                  "es": "Auto-setup: en la parada ajusto %s.",
+                  "fr": "Auto-setup: a l'arret je regle %s."}
+            vox.speak(_T.get(lang, _T["it"]) % ", ".join(done),
+                      voice=voice_for("pit_ack", lang))
+        except Exception:
+            pass
+    except Exception:
+        pass
 
 
 def _lang():
@@ -656,6 +743,24 @@ def run():
                 # mappa tempi community su questa pista (fetch bg, non blocca)
                 raw["limits_review"] = mem.player_limits_review()   # taglio sotto esame
                 raw["field"] = mem.field_drivers()
+                # ── AUTO-SETUP: entrando in corsia box (una volta per
+                # sosta) l'ingegnere regola il pit menu dai findings ──
+                try:
+                    _asx = globals().setdefault("_AS_ST", {})
+                    _inp9 = bool(raw.get("in_pits")) \
+                        and not raw.get("garage")
+                    if _inp9 and not _asx.get("done"):
+                        _asx["done"] = True
+                        if bool(engineer_cfg.load().get("auto_setup")):
+                            import threading as _th9
+                            _th9.Thread(
+                                target=_auto_setup_apply,
+                                args=(brain.setup_targets(), vox, lang),
+                                daemon=True).start()
+                    elif not _inp9:
+                        _asx["done"] = False
+                except Exception:
+                    pass
                 _ctimes, _cknown = _community_tick(d.get("track"), raw["field"])
                 raw["comm"] = {"times": _ctimes, "known": _cknown}
                 # DANNI aero + sospensione (REST wearables): il muretto

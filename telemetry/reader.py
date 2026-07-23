@@ -299,6 +299,16 @@ class TelemetryReader:
                 out["track_len"] = float(si.mLapDist)
             except Exception:
                 out["track_len"] = 0.0
+            # assetto-consapevole (23/07): sterzo e imbardata per
+            # understeer angle / attitude velocity (Segers cap.7)
+            try:
+                out["steer"] = float(t.mUnfilteredSteering)
+            except Exception:
+                out["steer"] = None
+            try:
+                out["yaw_rate"] = float(t.mLocalRot.y)
+            except Exception:
+                out["yaw_rate"] = None
             out["wetness"] = float(si.mAvgPathWetness)
             try:
                 out["wetness_min"] = float(si.mMinPathWetness)

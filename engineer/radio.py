@@ -130,6 +130,9 @@ _mk(["grip_margin", "grip_over", "abs_high", "tc_high", "ve_burn",
      "dirty_air", "opp_fading", "timeloss_focus", "brake_potential",
      "coast_waste", "brake_release_dirty", "gas_earlier"], 3)
 _mk(["grip_loss"], 2)
+_mk(["bias_ack"], 2)
+_mk(["adv_bias_back", "adv_bias_fwd", "adv_wing_front", "adv_wing_less",
+     "setup_garage_front", "setup_garage_rear"], 3)
 # default 4 = coaching (passo, settori, note curva)
 
 _TIER_TTL = {0: 999, 1: 30, 2: 12, 3: 8, 4: 10}

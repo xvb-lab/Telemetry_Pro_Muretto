@@ -4759,6 +4759,16 @@ class Engineer:
         _rv9 = _avg("rel")
         if _rv9 is not None:
             st.setdefault("rel_hist", []).append(_rv9)
+        # target PRESSIONI per l'auto-setup (delta verso il centro
+        # finestra, kPa): aggiornato OGNI giro, letto da setup_targets
+        _win9 = self._PF_PRESS.get(tag)
+        if _win9:
+            _mid9 = (_win9[0] + _win9[1]) / 2.0
+            _tgt9 = []
+            for _i in range(4):
+                _pv9t = _avg("pr%d" % _i)
+                _tgt9.append(0.0 if _pv9t is None else (_mid9 - _pv9t))
+            st["press_tgt"] = _tgt9
         # S1. GRIP PERSO: grip factor vs i primi 3 giri dello stint —
         # il degrado OGGETTIVO (parla a passi di 5%)
         if out is None and _gf9 is not None:
@@ -4993,6 +5003,114 @@ class Engineer:
                 return [self.msg("rain_box_pace",
                                  perdita="%.0f" % (last - med))]
         return []
+
+    # ══ MURETTO ASSETTO-CONSAPEVOLE (23/07 notte) ══════════════════
+    # L'ingegnere SA cosa hai sotto: bias (numero vero), mappe, bilancio
+    # aero MISURATO (downforce N), e incrocia coi findings. Curvoni =
+    # aria -> ala (pit menu, anche in gara); lente = meccanica -> garage
+    # (solo prove, codici setup_ = legge focus li' muta in Q/gara).
+    _SA_TH = 0.035           # rad/s: attitude medio (conservativa)
+
+    def setup_advice_call(self, raw, ld):
+        raw = raw or {}
+        st = self._st.setdefault("sa", {})
+        if raw.get("garage") or raw.get("in_pits"):
+            st.clear()
+            return []
+        out = []
+        # ── BIAS: consapevolezza + ack quando LO SPOSTI in macchina ──
+        _bb = self._fnum(raw.get("brake_bias"))
+        if _bb is not None and 0.0 < _bb < 1.0:
+            _fr = (1.0 - _bb) * 100.0
+            _prev = st.get("bias")
+            st["bias"] = _fr
+            if _prev is not None and abs(_fr - _prev) > 0.15:
+                st["bias_t"] = _time.monotonic()
+                st["bias_pend"] = True
+            if st.get("bias_pend") and                     _time.monotonic() - st.get("bias_t", 0.0) > 3.0:
+                st["bias_pend"] = False
+                out.append(self.msg("bias_ack", bias="%.1f" % _fr))
+        spd = self._fnum(raw.get("speed")) or 0.0
+        gl = self._fnum(raw.get("g_lat")) or 0.0
+        # ── bilancio aero MISURATO (dritti veloci, downforce vera) ──
+        _df = self._fnum(raw.get("df_front"))
+        _dr = self._fnum(raw.get("df_rear"))
+        if _df is not None and _dr is not None and _df + _dr > 500.0                 and spd > 150.0 and abs(gl) < 0.2:
+            a = st.setdefault("ab", [0.0, 0])
+            a[0] += _df / (_df + _dr)
+            a[1] += 1
+        # ── attitude velocity (Segers 7.6): yaw vero vs yaw del
+        # percorso; + = sovrasterzo, - = sottosterzo. Il segno dello
+        # yaw si AUTOCALIBRA correlandolo col laterale ──
+        yaw = self._fnum(raw.get("yaw_rate"))
+        if yaw is not None and abs(gl) > 0.9 and spd > 60.0:
+            st["flip"] = st.get("flip", 0.0) + yaw * gl
+            _sgn = 1.0 if st.get("flip", 0.0) >= 0 else -1.0
+            _att = _sgn * yaw - gl * 9.81 / max(spd / 3.6, 10.0)
+            _att *= (1.0 if gl >= 0 else -1.0)
+            _k = "fast" if spd > 150.0 else                 ("slow" if spd < 120.0 else None)
+            if _k:
+                a = st.setdefault(_k, [0.0, 0])
+                a[0] += _att
+                a[1] += 1
+        # ── verdetti al cambio giro (max 1 ogni 2 giri) ──
+        lap = int(raw.get("laps_completed") or 0)
+        if lap <= int(st.get("lap") or 0):
+            return [m for m in out if m]
+        st["lap"] = lap
+        if lap - int(st.get("adv_lap") or -9) < 2:
+            return [m for m in out if m]
+        kind = session_kind(raw.get("session_type"))
+        said = st.setdefault("said", set())
+        adv = None
+        _f = st.get("fast")
+        _s = st.get("slow")
+        _fa = (_f[0] / _f[1]) if _f and _f[1] >= 150 else None
+        _sav = (_s[0] / _s[1]) if _s and _s[1] >= 150 else None
+        if _fa is not None and "wf" not in said                 and _fa < -self._SA_TH                 and (_sav is None or _sav > -self._SA_TH * 0.6):
+            said.add("wf")
+            adv = self.msg("adv_wing_front")
+        elif _fa is not None and "wl" not in said                 and _fa > self._SA_TH                 and (_sav is None or _sav < self._SA_TH * 0.6):
+            said.add("wl")
+            adv = self.msg("adv_wing_less")
+        elif _sav is not None and kind == "practice"                 and "gf" not in said and _sav < -self._SA_TH                 and (_fa is None or _fa > -self._SA_TH * 0.6):
+            said.add("gf")
+            adv = self.msg("setup_garage_front")
+        elif _sav is not None and kind == "practice"                 and "gr" not in said and _sav > self._SA_TH                 and (_fa is None or _fa < self._SA_TH * 0.6):
+            said.add("gr")
+            adv = self.msg("setup_garage_rear")
+        # bias col numero VERO, incrociato coi findings dello stint
+        if adv is None and st.get("bias"):
+            _pfs = (self._st.get("pf") or {}).get("said") or set()
+            if "bb" not in said and "abs" in _pfs                     and st["bias"] >= 55.0:
+                said.add("bb")
+                adv = self.msg("adv_bias_back", bias="%.1f" % st["bias"])
+            elif "bf" not in said and "bpot" in _pfs                     and st["bias"] <= 52.0:
+                said.add("bf")
+                adv = self.msg("adv_bias_fwd", bias="%.1f" % st["bias"])
+        if adv:
+            st["adv_lap"] = lap
+            out.append(adv)
+        return [m for m in out if m]
+
+    def setup_targets(self):
+        """Target AUTO-SETUP per il pit (letti da run_engineer):
+        {press_delta:[kPa x4] da sommare al freddo, wing:-1/0/+1}."""
+        out = {"press_delta": [0.0] * 4, "wing": 0}
+        try:
+            pf = self._st.get("pf") or {}
+            _tgt = pf.get("press_tgt")
+            if _tgt:
+                out["press_delta"] = [max(-12.0, min(12.0, float(x)))
+                                      for x in _tgt]
+            _sas = (self._st.get("sa") or {}).get("said") or set()
+            if "wf" in _sas:
+                out["wing"] = 1
+            elif "wl" in _sas:
+                out["wing"] = -1
+        except Exception:
+            pass
+        return out
 
     def _sane_one(self, m, raw):
         code = (m or {}).get("code") or ""
