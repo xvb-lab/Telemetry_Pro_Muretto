@@ -2235,6 +2235,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         self._paint_ctrl_row(p)
         # MOTORE SPENTO (rpm a zero): LOGO AUTO che resta + scritte sotto
         if self._rpm is not None and self._rpm < 1.0:
+            # il gauge qui NON viene disegnato: azzera il flag motore,
+            # senno' alla riaccensione la transizione non scatta e il
+            # fade in MOD 1 non parte MAI (bug segnalato 23/07)
+            self._eng_on_prev = False
             _lcy = (self.HDR + _H) / 2.0 - 26.0        # STESSA posizione del boot
             _lh = self._draw_car_logo(p, _W / 2.0, _lcy, 72.0)
             _oy = _lcy + (_lh or 40.0) / 2.0 + 12.0    # sotto il logo
@@ -2485,7 +2489,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         self._eng_on_prev = _eon
         if not _eon:
             return
-        _ft = (_nowf - getattr(self, "_ign_fade_t0", 0.0)) / 0.35
+        _ft = (_nowf - getattr(self, "_ign_fade_t0", 0.0)) / 0.5
         if _ft < 1.0:
             p.save()
             p.setOpacity(max(0.05, min(1.0, _ft)))
@@ -2708,7 +2712,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         if show_gear:      # in MOD 2 la marcia NON si disegna (una sola, in MOD 1)
             p.drawText(QPointF(cx - fg.horizontalAdvance(gear) / 2.0,
                                _gcy9 + fg.capHeight() / 2.0), gear)
-        if k9 > 0.0 and _state9 is not None and _state9 != "POPUP":
+        if show_gear and k9 > 0.0 and _state9 is not None \
+                and _state9 != "POPUP":
             # meta' bassa col COLORE dello stato attivo + testo grande
             _bg9, _tx9, _tc9 = _state9
             p.setPen(Qt.NoPen)
