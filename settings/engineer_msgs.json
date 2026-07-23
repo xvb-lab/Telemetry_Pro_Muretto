@@ -1484,7 +1484,7 @@
         "Consumo medio pilota stabilizzato su {laps} giri per turno.",
         "Target di riferimento confermato a {laps} giri per ciascuno stint.",
         "Report telemetrico: andatura compatibile con {laps} giri di stint.",
-        "Run precedenti indicano una costanza di {laps} passaggi per stint."
+        "Turno precedenti indicano una costanza di {laps} passaggi per stint."
       ],
       "es": "Tus datos: ~{laps} vueltas/stint",
       "fr": "Tes données : ~{laps} tours/relais"
@@ -3727,7 +3727,7 @@
       "variants_it": [
         "La pista si gomma e migliora: il tempo vero arriva tardi, tieni un treno fresco per la fine.",
         "Pista in evoluzione: guadagni verso la fine, non bruciare le gomme buone adesso.",
-        "L'asfalto migliora giro dopo giro: il tuo tempo lo fai negli ultimi run, tieni un treno per dopo."
+        "L'asfalto migliora giro dopo giro: il tuo tempo lo fai negli ultimi turno, tieni un treno per dopo."
       ],
       "en": "Track's rubbering in and improving: the real time comes late, keep a fresh set for the end.",
       "es": "La pista se engoma y mejora: el tiempo bueno llega tarde, guarda un juego para el final.",
@@ -6984,11 +6984,11 @@
     "run_aborted": {
       "beep": true,
       "level": "info",
-      "it": "Ok, run abortito. Ora raffredda la macchina.",
+      "it": "Ok, turno abortito. Ora raffredda la macchina.",
       "variants_it": [
-        "Ok, run abortito. Ora raffredda la macchina.",
+        "Ok, turno abortito. Ora raffredda la macchina.",
         "Giro buttato, nessun problema: raffredda gomme e freni.",
-        "Run chiuso qui. Raffredda la macchina, prepariamo il prossimo."
+        "Turno chiuso qui. Raffredda la macchina, prepariamo il prossimo."
       ],
       "en": "Ok, run aborted. Cool the car down now.",
       "es": "Ok, run abortado. Ahora enfria el coche.",
@@ -7663,7 +7663,7 @@
       "cat": "garage",
       "level": "info",
       "beep": false,
-      "it": "Fermo un attimo: dammi due minuti, controllo pressioni, temperature e livelli, e decidiamo il programma — giro secco o long run.",
+      "it": "Fermo un attimo: dammi due minuti, controllo pressioni, temperature e livelli, e decidiamo il programma — giro secco o passo lungo.",
       "variants_it": [
         "Un momento: passo in rassegna la macchina — freni, gomme, livelli — e poi usciamo con un piano chiaro.",
         "Dammi due minuti: controllo la macchina e decidiamo il programma.",
@@ -7671,9 +7671,9 @@
         "Aspetta che do un'occhiata alla macchina, poi facciamo il piano.",
         "Due minuti di controlli e ti preparo l'uscita: pressioni, benzina e condizioni pista.",
         "Prima di uscire faccio il giro dei dati: consumi, gomme, meteo. Ti aggiorno subito.",
-        "Vediamo i numeri un attimo: appena ho il quadro ti do il programma del run.",
+        "Vediamo i numeri un attimo: appena ho il quadro ti do il programma del turno.",
         "Controllo lo stato della macchina e le condizioni, poi decidiamo se giro secco o passo gara.",
-        "Un attimo che allineo i dati dell'ultimo run, cosi' usciamo con obiettivi chiari.",
+        "Un attimo che allineo i dati dell'ultimo turno, cosi' usciamo con obiettivi chiari.",
         "Fammi guardare le temperature d'asfalto e la gommatura, poi ti dico che finestra abbiamo."
       ],
       "en": "Hold on: give me two minutes to check pressures, temps and levels, then we decide the programme — hot lap or long run.",
@@ -7707,7 +7707,7 @@
       "variants_it": [
         "Dai dati dello stint: in curva {turn} c'è troppo sottosterzo, l'anteriore slitta molto più del posteriore. Da assetto: più ala davanti o barra anteriore più morbida.",
         "L'analisi dice sottosterzo marcato in curva {turn}: il davanti scivola. Possiamo lavorare su ala anteriore, barra o mezzo psi in meno davanti.",
-        "Nel long run la curva {turn} è il punto critico: l'anteriore non tiene la linea. Ne parliamo per l'assetto — più carico davanti."
+        "Nel passo lungo la curva {turn} è il punto critico: l'anteriore non tiene la linea. Ne parliamo per l'assetto — più carico davanti."
       ],
       "en": "Stint data: heavy understeer in turn {turn}, the front slides much more than the rear. Setup-wise: more front wing or softer front bar.",
       "es": "Datos del stint: subviraje fuerte en la curva {turn}.",
@@ -7721,7 +7721,7 @@
       "variants_it": [
         "Dai dati dello stint: in curva {turn} il posteriore scappa, sovrasterzo netto. Da assetto: più ala dietro o barra posteriore più morbida.",
         "L'analisi dice sovrasterzo in curva {turn}: il retrotreno slitta più del davanti. Stabilizziamo con carico dietro o differenziale.",
-        "Nel long run il posteriore balla in curva {turn}: se vuoi lo curiamo d'assetto, più appoggio dietro."
+        "Nel passo lungo il posteriore balla in curva {turn}: se vuoi lo curiamo d'assetto, più appoggio dietro."
       ],
       "en": "Stint data: the rear steps out in turn {turn}, clear oversteer. More rear wing or softer rear bar.",
       "es": "Datos del stint: sobreviraje en la curva {turn}.",
@@ -7731,9 +7731,9 @@
       "cat": "debrief",
       "level": "info",
       "beep": false,
-      "it": "Per il long run occhio: stiamo consumando soprattutto la {ruota}. Gestione in trazione e percorrenza da quel lato, o rivediamo pressioni e camber.",
+      "it": "Per il passo lungo occhio: stiamo consumando soprattutto la {ruota}. Gestione in trazione e percorrenza da quel lato, o rivediamo pressioni e camber.",
       "variants_it": [
-        "Per il long run occhio: stiamo consumando soprattutto la {ruota}. Gestione in trazione e percorrenza da quel lato, o rivediamo pressioni e camber.",
+        "Per il passo lungo occhio: stiamo consumando soprattutto la {ruota}. Gestione in trazione e percorrenza da quel lato, o rivediamo pressioni e camber.",
         "L'usura dello stint è sbilanciata: la {ruota} lavora più delle altre. Da guida o da assetto, va alleggerita.",
         "Dai dati gomme: la {ruota} è quella che paga di più. Se il passo gara è lungo, curiamola — pressione o camber."
       ],
@@ -7869,9 +7869,9 @@
       "cat": "debrief",
       "level": "info",
       "beep": false,
-      "it": "Per il long run: stiamo consumando soprattutto la {ruota}, e il grosso arriva dalla curva {turn}. Più dolce lì e il treno respira.",
+      "it": "Per il passo lungo: stiamo consumando soprattutto la {ruota}, e il grosso arriva dalla curva {turn}. Più dolce lì e il treno respira.",
       "variants_it": [
-        "Per il long run: stiamo consumando soprattutto la {ruota}, e il grosso arriva dalla curva {turn}. Più dolce lì e il treno respira.",
+        "Per il passo lungo: stiamo consumando soprattutto la {ruota}, e il grosso arriva dalla curva {turn}. Più dolce lì e il treno respira.",
         "L'usura è sbilanciata sulla {ruota}: nei dati la maltrattiamo in curva {turn}. Gestione in quel punto o rivediamo l'assetto.",
         "Dai dati gomme: la {ruota} paga più delle altre, principalmente in curva {turn}. Tienilo a mente per il passo gara."
       ],
@@ -7912,21 +7912,21 @@
       "cat": "strategy",
       "level": "info",
       "beep": false,
-      "it": "Long run: obiettivo {laps} giri, più {extra} di lico. Il numero da tenere è {target} a giro, adesso stai sui {cur}. Ti guido io: i led ti segnano dove alzare.",
+      "it": "Passo lungo: obiettivo {laps} giri, più {extra} di lico. Il numero da tenere è {target} a giro, adesso stai sui {cur}. Ti guido io: i led ti segnano dove alzare.",
       "variants_it": [
-        "Long run: obiettivo {laps} giri, più {extra} di lico. Il numero da tenere è {target} a giro, adesso stai sui {cur}. Ti guido io: i led ti segnano dove alzare.",
-        "Partiamo col long run, lico più {extra}: {laps} giri totali a {target} l'uno, oggi viaggi a {cur}. Segui i led, al conto penso io.",
-        "Programma long run: target {target} a giro per arrivare a {laps}. Il risparmio si costruisce in staccata, i led ti dicono quando."
+        "Passo lungo: obiettivo {laps} giri, più {extra} di lico. Il numero da tenere è {target} a giro, adesso stai sui {cur}. Ti guido io: i led ti segnano dove alzare.",
+        "Partiamo col passo lungo, lico più {extra}: {laps} giri totali a {target} l'uno, oggi viaggi a {cur}. Segui i led, al conto penso io.",
+        "Programma passo lungo: target {target} a giro per arrivare a {laps}. Il risparmio si costruisce in staccata, i led ti dicono quando."
       ]
     },
     "longrun_on_nodata": {
       "cat": "strategy",
       "level": "info",
       "beep": false,
-      "it": "Long run attivo, più {extra} giri. Fammi un giro pulito e ti do il numero da tenere.",
+      "it": "Passo lungo attivo, più {extra} giri. Fammi un giro pulito e ti do il numero da tenere.",
       "variants_it": [
-        "Long run attivo, più {extra} giri. Fammi un giro pulito e ti do il numero da tenere.",
-        "Programma long run, più {extra} giri: al primo giro chiuso arriva il target di consumo."
+        "Passo lungo attivo, più {extra} giri. Fammi un giro pulito e ti do il numero da tenere.",
+        "Programma passo lungo, più {extra} giri: al primo giro chiuso arriva il target di consumo."
       ]
     },
     "racesim_on": {
@@ -8334,7 +8334,7 @@
       "variants_it": [
         "Stai veleggiando troppo tra gas e freno: quasi {sec} secondi a giro. Tieni il gas fino al punto di staccata.",
         "Troppo tempo né sul gas né sul freno: {sec} secondi a giro regalati. Gas dentro fino alla staccata.",
-        "Obiettivo semplice per questo run: il tre per cento in più del giro a gas pieno. Si prende tra il rilascio e la staccata.",
+        "Obiettivo semplice per questo turno: il tre per cento in più del giro a gas pieno. Si prende tra il rilascio e la staccata.",
         "Tra gas e freno non deve esserci vuoto: o acceleri o stai frenando. Il veleggio è tempo regalato al cronometro."
       ],
       "en": "You're coasting too much between throttle and brake: almost {sec} seconds a lap. Stay on the throttle until the braking point.",

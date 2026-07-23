@@ -10966,7 +10966,7 @@ class TelemetryWindow(QMainWindow):
         _ppwrap = QWidget(); _ppwrap.setFixedSize(20, 24)
         _ppwrap.setStyleSheet("background:transparent;")
         _pp = _SvgBox(); _pp.setParent(_ppwrap)
-        _pp.setGeometry(0, 4, 20, 20)
+        _pp.setGeometry(0, 1, 20, 20)   # allineata alla scritta (23/07)
         _pp.setStyleSheet("background:transparent;")
         _pp.load(str(Path(__file__).resolve().parent.parent / "assets"
                      / "support_cup.svg"))
@@ -10975,11 +10975,11 @@ class TelemetryWindow(QMainWindow):
                                     QEasingCurve, QTimer as _QThop)
         self._cup_anim = QPropertyAnimation(_pp, b"pos", self)
         self._cup_anim.setDuration(700)
-        self._cup_anim.setStartValue(QPoint(0, 4))
-        self._cup_anim.setKeyValueAt(0.22, QPoint(0, -3))   # hop!
-        self._cup_anim.setKeyValueAt(0.45, QPoint(0, 4))
-        self._cup_anim.setKeyValueAt(0.62, QPoint(0, 0))    # hop piccolo
-        self._cup_anim.setEndValue(QPoint(0, 4))
+        self._cup_anim.setStartValue(QPoint(0, 1))
+        self._cup_anim.setKeyValueAt(0.22, QPoint(0, -5))   # hop!
+        self._cup_anim.setKeyValueAt(0.45, QPoint(0, 1))
+        self._cup_anim.setKeyValueAt(0.62, QPoint(0, -2))   # hop piccolo
+        self._cup_anim.setEndValue(QPoint(0, 1))
         self._cup_anim.setEasingCurve(QEasingCurve.OutQuad)
         self._cup_timer = _QThop(self)
         self._cup_timer.timeout.connect(
