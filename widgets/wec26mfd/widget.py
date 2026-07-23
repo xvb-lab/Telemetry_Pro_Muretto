@@ -1258,10 +1258,21 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         except Exception:
             pass
         # beep LIFT & COAST (assets/lift.wav) all'apertura della zona
+        # — vale per il lico NATIVO e per il NOSTRO (stesso suono,
+        # stessa soglia: mai due comportamenti diversi)
         try:
-            if self._lico < 0.015:
+            _leff = self._lico
+            if _leff < 0.015:
+                try:
+                    _own9 = self._eco_lift_frac()
+                    if _own9 is not None:
+                        _leff = _own9
+                except Exception:
+                    pass
+            self._lico_eff = _leff
+            if _leff < 0.015:
                 self._lico_open = False
-            elif self._lico >= 0.03 and not self._lico_open:
+            elif _leff >= 0.03 and not self._lico_open:
                 self._lico_open = True
                 if self._lico_snd is None:
                     from PySide6.QtMultimedia import QSoundEffect
@@ -4310,17 +4321,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         ns, lws = 6, 12.0
         blk = ns * lws + (ns - 1) * gap
         lx, rx = 10.0, _W - 10.0 - blk
-        frac = self._lico
-        # LICO NOSTRO: se il gioco tace (pannello LMU non impostato) e
-        # l'eco del muretto e' attivo, il segnale lift lo facciamo NOI
-        # dalle curve apprese — stessi LED, stesso linguaggio
-        if frac < 0.015:
-            try:
-                _own9 = self._eco_lift_frac()
-                if _own9 is not None:
-                    frac = _own9
-            except Exception:
-                pass
+        # lico EFFETTIVO (nativo o NOSTRO): stessi LED viola, stesso
+        # blink rosa sul gas, stesso beep — nessuna differenza
+        frac = getattr(self, "_lico_eff", None)
+        if frac is None:
+            frac = self._lico
         if frac >= 0.015:
             if self._thr_in > 0.15:
                 on = int(time.monotonic() * 3) % 2 == 0
