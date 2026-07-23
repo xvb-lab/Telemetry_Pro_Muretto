@@ -3187,7 +3187,7 @@ class _WorksheetTab(QWidget):
         cur = getattr(self.map_w, "_mk_style", "dot")
         m = QMenu(self)
         m.setStyleSheet(
-            "QMenu{background:#16181c;color:#f2f4f7;border:1px solid #2a2c30;"
+            "QMenu{menu-scrollable:1;background:#16181c;color:#f2f4f7;border:1px solid #2a2c30;"
             "font-family:Archivo SemiExpanded;font-size:12px;}"
             "QMenu::item{padding:5px 18px;}"
             "QMenu::item:selected{background:rgba(255,29,67,0.45);}")
@@ -3211,7 +3211,7 @@ class _WorksheetTab(QWidget):
         have = {nm for nm, _w, _c in self._items}
         m = QMenu(self)
         m.setStyleSheet(
-            "QMenu{background:#16181c;color:#f2f4f7;border:1px solid #2a2c30;"
+            "QMenu{menu-scrollable:1;background:#16181c;color:#f2f4f7;border:1px solid #2a2c30;"
             "font-family:Archivo SemiExpanded;font-size:12px;}"
             "QMenu::item{padding:5px 18px;}"
             "QMenu::item:selected{background:rgba(255,29,67,0.45);}")
