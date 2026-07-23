@@ -10479,6 +10479,9 @@ class _OptionsPage(_TrackPage):
 
     def __init__(self, on_back=None, parent=None):
         super().__init__(on_sessions=None, on_back=on_back, parent=parent)
+        # OPTIONS e' INDIPENDENTE (dal footer): entrare/uscire non
+        # tocca la sessione -> MAI lucchetto (rich. 23/07 notte)
+        self._exit_locks = False
         try:
             self._btn_sess.setVisible(False)
             self._left_panel.setVisible(False)
