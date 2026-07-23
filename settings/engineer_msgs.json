@@ -560,7 +560,7 @@
         "Degrado alto, gomme nuove alla sosta.",
         "Alla sosta montiamo gomme nuove.",
         "Serve treno nuovo al box.",
-        "Sosta imminente, previsto set di pneumatici freschi.",
+        "Sosta imminente, previsto treno di gomme fresche.",
         "Prepariamo quattro gomme nuove per il prossimo stint.",
         "Cambio gomme confermato al pit stop per usura eccessiva.",
         "Ricevuto, passiamo a mescola nuova al rientro.",
@@ -1584,7 +1584,7 @@
         "Condizioni meteo in miglioramento: il drenaggio della pista è ottimale, traiettoria principale quasi completamente asciutta.",
         "Il Settore 2 mostra segni evidenti di asciugatura; massima attenzione al surriscaldamento delle gomme wet.",
         "Dati telemetrici confermano un aumento del grip: segui la linea asciutta per preservare la mescola.",
-        "La pista si sta asciugando rapidamente; preparati a gestire il calo di performance dello pneumatico rain.",
+        "La pista si sta asciugando rapidamente; preparati a gestire il calo di performance dello pneumatico pioggia.",
         "Report di pista: traiettoria ottimale asciutta dal punto di corda di curva 6 fino al rettilineo.",
         "Superficie in fase di transizione; resta sulla traiettoria asciutta per mantenere il ritmo.",
         "Situazione sotto controllo: l'asfalto nel Settore 3 è ora asciutto; evita le zone umide all'esterno.",
@@ -1727,7 +1727,7 @@
         "Previsto un fronte di bagnato pesante a breve, la visibilità calerà ai minimi.",
         "Il radar dà un diluvio imminente in questo settore, occhio ai possibili fiumi d'acqua.",
         "Le previsioni indicano molto carico d'acqua in arrivo, la pista si saturerà in fretta.",
-        "Attesi rovesci intensi a breve, andiamo verso condizioni da full wet."
+        "Attesi rovesci intensi a breve, andiamo verso condizioni da wet piena."
       ],
       "en": "Radar shows heavy rain heading to {pista} in a few minutes.",
       "es": "El radar muestra lluvia fuerte llegando a {pista} en pocos minutos.",
@@ -2316,15 +2316,15 @@
       "it": "Inizia a piovere, prepariamo le gomme da bagnato.",
       "variants_it": [
         "Inizia a piovere, prepariamo le gomme da bagnato.",
-        "Pioggia in arrivo, valuta il cambio gomme rain.",
-        "Si bagna, pensiamo alle intermedie o rain.",
+        "Pioggia in arrivo, valuta il cambio gomme pioggia.",
+        "Si bagna, pensiamo alle intermedie o pioggia.",
         "Pista che si bagna, prossimo pit gomme da pioggia.",
-        "Arriva la pioggia, prepara le gomme rain.",
+        "Arriva la pioggia, prepara le gomme pioggia.",
         "Bagnato in aumento, gomme da bagnato al prossimo giro utile.",
-        "Pioggia, conviene montare le rain.",
+        "Pioggia, conviene montare le pioggia.",
         "Si mette a piovere, valutiamo le intermedie.",
         "Acqua in pista, prepariamo le coperture da bagnato.",
-        "Pioggia in arrivo, gomme rain pronte ai box."
+        "Pioggia in arrivo, gomme pioggia pronte ai box."
       ],
       "en": "Rain is starting, we're getting the wets ready.",
       "es": "Empieza a llover, preparamos los neumáticos de lluvia.",
@@ -3020,7 +3020,7 @@
         "Aggiornamento: gomme al {gomme} per cento, {fonte} per {giri} giri. Tutto a posto.",
         "Punto gestione: gomme {gomme} per cento, autonomia {giri} giri di {fonte}. Sotto controllo.",
         "Situazione: gomme al {gomme}, {fonte} buona per {giri} giri. Continua così.",
-        "Check gestione: gomme {gomme} per cento, {fonte} a posto per {giri} giri.",
+        "Controllo gestione: gomme {gomme} per cento, {fonte} a posto per {giri} giri.",
         "Aggiornamento gara: gomme {gomme}, {fonte} per {giri} giri. Ritmo buono."
       ],
       "en": "Update: tyres at {gomme} percent, {fonte} for {giri} laps. All good.",
@@ -3035,7 +3035,7 @@
         "Aggiornamento bagnato: gomme al {gomme} per cento, pista {cond}. Gestisci la temperatura.",
         "Punto sul bagnato: gomme {gomme} per cento, pista {cond}. Occhio alle wet.",
         "Situazione pioggia: gomme al {gomme}, pista {cond}. Tienile in temperatura.",
-        "Check bagnato: gomme {gomme} per cento, pista {cond}.",
+        "Controllo bagnato: gomme {gomme} per cento, pista {cond}.",
         "Aggiornamento: gomme wet al {gomme}, pista {cond}."
       ],
       "en": "Wet update: tyres at {gomme} percent, track {cond}. Manage the temperature.",
@@ -3050,7 +3050,7 @@
         "Aggiornamento: {fonte} per {giri} giri, margine a posto.",
         "Punto gestione: autonomia {giri} giri di {fonte}.",
         "Situazione: {fonte} buona per {giri} giri.",
-        "Check: {fonte} per {giri} giri, sotto controllo.",
+        "Controllo: {fonte} per {giri} giri, sotto controllo.",
         "Aggiornamento gara: {fonte} per altri {giri} giri."
       ],
       "en": "Update: {fonte} for {giri} laps, margin is fine.",
@@ -3065,7 +3065,7 @@
         "Aggiornamento: gomme al {gomme} per cento, gestione a posto.",
         "Punto gomme: {gomme} per cento, tutto regolare.",
         "Situazione gomme: al {gomme} per cento.",
-        "Check gomme: {gomme} per cento.",
+        "Controllo gomme: {gomme} per cento.",
         "Aggiornamento: gomme al {gomme}, ritmo buono."
       ],
       "en": "Update: tyres at {gomme} percent, management on point.",
@@ -3723,9 +3723,9 @@
     "quali_evolution": {
       "beep": true,
       "level": "info",
-      "it": "La pista si gomma e migliora: il tempo vero arriva tardi, tieni un set fresco per la fine.",
+      "it": "La pista si gomma e migliora: il tempo vero arriva tardi, tieni un treno fresco per la fine.",
       "variants_it": [
-        "La pista si gomma e migliora: il tempo vero arriva tardi, tieni un set fresco per la fine.",
+        "La pista si gomma e migliora: il tempo vero arriva tardi, tieni un treno fresco per la fine.",
         "Pista in evoluzione: guadagni verso la fine, non bruciare le gomme buone adesso.",
         "L'asfalto migliora giro dopo giro: il tuo tempo lo fai negli ultimi run, tieni un treno per dopo."
       ],
@@ -3862,15 +3862,15 @@
       "variants_it": [
         "Batteria quasi sempre piena, non recuperi in frenata. Usa più energia in accelerazione per liberare spazio al recupero.",
         "Stai tenendo la batteria troppo carica, in staccata non rigeneri e i freni scaldano. Scaricala di più tra le curve.",
-        "Carica alta costante, recupero sprecato. Alza il deploy in uscita curva per far respirare la batteria.",
+        "Carica alta costante, recupero sprecato. Alza la spinta elettrica in uscita curva per far respirare la batteria.",
         "La batteria resta piena, perdi energia in frenata. Consuma di più in accelerazione.",
         "Troppa carica in cassa, la rigenerazione va persa. Usa l'ibrido più aggressivo in trazione.",
-        "Batteria satura quasi ovunque, non recuperi in staccata. Aumenta il deploy per fare spazio.",
+        "Batteria satura quasi ovunque, non recuperi in staccata. Aumenta la spinta elettrica per fare spazio.",
         "Stai sprecando recupero, la batteria è al massimo. Scaricala di più in accelerazione.",
         "Carica sempre altissima, freni più caldi e regen sprecata. Spendi più energia sul dritto.",
-        "La batteria non scende mai. Apri il deploy così recuperi meglio in frenata.",
+        "La batteria non scende mai. Apri la spinta elettrica così recuperi meglio in frenata.",
         "Energia elettrica quasi piena tutto il giro. Usane di più in uscita per riattivare il recupero.",
-        "Batteria troppo su, la frenata non rigenera. Alza la mappa di deploy.",
+        "Batteria troppo su, la frenata non rigenera. Alza la mappa di spinta elettrica.",
         "Carica costantemente alta, recupero bloccato. Consuma di più tra le curve."
       ],
       "en": "Battery almost always full, you're not harvesting under braking. Deploy more on the exits to make room to regen.",
@@ -3891,7 +3891,7 @@
         "Recuperi poca energia, la batteria è sempre bassa. Aumenta l'harvest in frenata.",
         "Carica quasi a zero. Alza la mappa di rigenerazione in frenata.",
         "La batteria non si ricarica mai. Frena rigenerando di più.",
-        "Energia elettrica sempre bassa. Recupera di più in staccata per avere deploy.",
+        "Energia elettrica sempre bassa. Recupera di più in staccata per avere spinta elettrica.",
         "Batteria giù tutto il giro. Aumenta il regen nelle zone di frenata.",
         "Poco recupero, carica minima. Alza la rigenerazione e avrai più spinta."
       ],
@@ -3995,9 +3995,9 @@
         "Batteria a {pct} per cento, recupero regolare.",
         "Carica batteria al {pct} per cento, tutto ok.",
         "Ibrido a {pct} per cento, gestione regolare.",
-        "Batteria {pct} per cento, deploy nella norma.",
+        "Batteria {pct} per cento, spinta elettrica nella norma.",
         "Energia elettrica al {pct} per cento.",
-        "Carica al {pct} per cento, recupero e deploy bilanciati.",
+        "Carica al {pct} per cento, recupero e spinta elettrica bilanciati.",
         "Batteria stabile al {pct} per cento.",
         "Stato batteria {pct} per cento, nessun problema.",
         "Ibrido {pct} per cento, continua così.",
@@ -6095,8 +6095,9 @@
       "it": "Pista {grip}, asfalto a {temp} gradi. Sei fuori con gomme {gomme}.",
       "variants_it": [
         "Pista {grip}, asfalto a {temp} gradi. Sei fuori con gomme {gomme}.",
-        "Allora: asfalto a {temp} gradi, pista {grip}. Montiamo {gomme}.",
-        "Ti do il quadro: {temp} gradi a terra, pista {grip}, gomme {gomme}."
+        "Allora: asfalto a {temp} gradi, pista {grip}. Montate le {gomme}.",
+        "Condizioni: {temp} gradi a terra, pista {grip}. Gomme {gomme} sotto.",
+        "Ti aggiorno: pista {grip}, {temp} gradi d'asfalto, sei sulle {gomme}."
       ],
       "en": "Track {grip}, tarmac {temp} degrees. You're on {gomme}.",
       "variants_en": [
@@ -7241,7 +7242,7 @@
       "it": "Out-lap: freni in carbonio, sotto i duecentocinquanta non mordono — staccate progressive per portarli in finestra. Rigenerazione al massimo e batteria sui tre quarti: se satura, il brake-by-wire ti taglia un asse in staccata. Core gomma sopra i settantacinque.",
       "variants_it": [
         "Out-lap: freni in carbonio, sotto i duecentocinquanta non mordono — staccate progressive per portarli in finestra. Rigenerazione al massimo e batteria sui tre quarti: se satura, il brake-by-wire ti taglia un asse in staccata. Core gomma sopra i settantacinque.",
-        "Giro di lancio Hypercar: scalda il carbonio con frenate crescenti e tieni d'occhio il SOC — batteria piena vuol dire niente rigenerazione e frenata sbilanciata. Deploy regolato per chiudere il giro con la stessa carica.",
+        "Giro di lancio Hypercar: scalda il carbonio con frenate crescenti e tieni d'occhio il SOC — batteria piena vuol dire niente rigenerazione e frenata sbilanciata. Spinta elettrica regolato per chiudere il giro con la stessa carica.",
         "Procedura: carbonio in temperatura prima di tutto, poi la gomma. Gestisci la batteria: mai satura in frenata, mai vuota quando rientri — dal box esci solo in elettrico."
       ],
       "en": "Out-lap: carbon brakes don't bite below two-fifty — progressive braking to window them. Regen at max, battery around three quarters: if it saturates, brake-by-wire cuts an axle. Tyre core above seventy-five.",
@@ -7255,7 +7256,8 @@
       "it": "Out-lap: carbonio anche qui — portalo sopra i duecentocinquanta con staccate progressive. La Goodyear vuole due giri veri: core sopra i settantacinque e la macchina si accende. Niente attacco al primo settore.",
       "variants_it": [
         "Out-lap: carbonio anche qui — portalo sopra i duecentocinquanta con staccate progressive. La Goodyear vuole due giri veri: core sopra i settantacinque e la macchina si accende. Niente attacco al primo settore.",
-        "Giro di lancio P2: freni carbonio da scaldare per primi, la gomma arriva al secondo giro. Il Gibson spinge: trazione dolce finché il posteriore non è in finestra."
+        "Giro d'uscita: carbonio anche qui — portalo sopra i duecentocinquanta con staccate progressive. La Goodyear vuole due giri veri: core sopra i settantacinque e la macchina si accende. Niente attacco al primo settore.",
+        "Ok, in uscita: carbonio anche qui — portalo sopra i duecentocinquanta con staccate progressive. La Goodyear vuole due giri veri: core sopra i settantacinque e la macchina si accende. Niente attacco al primo settore."
       ],
       "en": "Out-lap: carbon brakes here too — above two-fifty with progressive stops. The Goodyear needs two proper laps: core above seventy-five and the car comes alive.",
       "es": "Vuelta de salida P2: carbono por encima de 250, la goma llega a la segunda vuelta.",
@@ -7268,7 +7270,8 @@
       "it": "Out-lap: scalda il carbonio con staccate progressive e dai due giri alla gomma. Meno carico e meno aiuti delle sorelle grandi: trazione dolce in uscita finché il posteriore non è in temperatura.",
       "variants_it": [
         "Out-lap: scalda il carbonio con staccate progressive e dai due giri alla gomma. Meno carico e meno aiuti delle sorelle grandi: trazione dolce in uscita finché il posteriore non è in temperatura.",
-        "Giro di lancio P3: freni prima, gomme poi. Il V8 ha coppia: dosala in uscita finché il core non passa i settantacinque."
+        "Giro d'uscita: scalda il carbonio con staccate progressive e dai due giri alla gomma. Meno carico e meno aiuti delle sorelle grandi: trazione dolce in uscita finché il posteriore non è in temperatura.",
+        "Ok, in uscita: scalda il carbonio con staccate progressive e dai due giri alla gomma. Meno carico e meno aiuti delle sorelle grandi: trazione dolce in uscita finché il posteriore non è in temperatura."
       ],
       "en": "Out-lap: warm the carbon with progressive stops and give the tyre two laps. Gentle traction until the rear is in window.",
       "es": "Vuelta de salida P3: frenos primero, gomas despues. Traccion suave.",
@@ -7554,13 +7557,10 @@
       "it": "Esci con un treno nuovo di {gomme}, ancora freddo: primo giro pulito e portale in temperatura. Asfalto a {temp} gradi.",
       "variants_it": [
         "Esci con un treno nuovo di {gomme}, ancora freddo: primo giro pulito e portale in temperatura. Asfalto a {temp} gradi.",
-        "Gomma nuova, {gomme}: è fredda, dalle un giro per svegliarsi. Pista a {temp} gradi.",
-        "Treno fresco di {gomme} sotto la macchina, temperatura bassa: niente strappi nelle prime curve.",
-        "Montiamo {gomme} nuove: fredde per ora, un giro tranquillo e arrivano. {temp} gradi d'asfalto.",
-        "Set nuovo, {gomme}. Sono fredde: accompagnalè, poi puoi lavorare. Asfalto sui {temp}.",
-        "Fuori con le {gomme} nuove: primo giro morbido che sono ancora fredde, asfalto a {temp} gradi.",
-        "Gomme {gomme} appena montate e fredde: costruisci la temperatura, senza fretta.",
-        "Treno nuovo e freddo: le {gomme} vogliono un giro buono prima di darti grip. {temp} gradi a terra."
+        "Gomme nuove, {gomme}, ma fredde: prenditi un giro per scaldarle, poi spingi.",
+        "Treno fresco di {gomme} sotto: entra dolce, il grip arriva tra un giro.",
+        "Fuori con le {gomme} nuove: sono fredde, non fidarti al primo giro.",
+        "Ok, {gomme} nuove e asfalto a {temp} gradi: scaldale con calma e poi via."
       ],
       "en": "New set of {gomme}, still cold: clean first lap to bring them in. Track at {temp} degrees.",
       "es": "Juego nuevo de {gomme}, frío: primera vuelta limpia. Pista a {temp} grados.",
@@ -7573,12 +7573,9 @@
       "it": "Treno nuovo di {gomme} e già in temperatura: puoi spingere quasi subito. Asfalto a {temp} gradi.",
       "variants_it": [
         "Treno nuovo di {gomme} e già in temperatura: puoi spingere quasi subito. Asfalto a {temp} gradi.",
-        "Gomma nuova e calda, {gomme}: condizioni ideali, sfruttale dal primo settore.",
-        "Esci con {gomme} nuove già calde: grip subito, fai il tempo. {temp} gradi d'asfalto.",
-        "Set fresco di {gomme}, temperatura già buona: niente scuse, si spinge.",
-        "Le {gomme} nuove sono già in finestra: attacca appena esci, asfalto a {temp}.",
-        "Treno nuovo, caldo al punto giusto: le {gomme} sono pronte, vai.",
-        "Gomme {gomme} nuove e in temperatura: dal secondo settore puoi già fare sul serio."
+        "Gomme nuove e già calde: via libera, puoi attaccare da subito.",
+        "{gomme} fresche e in finestra: giro d'uscita corto e sei a posto.",
+        "Fuori con le {gomme} nuove, già calde: goditele, il primo giro è già buono."
       ],
       "en": "New {gomme} already up to temperature: you can push almost right away. Track {temp} degrees.",
       "es": "{gomme} nuevas y calientes: puedes apretar casi de inmediato.",
@@ -7590,13 +7587,10 @@
       "beep": false,
       "it": "Esci con gomma usata e fredda, {gomme}: i primi minuti scivola, accompagnalà. Asfalto a {temp} gradi.",
       "variants_it": [
-        "Esci con gomma usata e fredda, {gomme}: i primi minuti scivola, accompagnalà. Asfalto a {temp} gradi.",
-        "Treno usato di {gomme}, temperatura bassa: doppia attenzione al primo giro, il grip arriva tardi.",
-        "Gomma {gomme} già lavorata e fredda: entra piano nelle prime staccate, poi si stabilizza.",
-        "Set usato e freddo: le {gomme} vanno rispettate per un giro pieno. {temp} gradi a terra.",
-        "Fuori con le {gomme} usate: fredde e con meno spalla, primo settore prudente.",
-        "Gomme usate, {gomme}, ancora fredde: il primo giro dice poco, non forzare.",
-        "Treno {gomme} di seconda vita e freddo: portalo su con calma, asfalto a {temp}."
+        "Esci con gomma usata e fredda, {gomme}: i primi minuti scivola, accompagnala. Asfalto a {temp} gradi.",
+        "Treno usato e freddo: dagli un giro buono prima di chiedergli qualcosa.",
+        "Gomme {gomme} usate, ancora fredde: entra morbido, il grip va costruito.",
+        "Fuori con le usate fredde: primo giro di pazienza, poi si lavora."
       ],
       "en": "Used and cold {gomme}: it will slide the first minutes, nurse it. Track {temp} degrees.",
       "es": "Goma usada y fría, {gomme}: paciencia el primer giro.",
@@ -7609,11 +7603,9 @@
       "it": "Gomma usata ma già calda, {gomme}: grip decente da subito, occhio solo al degrado residuo. Asfalto a {temp} gradi.",
       "variants_it": [
         "Gomma usata ma già calda, {gomme}: grip decente da subito, occhio solo al degrado residuo. Asfalto a {temp} gradi.",
-        "Treno usato di {gomme} in temperatura: puoi girare subito, ma ricordati che ha già dei giri sulle spalle.",
-        "Le {gomme} usate sono calde: parti tranquillo, il limite arriva prima del solito.",
-        "Set {gomme} vissuto ma in finestra: buon grip iniziale, gestiscilo sul lungo.",
-        "Gomme usate e calde: vai pure, ma non aspettarti il passo del treno nuovo.",
-        "Treno {gomme} usato, temperatura buona: ok per lavorare, monitoriamo l'usura."
+        "Treno usato in temperatura: si lavora subito, ma ricordati che ha già dei giri sulle spalle.",
+        "Usate ma calde: buone da subito, non aspettarti il grip delle nuove.",
+        "Fuori con le usate già in finestra: vai tranquillo, gestiscile in appoggio."
       ],
       "en": "Used but warm {gomme}: decent grip right away, just mind the remaining wear.",
       "es": "Goma usada pero caliente: agarre decente ya, ojo al desgaste.",
@@ -7625,11 +7617,10 @@
       "beep": false,
       "it": "Fermo un attimo: dammi due minuti, controllo pressioni, temperature e livelli, e decidiamo il programma — giro secco o long run.",
       "variants_it": [
-        "Fermo un attimo: dammi due minuti, controllo pressioni, temperature e livelli, e decidiamo il programma — giro secco o long run.",
-        "Aspetta a uscire: due minuti per il check della macchina, poi ti dico il piano di lavoro.",
-        "Prima di accendere: verifico assetto, pressioni e carburante. Due minuti e decidiamo se fare tempo o passo gara.",
-        "Tienila spenta un attimo: guardo i dati dell'ultimo stint e prepariamo il programma. Giro secco o long run?",
-        "Un momento: passo in rassegna la macchina — freni, gomme, livelli — e poi usciamo con un piano chiaro."
+        "Un momento: passo in rassegna la macchina — freni, gomme, livelli — e poi usciamo con un piano chiaro.",
+        "Dammi due minuti: controllo la macchina e decidiamo il programma.",
+        "Fermo un attimo: guardo pressioni e temperature, poi ti dico come usciamo.",
+        "Aspetta che do un'occhiata alla macchina, poi facciamo il piano."
       ],
       "en": "Hold on: give me two minutes to check pressures, temps and levels, then we decide the programme — hot lap or long run.",
       "es": "Espera dos minutos: reviso presiones y niveles y decidimos el programa.",
@@ -7643,7 +7634,8 @@
       "variants_it": [
         "Ok, motore acceso: tranquillo, il briefing lo facciamo in pista.",
         "Va bene, partiamo: ti aggiorno mentre giri.",
-        "Ok, si parte: le informazioni te le do in pista."
+        "Ok, si parte: le informazioni te le do in pista.",
+        "Vai pure: ci sentiamo in pista con i dettagli."
       ],
       "en": "Okay, engine on: we'll do the checks on the move. I'll update you on track.",
       "es": "Vale, motor encendido: lo vemos en pista.",
@@ -7815,9 +7807,9 @@
       "cat": "debrief",
       "level": "info",
       "beep": false,
-      "it": "Per il long run: stiamo consumando soprattutto la {ruota}, e il grosso arriva dalla curva {turn}. Più dolce lì e il set respira.",
+      "it": "Per il long run: stiamo consumando soprattutto la {ruota}, e il grosso arriva dalla curva {turn}. Più dolce lì e il treno respira.",
       "variants_it": [
-        "Per il long run: stiamo consumando soprattutto la {ruota}, e il grosso arriva dalla curva {turn}. Più dolce lì e il set respira.",
+        "Per il long run: stiamo consumando soprattutto la {ruota}, e il grosso arriva dalla curva {turn}. Più dolce lì e il treno respira.",
         "L'usura è sbilanciata sulla {ruota}: nei dati la maltrattiamo in curva {turn}. Gestione in quel punto o rivediamo l'assetto.",
         "Dai dati gomme: la {ruota} paga più delle altre, principalmente in curva {turn}. Tienilo a mente per il passo gara."
       ],
@@ -8061,9 +8053,9 @@
       "cat": "assetto",
       "level": "warn",
       "beep": false,
-      "it": "Il fondo va in stallo nei curvoni veloci: posteriore troppo bassa, occhio allo snap. Me lo segno per l'assetto.",
+      "it": "Il fondo va in stallo nei curvoni veloci: posteriore troppo bassa, occhio alla scodata. Me lo segno per l'assetto.",
       "variants_it": [
-        "Il fondo va in stallo nei curvoni veloci: posteriore troppo bassa, occhio allo snap. Me lo segno per l'assetto.",
+        "Il fondo va in stallo nei curvoni veloci: posteriore troppo bassa, occhio alla scodata. Me lo segno per l'assetto.",
         "Altezza posteriore al limite: il diffusore stalla in appoggio veloce. Da alzare un paio di millimetri in garage."
       ],
       "en": "The floor is stalling in the fast corners: rear ride height too low, watch for the snap. Noted for the setup.",
@@ -8113,9 +8105,9 @@
       "cat": "consumi",
       "level": "info",
       "beep": false,
-      "it": "Sei in power clip sul dritto: al tetto di potenza l'ibrido non spinge più. Anticipa il deploy in uscita di curva.",
+      "it": "Sei in power clip sul dritto: al tetto di potenza l'ibrido non spinge più. Anticipa la spinta elettrica in uscita di curva.",
       "variants_it": [
-        "Sei in power clip sul dritto: al tetto di potenza l'ibrido non spinge più. Anticipa il deploy in uscita di curva.",
+        "Sei in power clip sul dritto: al tetto di potenza l'ibrido non spinge più. Anticipa la spinta elettrica in uscita di curva.",
         "Il regolamento taglia la potenza a fondo dritto: sposta l'energia in accelerazione, non alla velocità massima."
       ],
       "en": "You're power clipping on the straight: at the power ceiling the hybrid stops pushing. Deploy earlier out of the corner.",
