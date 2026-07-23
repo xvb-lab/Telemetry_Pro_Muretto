@@ -449,6 +449,9 @@ def _auto_setup_apply(tg, vox, lang):
             return float(m.group(1).replace(",", ".")) if m else None
 
         done = []
+        _pwh = []            # ruote con pressione cambiata
+        _wng9 = False
+        _dct9 = False
         for it in rawm:
             nm = str((it or {}).get("name") or "").upper()
             ss = it.get("settings") or []
@@ -481,8 +484,11 @@ def _auto_setup_apply(tg, vox, lang):
                         best, bj = d, j
                 if bj != cur:
                     it["currentSetting"] = bj
-                    done.append("%s %d" % (_ordw[_wi], int(round(
-                        _num((ss[bj] or {}).get("text")) or 0))))
+                    done.append("%s %s -> %s kPa" % (
+                        _ordw[_wi], curv,
+                        int(round(_num((ss[bj] or {}).get("text"))
+                                  or 0))))
+                    _pwh.append(_wi)
             elif tg.get("duct") and "BRAKE DUCT" in nm:
                 # un click verso APERTO (direzione dai testi opzioni)
                 try:
@@ -498,7 +504,8 @@ def _auto_setup_apply(tg, vox, lang):
                 if _io9 is not None and cur != _io9:
                     nj = cur + (1 if _io9 > cur else -1)
                     it["currentSetting"] = nj
-                    done.append("duct +1")
+                    done.append("%s: +1 verso aperto" % nm)
+                    _dct9 = True
             elif wing and ("WING" in nm or "AILERON" in nm):
                 try:
                     cur = int(it.get("currentSetting") or 0)
@@ -507,7 +514,10 @@ def _auto_setup_apply(tg, vox, lang):
                 nj = max(0, min(len(ss) - 1, cur + wing))
                 if nj != cur:
                     it["currentSetting"] = nj
-                    done.append("wing %+d" % wing)
+                    done.append("wing %s -> %s" % (
+                        (ss[cur] or {}).get("text"),
+                        (ss[nj] or {}).get("text")))
+                    _wng9 = True
         if not done:
             return
         req = _ur.Request(
@@ -515,14 +525,66 @@ def _auto_setup_apply(tg, vox, lang):
             data=_js.dumps(rawm).encode("utf-8"),
             headers={"Content-Type": "application/json"}, method="POST")
         _ur.urlopen(req, timeout=1.5)
+        # DETTAGLI nel registro (pagina Engineer Report), NON in voce
+        try:
+            import time as _tm9
+            from core.paths import USER_DIR as _UD9
+            with open(_UD9 / "auto_setup_log.txt", "a",
+                      encoding="utf-8") as _fh9:
+                _fh9.write("[%s] %s" % (
+                    _tm9.strftime("%H:%M:%S"), " | ".join(done))
+                    + chr(10))
+        except Exception:
+            pass
+        # VOCE UMANA (rich. 23/07: "niente elenco da robot"): dice la
+        # cosa semplice; il dettaglio sta nel registro
         try:
             from engineer.roles import voice_for
-            _T = {"it": "Auto-setup: al pit sistemo %s.",
-                  "en": "Auto-setup: at the stop I'm adjusting %s.",
-                  "es": "Auto-setup: en la parada ajusto %s.",
-                  "fr": "Auto-setup: a l'arret je regle %s."}
-            vox.speak(_T.get(lang, _T["it"]) % ", ".join(done),
-                      voice=voice_for("pit_ack", lang))
+            _WN = {"it": ("all'anteriore sinistra", "all'anteriore "
+                          "destra", "alla posteriore sinistra",
+                          "alla posteriore destra"),
+                   "en": ("on the front left", "on the front right",
+                          "on the rear left", "on the rear right"),
+                   "es": ("en la delantera izquierda",
+                          "en la delantera derecha",
+                          "en la trasera izquierda",
+                          "en la trasera derecha"),
+                   "fr": ("a l'avant gauche", "a l'avant droite",
+                          "a l'arriere gauche", "a l'arriere droite")}
+            _parts = []
+            _lg9 = lang if lang in _WN else "it"
+            if len(_pwh) == 1:
+                _parts.append({"it": "regolo la pressione %s",
+                               "en": "adjusting the pressure %s",
+                               "es": "ajusto la presion %s",
+                               "fr": "je regle la pression %s"}[_lg9]
+                              % _WN[_lg9][_pwh[0]])
+            elif len(_pwh) > 1:
+                _parts.append({"it": "sistemo le pressioni, erano "
+                                     "sballate",
+                               "en": "fixing the tyre pressures, they "
+                                     "were off",
+                               "es": "ajusto las presiones, estaban "
+                                     "mal",
+                               "fr": "je corrige les pressions, elles "
+                                     "etaient fausses"}[_lg9])
+            if _wng9:
+                _parts.append({"it": "tocco l'ala",
+                               "en": "one click on the wing",
+                               "es": "un click de alerón",
+                               "fr": "un cran d'aileron"}[_lg9])
+            if _dct9:
+                _parts.append({"it": "apro i condotti dei freni",
+                               "en": "opening the brake ducts",
+                               "es": "abro los conductos de freno",
+                               "fr": "j'ouvre les ecopes de frein"}[_lg9])
+            if _parts:
+                _J = {"it": " e ", "en": " and ", "es": " y ",
+                      "fr": " et "}[_lg9]
+                _H = {"it": "Quando arrivi al box ", "en": "At the stop ",
+                      "es": "En la parada ", "fr": "A l'arret "}[_lg9]
+                vox.speak(_H + _J.join(_parts) + ".",
+                          voice=voice_for("pit_ack", lang))
         except Exception:
             pass
     except Exception:
