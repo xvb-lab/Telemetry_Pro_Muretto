@@ -31,6 +31,61 @@ def _auto_file(track, cls_tag):
     return _OUT / ("%s_%s_auto.json" % (tr, cls_tag or "X"))
 
 
+def map_turns(track, track_len):
+    """[(lapdist, 'Tn')] — CURVE dalla mappa SVG ufficiale (stessa
+    matematica del Worksheet: curvatura dell'outline, numerate dalla
+    partenza). L'idea dell'utente (23/07): la mappa sa DOVE sono le
+    curve — il freno dice solo in quali si frena. Vuoto senza SVG."""
+    import math
+    try:
+        from telemetry.trace_view import _load_track_svg
+        ol, _secs = _load_track_svg(track)
+    except Exception:
+        ol = None
+    if not ol or len(ol) < 30 or not track_len:
+        return []
+    n = len(ol)
+    hd = [math.atan2(ol[(i + 1) % n][1] - ol[i][1],
+                     ol[(i + 1) % n][0] - ol[i][0]) for i in range(n)]
+    dh = []
+    for i in range(n):
+        d = hd[(i + 1) % n] - hd[i]
+        while d > math.pi:
+            d -= 2 * math.pi
+        while d < -math.pi:
+            d += 2 * math.pi
+        dh.append(d)
+    sm = [(dh[i - 1] + dh[i] + dh[(i + 1) % n]) / 3.0 for i in range(n)]
+    TH = math.radians(2.5)
+    # tratti in curva (spezzati al cambio segno = chicane in due)
+    turns_idx = []
+    i = 0
+    while i < n:
+        if abs(sm[i]) > TH:
+            j = i
+            sgn = 1 if sm[i] > 0 else -1
+            tot = 0.0
+            while j < n and abs(sm[j]) > TH \
+                    and (1 if sm[j] > 0 else -1) == sgn:
+                tot += abs(sm[j])
+                j += 1
+            if abs(tot) > math.radians(25.0):     # curva vera, non kink
+                turns_idx.append((i + j) // 2)
+            i = j
+        else:
+            i += 1
+    if not turns_idx:
+        return []
+    # lapdist: lunghezza cumulata scalata sulla lunghezza ufficiale
+    cum = [0.0]
+    for i in range(1, n):
+        a, b = ol[i - 1], ol[i]
+        cum.append(cum[-1] + math.hypot(b[0] - a[0], b[1] - a[1]))
+    k = track_len / cum[-1] if cum[-1] > 0 else 1.0
+    return [(round(cum[ix] * k, 1), "T%d" % (t + 1))
+            for t, ix in enumerate(turns_idx)]
+
+
 def compute(track, cls_tag, max_files=6):
     """Punti di frenata (lapdist, metri) per pista+classe dai log
     recenti: fronti di salita del freno (>=0.35, sostenuto 0.5s,
@@ -112,6 +167,18 @@ def compute(track, cls_tag, max_files=6):
             con.close()
     if not edges or n_laps == 0:
         return []
+    # lunghezza pista (dal max lapdist visto) per la mappa
+    tlen = max(edges) if edges else 0.0
+    try:
+        f0 = files[0]
+        con = sqlite3.connect("file:%s?mode=ro" % Path(f0).as_posix(),
+                              uri=True)
+        r = con.execute("SELECT MAX(lapdist) FROM samples").fetchone()
+        con.close()
+        if r and r[0]:
+            tlen = float(r[0])
+    except Exception:
+        pass
     # cluster a 70m
     edges.sort()
     clusters = []          # [ [punti...], ... ]
@@ -121,8 +188,23 @@ def compute(track, cls_tag, max_files=6):
         else:
             clusters.append([d])
     keep = max(3, int(round(n_laps / 3.0)))
-    return sorted(round(statistics.median(c), 1)
-                  for c in clusters if len(c) >= keep)
+    pts = sorted(round(statistics.median(c), 1)
+                 for c in clusters if len(c) >= keep)
+    # FUSIONE CON LA MAPPA (idea utente 23/07): un punto-freno vero ha
+    # una CURVA della mappa SVG davanti entro ~320m; senza, e' una
+    # frenata da traffico e si butta. Se lo SVG manca, si tiene tutto.
+    turns = map_turns(track, tlen)
+    if turns and tlen > 500.0:
+        good = []
+        for p in pts:
+            for td, _lab in turns:
+                ahead = (td - p) % tlen
+                if ahead <= 320.0:
+                    good.append(p)
+                    break
+        if len(good) >= 3:            # mappa affidabile: filtra
+            pts = good
+    return pts
 
 
 def compute_and_save(track, cls_tag):
