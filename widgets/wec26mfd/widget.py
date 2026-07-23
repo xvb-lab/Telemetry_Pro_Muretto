@@ -925,6 +925,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                             .split(b"\x00")[0].decode("utf-8", "ignore")
                     except Exception:
                         self._cls_name = ""
+                    try:
+                        self._pits9 = int(getattr(v, "mNumPitstops", 0)
+                                          or 0)
+                    except Exception:
+                        self._pits9 = 0
                     break
             # posizione DI CLASSE: quanti della mia classe davanti +1
             if pid is not None and _ovr > 0:
@@ -3861,9 +3866,22 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.drawText(QPointF(_tx, _yb), _lbl)
                     _tx += QFontMetricsF(f_big).horizontalAdvance(_lbl) + 16.0
                 elif int(getattr(self, "_sess_id", 0) or 0) >= 10:
-                    # GARA: etichetta RACE al posto del contatore run
-                    p.drawText(QPointF(_tx, _yb), "RACE")
-                    _tx += QFontMetricsF(f_big).horizontalAdvance("RACE")                         + 14.0
+                    # GARA: contatore STINT (soste + 1), stesso stile run
+                    _stn = int(getattr(self, "_pits9", 0) or 0) + 1
+                    _d3 = _stn % 100
+                    _sfx3 = "TH" if 11 <= _d3 <= 13 else                         {1: "ST", 2: "ND", 3: "RD"}.get(_stn % 10, "TH")
+                    _ns3 = str(_stn)
+                    p.drawText(QPointF(_tx, _yb), _ns3)
+                    _tx += QFontMetricsF(f_big).horizontalAdvance(_ns3) + 1.0
+                    f_sup3 = QFont("Archivo SemiExpanded", 8)
+                    f_sup3.setWeight(QFont.Black)
+                    f_sup3.setItalic(True)
+                    p.setFont(f_sup3)
+                    p.drawText(QPointF(_tx, _yb - 6.0), _sfx3)
+                    _tx += QFontMetricsF(f_sup3).horizontalAdvance(_sfx3) + 7.0
+                    p.setFont(f_big)
+                    p.drawText(QPointF(_tx, _yb), "STINT")
+                    _tx += QFontMetricsF(f_big).horizontalAdvance("STINT")                         + 14.0
                 else:
                     _run = max(1, int(self._run))    # 1 = primo stint
                     _d2 = _run % 100
