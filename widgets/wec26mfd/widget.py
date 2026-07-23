@@ -1097,6 +1097,16 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                             _nw9 = time.monotonic()
                             self._light_flash = len(
                                 [x for x in _hq if _nw9 - x < 1.2]) >= 2
+                            # stato FISSO (debounce 1.2s): comanda spia
+                            # verde e retroilluminazione — i lampeggi,
+                            # primo tocco compreso, non lo toccano MAI
+                            if _bm9 != getattr(self, "_beam_raw_prev",
+                                               None):
+                                self._beam_chg_t = _nw9
+                            self._beam_raw_prev = _bm9
+                            if _nw9 - getattr(self, "_beam_chg_t",
+                                              0.0) >= 1.2:
+                                self._beam_steady = _bm9
                         except Exception:
                             self._light_flash = False
                         # dati MACCHININA (MOD 4)
@@ -1939,13 +1949,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._anim_t.stop()
         if not act:
             return
-        # RETROILLUMINAZIONE notte: fari FISSI accesi -> velo blu leggero
-        # su tutto lo schermo. Durante il LAMPEGGIO segue lo stato
-        # congelato pre-lampeggio (di notte NON si spegne mai)
-        _bl9 = getattr(self, "_beam_pre", False) \
-            if getattr(self, "_light_flash", False) \
-            else getattr(self, "_beam", False)
-        if _bl9:
+        # RETROILLUMINAZIONE notte = SOLO fari verdi FISSI (debounce):
+        # i lampeggi, primo tocco compreso, non la toccano mai
+        if getattr(self, "_beam_steady", False):
             p.setPen(Qt.NoPen)
             p.setBrush(QColor(64, 130, 255, 14))
             p.drawRect(scr)
@@ -2469,10 +2475,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._svg_fari_hi = _QSRf(str(_ip9 / "abbaglianti.svg"))
         _bm = getattr(self, "_beam", False)
         _lf = getattr(self, "_light_flash", False)
-        # spia FARI: sempre al suo posto col suo stato (verde/grigia).
-        # Durante il LAMPEGGIO resta CONGELATA sullo stato pre-lampeggio:
-        # a ballare col toggling e' solo l'abbagliante.
-        _bshow = getattr(self, "_beam_pre", _bm) if _lf else _bm
+        # spia FARI = stato FISSO (debounce): mai mossa dai lampeggi
+        _bshow = getattr(self, "_beam_steady", _bm)
         sv = self._svg_fari_on if _bshow else self._svg_fari_off
         if sv.isValid():
             sv.render(p, QRectF(_W / 2.0 - 128.0, gy - 48.0, 22, 22))
