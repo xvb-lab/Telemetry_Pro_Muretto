@@ -2677,6 +2677,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setPen(Qt.NoPen)
                 p.setBrush(QColor(160, 164, 174, 70))
                 p.drawRect(QRectF(XC, ry, SELW, ROWH))
+                # freccette dx/sx azzurre ai lati della voce (23/07)
+                from PySide6.QtGui import QPolygonF as _QPF6
+                _cyp = ry + ROWH / 2.0
+                p.setBrush(QColor("#2fa8e0"))
+                p.drawPolygon(_QPF6([
+                    QPointF(XC + SELW + 4.0, _cyp - 5.0),
+                    QPointF(XC + SELW + 4.0, _cyp + 5.0),
+                    QPointF(XC + SELW + 11.0, _cyp)]))       # destra >
+                p.drawPolygon(_QPF6([
+                    QPointF(XC - 4.0, _cyp - 5.0),
+                    QPointF(XC - 4.0, _cyp + 5.0),
+                    QPointF(XC - 11.0, _cyp)]))              # sinistra <
             p.setPen(QPen(QColor(255, 255, 255, 235)))
             if up.startswith("STOP"):            # PENALITÀ stop&go
                 # SG = badge bg ROSSO testo bianco; 3 LAPS bianco (giri che
@@ -2838,21 +2850,23 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawText(QRectF(TX, ry, COLW - 24.0, ROWH),
                            Qt.AlignLeft | Qt.AlignVCenter,
                            self._it9(_ln))
-        # ── frecce SCROLL: se ci sono voci sopra/sotto la finestra ──
+        # ── frecce SCROLL azzurre: su al bordo colonna, GIU' centrato
+        # SOTTO la colonna del menu (rich. 23/07) ──
         from PySide6.QtGui import QPolygonF as _QPF
-        _ax = XC + COLW - 14.0
         p.setPen(Qt.NoPen)
-        p.setBrush(QColor(255, 255, 255, 160))
+        p.setBrush(QColor("#2fa8e0"))
         if _sc > 0:                              # su
+            _ax = XC + COLW - 14.0
             _ay = Y0C - 1.0
             p.drawPolygon(_QPF([QPointF(_ax, _ay + 6.0),
                                 QPointF(_ax + 9.0, _ay + 6.0),
                                 QPointF(_ax + 4.5, _ay)]))
-        if _sc + _maxvis < _n:                    # giu'
-            _ay = Y0C + _maxvis * PITCH - 6.0
-            p.drawPolygon(_QPF([QPointF(_ax, _ay),
-                                QPointF(_ax + 9.0, _ay),
-                                QPointF(_ax + 4.5, _ay + 6.0)]))
+        if _sc + _maxvis < _n:                    # giu' (sotto colonna)
+            _axc = XC + SELW / 2.0
+            _ay = Y0C + _maxvis * PITCH + 2.0
+            p.drawPolygon(_QPF([QPointF(_axc - 4.5, _ay),
+                                QPointF(_axc + 4.5, _ay),
+                                QPointF(_axc, _ay + 6.0)]))
         # SLICK montate / totale — SOLO in qualifica (5-8) o gara
         # (>=10): in pratica le gomme sono illimitate, non ha senso
         _tmax = getattr(self, "_tyre_max", 0)
@@ -3089,7 +3103,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             if sel:
                 _cyv = ry + lh / 2.0
                 p.setPen(Qt.NoPen)
-                p.setBrush(_vc3)
+                p.setBrush(QColor("#2fa8e0"))     # azzurro MDF (23/07)
                 p.drawPolygon(_QPF3([                 # destra >
                     QPointF(_vx1 - 8.0, _cyv - 5.5),
                     QPointF(_vx1 - 8.0, _cyv + 5.5),
@@ -3100,10 +3114,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     QPointF(_lx3 + 8.0, _cyv + 5.5),
                     QPointF(_lx3, _cyv)]))
         # TRIANGOLINO GIU' centrato sotto il menu (il giro delle voci
-        # continua: stesso segnale del menu pit, rich. 23/07)
+        # continua: stesso segnale del menu pit) — azzurro MDF (23/07)
         from PySide6.QtGui import QPolygonF as _QPF4
         p.setPen(Qt.NoPen)
-        p.setBrush(QColor(255, 255, 255, 150))
+        p.setBrush(QColor("#2fa8e0"))
         _dx4 = _W / 2.0
         _dy4 = y0 + 680.0 * by
         p.drawPolygon(_QPF4([QPointF(_dx4 - 7.0, _dy4),
@@ -3554,6 +3568,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             return "R" if gv < 0 else ("N" if gv == 0 else str(gv))
 
         f_gear = QFont("Archivo SemiExpanded", 34)
+        f_gear.setBold(True)
         f_gear.setWeight(QFont.Black)     # marcia principale EXTRA bold
         p.setFont(f_gear)
         fg = QFontMetricsF(f_gear)
@@ -4778,10 +4793,25 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         p.setPen(QColor(255, 255, 255, 230))
         p.drawText(rr, Qt.AlignRight | Qt.AlignVCenter, _num)
         _wnum = QFontMetricsF(f_row).horizontalAdvance(_num)
+        # MDF coi TRIANGOLINI veri (come le frecce dei menu), azzurro
+        from PySide6.QtGui import QPolygonF as _QPF5
+        _fmm = QFontMetricsF(f_row)
+        _wmdf = _fmm.horizontalAdvance("MDF")
+        _mx1 = _W - 28 - _wnum - 8            # bordo destro blocco MDF
+        _cym = _H - self.ROW_B / 2.0
         p.setPen(QColor("#2fa8e0"))
-        p.drawText(QRectF(14, _H - self.ROW_B,
-                          _W - 28 - _wnum - 8, self.ROW_B),
-                   Qt.AlignRight | Qt.AlignVCenter, "<MDF>")
+        p.drawText(QRectF(_mx1 - 10.0 - _wmdf, _H - self.ROW_B,
+                          _wmdf + 2, self.ROW_B),
+                   Qt.AlignLeft | Qt.AlignVCenter, "MDF")
+        p.setPen(Qt.NoPen)
+        p.setBrush(QColor("#2fa8e0"))
+        p.drawPolygon(_QPF5([QPointF(_mx1 - 6.0, _cym - 4.5),
+                             QPointF(_mx1 - 6.0, _cym + 4.5),
+                             QPointF(_mx1, _cym)]))          # destra >
+        _mlx = _mx1 - 10.0 - _wmdf - 10.0
+        p.drawPolygon(_QPF5([QPointF(_mlx + 6.0, _cym - 4.5),
+                             QPointF(_mlx + 6.0, _cym + 4.5),
+                             QPointF(_mlx, _cym)]))          # sinistra <
         # ROW ALTA: fila RPM + LED laterali (dalla vecchia dashboard)
         self._paint_rpm_row(p)
 
