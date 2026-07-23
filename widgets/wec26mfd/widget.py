@@ -2048,7 +2048,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 d = self._live - rt              # delta vs il MIO best
                 _valid = (self._laps > self._run_out_lap
                           and not self._in_pits and not self._in_garage)
-                _LIM = 3.0                        # limite delta = soglia abort
+                _LIM = 3.0                        # soglia abort (logica interna)
                 if _valid and d > _LIM:
                     if not self._lap_aborted:     # FRONTE: segnala al muretto
                         try:                      # (voce sincronizzata al dash)
@@ -2058,10 +2058,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         except Exception:
                             pass
                     self._lap_aborted = True      # molto piu' lento -> giro buttato
-                _dd = max(-_LIM, min(_LIM, d))    # cappato: aborted non esplode
+                # DISPLAY come LMU (rich. 23/07): il numero corre libero
+                # fino a ±9.999, mai pinnato a 3.000 (l'abort resta a 3s
+                # solo per muretto/logica interna)
+                _dd = max(-9.999, min(9.999, d))
                 self._d_final = "%+.3f" % d       # ultimo delta VERO (prova)
-                # ABORTED: nascondo il numero pinnato (+3.000) -> solo la scritta
-                self._delta_txt = "" if self._lap_aborted else ("%+.3f" % _dd)
+                self._delta_txt = "%+.3f" % _dd
                 # COLORE DINAMICO (su proiezione = mio best + delta attuale):
                 # magenta = batti il fast di P1 (classe), verde = batti il tuo
                 # best, bianco = non stai migliorando niente
