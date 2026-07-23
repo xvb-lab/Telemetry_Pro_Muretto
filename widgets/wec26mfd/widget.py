@@ -5118,16 +5118,31 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             #    senza calibrare. I punti calibrati dall'eco nativo,
             #    se esistono, restano prioritari (sono i rilasci esatti).
             self._eco_pts_kind = "release"
+            # FUSIONE (diagnosi 23/07: la calibrazione aveva solo 4
+            # curve su 6 — Lesmo2 e Parabolica MUTE): i punti freno
+            # automatici COMPLETANO i calibrati dove mancano
+            # (pseudo-rilascio = frenata - 110m, mediana dei gap veri)
+            try:
+                from core import lico_points as _lpz
+                from core.classes import class_tag as _ct2
+                _tg2 = _ct2(_key[1]) or _key[1]
+                _auto = _lpz.load_auto(_key[0], _tg2)
+            except Exception:
+                _auto, _lpz, _tg2 = [], None, None
+            if self._eco_lmu_pts and _auto:
+                for _bp in _auto:
+                    _cov = any(0.0 <= (_bp - _rp) <= 280.0
+                               for _rp in self._eco_lmu_pts)
+                    if not _cov:
+                        self._eco_lmu_pts.append(round(_bp - 110.0, 1))
+                self._eco_lmu_pts.sort()
             if not self._eco_lmu_pts:
                 try:
-                    from core import lico_points as _lpz
-                    from core.classes import class_tag as _ct2
-                    _tg2 = _ct2(_key[1]) or _key[1]
-                    _auto = _lpz.load_auto(_key[0], _tg2)
                     if _auto:
                         self._eco_lmu_pts = _auto
                         self._eco_pts_kind = "brake"
-                    elif getattr(self, "_eco_autok", None) != _key:
+                    elif _lpz is not None \
+                            and getattr(self, "_eco_autok", None) != _key:
                         # calcolo UNA volta per pista, in un thread
                         self._eco_autok = _key
                         import threading as _thz
