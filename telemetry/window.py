@@ -8191,7 +8191,7 @@ class _AppPage(QWidget):
         _topw = QWidget(); _topw.setStyleSheet("background:transparent;")
         _topl = QHBoxLayout(_topw); _topl.setContentsMargins(0, 0, 0, 0); _topl.setSpacing(8)
         for i, lab in enumerate(("Overview", "Telemetry", "Setups", "Overlay",
-                                 "Community", "Team", "Engineer")):
+                                 "Community", "Team", "Engineer", "Debrief")):
             b = QPushButton(lab.upper())
             b.setCheckable(True); b.setCursor(Qt.PointingHandCursor)
             b.clicked.connect(lambda _=False, ix=i: self._select_top(ix))
@@ -8363,6 +8363,11 @@ class _AppPage(QWidget):
         self._top_stack.addWidget(self._legacy._community)      # 4 Community
         self._top_stack.addWidget(self._legacy._teamtab)        # 5 Team
         self._top_stack.addWidget(self._legacy._engineer)       # 6 Engineer
+        # 7 DEBRIEF (task #6, 23/07): pagina ingegnere read-only accanto a
+        # Setups — refresh a ogni apertura del tab
+        from telemetry.debrief import DebriefPage
+        self._debrief_page = DebriefPage()
+        self._top_stack.addWidget(self._debrief_page)
         # ORDINE LOGICO 0..6 per _select_top: le pagine nuove (Telemetry a
         # tutta pagina, OPTIONS) RUBANO widget da questo stack reimparentandoli
         # e gli indici del QStackedWidget scalano — l'indice fisso apriva la
@@ -8370,7 +8375,8 @@ class _AppPage(QWidget):
         # posizione.
         self._top_pages = [ov, self._real_tabs, self._legacy.settings_page,
                            self._legacy._overlaytab, self._legacy._community,
-                           self._legacy._teamtab, self._legacy._engineer]
+                           self._legacy._teamtab, self._legacy._engineer,
+                           self._debrief_page]
         root.addWidget(self._top_stack, 1)
 
         # nessun footer qui: il tasto START/STOP è UNICO (overlay in TelemetryWindow)
@@ -8475,6 +8481,11 @@ class _AppPage(QWidget):
             on = (j == ix)
             b.setChecked(on)
             b.setStyleSheet(self._TAB_ON if on else self._TAB_OFF)
+        if ix == 7:                  # DEBRIEF: dati freschi a ogni apertura
+            try:
+                self._debrief_page.refresh()
+            except Exception:
+                pass
         # per WIDGET, non per posizione: lo stack perde pezzi quando le
         # pagine nuove li montano altrove e gli indici scalano
         try:
@@ -8501,7 +8512,7 @@ class _AppPage(QWidget):
         self._menu_open = bool(on)
         for j, b in enumerate(self._toptabs):
             try:
-                b.setVisible((not on) and j in (0, 1, 2))
+                b.setVisible((not on) and j in (0, 1, 2, 7))
             except Exception:
                 pass
 
