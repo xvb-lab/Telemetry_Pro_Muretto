@@ -33,7 +33,8 @@ class TyreBrakeGrid(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground)
 
     def set_data(self, carcass, brake, cls, dent=None, susp=None, aero=None,
-                 flat=None, detached=None, detached_part=False):
+                 flat=None, detached=None, detached_part=False,
+                 headlights=False, light_flash=False):
         self._carcass = carcass or [0, 0, 0, 0]
         self._brake = brake or [0, 0, 0, 0]
         self._cls = cls or ""
@@ -43,6 +44,8 @@ class TyreBrakeGrid(QWidget):
         self._flat = flat or [False] * 4
         self._detached = detached or [False] * 4
         self._detached_part = bool(detached_part)
+        self._hl = bool(headlights)
+        self._lflash = bool(light_flash)
         self.update()
 
     def _brake_grad_color(self, t, car_class=""):

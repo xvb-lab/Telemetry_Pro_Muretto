@@ -2338,25 +2338,25 @@ class Wec26MfdOverlay(WecOnboardOverlay):
 
     # ── MOD 3: SCHERMATA IMPOSTAZIONI del dash (menu stile DDU) ──
     def _paint_beam_spia(self, p, gy):
-        """SPIA FARI (dalla V2): proiettore + fasci in alto a sinistra
-        della corona; lampeggio = blink netto, fissi = accesa fissa.
-        Vive anche a MOTORE SPENTO (i fari funzionano da fermi)."""
-        _bm = getattr(self, "_beam", False)
-        _lf = getattr(self, "_light_flash", False)
-        if not (_bm or _lf):
-            return
-        _on = True
-        if _lf:
-            _on = (time.monotonic() % 0.5) < 0.28
-            self.update()          # blink fluido
-        if not _on:
-            return
-        # icona PNG di assets/icons (light_on), come le altre spie
+        """SPIA FARI dell'IconBar HUD v2, fedele: SEMPRE visibile —
+        light_off da spenti, light_on fissa da accesi, blink sul
+        lampeggio. Vive anche a MOTORE SPENTO (fari usabili da fermi)."""
         if not hasattr(self, "_px_light_on"):
             _ip9 = _ROOT / "assets" / "icons"
             self._px_light_on = QPixmap(str(_ip9 / "light_on.png"))
+            self._px_light_off = QPixmap(str(_ip9 / "light_off.png"))
+        _bm = getattr(self, "_beam", False)
+        _lf = getattr(self, "_light_flash", False)
+        if _lf:
+            _on = (time.monotonic() % 0.5) < 0.28
+            px = self._px_light_on if _on else self._px_light_off
+            self.update()          # blink fluido
+        elif _bm:
+            px = self._px_light_on
+        else:
+            px = self._px_light_off
         p.drawPixmap(QRectF(_W / 2.0 - 128.0, gy - 48.0, 22, 22).toRect(),
-                     self._px_light_on)
+                     px)
 
     def _cfg_pull(self):
         """engineer_cfg riletta throttled 1s: serve a MOD 3 (valori menu)
