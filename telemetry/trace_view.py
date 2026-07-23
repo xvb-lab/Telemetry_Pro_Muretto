@@ -1708,7 +1708,10 @@ class _LiveMap(QWidget):
                  "tc": QColor(74, 144, 226, 200),
                  "abs": QColor(199, 125, 255, 210),
                  "lico": QColor(138, 63, 251, 205)}
-        _LANE = {"slide": 0, "lico": 1, "tc": -1, "abs": 2}
+        # TUTTI sulla traiettoria (scelta utente: in curva gli
+        # eventi sono in sequenza — lico, poi ABS, poi TC — e
+        # coi toggle si isola il resto)
+        _LANE = {"slide": 0, "lico": 0, "tc": 0, "abs": 0}
         _segw = max(ln_w + 1.2, 3.0)
         for _sk, _ssegs in _allsegs.items():
             if not _ssegs or not _evshow.get(_sk):
