@@ -8065,7 +8065,8 @@
       "variants_it": [
         "Stai usando il {pct} per cento del grip disponibile: c'è margine, puoi appoggiarti di più in curva.",
         "Margine gomma: sei al {pct} per cento del potenziale. Entra più deciso, la macchina lo tiene.",
-        "Il grip c'è e non lo usi tutto: {pct} per cento. Porta più velocità in percorrenza."
+        "Il grip c'è e non lo usi tutto: {pct} per cento. Porta più velocità in percorrenza.",
+        "La macchina ha più curva di quella che le stai chiedendo: appoggiati, il grip c'è — usa il {pct} per cento come punto di partenza, non di arrivo."
       ],
       "en": "You're using {pct} percent of the available grip: there's margin, lean on the car more.",
       "es": "Usas el {pct} por ciento del agarre disponible: hay margen, apóyate más en curva.",
@@ -8290,7 +8291,9 @@
       "it": "Stai lasciando {sec} secondi in {turn}, giro dopo giro: concentrati lì al prossimo passaggio.",
       "variants_it": [
         "Stai lasciando {sec} secondi in {turn}, giro dopo giro: concentrati lì al prossimo passaggio.",
-        "Il tempo lo perdi in {turn}: {sec} secondi sul tuo riferimento. Lavoraci adesso."
+        "Il tempo lo perdi in {turn}: {sec} secondi sul tuo riferimento. Lavoraci adesso.",
+        "Un obiettivo solo per il prossimo passaggio: {turn}. Pazienza in ingresso, minimo di velocità al punto giusto, e cura l'uscita.",
+        "In {turn} il cronometro parla chiaro: prova a spostare lì la tua attenzione per due giri, il resto del giro è già a posto."
       ],
       "en": "You're losing {sec} seconds at {turn}, lap after lap: focus there on the next pass.",
       "es": "Pierdes {sec} segundos en {turn}, vuelta tras vuelta: céntrate ahí en el próximo paso.",
@@ -8330,7 +8333,9 @@
       "it": "Stai veleggiando troppo tra gas e freno: quasi {sec} secondi a giro. Tieni il gas fino al punto di staccata.",
       "variants_it": [
         "Stai veleggiando troppo tra gas e freno: quasi {sec} secondi a giro. Tieni il gas fino al punto di staccata.",
-        "Troppo tempo né sul gas né sul freno: {sec} secondi a giro regalati. Gas dentro fino alla staccata."
+        "Troppo tempo né sul gas né sul freno: {sec} secondi a giro regalati. Gas dentro fino alla staccata.",
+        "Obiettivo semplice per questo run: il tre per cento in più del giro a gas pieno. Si prende tra il rilascio e la staccata.",
+        "Tra gas e freno non deve esserci vuoto: o acceleri o stai frenando. Il veleggio è tempo regalato al cronometro."
       ],
       "en": "You're coasting too much between throttle and brake: almost {sec} seconds a lap. Stay on the throttle until the braking point.",
       "es": "Estás planeando demasiado entre gas y freno: casi {sec} segundos por vuelta. Mantén el gas hasta el punto de frenada.",
@@ -8343,7 +8348,9 @@
       "it": "Il rilascio del freno si è sporcato rispetto ai tuoi primi giri: modulalo più lineare fino all'apice, è lì che si tiene la macchina in appoggio.",
       "variants_it": [
         "Il rilascio del freno si è sporcato rispetto ai tuoi primi giri: modulalo più lineare fino all'apice, è lì che si tiene la macchina in appoggio.",
-        "Come diceva Stewart: conta quando TOGLI il freno. Il rilascio è diventato nervoso, riportalo dolce fino all'apice."
+        "Come diceva Stewart: conta quando TOGLI il freno. Il rilascio è diventato nervoso, riportalo dolce fino all'apice.",
+        "Sperimenta il rilascio del freno: più lungo e più dolce fino all'apice — è lì che la macchina resta appoggiata e gira.",
+        "Slow in, fast out: ingrassa la frenata a metà e cura il rilascio, l'ingresso pulito ti regala l'uscita."
       ],
       "en": "Your brake release has gotten messy compared to your first laps: modulate it more linearly to the apex, that's what keeps the car settled.",
       "es": "La suelta del freno se ha ensuciado respecto a tus primeras vueltas: modúlala más lineal hasta el ápice.",
@@ -8356,7 +8363,9 @@
       "it": "Apri il gas tardi in uscita: arrivi al gas pieno al {pct} per cento del laterale, il riferimento è ottanta. Anticipa l'apertura.",
       "variants_it": [
         "Apri il gas tardi in uscita: arrivi al gas pieno al {pct} per cento del laterale, il riferimento è ottanta. Anticipa l'apertura.",
-        "Il gas pieno arriva quando la curva è già finita: {pct} per cento del laterale. Appoggiati prima al gas, la trazione c'è."
+        "Il gas pieno arriva quando la curva è già finita: {pct} per cento del laterale. Appoggiati prima al gas, la trazione c'è.",
+        "Aspetta col gas ma poi IMPEGNATI: lascia ruotare la macchina e apri tutto, deciso — ora arrivi al pieno quando la curva è già finita.",
+        "Uscita timida: il minimo di velocità arriva tardi e paghi tutto il dritto. Pazienza in ingresso, poi gas pieno con convinzione."
       ],
       "en": "You're getting to full throttle late on exit: at {pct} percent of the lateral, the reference is eighty. Open up earlier.",
       "es": "Llegas tarde al gas pleno en la salida: al {pct} por ciento del lateral, la referencia es ochenta. Abre antes.",
