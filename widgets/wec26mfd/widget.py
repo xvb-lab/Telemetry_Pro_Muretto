@@ -2905,16 +2905,27 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     f.setPixelSize(18)
                     p.setFont(f)
             elif "PRESS" in up:
-                # PRESSIONE: sigla ruota + valore kPa in AZZURRO —
-                # prima finiva nel ramo gomme e scriveva "NO CHANGE",
-                # indistinguibile dalle mescole (rich. 23/07 sera)
+                # PRESSIONE: sigla ruota + IMPOSTATA (azzurro) +
+                # ATTUALE a caldo dalla telemetria (bianco) — rich.
+                # 23/07 sera: "accanto mettici la pressione vera"
                 sig = self._it9(up[:2])
                 p.drawText(QRectF(TX, ry, 60.0, ROWH),
                            Qt.AlignLeft | Qt.AlignVCenter, sig)
                 p.setPen(QPen(QColor("#2fa8e0")))
-                p.drawText(QRectF(TX + 34.0, ry, 180.0, ROWH),
-                           Qt.AlignLeft | Qt.AlignVCenter,
-                           "%s kPa" % vt.strip())
+                _setw9 = "%s kPa" % vt.strip()
+                p.drawText(QRectF(TX + 34.0, ry, 150.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter, _setw9)
+                _wi9 = {"FL": 0, "FR": 1, "RL": 2, "RR": 3}.get(up[:2])
+                _pl9 = (self._press4[_wi9]
+                        if _wi9 is not None
+                        and isinstance(self._press4, list)
+                        and self._press4[_wi9] else None)
+                if _pl9:
+                    _cxp9 = TX + 40.0 + _fm.horizontalAdvance(_setw9)
+                    p.setPen(QPen(QColor(255, 255, 255, 170)))
+                    p.drawText(QRectF(_cxp9, ry, 130.0, ROWH),
+                               Qt.AlignLeft | Qt.AlignVCenter,
+                               "> %d" % int(round(_pl9)))
             elif "BRAKE DUCT" in up:
                 p.drawText(QRectF(TX, ry, 120.0, ROWH),
                            Qt.AlignLeft | Qt.AlignVCenter,
