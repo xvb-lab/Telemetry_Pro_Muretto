@@ -453,6 +453,43 @@ heave, packers, ramp diff, ride height, ali). Il muretto ne usa gia' le
 colonne "Guida"; la colonna "Assetto" oggi esce nel debrief (§ findings)
 e domani diventera' il Garage advisor con valori cliccabili.
 
+---
+
+## 10. La biblioteca — Goodman, "Race Car Vehicle Dynamics & Design" (MPhil, Aston 2009)
+
+> In `docs/MPhil_EJ_Goodman_2009_reduced.pdf` (230 pp): la TEORIA con le
+> formule dietro la matrice §9. Mappa dei capitoli → nostro motore:
+
+| Capitolo (pagina) | Cosa ci da' |
+|---|---|
+| 7 **The Tyre** (24-60) | 36 pagine di modello gomma: slip angle/ratio, carico→grip — fondamento di §2.1-2.3 |
+| 13 Wheel Alignment (80) | toe = slip angle indotto → righe "geometrie" della matrice |
+| 14 **Weight Transfer** (83-93) | trasferimenti sospesi/non sospesi, altezze centri di rollio → il PERCHE' di ARB/molle in §9.1 |
+| 15 Suspension Rates (94) | motion ratio / installed stiffness → convertire "click molla" in rigidezza RUOTA (serve al Garage advisor per suggerire valori sensati) |
+| 16 Damping (98-110) | teoria smorzamento → istogrammi §5.5 |
+| 18 Brake System (118) | bilancio freni meccanico |
+| 22-24 **Data Analysis** (137-151) | metodologia analisi dati pista (l'antenato accademico del nostro §5) |
+| 25 Lap Time Simulation (152+) | simulato vs reale sovrapposti → metodo di VALIDAZIONE per Time-Loss/ghost lap |
+| 27 **Track Tuning** (174-181) | il capitolo-gemello del nostro §9 (sotto) |
+
+### 10.1 Metodo da test-day (cap. 27, adattato al sim)
+- **Adjustment Table**: registro di OGNI modifica assetto + effetto — se
+  nulla funziona, si torna alla baseline. → La pagina Garage DEVE avere
+  lo storico modifiche con esito (feature chiave, presa da qui).
+- **Un cambio alla volta**: mai due modifiche insieme, o non sai cosa ha
+  agito. → Il Garage advisor propone UNA modifica per uscita.
+- **Test bilancio freni**: frenate a pedale crescente fino al primo
+  bloccaggio → QUALE ruota si ferma prima dice da che parte spostare il
+  bias (il nostro lock detector per ruota lo fa gia' in automatico).
+- **Test bilancio telaio**: stessa linea a velocita' crescente finche'
+  un asse molla → distribuzione momento di rollio ant/post da correggere
+  (= il nostro slip F/R per curva, formalizzato).
+- **Wheel speeds sovrapposte**: le 4 ruote in un grafico = diagnosi
+  freni+trasmissione a colpo d'occhio (da aggiungere alla pagina
+  telemetria: plot 4 ruote da `wheel_rot`).
+- **Pressioni gomme**: si settano SOLO al momento di uscire (instabili
+  da ferme) — coerente col nostro brief d'uscita.
+
 *Fonti: [YourDataDriven](https://www.yourdatadriven.com/guide-to-interpreting-tyre-temperatures-in-motorsports/),
 [Autosport Labs](https://www.autosportlabs.com/using_tire_temperatures_for_better_grip_and_faster_lap_times/),
 [Alsense](https://www.alsense.eu/racecar-engineering-tire-brake-temperature-sensors/),
