@@ -635,14 +635,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 elif self._m3_sel == 5:    # TEST TARGET (per la modalita')
                     _tm5 = getattr(self, "_test_mode", None)
                     if _tm5 == "longrun":
-                        # long run = LICO: stesso switch, stesso valore
-                        _opts5 = [1, 2, 3, 4]
-                        _c5 = getattr(self, "_eco_free", 0) or 2
-                        _j5 = _opts5.index(_c5) if _c5 in _opts5 else 0
-                        _j5 = (_j5 + (1 if (b & _XI_DR) else -1)) % len(_opts5)
-                        self._eco_free = _opts5[_j5]
-                        engineer_cfg.save(eco_free=self._eco_free)
-                        self._m3_msg = ("LICO +%d LAPS" % self._eco_free,
+                        self._m3_msg = ("LONG RUN USES LICO (ROW BELOW)",
                                         time.monotonic())
                     elif _tm5 == "racesim":
                         _opts5 = [30, 60, 90, 120]
@@ -2615,7 +2608,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         _tm_lbl = {None: "OFF", "longrun": "LONG RUN",
                    "racesim": "RACE SIM", "hotlap": "HOTLAP"}.get(_tmv, "OFF")
         if _tmv == "longrun":
-            _tg_lbl = "LICO +%d" % (getattr(self, "_eco_free", 0) or 2)
+            _tg_lbl = "-"                     # il long run usa la riga LICO
         elif _tmv == "racesim":
             _tg_lbl = "%d MIN" % getattr(self, "_test_min", 60)
         else:

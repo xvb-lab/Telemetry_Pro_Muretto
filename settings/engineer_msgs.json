@@ -7789,11 +7789,11 @@
       "cat": "strategy",
       "level": "info",
       "beep": false,
-      "it": "Long run: obiettivo {laps} giri, più {extra}. Il numero da tenere è {target} a giro, adesso stai sui {cur}. Ci penso io a guidarti; se vuoi anche i led del gioco, stesso più {extra} nel pannello carburante.",
+      "it": "Long run: obiettivo {laps} giri, più {extra} di lico. Il numero da tenere è {target} a giro, adesso stai sui {cur}. Ti guido io: i led ti segnano dove alzare.",
       "variants_it": [
-        "Long run: obiettivo {laps} giri, più {extra}. Il numero da tenere è {target} a giro, adesso stai sui {cur}. Ci penso io a guidarti; se vuoi anche i led del gioco, stesso più {extra} nel pannello carburante.",
-        "Partiamo col long run, più {extra} giri: {laps} totali a {target} l'uno, oggi viaggi a {cur}. Ti seguo io giro per giro.",
-        "Programma long run: target {target} a giro per arrivare a {laps}. Il risparmio si costruisce in staccata, la velocità di curva resta tutta."
+        "Long run: obiettivo {laps} giri, più {extra} di lico. Il numero da tenere è {target} a giro, adesso stai sui {cur}. Ti guido io: i led ti segnano dove alzare.",
+        "Partiamo col long run, lico più {extra}: {laps} giri totali a {target} l'uno, oggi viaggi a {cur}. Segui i led, al conto penso io.",
+        "Programma long run: target {target} a giro per arrivare a {laps}. Il risparmio si costruisce in staccata, i led ti dicono quando."
       ]
     },
     "longrun_on_nodata": {
@@ -7908,30 +7908,30 @@
       "cat": "strategy",
       "level": "info",
       "beep": false,
-      "it": "Risparmio attivo, più {extra} giri: obiettivo {laps} a {target} l'uno, ora sei sui {cur}. Ti guido io; volendo, stesso più {extra} nel pannello carburante e si accendono anche i led.",
+      "it": "Lico attivo, più {extra} giri: obiettivo {laps} a {target} l'uno, ora sei sui {cur}. I led ti segnano il rilascio, io tengo il conto.",
       "variants_it": [
-        "Risparmio attivo, più {extra} giri: obiettivo {laps} a {target} l'uno, ora sei sui {cur}. Ti guido io; volendo, stesso più {extra} nel pannello carburante e si accendono anche i led.",
-        "Eco inserito: {laps} giri di obiettivo, {target} a giro. Pensa a guidare, al conto penso io.",
-        "Si risparmia: più {extra} giri, target {target} contro i {cur} attuali. Ti dico io come costruirlo."
+        "Lico attivo, più {extra} giri: obiettivo {laps} a {target} l'uno, ora sei sui {cur}. I led ti segnano il rilascio, io tengo il conto.",
+        "Lico inserito: {laps} giri di obiettivo, {target} a giro. Pensa a guidare, i led fanno il resto.",
+        "Si risparmia: più {extra} giri, target {target} contro i {cur} attuali. Rilascio sui led, verifica ogni giro da me."
       ]
     },
     "eco_on_nodata": {
       "cat": "strategy",
       "level": "info",
       "beep": false,
-      "it": "Risparmio libero attivo, più {extra} giri. Al primo giro pulito ti do il numero da tenere.",
+      "it": "Lico attivo, più {extra} giri. Al primo giro pulito ti do il numero da tenere.",
       "variants_it": [
-        "Risparmio libero attivo, più {extra} giri. Al primo giro pulito ti do il numero da tenere."
+        "Lico attivo, più {extra} giri. Al primo giro pulito ti do il numero da tenere."
       ]
     },
     "eco_off": {
       "cat": "strategy",
       "level": "info",
       "beep": false,
-      "it": "Risparmio libero spento: si torna al passo pieno.",
+      "it": "Lico spento: si torna al passo pieno.",
       "variants_it": [
-        "Risparmio libero spento: si torna al passo pieno.",
-        "Eco disattivato, riprendiamo il ritmo normale."
+        "Lico spento: si torna al passo pieno.",
+        "Lico disattivato, riprendiamo il ritmo normale."
       ]
     }
   }
