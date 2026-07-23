@@ -1857,7 +1857,9 @@ class _LiveMap(QWidget):
         if _oserp and _oppt is not None and _evshow.get("opp", True) \
                 and getattr(self, "_opp_pts", None) is not None:
             p.setBrush(Qt.NoBrush)
-            p.setPen(QPen(QColor(154, 160, 171, 70), 1.3,
+            # spessore = come le traiettorie del pilota (rich. 23/07:
+            # la riga sottile non sembrava una scia)
+            p.setPen(QPen(QColor(154, 160, 171, 95), ln_w,
                           Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
             _t0tr8 = _oppt - 40.0
             _near8 = getattr(self, "_opp_near", None)
@@ -3325,6 +3327,7 @@ class _WorksheetTab(QWidget):
         except Exception:
             self.map_w._opp_series = {}
         self._opp_ii = {}
+        self._opp_sm = {}
         # slip per la macchinina di traverso (giro sel + confronto)
         try:
             self.map_w._slip_a = self._slip_series(self._sel)
@@ -3536,6 +3539,20 @@ class _WorksheetTab(QWidget):
                 if _prev9 is None:
                     continue
                 _x9i, _z9i = _lerp9(_prev9, _next9)
+                # LISCIATURA (23/07 notte): il jitter dei dt di
+                # registrazione fa "pompare" la velocita' tra un
+                # campione e l'altro -> inseguitore morbido verso il
+                # target (snap solo sui veri salti >60m)
+                _sm9 = getattr(self, "_opp_sm", None)
+                if _sm9 is None:
+                    _sm9 = self._opp_sm = {}
+                _pv9s = _sm9.get(_cid9)
+                if _pv9s is not None and (
+                        (_x9i - _pv9s[0]) ** 2
+                        + (_z9i - _pv9s[1]) ** 2) < 60.0 ** 2:
+                    _x9i = _pv9s[0] + (_x9i - _pv9s[0]) * 0.22
+                    _z9i = _pv9s[1] + (_z9i - _pv9s[1]) * 0.22
+                _sm9[_cid9] = (_x9i, _z9i)
                 _po9i = _prev9[3] if len(_prev9) > 3 else 0
                 # scia SOLO se il rivale e' vicino a me (<=300 m):
                 # tutte insieme erano uno scarabocchio (rich. 23/07)
