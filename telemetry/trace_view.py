@@ -1700,14 +1700,18 @@ class _LiveMap(QWidget):
         _evshow = getattr(self, "_ev_show", None) or {}
         # TRATTI evento (slide/tc/abs) = pezzi di strada colorati
         _allsegs = getattr(self, "_event_segs", None) or {}
-        _SEGC = {"slide": QColor(255, 110, 199, 175),
-                 "tc": QColor(0, 200, 230, 165),
-                 "abs": QColor(74, 144, 226, 165)}
+        # e' la TRAIETTORIA che cambia colore nel tratto (rich.
+        # 23/07): stesso spessore della linea giro, colore evento
+        _SEGC = {"slide": QColor(255, 138, 30, 220),
+                 "tc": QColor(0, 200, 230, 200),
+                 "abs": QColor(74, 144, 226, 200)}
+        _segw = max(ln_w + 1.2, 3.0)
         for _sk, _ssegs in _allsegs.items():
             if not _ssegs or not _evshow.get(_sk):
                 continue
             p.setPen(QPen(_SEGC.get(_sk, QColor(200, 200, 200, 160)),
-                          4.5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+                          _segw, Qt.SolidLine, Qt.RoundCap,
+                          Qt.RoundJoin))
             p.setBrush(Qt.NoBrush)
             for _sg in _ssegs:
                 if len(_sg) < 2:
@@ -1808,7 +1812,7 @@ class _LiveMap(QWidget):
             _EVL = (("contact", "Contacts", "#ff5a4d"),
                     ("tl", "Cuts", "#ff9f2e"),
                     ("lock", "Lock-ups", "#ffe24d"),
-                    ("slide", "Slides", "#ff6ec7"),
+                    ("slide", "Slides", "#ff8a1e"),
                     ("tc", "TC", "#00c8e6"),
                     ("abs", "ABS", "#4a90e2"))
             _ex9 = 12.0
