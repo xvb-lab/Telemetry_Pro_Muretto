@@ -2803,7 +2803,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _en = self._eco_active_laps()
             if _lt and not _en:
                 _en = -1                    # lamp test: icona accesa
-            _rl0 = QRectF(_W / 2.0 - 138.0, gy - 12.0, 64, 19)
+            _rl0 = QRectF(_W / 2.0 - 142.0, gy - 12.0, 64, 19)
             if not _en:
                 # chip LICO SPENTO: grigio tenue come MOD OFF
                 _gd0 = QColor(150, 156, 168, 110)
