@@ -39,7 +39,7 @@ def map_turns(track, track_len):
     import math
     try:
         from telemetry.trace_view import _load_track_svg
-        ol, _secs = _load_track_svg(track)
+        ol, _secs, _pit9 = _load_track_svg(track)
     except Exception:
         ol = None
     if not ol or len(ol) < 30 or not track_len:

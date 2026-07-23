@@ -69,6 +69,44 @@ def maybe_save(track, con, lap, track_len=None, sec_lds=None):
         secs.append(lo)
     xs = [p[0] for p in pts]
     ys = [-p[1] for p in pts]               # convenzione TinyPedal: y = -z
+    return _write_svg(dest, track, xs, ys, secs)
+
+
+def add_pitlane(track, pts):
+    """Aggiunge la CORSIA BOX alla mappa auto (seconda polyline
+    id='pitlane') quando il pilota la percorre. Una volta scritta
+    resta; per rifarla si cancella il file mappa."""
+    n = _safe_name(track)
+    if not n or not pts or len(pts) < 40:
+        return False
+    dest = _DIR / (n + ".svg")
+    if not dest.exists():
+        return False                        # prima serve la mappa
+    try:
+        txt = dest.read_text(encoding="utf-8")
+    except Exception:
+        return False
+    if 'id="pitlane"' in txt:
+        return False
+    xs = [p[0] for p in pts]
+    zs = [p[1] for p in pts]
+    _diag = ((max(xs) - min(xs)) ** 2
+             + (max(zs) - min(zs)) ** 2) ** 0.5
+    if _diag < 150.0:
+        return False                        # solo manovre nel box
+    step = max(1, len(pts) // 400)
+    pts = pts[::step]
+    body = " ".join("%.1f,%.1f" % (x, -z) for x, z in pts)
+    txt = txt.replace(
+        "</svg>",
+        chr(9) + '<polyline id="pitlane" fill="none" stroke="gray" '
+        'stroke-width="6" points="%s"/>' % body + chr(10) + "</svg>")
+    dest.write_text(txt, encoding="utf-8")
+    return True
+
+
+def _write_svg(dest, track, xs, ys, secs):
+    """Scrive il file SVG formato TinyPedal (viewBox + polyline)."""
     mx, my = min(xs), min(ys)
     pad = 20.0
     vb = "%.4f %.4f %.4f %.4f" % (mx - pad, my - pad,

@@ -1845,8 +1845,31 @@ class TelemetryRecorder:
             pass
 
         # giro col passaggio in corsia/garage: non buono per la mappa auto
+        # — ma la TRAIETTORIA in corsia si registra: diventa la CORSIA
+        # BOX disegnata nelle mappe (rich. 24/07: "non si capisce dove
+        # vanno le macchine quando sono nel pit")
         if d.get("in_pits") or d.get("in_pitlane") or d.get("garage"):
             self._lap_pits9 = True
+            try:
+                if float(d.get("speed") or 0.0) > 1.0 \
+                        and d.get("pos_x") is not None:
+                    _tr9 = getattr(self, "_pit_tr9", None)
+                    if _tr9 is None:
+                        _tr9 = self._pit_tr9 = []
+                    if len(_tr9) < 12000:
+                        _tr9.append((float(d["pos_x"]),
+                                     float(d.get("pos_z") or 0.0)))
+            except Exception:
+                pass
+        elif getattr(self, "_pit_tr9", None):
+            try:
+                from core.auto_trackmap import add_pitlane as _apl9
+                if _apl9(self._evt_track or d.get("track"),
+                         self._pit_tr9):
+                    self._st("corsia box scritta nella mappa auto")
+            except Exception:
+                pass
+            self._pit_tr9 = None
 
         # giro completato -> scrivi riga giro
         if self._prev_laps is not None and laps > self._prev_laps:

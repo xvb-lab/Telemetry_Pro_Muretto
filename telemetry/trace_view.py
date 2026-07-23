@@ -969,14 +969,14 @@ def _load_track_svg(track):
     import re
     from pathlib import Path
     if not track:
-        return None, []
+        return None, [], []
     _root9 = Path(__file__).resolve().parent.parent / "settings"
     # PRIORITA' alla mappa AUTO-REGISTRATA (24/07): coordinate vere del
     # gioco, versione pista attuale — la TinyPedal e' il ripiego
     _bases9 = [b for b in (_root9 / "trackmap_auto", _root9 / "trackmap")
                if b.exists()]
     if not _bases9:
-        return None, []
+        return None, [], []
     def _norm9(s):
         s = re.sub(r"#U([0-9a-fA-F]{4})",
                    lambda m: chr(int(m.group(1), 16)), s).lower()
@@ -1005,12 +1005,12 @@ def _load_track_svg(track):
         if f is not None:
             break                 # trovata nella cartella prioritaria
     if f is None:
-        return None, []
+        return None, [], []
     try:
         txt = f.read_text(encoding="utf-8", errors="ignore")
         m = re.search(r'points="([^"]+)"', txt)
         if not m:
-            return None, []
+            return None, [], []
         path = []
         for tok in m.group(1).split():
             if "," in tok:
@@ -1020,9 +1020,17 @@ def _load_track_svg(track):
         dm = re.search(r"<desc>([\d,\s]+)</desc>", txt)
         if dm:
             secs = [int(x) for x in re.findall(r"\d+", dm.group(1))][:2]
-        return (path if len(path) > 10 else None), secs
+        # CORSIA BOX (solo mappe auto-registrate): seconda polyline
+        pit = []
+        pm = re.search(r'id="pitlane"[^>]*points="([^"]+)"', txt)
+        if pm:
+            for tok in pm.group(1).split():
+                if "," in tok:
+                    a, b = tok.split(",")[:2]
+                    pit.append((float(a), -float(b)))
+        return (path if len(path) > 10 else None), secs, pit
     except Exception:
-        return None, []
+        return None, [], []
 
 
 def _align_svg_outline(ol, drv):
@@ -1162,15 +1170,17 @@ class _LiveMap(QWidget):
         if track == self._track:
             return
         self._track = track
-        path, secs = _load_track_svg(track)
+        path, secs, pit = _load_track_svg(track)
         if path and len(path) > 10:
             self._outline = list(path)
             self._outline_raw = list(path)
             self._secs = list(secs)
+            self._pit_out = list(pit or [])   # corsia box (mappe auto)
         else:
             self._outline = []   # niente SVG: si usa il path registrato
             self._outline_raw = []
             self._secs = []
+            self._pit_out = []
         self.update()
 
     def _turns(self):
@@ -1692,6 +1702,17 @@ class _LiveMap(QWidget):
         _ap = QPen(trk_c, trk_w)
         _ap.setJoinStyle(Qt.RoundJoin); _ap.setCapStyle(Qt.RoundCap)
         p.setPen(_ap); p.drawPath(base)                                     # asfalto
+        # CORSIA BOX dalla mappa auto-registrata (24/07): sempre
+        # visibile, anche quando i giri esaminati non passano dai box
+        _po9 = getattr(self, "_pit_out", None)
+        if _po9 and len(_po9) >= 4:
+            _pp9 = _spath(_decim(_po9))
+            _bq = QPen(QColor(0, 0, 0, 150), trk_w * 0.55 + 3)
+            _bq.setJoinStyle(Qt.RoundJoin); _bq.setCapStyle(Qt.RoundCap)
+            p.setPen(_bq); p.drawPath(_pp9)
+            _aq = QPen(QColor(96, 102, 114, 210), trk_w * 0.55)
+            _aq.setJoinStyle(Qt.RoundJoin); _aq.setCapStyle(Qt.RoundCap)
+            p.setPen(_aq); p.drawPath(_pp9)
         # corsia PIT: asfalto stretto sotto i tratti fuori tracciato.
         # SOLO tratti veri (>=4 punti e >=30 m): i micro-tratti di rumore,
         # col tratto largo a cap tonda, a zoom alto diventavano "cerchi"

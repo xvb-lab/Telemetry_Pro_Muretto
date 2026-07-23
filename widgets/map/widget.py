@@ -28,6 +28,7 @@ _ROOT = Path(__file__).parent.parent.parent
 from core.paths import POSITIONS_FILE  # dati utente, fuori dall'app
 MAPS_DIR = _ROOT / "settings" / "maps"
 TRACKMAP_DIR = _ROOT / "settings" / "trackmap"   # SVG pronti (stile TinyPedal)
+AUTOMAP_DIR = _ROOT / "settings" / "trackmap_auto"  # registrate da noi (priorita')
 
 _CLASS_COL = {
     "HY":  QColor("#bd1016"),
@@ -52,8 +53,12 @@ def _svg_index():
     if _svg_index_cache is None:
         idx = {}
         try:
-            if TRACKMAP_DIR.exists():
-                for f in TRACKMAP_DIR.glob("*.svg"):
+            # la cartella AUTO (coordinate vere di gioco) VINCE sulla
+            # TinyPedal: si indicizza per ultima e sovrascrive
+            for _dir9 in (TRACKMAP_DIR, AUTOMAP_DIR):
+                if not _dir9.exists():
+                    continue
+                for f in _dir9.glob("*.svg"):
                     name = re.sub(r"#U([0-9a-fA-F]{4})",
                                   lambda m: chr(int(m.group(1), 16)), f.stem)
                     idx[name] = f
@@ -68,7 +73,7 @@ def _load_svg_map(track):
     -> (path[(x,z)], secs[indici]) oppure (None, [])."""
     f = _svg_index().get(track)
     if f is None:
-        return None, []
+        return None, [], []
     try:
         txt = f.read_text(encoding="utf-8", errors="ignore")
         m = re.search(r'points="([^"]+)"', txt)
@@ -83,18 +88,26 @@ def _load_svg_map(track):
         dm = re.search(r"<desc>([\d,\s]+)</desc>", txt)
         if dm:
             secs = [int(x) for x in re.findall(r"\d+", dm.group(1))][:2]
-        return (path if len(path) > 10 else None), secs
+        # CORSIA BOX (solo mappe auto-registrate): seconda polyline
+        pit = []
+        pm = re.search(r'id="pitlane"[^>]*points="([^"]+)"', txt)
+        if pm:
+            for tok in pm.group(1).split():
+                if "," in tok:
+                    a, b = tok.split(",")[:2]
+                    pit.append((float(a), -float(b)))
+        return (path if len(path) > 10 else None), secs, pit
     except Exception:
-        return None, []
+        return None, [], []
 
 
 def _load_map(track):
-    """-> (path[(x,z)], secs). Prima lo SVG pronto, poi la mappa registrata.
-    (None, []) se nessuna delle due c'è (allora si registra)."""
-    # 1) SVG pronto (stile TinyPedal): coordinate reali + settori
-    path, secs = _load_svg_map(track)
+    """-> (path[(x,z)], secs, pit). Prima lo SVG pronto, poi la mappa
+    registrata. (None, [], []) se nessuna delle due c'è (si registra)."""
+    # 1) SVG pronto (auto-registrato o TinyPedal): coordinate reali
+    path, secs, pit = _load_svg_map(track)
     if path:
-        return path, secs
+        return path, secs, pit
     # 2) mappa registrata in precedenza
     try:
         f = MAPS_DIR / f"{_safe(track)}.json"
@@ -106,10 +119,10 @@ def _load_map(track):
             else:
                 path = [tuple(p) for p in raw]
                 secs = []
-            return path, secs
+            return path, secs, []
     except Exception:
         pass
-    return None, []
+    return None, [], []
 
 
 def _save_map(track, path, secs):
@@ -137,6 +150,7 @@ class MapCanvas(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self._path = None
         self._secs = []              # 2 indici: fine S1, fine S2
+        self._pit9 = []              # corsia box (dalle mappe auto)
         self._cars = []
         self._track = ""
         self._sector_flags = [0, 0, 0]
@@ -202,7 +216,7 @@ class MapCanvas(QWidget):
                  yellow_active=False, my_dist=0.0, track_len=0.0, yellow_bands=None):
         if track and track != self._track:
             self._track = track
-            self._path, self._secs = _load_map(track)
+            self._path, self._secs, self._pit9 = _load_map(track)
             self._record = []; self._rec_secs = []
             self._last_ld = None; self._cur_sec = None
             self._started = False
@@ -335,6 +349,20 @@ class MapCanvas(QWidget):
                 X, Y = tf(x, z); sub.lineTo(X, Y)
             p.setPen(QPen(color, width)); p.setBrush(Qt.NoBrush)
             p.drawPath(sub)
+
+        # ── CORSIA BOX (dalla mappa auto-registrata): sotto la pista,
+        # cosi' si vede DOVE vanno le macchine quando sono nel pit ──
+        if getattr(self, "_pit9", None) and len(self._pit9) >= 4:
+            pl9 = QPainterPath()
+            _px9, _py9 = tf(*self._pit9[0]); pl9.moveTo(_px9, _py9)
+            for (x, z) in self._pit9[1:]:
+                X, Y = tf(x, z); pl9.lineTo(X, Y)
+            _plw = max(2.5, 3.0 * sc) * track_w_mult
+            p.setBrush(Qt.NoBrush)
+            p.setPen(QPen(QColor(0, 0, 0, 130), _plw + 2.0))
+            p.drawPath(pl9)
+            p.setPen(QPen(QColor(150, 156, 168, 200), _plw))
+            p.drawPath(pl9)
 
         # ── tracciato: bordo nero opacizzato sotto + linea chiara sopra ──
         base = QPainterPath()
