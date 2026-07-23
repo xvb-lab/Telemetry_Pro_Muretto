@@ -1067,6 +1067,19 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                             .split(b"\x00")[0].decode("utf-8",
                                                       "ignore").strip()
                         self._wiper9 = int(getattr(t, "mWiperState", 0) or 0)
+                        # HAZARD: fermo in pista >5s a motore acceso
+                        try:
+                            _spd0 = (self._speed or 0.0)
+                            if _spd0 < 0.5 and self._rpm > 100.0:
+                                if getattr(self, "_stop_t0", None) is None:
+                                    self._stop_t0 = time.monotonic()
+                            else:
+                                self._stop_t0 = None
+                            self._hazard9 = (
+                                getattr(self, "_stop_t0", None) is not None
+                                and time.monotonic() - self._stop_t0 > 5.0)
+                        except Exception:
+                            self._hazard9 = False
                         self._batt9 = float(getattr(
                             t, "mBatteryChargeFraction", 0.0) or 0.0)
                         self._emo9 = int(getattr(
@@ -2665,7 +2678,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     for nm0 in ("fuel_spia", "pit_limiter", "abbaglianti",
                                 "esp_tc", "engine_warn", "tyre_warn",
                                 "warning_light", "freni_warn", "batteria",
-                                "eco_spia")}
+                                "eco_spia", "abs_spia",
+                                "freccia_sx", "freccia_dx")}
             for _nm0, _dx0 in (("fuel_spia", -72.0),
                                ("pit_limiter", -100.0),
                                ("abbaglianti", -156.0),
@@ -2674,7 +2688,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                ("tyre_warn", 78.0),
                                ("warning_light", 106.0),
                                ("freni_warn", 134.0),
-                               ("batteria", 162.0)):
+                               ("batteria", 162.0),
+                               ("abs_spia", 190.0),
+                               ("freccia_sx", -240.0),
+                               ("freccia_dx", 218.0)):
                 _r0 = self._svg_offmap.get(_nm0)
                 if _r0 is not None and _r0.isValid():
                     _r0.render(p, QRectF(_W / 2.0 + _dx0, gy - 48.0,
@@ -2828,6 +2845,32 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 if _blk9 and self._svg_brk9.isValid():
                     self._svg_brk9.render(
                         p, QRectF(_W / 2.0 + 134.0, gy - 48.0, 22, 22))
+                self.update()
+            # SPIA ABS (icona utente): sfarfalla con l'intervento
+            if getattr(self, "_abs_on", False) or _lt:
+                if not hasattr(self, "_svg_abs9"):
+                    from PySide6.QtSvg import QSvgRenderer as _QSRa
+                    self._svg_abs9 = _QSRa(
+                        str(_ROOT / "assets" / "icons" / "abs_spia.svg"))
+                if (_lt or (time.monotonic() % 0.3) < 0.18)                         and self._svg_abs9.isValid():
+                    self._svg_abs9.render(
+                        p, QRectF(_W / 2.0 + 190.0, gy - 48.0, 22, 22))
+                self.update()
+            # FRECCE HAZARD agli estremi: pit limiter O fermo >5s in pista
+            if (getattr(self, "_limiter", False)
+                    or getattr(self, "_hazard9", False) or _lt):
+                if not hasattr(self, "_svg_fsx9"):
+                    from PySide6.QtSvg import QSvgRenderer as _QSRf9
+                    _ipf = _ROOT / "assets" / "icons"
+                    self._svg_fsx9 = _QSRf9(str(_ipf / "freccia_sx.svg"))
+                    self._svg_fdx9 = _QSRf9(str(_ipf / "freccia_dx.svg"))
+                if (_lt or (time.monotonic() % 0.8) < 0.45):
+                    if self._svg_fsx9.isValid():
+                        self._svg_fsx9.render(
+                            p, QRectF(_W / 2.0 - 240.0, gy - 48.0, 22, 22))
+                    if self._svg_fdx9.isValid():
+                        self._svg_fdx9.render(
+                            p, QRectF(_W / 2.0 + 218.0, gy - 48.0, 22, 22))
                 self.update()
             # batteria nel LAMP TEST (di norma vive nel check da spenti)
             if _lt:
