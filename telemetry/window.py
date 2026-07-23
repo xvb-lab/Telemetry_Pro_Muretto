@@ -9374,6 +9374,14 @@ class _TrackPage(QWidget):
         # rimbalzo dell'auto-focus che sembrava un bug ai clienti
         self._backbtn = back
         self._back_locked = False
+        # scritta rossa SESSION LIVE accanto al lucchetto (stessa
+        # grafica della pagina Setups — rich. 23/07 sera)
+        self._live_note = QLabel("SESSION LIVE")
+        self._live_note.setStyleSheet(
+            "color:#ff4d5a;font-family:'Archivo SemiExpanded';"
+            "font-size:13px;font-weight:800;letter-spacing:2px;"
+            "background:transparent;")
+        self._live_note.setVisible(False)
 
         def _locked_live():
             # SOLO le pagine che ESCONO dalla sessione bloccano; le
@@ -9404,16 +9412,19 @@ class _TrackPage(QWidget):
                 back.setStyleSheet(self._BKQSS_LOCK)
                 back.setCursor(Qt.ForbiddenCursor)
                 back.setToolTip("Session live — STOP to exit")
+                self._live_note.setVisible(True)
             else:
                 back.setText("arrow_back")
                 back.setStyleSheet(self._BKQSS)
                 back.setCursor(Qt.PointingHandCursor)
                 back.setToolTip("")
+                self._live_note.setVisible(False)
         from PySide6.QtCore import QTimer as _QTbk
         self._back_lock_t = _QTbk(self)
         self._back_lock_t.timeout.connect(_upd_lock)
         self._back_lock_t.start(800)
         top.addWidget(back, 0, Qt.AlignVCenter)
+        top.addWidget(self._live_note, 0, Qt.AlignVCenter)
         self._flag = _SvgBox(); self._flag.setFixedSize(34, 24)
         self._flag.setStyleSheet("background:transparent;")
         top.addWidget(self._flag, 0, Qt.AlignVCenter)
