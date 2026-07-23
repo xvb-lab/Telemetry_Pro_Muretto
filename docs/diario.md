@@ -515,3 +515,19 @@ aggiornata ogni 2s dalla corsia lenta wearables). Da FERMI in corsia box il
 numero grande diventa il CRONO: stima − trascorso in ambra, oltre la stima
 passa a +X rosso, si azzera quando riparti. Verificato offscreen (3 stati:
 stima, countdown, overtime).
+
+**PIT COUNTDOWN — CERTIFICATO (23/07, collaudo su pista + video + CSV).**
+Percorso completo del collaudo, per i team:
+1. La rotta `strategy/pitstop-estimate` di LMU e' un *lavoro rimanente live*
+   (cala a gradini con le fasi, sequenziali: rifornimento -> gomme; al
+   termine si riarma sul preventivo della sosta successiva).
+2. La stima all'INGRESSO e' esatta al decimo (45.99 stimati vs 45.9 reali).
+3. Design finale: ancora fotografata quando ti fermi, countdown col NOSTRO
+   orologio (1s/s), scomposizione congelata, zero->verde->rosso solo
+   overtime vero. Nessun ri-ancoraggio: il blip di velocita' al rilascio
+   dai cric e il preventivo riarmato impallavano il conto (provato al
+   fotogramma con OBS: nostro+TimerBox = 46.4s costante).
+4. "Timer box" di LMU = cronometro della sosta (conta in su) = il nostro
+   ELAPSED. Esito test finale pilota: "perfetto".
+DA COLLAUDARE (sessione dedicata): tempi RIPARAZIONE DANNI (carrozzeria/
+sospensioni/aero) — provocare danni crescenti e censire la voce `damage`.
