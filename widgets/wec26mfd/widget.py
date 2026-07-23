@@ -525,6 +525,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             elif mod == 2:
                 # dx/sx sulla pagina PIT: cambia il valore della voce
                 self._m2_change(1 if (b & _XI_DR) else -1)
+                # arma l'auto-repeat da TENUTA (benzina/VE: corsa veloce)
+                self._m2h_t0 = time.monotonic()
+                self._m2h_last = self._m2h_t0
                 self._page_beep()
                 self.update()
             elif mod == 3:
@@ -650,6 +653,22 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                     time.monotonic())
                     self._page_beep()
                     self.update()
+        # TENUTA dx/sx sulla pagina PIT: auto-repeat che ACCELERA
+        # (0.35s di attesa, poi 8/s -> 20/s -> 50/s): i numeri LMU di
+        # benzina/energia si impostano senza mitragliare il pad
+        elif (b & (_XI_DR | _XI_DL)):
+            act = self._active_mods()
+            mod = act[self._page % len(act)] if act else None
+            if mod == 2 and getattr(self, "_m2h_t0", None) is not None:
+                _nowh = time.monotonic()
+                _held = _nowh - self._m2h_t0
+                if _held > 0.35:
+                    _iv = 0.12 if _held < 1.5 else \
+                        (0.05 if _held < 3.0 else 0.02)
+                    if _nowh - getattr(self, "_m2h_last", 0.0) >= _iv:
+                        self._m2h_last = _nowh
+                        self._m2_change(1 if (b & _XI_DR) else -1)
+                        self.update()
         # croce su/giu: cambio valore della casella selezionata
         elif (b & (_XI_DU | _XI_DD)) and not (prev & (_XI_DU | _XI_DD)):
             act = self._active_mods()
@@ -2441,17 +2460,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._svg_fari_hi = _QSRf(str(_ip9 / "abbaglianti.svg"))
         _bm = getattr(self, "_beam", False)
         _lf = getattr(self, "_light_flash", False)
-        if _lf:
-            # LAMPEGGIO = abbaglianti BLU che lampeggiano (cruscotto vero)
-            _on = (time.monotonic() % 0.5) < 0.28
-            sv = self._svg_fari_hi if _on else self._svg_fari_off
-            self.update()          # blink fluido
-        elif _bm:
-            sv = self._svg_fari_on
-        else:
-            sv = self._svg_fari_off
+        # spia FARI: sempre al suo posto col suo stato (verde/grigia)
+        sv = self._svg_fari_on if _bm else self._svg_fari_off
         if sv.isValid():
             sv.render(p, QRectF(_W / 2.0 - 128.0, gy - 48.0, 22, 22))
+        # spia ABBAGLIANTI: A SE', ACCANTO — appare blu lampeggiante
+        # durante il lampeggio (non sostituisce mai i fari)
+        if _lf:
+            if (time.monotonic() % 0.5) < 0.28 \
+                    and self._svg_fari_hi.isValid():
+                self._svg_fari_hi.render(
+                    p, QRectF(_W / 2.0 - 156.0, gy - 48.0, 22, 22))
+            self.update()          # blink fluido
 
     def _cfg_pull(self):
         """engineer_cfg riletta throttled 1s: serve a MOD 3 (valori menu)
@@ -2728,7 +2748,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 _wk9 = "slow"
             else:
                 _wk9 = "off"
-            p.drawPixmap(QRectF(_W / 2.0 - 184.0, gy - 48.0,
+            p.drawPixmap(QRectF(_W / 2.0 - 212.0, gy - 48.0,
                                 22, 22).toRect(), self._px_wip9[_wk9])
             # SPIA ESP/TC (icona utente): sfarfalla quando il controllo
             # trazione sta intervenendo, come su una stradale
@@ -2740,7 +2760,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 if (time.monotonic() % 0.3) < 0.18 \
                         and self._svg_esp9.isValid():
                     self._svg_esp9.render(
-                        p, QRectF(_W / 2.0 - 156.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 - 184.0, gy - 48.0, 22, 22))
                 self.update()          # sfarfallio fluido
             # ── gruppo spie DESTRO (icone utente), da dentro a fuori:
             # MOTORE rossa (surriscaldo/danno), GOMMA TPMS (forata/persa),
