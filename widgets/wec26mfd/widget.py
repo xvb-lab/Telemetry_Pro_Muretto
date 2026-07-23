@@ -2233,6 +2233,27 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                    Qt.AlignCenter, "LEFT/RIGHT/UP/DOWN = Move")
 
     # ── MOD 3: SCHERMATA IMPOSTAZIONI del dash (menu stile DDU) ──
+    def _paint_beam_spia(self, p, gy):
+        """SPIA FARI (dalla V2): proiettore + fasci in alto a sinistra
+        della corona; lampeggio = blink netto, fissi = accesa fissa.
+        Vive anche a MOTORE SPENTO (i fari funzionano da fermi)."""
+        _bm = getattr(self, "_beam", False)
+        _lf = getattr(self, "_light_flash", False)
+        if not (_bm or _lf):
+            return
+        _on = True
+        if _lf:
+            _on = (time.monotonic() % 0.5) < 0.28
+            self.update()          # blink fluido
+        if not _on:
+            return
+        # icona PNG di assets/icons (light_on), come le altre spie
+        if not hasattr(self, "_px_light_on"):
+            _ip9 = _ROOT / "assets" / "icons"
+            self._px_light_on = QPixmap(str(_ip9 / "light_on.png"))
+        p.drawPixmap(QRectF(_W / 2.0 - 128.0, gy - 48.0, 22, 22).toRect(),
+                     self._px_light_on)
+
     def _cfg_pull(self):
         """engineer_cfg riletta throttled 1s: serve a MOD 3 (valori menu)
         e a MOD 1 (spia ECO verde quando il risparmio e' attivo)."""
@@ -2364,6 +2385,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.setPen(QPen(QColor(0, 220, 90)))
                 p.drawText(QRectF(0, _oy + 28.0, _W, 24),
                            Qt.AlignCenter, "E-MOTOR ON")
+            # fari accesi da fermo: la spia si vede anche a motore spento
+            try:
+                self._paint_beam_spia(p, gy)
+            except Exception:
+                pass
             return
         self._gauge_with_fade(p, _W / 2.0, gy, 56.0, show_gear=True)
         # ACQUA e OLIO impilati a SINISTRA in basso: le ICONE PNG di
@@ -2451,27 +2477,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawRoundedRect(_re, 4, 4)
                 p.setPen(QPen(QColor("#37d67a")))
                 p.drawText(_re, Qt.AlignCenter, _txt)
-            # SPIA FARI (dalla V2): proiettore + fasci in alto a sinistra
-            # della corona; lampeggio = blink netto, fissi = accesa fissa
-            _bm = getattr(self, "_beam", False)
-            _lf = getattr(self, "_light_flash", False)
-            if _bm or _lf:
-                _on = True
-                if _lf:
-                    _on = (time.monotonic() % 0.5) < 0.28
-                    self.update()          # blink fluido
-                if _on:
-                    _hc = QColor("#7fdcff")
-                    _hx, _hy = _W / 2.0 - 126.0, gy - 46.0
-                    p.setPen(Qt.NoPen)
-                    p.setBrush(_hc)
-                    p.drawChord(QRectF(_hx, _hy, 13, 13),
-                                90 * 16, 180 * 16)
-                    p.setPen(QPen(_hc, 1.6, Qt.SolidLine, Qt.RoundCap))
-                    for _dy9 in (-4, 0, 4):
-                        p.drawLine(QPointF(_hx + 10, _hy + 6.5 + _dy9),
-                                   QPointF(_hx + 19,
-                                           _hy + 6.5 + _dy9 * 1.4))
+            self._paint_beam_spia(p, gy)
         except Exception:
             pass
         return
