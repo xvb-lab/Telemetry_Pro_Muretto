@@ -2805,7 +2805,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             # che era dell'ECO: ambra fissa quando sei in mappa 0
             _map0 = (getattr(self, "_mmap", None) == 0)
             if _map0 or _lt:
-                _rsc = QRectF(_xl, gy + 20, 34, 19)
+                _rsc = QRectF(_xl + 66, gy + 20, 34, 19)
                 p.setPen(QPen(QColor("#ffb020"), 1.4))
                 p.setBrush(QColor(70, 48, 8, 150))
                 p.drawRoundedRect(_rsc, 4, 4)
@@ -2822,7 +2822,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             if not _en:
                 _re0 = self._svg_offmap.get("eco_spia")
                 if _re0 is not None and _re0.isValid():
-                    _re0.render(p, QRectF(_xl, gy + 64, 26, 26))
+                    _re0.render(p, QRectF(_xl + 104, gy + 17, 24, 24))
             if _en:
                 # icona ECO verde (SVG utente) + eventuale +N accanto
                 if not hasattr(self, "_svg_eco9"):
@@ -2831,14 +2831,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         str(_ROOT / "assets" / "icons" / "eco_spia.svg"))
                 if self._svg_eco9.isValid():
                     self._svg_eco9.render(
-                        p, QRectF(_xl, gy + 64, 26, 26))
+                        p, QRectF(_xl + 104, gy + 17, 24, 24))
                 if _en > 0:
                     f_ec = QFont("Archivo SemiExpanded")
                     f_ec.setPixelSize(11)
                     f_ec.setBold(True)
                     p.setFont(f_ec)
                     p.setPen(QPen(QColor("#00FF00")))
-                    p.drawText(QRectF(_xl + 28, gy + 64, 34, 26),
+                    p.drawText(QRectF(_xl + 130, gy + 17, 34, 24),
                                Qt.AlignLeft | Qt.AlignVCenter,
                                "+%d" % _en)
                     p.setFont(f_e)      # ripristina
