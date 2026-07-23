@@ -1826,7 +1826,23 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         # blocco GEAR/tachimetro come in MOD 1, STESSA posizione (dietro la lista)
         _gy = self.HDR + self.ROW_T \
             + (_H - self.HDR - self.ROW_T - self.ROW_B) / 2.0 - 44.0
-        self._paint_neon_gauge(p, _W / 2.0, _gy, 56.0)
+        # MOTORE SPENTO: in MOD 2 gauge e marcia NON appaiono; alla
+        # accensione tornano subito ma con un fade morbido (~0.35s)
+        _eon2 = (self._rpm or 0.0) >= 50.0
+        _now2 = time.monotonic()
+        if _eon2 and not getattr(self, "_m2_eon_prev", False):
+            self._m2_fade_t0 = _now2
+        self._m2_eon_prev = _eon2
+        if _eon2:
+            _ft2 = (_now2 - getattr(self, "_m2_fade_t0", 0.0)) / 0.35
+            if _ft2 < 1.0:
+                p.save()
+                p.setOpacity(max(0.05, min(1.0, _ft2)))
+                self._paint_neon_gauge(p, _W / 2.0, _gy, 56.0)
+                p.restore()
+                self.update()          # frame successivo del fade
+            else:
+                self._paint_neon_gauge(p, _W / 2.0, _gy, 56.0)
         rows = self._m2_rows()
         f = QFont(FAM)
         if not rows:
