@@ -552,6 +552,38 @@ e domani diventera' il Garage advisor con valori cliccabili.
   sono upload non autorizzati): i Tech Tips gratuiti coprono la teoria
   che ci serve.
 
+---
+
+## 13. Le VIE DEI DATI in LMU — mappa completa (verificata)
+
+1. **Shared memory (mmap+ctypes)** — LA nostra via, gia' in produzione
+   (pyLMUSharedMemory): TelemetryInfo alta frequenza + ScoringInfo
+   sessione. Tutto il doc si basa su questa.
+2. **Plugin C++ / DamPlugin → MoTeC .ld** — via power-user opzionale:
+   massima fedelta' per chi vuole i2 Pro. Non necessaria al nostro
+   stack (il recorder SQLite copre l'analisi §5); da valutare solo come
+   export "pro" futuro. (Compatibilita' DamPlugin-LMU da verificare.)
+3. **⭐ RESULTS XML (`UserData/Log/Results/*.xml`) — LA PEPITA, verificata
+   sul disco (2416 file!)**: per OGNI vettura, OGNI giro:
+   `s1/s2/s3, topspeed, fuel+fuelUsed, ve+veUsed,` e **usura delle 4
+   gomme per giro** (`twfl twfr twrl twrr`) + mescole per ruota.
+   Cioe': dati che l'HUD non mostra — anche dei RIVALI. Sblocca:
+   - **curve di degrado degli avversari** (§6.5 applicato agli altri):
+     undercut/overcut calcolato su usura VERA, non stimata
+   - consumi rivali giro per giro → previsione delle loro soste
+   - stint analysis post-gara di tutto il campo (pagina Race Control /
+     futura pagina report)
+   - calibrazione del nostro modello degrado con centinaia di gare
+     d'archivio GIA' presenti
+   → Parser XML = prossimo mattone dati ad altissimo rendimento.
+4. **Trace log** (`trace*.txt`) — gia' usato: penalita' verbatim,
+   track limits lifecycle, pass monitoring (coi suoi limiti di flush).
+5. **REST localhost:6397** — gia' usato: pit menu, wearables, strategia,
+   regole sessione, gomme disponibili.
+
+Riferimenti codice aperto per confronto mapping: CrewChiefV4 (C#),
+SimHub rF2 plugin, wrapper "rFactor 2 Shared Memory Python".
+
 *Fonti: [YourDataDriven](https://www.yourdatadriven.com/guide-to-interpreting-tyre-temperatures-in-motorsports/),
 [Autosport Labs](https://www.autosportlabs.com/using_tire_temperatures_for_better_grip_and_faster_lap_times/),
 [Alsense](https://www.alsense.eu/racecar-engineering-tire-brake-temperature-sensors/),
