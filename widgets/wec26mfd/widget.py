@@ -2779,13 +2779,22 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             # SPIA "SC" (mappa motore 0 = safety car map) nello slot
             # che era dell'ECO: ambra fissa quando sei in mappa 0
             _map0 = (getattr(self, "_mmap", None) == 0)
+            _rsc = QRectF(_xl + 66, gy + 20, 34, 19)
             if _map0 or _lt:
-                _rsc = QRectF(_xl + 66, gy + 20, 34, 19)
                 p.setPen(QPen(QColor("#ffb020"), 1.4))
                 p.setBrush(QColor(70, 48, 8, 150))
                 p.drawRoundedRect(_rsc, 4, 4)
                 p.setFont(f_e)                     # stesso font del MOD
                 p.setPen(QPen(QColor("#ffb020")))
+                p.drawText(_rsc, Qt.AlignCenter, "SC")
+            else:
+                # SC SPENTA: grigia, stesso font (come MOD 0 / LICO)
+                _gds = QColor(150, 156, 168, 110)
+                p.setPen(QPen(_gds, 1.0))
+                p.setBrush(QColor(30, 34, 40, 80))
+                p.drawRoundedRect(_rsc, 4, 4)
+                p.setFont(f_e)
+                p.setPen(QPen(_gds))
                 p.drawText(_rsc, Qt.AlignCenter, "SC")
             _en = self._eco_active_laps()
             if _lt and not _en:
