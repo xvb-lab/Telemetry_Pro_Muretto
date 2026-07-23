@@ -1047,6 +1047,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         self._comp_rr = bytes(t.mRearTireCompoundName) \
                             .split(b"\x00")[0].decode("utf-8",
                                                       "ignore").strip()
+                        self._wiper9 = int(getattr(t, "mWiperState", 0) or 0)
                         self._batt9 = float(getattr(
                             t, "mBatteryChargeFraction", 0.0) or 0.0)
                         self._emo9 = int(getattr(
@@ -2712,6 +2713,23 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 if self._svg_fuel9.isValid():
                     self._svg_fuel9.render(
                         p, QRectF(_W / 2.0 - 72.0, gy - 48.0, 22, 22))
+            # SPIA TERGI (PNG originali): logica V2 dell'IconBar —
+            # motore spento wiper_0, >=3 fast, >=1 slow, 0 off
+            if not hasattr(self, "_px_wip9"):
+                _ipt = _ROOT / "assets" / "icons"
+                self._px_wip9 = {k9: QPixmap(str(_ipt / ("wiper_%s.png" % k9)))
+                                 for k9 in ("0", "slow", "fast", "off")}
+            _wp9 = getattr(self, "_wiper9", 0)
+            if (self._rpm or 0.0) < 50.0:
+                _wk9 = "0"
+            elif _wp9 >= 3:
+                _wk9 = "fast"
+            elif _wp9 >= 1:
+                _wk9 = "slow"
+            else:
+                _wk9 = "off"
+            p.drawPixmap(QRectF(_W / 2.0 - 184.0, gy - 48.0,
+                                22, 22).toRect(), self._px_wip9[_wk9])
             # SPIA ESP/TC (icona utente): sfarfalla quando il controllo
             # trazione sta intervenendo, come su una stradale
             if getattr(self, "_tc_on", False):
