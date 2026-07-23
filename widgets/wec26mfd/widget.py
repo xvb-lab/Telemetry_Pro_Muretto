@@ -4063,15 +4063,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.setBrush(QColor("#181246"))
                     p.drawRect(QRectF(_lap_x0, 0.0, _lapw, self.HDR))
                     # ── testo: freeze (5s) / INVALID / milestone sessione / DELTA ──
+                    _bgb9 = "#262c38"          # DELTA: ardesia, MAI il blu dei tempi
                     if time.monotonic() < self._freeze_until \
                             and self._freeze_txt:
                         _vt, _vc, _lim = self._freeze_txt, self._freeze_col, False
+                        _bgb9 = "#0a0031"      # tempi/settori: blu classico
                     elif self._lap_limits and \
                             time.monotonic() - getattr(self, "_inv_t",
                                                        -99.0) < 5.0:
                         # INVALID: 5 secondi, poi la casella torna al DELTA
                         _vt, _vc, _lim = "INVALID", \
                             QColor(255, 255, 255, 150), True
+                        _bgb9 = "#0a0031"
                     elif time.monotonic() - getattr(self, "_sess_flash_t",
                                                     -99.0) < 5.0:
                         # traguardo tempo sessione (60/30/15/10/5/1 min):
@@ -4080,8 +4083,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         _vt = ("LAST MINUTE" if _rm <= 60
                                else "LEFT %d MIN" % (_rm // 60))
                         _vc, _lim = QColor(255, 255, 255, 200), False
+                        _bgb9 = "#0a0031"
                     else:
-                        _vt, _vc, _lim = None, None, False   # delta: vive SOTTO
+                        _vt, _vc, _lim = self._delta_txt, self._delta_col, False
                     # ── COLONNA DELTA col COLLASSO: senza testo scivola
                     # verso la cella LAP e sfuma; col testo si riapre ──
                     _tgt9 = 0.0 if _vt else 1.0
@@ -4094,7 +4098,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._dl_coll = _k9
                     _dl_x0 = _tx + (_lap_x0 - _tx) * _k9
                     _dl_x1 = _lap_x0
-                    _bgc9 = QColor("#0a0031")
+                    _bgc9 = QColor(_bgb9)
                     _bgc9.setAlpha(int(255 * (1.0 - _k9 * 0.9)))
                     p.setPen(Qt.NoPen)
                     p.setBrush(_bgc9)
@@ -4122,52 +4126,6 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         _bx1 - 12.0 - _lm.horizontalAdvance(_laptxt),
                         _yb), _laptxt)
                 p.restore()
-        # ── LINGUETTA DELTA: pende SOTTO la riga alta, bg diverso
-        # (#101c3f), fade verticale: aperta finche' c'e' il delta,
-        # chiusa quando manca — cosi' gli eventi della cella header
-        # (tempo/settori/INVALID) hanno il loro effetto entrata pulito
-        try:
-            _dtx9 = getattr(self, "_delta_txt", None)
-            _tgtd = 1.0 if _dtx9 else 0.0
-            _kd = getattr(self, "_dstrip_k", _tgtd)
-            _kd += (_tgtd - _kd) * 0.15
-            if abs(_tgtd - _kd) > 0.01:
-                self.update()
-            else:
-                _kd = _tgtd
-            self._dstrip_k = _kd
-            if _kd > 0.02:
-                if _dtx9:
-                    self._dstrip_txt = _dtx9
-                    self._dstrip_col = getattr(self, "_delta_col", None)
-                _txt9 = getattr(self, "_dstrip_txt", "") or ""
-                f_d9 = QFont("Archivo SemiExpanded", 13)
-                f_d9.setWeight(QFont.DemiBold)
-                f_d9.setItalic(True)
-                _fmd = QFontMetricsF(f_d9)
-                _wd9 = _fmd.horizontalAdvance(_txt9) + 26.0
-                _hd9 = 22.0 * _kd
-                # CENTRATA nel varco in alto del quadrante (il cerchio
-                # e' aperto li'): message center del dash
-                _x0d = (_W - _wd9) / 2.0
-                _y0d = self.HDR + self.ROW_T
-                _bgd = QColor("#101c3f")
-                _bgd.setAlpha(int(235 * _kd))
-                p.setPen(Qt.NoPen)
-                p.setBrush(_bgd)
-                p.drawRoundedRect(QRectF(_x0d, _y0d, _wd9, _hd9),
-                                  4, 4)
-                if _kd > 0.6:
-                    p.setFont(f_d9)
-                    _cold = self._dstrip_col or QColor(255, 255, 255, 235)
-                    if hasattr(_cold, "setAlpha"):
-                        _cold = QColor(_cold)
-                        _cold.setAlpha(int(255 * _kd))
-                    p.setPen(_cold)
-                    p.drawText(QRectF(_x0d, _y0d, _wd9, _hd9),
-                               Qt.AlignCenter, _txt9)
-        except Exception:
-            pass
         # ── ROW ALTA: <MDF> celeste a sinistra, pagina 1/3 a destra
         #    (font del dash; i numeri header sono stati spostati qui)
         f_row = QFont("Archivo SemiExpanded")
