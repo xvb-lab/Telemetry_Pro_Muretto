@@ -3210,13 +3210,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._svg_oil_ok = _QSRw(str(_ip / "olio_ok.svg"))
             self._svg_oil_wn = _QSRw(str(_ip / "olio_warn.svg"))
             self._px_wat_ok = True    # sentinella: init fatto
-        # spie come il vecchio HUD: acqua >=110, olio >=125
-        # (pulsano), warn fisso a motore spento
+        # SOGLIE VERE LMU (docs/dati_lmu.md + misura live P3 23/07:
+        # LMU lampeggia l'olio a 130): acqua max 110, olio max 130
+        # — uguali per tutte le classi. Warn fisso a motore spento
         _eoff9 = (self._rpm or 0.0) < 50.0
         _wt9 = self._water or 0.0
         _ot9 = self._oil or 0.0
         _pw9 = _wt9 >= 110.0
-        _po9 = _ot9 >= 125.0
+        _po9 = _ot9 >= 130.0
         wsvg = self._svg_wat_wn if (_pw9 or _eoff9) \
             else self._svg_wat_ok
         osvg = self._svg_oil_wn if (_po9 or _eoff9) \
