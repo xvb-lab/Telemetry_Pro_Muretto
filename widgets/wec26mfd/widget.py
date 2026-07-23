@@ -3658,39 +3658,37 @@ class Wec26MfdOverlay(WecOnboardOverlay):
     # (resta il navy della card), arancione -> bianco 90%; le celle
     # piene hanno i numeri "in negativo" col navy. Dato assente = tace.
     def _paint_tyres_mini(self, p, gy):
-        """MOD1, colonna SINISTRA (rich. 23/07 notte, come lo screen
-        LMU): 4 celle gomme — PRESSIONE grande, badge TEMPERATURA
-        carcassa all'angolo esterno (blu freddo / verde in finestra
-        70-90 / rosso oltre), usura piccola all'angolo interno."""
+        """MOD1, angolo BASSO-SINISTRA sopra la fila MAP/TC (rifinito
+        23/07 notte, meta' misura): 4 celle gomme — USURA grande senza
+        simbolo %, badge TEMPERATURA carcassa all'angolo esterno (blu
+        freddo / verde in finestra 70-90 / rosso oltre)."""
         try:
-            _pr = self._press4 or [None] * 4
             _tc = self._carc4 or [None] * 4
             _wr = getattr(self, "_wear4", None) or [None] * 4
         except Exception:
             return
-        CW, CH, GAP = 96.0, 56.0, 8.0
-        x0 = 44.0
-        y0 = gy - (CH * 2 + GAP) / 2.0 + 6.0
+        CW, CH, GAP = 52.0, 30.0, 5.0
+        x0 = 20.0
+        y0 = _H - self.ROW_B - 50.0 - (CH * 2 + GAP)
         f_big = QFont("Archivo SemiExpanded")
-        f_big.setPixelSize(24)
+        f_big.setPixelSize(15)
         f_big.setWeight(QFont.Bold)
         f_sm = QFont("Archivo SemiExpanded")
-        f_sm.setPixelSize(11)
+        f_sm.setPixelSize(9)
         f_sm.setWeight(QFont.Bold)
-        f_wr = QFont("Archivo SemiExpanded")
-        f_wr.setPixelSize(10)
-        f_wr.setWeight(QFont.Medium)
         for _i, _c, _r in ((0, 0, 0), (1, 1, 0), (2, 0, 1), (3, 1, 1)):
             cx = x0 + _c * (CW + GAP)
             cy = y0 + _r * (CH + GAP)
             p.setPen(Qt.NoPen)
             p.setBrush(QColor(38, 43, 51, 235))
-            p.drawRoundedRect(QRectF(cx, cy, CW, CH), 7, 7)
-            _pv = _pr[_i] if _i < len(_pr) else None
+            p.drawRoundedRect(QRectF(cx, cy, CW, CH), 5, 5)
+            _wv = _wr[_i] if _i < len(_wr) else None
+            if _wv is not None and _wv <= 1.5:
+                _wv *= 100.0
             p.setFont(f_big)
             p.setPen(QColor(255, 255, 255, 240))
             p.drawText(QRectF(cx, cy, CW, CH), Qt.AlignCenter,
-                       ("%d" % round(_pv)) if _pv else "--")
+                       ("%d" % round(_wv)) if _wv is not None else "--")
             _tv = _tc[_i] if _i < len(_tc) else None
             if _tv is not None:
                 if _tv < 65.0:
@@ -3699,26 +3697,16 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     _bc = QColor("#00a95e")
                 else:
                     _bc = QColor("#e03535")
-                BW, BH = 34.0, 17.0
+                BW, BH = 22.0, 12.0
                 bx = cx if _c == 0 else cx + CW - BW
                 by = (cy - 2.0) if _r == 0 else (cy + CH - BH + 2.0)
                 p.setPen(Qt.NoPen)
                 p.setBrush(_bc)
-                p.drawRoundedRect(QRectF(bx, by, BW, BH), 4, 4)
+                p.drawRoundedRect(QRectF(bx, by, BW, BH), 3, 3)
                 p.setFont(f_sm)
                 p.setPen(QColor(255, 255, 255, 245))
                 p.drawText(QRectF(bx, by, BW, BH), Qt.AlignCenter,
                            "%d" % round(_tv))
-            _wv = _wr[_i] if _i < len(_wr) else None
-            if _wv is not None:
-                if _wv <= 1.5:
-                    _wv *= 100.0
-                p.setFont(f_wr)
-                p.setPen(QColor(197, 203, 213, 200))
-                _wx = cx + (CW - 34.0 if _c == 0 else 4.0)
-                _wy = cy + (2.0 if _r == 1 else CH - 15.0)
-                p.drawText(QRectF(_wx, _wy, 30.0, 13.0),
-                           Qt.AlignCenter, "%d%%" % round(_wv))
 
     def _paint_mod1(self, p):
         # (corrente/boot gestiti a monte in _paint_page)
