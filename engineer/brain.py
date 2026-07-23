@@ -4772,12 +4772,19 @@ class Engineer:
         # target PRESSIONI per l'auto-setup (delta verso il centro
         # finestra, kPa): aggiornato OGNI giro, letto da setup_targets
         _win9 = self._PF_PRESS.get(tag)
-        if _win9:
+        if _win9 and lap >= int(st.get("stint_lap0") or 0) + 3:
+            # target validi SOLO a gomme stabilizzate (Segers: 4-7
+            # giri) e SOLO per le ruote FUORI finestra (23/07 notte:
+            # non si pompano tutte e quattro alla cieca)
             _mid9 = (_win9[0] + _win9[1]) / 2.0
+            _hf9 = (_win9[1] - _win9[0]) / 2.0
             _tgt9 = []
             for _i in range(4):
                 _pv9t = _avg("pr%d" % _i)
-                _tgt9.append(0.0 if _pv9t is None else (_mid9 - _pv9t))
+                if _pv9t is None or abs(_pv9t - _mid9) <= _hf9 + 2.0:
+                    _tgt9.append(0.0)
+                else:
+                    _tgt9.append(_mid9 - _pv9t)
             st["press_tgt"] = _tgt9
         # S1. GRIP PERSO: grip factor vs i primi 3 giri dello stint —
         # il degrado OGGETTIVO (parla a passi di 5%)
@@ -5113,17 +5120,32 @@ class Engineer:
             pf = self._st.get("pf") or {}
             _tgt = pf.get("press_tgt")
             if not _tgt and raw:
+                # FALLBACK live: SOLO con la gomma LAVORATA (carcassa
+                # calda), correzione PER RUOTA, dimezzata e con tetto
+                # basso — 23/07 notte: a gomme tiepide tutto sembrava
+                # "basso" e spingeva +12 su tutte e quattro
                 tag = self._pf_tag(raw)
                 _win = self._PF_PRESS.get(tag)
                 _pr = raw.get("tyre_press") or []
-                if _win and len(_pr) >= 4:
+                _tc4 = raw.get("tyre_carcass") or []
+                if _win and len(_pr) >= 4 and len(_tc4) >= 4:
                     _mid = (_win[0] + _win[1]) / 2.0
+                    _half = (_win[1] - _win[0]) / 2.0
                     _tgt = []
-                    for _x in _pr[:4]:
+                    for _i in range(4):
                         try:
-                            _tgt.append(_mid - float(_x))
+                            _cw = float(_tc4[_i] or 0.0)
+                            _pv = float(_pr[_i])
                         except (TypeError, ValueError):
                             _tgt.append(0.0)
+                            continue
+                        if _cw < 70.0:
+                            _tgt.append(0.0)   # gomma fredda: non tocco
+                        elif abs(_pv - _mid) <= _half + 2.0:
+                            _tgt.append(0.0)   # in finestra: non tocco
+                        else:
+                            _tgt.append(max(-8.0, min(8.0,
+                                        (_mid - _pv) * 0.5)))
             if _tgt:
                 out["press_delta"] = [max(-12.0, min(12.0, float(x)))
                                       for x in _tgt]
