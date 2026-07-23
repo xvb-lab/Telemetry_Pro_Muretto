@@ -5125,6 +5125,20 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             #    senza calibrare. I punti calibrati dall'eco nativo,
             #    se esistono, restano prioritari (sono i rilasci esatti).
             self._eco_pts_kind = "release"
+            # FONTE PRIMARIA (idea utente 23/07, universale): INIZIO
+            # curve dalla geometria della mappa — chiamata a inizio
+            # curva - 200/250/300m per livello, su OGNI circuito,
+            # zero taratura (come i 500m della bandiera gialla)
+            try:
+                from core import lico_points as _lpz0
+                _mc0 = _lpz0.map_corner_lifts(
+                    _key[0], float(getattr(self, "_track_len", 0.0)
+                                   or 0.0))
+                if _mc0:
+                    self._eco_lmu_pts = _mc0
+                    self._eco_pts_kind = "corner"
+            except Exception:
+                pass
             # FUSIONE (diagnosi 23/07: la calibrazione aveva solo 4
             # curve su 6 — Lesmo2 e Parabolica MUTE): i punti freno
             # automatici COMPLETANO i calibrati dove mancano
@@ -5136,7 +5150,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 _auto = _lpz.load_auto(_key[0], _tg2)
             except Exception:
                 _auto, _lpz, _tg2 = [], None, None
-            if self._eco_lmu_pts and _auto:
+            if self._eco_pts_kind != "corner" \
+                    and self._eco_lmu_pts and _auto:
                 for _bp in _auto:
                     _cov = any(0.0 <= (_bp - _rp) <= 280.0
                                for _rp in self._eco_lmu_pts)
@@ -5197,7 +5212,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         # release (calibrati LMU): gia' anticipati per il +1 -> solo
         # +50m/livello. brake (automatici dal freno): anticipo pieno
         # stile LMU, 150m al +1 fino a ~300m al +4.
-        if getattr(self, "_eco_pts_kind", "release") == "brake":
+        _kind9 = getattr(self, "_eco_pts_kind", "release")
+        if _kind9 == "corner":
+            # IDEA UTENTE: inizio curva - 200/250/300/350 per livello
+            _ant = 200.0 + 50.0 * (_lvl - 1) + _adat
+        elif _kind9 == "brake":
             _ant = 150.0 + 50.0 * (_lvl - 1) + _adat
         else:
             _ant = 50.0 * (_lvl - 1) + _adat
@@ -5205,9 +5224,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         for d in _pts:
             lift = d - _ant
             past = (ld - lift) % tl
-            # zona PIENO corta (collaudo 23/07: 160+50/lvl incatenava
-            # le curve vicine in un lampeggio unico)
-            if past < 110.0 + 30.0 * (_lvl - 1):
+            # zona PIENO: con la geometria copre TUTTO il coast fino
+            # all'inizio curva; con gli altri archivi resta corta
+            _zf9 = _ant if _kind9 == "corner" \
+                else 110.0 + 30.0 * (_lvl - 1)
+            if past < _zf9:
                 _full9 = True         # in zona rilascio: PIENO
                 break
             dl = (lift - ld) % tl

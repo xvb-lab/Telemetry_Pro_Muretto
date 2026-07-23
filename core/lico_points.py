@@ -70,7 +70,7 @@ def map_turns(track, track_len):
                 tot += abs(sm[j])
                 j += 1
             if abs(tot) > math.radians(25.0):     # curva vera, non kink
-                turns_idx.append((i + j) // 2)
+                turns_idx.append(i)               # INIZIO curva (entry)
             i = j
         else:
             i += 1
@@ -84,6 +84,22 @@ def map_turns(track, track_len):
     k = track_len / cum[-1] if cum[-1] > 0 else 1.0
     return [(round(cum[ix] * k, 1), "T%d" % (t + 1))
             for t, ix in enumerate(turns_idx)]
+
+
+def map_corner_lifts(track, track_len):
+    """IDEA UTENTE (23/07, la definitiva): l'INIZIO di ogni curva dalla
+    mappa, deduplicato — il lico chiama a (inizio - 200/250/300m per
+    livello) SU OGNI CIRCUITO, senza tarare niente. Come i 500m della
+    bandiera gialla: la distanza in pista e' geometria, non taratura."""
+    ts = map_turns(track, track_len)
+    if not ts:
+        return []
+    pts = sorted(d for d, _lab in ts)
+    ded = [pts[0]]
+    for p in pts[1:]:
+        if p - ded[-1] >= 250.0:      # chicane/complessi = UNA chiamata
+            ded.append(p)
+    return ded
 
 
 def compute(track, cls_tag, max_files=6):
