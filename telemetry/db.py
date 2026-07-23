@@ -134,7 +134,8 @@ CREATE TABLE IF NOT EXISTS opponents (
     lap INTEGER,            -- giro del GIOCATORE in quel momento
     t   REAL,               -- stesso orologio dei samples (tempo nel giro)
     cid INTEGER,            -- mID del rivale
-    x REAL, z REAL          -- posizione mondo (macchinine grigie replay)
+    x REAL, z REAL,         -- posizione mondo (macchinine grigie replay)
+    pos INTEGER             -- posizione in classifica (numerino bianco)
 );
 CREATE INDEX IF NOT EXISTS idx_opp_lap ON opponents(lap);
 CREATE TABLE IF NOT EXISTS events (
@@ -249,7 +250,8 @@ class TelemetryDB:
         _TEXT_COLS = {"compounds4"}
         for tbl, cols in (("laps", self._LAP_COLS),
                           ("sectors", self._SEC_COLS),
-                          ("samples", self._SMP_COLS)):
+                          ("samples", self._SMP_COLS),
+                          ("opponents", self._OPP_COLS)):
             try:
                 have = {r[1] for r in self._con.execute(f"PRAGMA table_info({tbl})")}
                 for c in cols:
@@ -320,7 +322,7 @@ class TelemetryDB:
                  "w_fl", "w_fr", "w_rl", "w_rr",
                  "b_fl", "b_fr", "b_rl", "b_rr"]
     _EVT_COLS = ["lap", "t", "lapdist", "x", "z", "kind", "val"]
-    _OPP_COLS = ["lap", "t", "cid", "x", "z"]
+    _OPP_COLS = ["lap", "t", "cid", "x", "z", "pos"]
     _TLM_COLS = ["lap", "ref", "corner", "d", "entry_s", "exit_s",
                  "total_s", "vmin", "vmin_ref"]
 

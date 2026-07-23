@@ -1768,7 +1768,8 @@ class TelemetryRecorder:
                     self._db.add_opponent({
                         "lap": samp["lap"], "t": samp["t"],
                         "cid": _c9.get("id"),
-                        "x": _c9.get("x"), "z": _c9.get("z")})
+                        "x": _c9.get("x"), "z": _c9.get("z"),
+                        "pos": _c9.get("place")})
         except Exception:
             pass
 

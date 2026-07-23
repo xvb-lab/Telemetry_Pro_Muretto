@@ -667,6 +667,7 @@ class SharedMemory:
                     "garage": bool(getattr(v, "mInGarageStall", False)),
                     "pit": int(getattr(v, "mPitState", 0) or 0),
                     "speed": spd,
+                    "place": int(getattr(v, "mPlace", 0) or 0),
                     "is_player": bool(v.mIsPlayer),
                 }
                 cars.append(c)

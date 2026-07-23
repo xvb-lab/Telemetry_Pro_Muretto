@@ -1851,10 +1851,25 @@ class _LiveMap(QWidget):
         # MACCHININE GRIGIE dei rivali (replay): stessa forma, grige
         _opp9 = getattr(self, "_opp_pts", None)
         if _opp9 and _evshow.get("opp", True):
-            p.setPen(QPen(QColor("#09090b"), 1.2))
-            p.setBrush(QColor(154, 160, 171, 220))
-            for _ox9, _oz9 in _opp9:
-                p.drawEllipse(P(_ox9, _oz9), dot_r * 0.9, dot_r * 0.9)
+            _fo9 = p.font()
+            _fo7 = p.font()
+            _fo7.setPointSize(max(6, int(dot_r * 0.9)))
+            _fo7.setBold(True)
+            for _row9 in _opp9:
+                _ox9, _oz9 = _row9[0], _row9[1]
+                _po9 = _row9[2] if len(_row9) > 2 else 0
+                _c9o = P(_ox9, _oz9)
+                p.setPen(QPen(QColor("#09090b"), 1.2))
+                p.setBrush(QColor(154, 160, 171, 220))
+                p.drawEllipse(_c9o, dot_r * 0.9, dot_r * 0.9)
+                if _po9:
+                    p.setFont(_fo7)
+                    _tw9 = p.fontMetrics().horizontalAdvance(str(_po9))
+                    p.setPen(QColor(255, 255, 255, 240))
+                    p.drawText(QPointF(_c9o.x() - _tw9 / 2.0,
+                                       _c9o.y() + dot_r * 0.45),
+                               str(_po9))
+            p.setFont(_fo9)
         # dot INTERPOLATI (pa/pb calcolati in alto); indice solo di riserva
         if pb is not None:
             dot(pb, cmp_c, _mk_ang(getattr(self, "_cmp_srt", None), _ld_b))
@@ -3145,11 +3160,12 @@ class _WorksheetTab(QWidget):
             _con9 = getattr(self.data, "con", None)
             _oser9 = {}
             if _con9 is not None and self._sel is not None:
-                for _cid9, _t9, _x9, _z9 in _con9.execute(
-                        "SELECT cid, t, x, z FROM opponents"
+                for _cid9, _t9, _x9, _z9, _pp9 in _con9.execute(
+                        "SELECT cid, t, x, z, pos FROM opponents"
                         " WHERE lap=? ORDER BY t", (self._sel,)):
                     _oser9.setdefault(_cid9, []).append(
-                        (float(_t9), float(_x9), float(_z9)))
+                        (float(_t9), float(_x9), float(_z9),
+                         int(_pp9 or 0)))
             self.map_w._opp_series = _oser9
         except Exception:
             self.map_w._opp_series = {}
@@ -3311,9 +3327,10 @@ class _WorksheetTab(QWidget):
             _opts9 = []
             for _ser9 in _oser9.values():
                 _pp9 = None
-                for _tt9, _xx9, _zz9 in _ser9:
-                    if _tt9 <= self._rp_t:
-                        _pp9 = (_xx9, _zz9)
+                for _row9 in _ser9:
+                    if _row9[0] <= self._rp_t:
+                        _pp9 = (_row9[1], _row9[2],
+                                _row9[3] if len(_row9) > 3 else 0)
                     else:
                         break
                 if _pp9 is not None:
