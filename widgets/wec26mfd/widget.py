@@ -1159,8 +1159,22 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                         self._pit_total0 = 0.0
                                 self._pit_run = (time.monotonic()
                                                  - self._pit_t0)
+                                self._pit_mov_t0 = None
                             elif (self._speed or 0.0) > 1.5:
-                                self._pit_t0 = None
+                                # fine sosta SOLO se ti muovi per 2s VERI:
+                                # il rilascio dai cric fa un blip di
+                                # velocita' che resettava il countdown
+                                # (visto nel video test 23/07, t~107)
+                                if self._pit_t0 is not None:
+                                    if getattr(self, "_pit_mov_t0",
+                                               None) is None:
+                                        self._pit_mov_t0 = time.monotonic()
+                                    elif time.monotonic() \
+                                            - self._pit_mov_t0 > 2.0:
+                                        self._pit_t0 = None
+                                        self._pit_mov_t0 = None
+                            else:
+                                self._pit_mov_t0 = None
                         except Exception:
                             pass
                         self._batt9 = float(getattr(
