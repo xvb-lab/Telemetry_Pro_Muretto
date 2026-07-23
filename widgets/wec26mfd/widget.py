@@ -2437,7 +2437,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             if it:
                 rows.append(it)
         # PRESSIONI e ALA (rich. 23/07): regolabili anche dalla card
-        for _sub9 in ("PRESS", "WING", "AILERON", "GRILLE"):
+        for _sub9 in ("PRESS", "WING", "AILERON", "GRILLE",
+                      "BRAKE DUCT", "REPLACE BRAKES"):
             for it2 in items:
                 _n2 = str((it2 or {}).get("name") or "").upper()
                 if _sub9 in _n2 and it2 not in rows:

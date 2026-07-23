@@ -483,6 +483,22 @@ def _auto_setup_apply(tg, vox, lang):
                     it["currentSetting"] = bj
                     done.append("%s %d" % (_ordw[_wi], int(round(
                         _num((ss[bj] or {}).get("text")) or 0))))
+            elif tg.get("duct") and "BRAKE DUCT" in nm:
+                # un click verso APERTO (direzione dai testi opzioni)
+                try:
+                    cur = int(it.get("currentSetting") or 0)
+                except (TypeError, ValueError):
+                    cur = 0
+                _io9 = None
+                for j, op in enumerate(ss):
+                    _tx9 = str((op or {}).get("text") or "").upper()
+                    if "APERTO" in _tx9 or "OPEN" in _tx9:
+                        _io9 = j
+                        break
+                if _io9 is not None and cur != _io9:
+                    nj = cur + (1 if _io9 > cur else -1)
+                    it["currentSetting"] = nj
+                    done.append("duct +1")
             elif wing and ("WING" in nm or "AILERON" in nm):
                 try:
                     cur = int(it.get("currentSetting") or 0)

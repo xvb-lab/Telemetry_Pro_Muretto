@@ -4759,6 +4759,8 @@ class Engineer:
         _rv9 = _avg("rel")
         if _rv9 is not None:
             st.setdefault("rel_hist", []).append(_rv9)
+        st["bk_peak"] = max(st.get("bk_peak", 0.0),
+                            acc.get("bkmax", 0.0))
         # target PRESSIONI per l'auto-setup (delta verso il centro
         # finestra, kPa): aggiornato OGNI giro, letto da setup_targets
         _win9 = self._PF_PRESS.get(tag)
@@ -5108,6 +5110,12 @@ class Engineer:
                 out["wing"] = 1
             elif "wl" in _sas:
                 out["wing"] = -1
+            # DUCT freni (dal menu VERO 23/07: F/R BRAKE DUCT al pit):
+            # freni cotti nello stint -> un click piu' APERTO
+            out["duct"] = 0
+            _fadeT = self._PF_FADE_T.get(self._cat, 850.0)
+            if "fade" in (pf.get("said") or set())                     or pf.get("bk_peak", 0.0) > _fadeT:
+                out["duct"] = 1
         except Exception:
             pass
         return out
