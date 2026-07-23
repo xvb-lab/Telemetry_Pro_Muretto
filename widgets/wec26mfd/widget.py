@@ -2838,8 +2838,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._svg_engoff9.render(
                         p, QRectF(_W / 2.0 + 50.0, gy - 48.0, 22, 22))
                 if self._svg_batt9.isValid():
+                    # slot TUTTO SUO (+162, dopo i freni): mai sovrapposta
                     self._svg_batt9.render(
-                        p, QRectF(_W / 2.0 + 106.0, gy - 48.0, 22, 22))
+                        p, QRectF(_W / 2.0 + 162.0, gy - 48.0, 22, 22))
             except Exception:
                 pass
             return
