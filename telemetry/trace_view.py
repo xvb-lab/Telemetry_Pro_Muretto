@@ -3207,22 +3207,53 @@ class _WorksheetTab(QWidget):
             pass
 
     def _plus_menu(self):
-        from PySide6.QtWidgets import QMenu
+        """Lista canali da aggiungere: POPUP con SCROLLBAR vera (23/07
+        sera — il QMenu lungo veniva tagliato e non scrollava)."""
+        from PySide6.QtWidgets import QListWidget, QFrame
         have = {nm for nm, _w, _c in self._items}
-        m = QMenu(self)
-        m.setStyleSheet(
-            "QMenu{menu-scrollable:1;background:#16181c;color:#f2f4f7;border:1px solid #2a2c30;"
-            "font-family:Archivo SemiExpanded;font-size:12px;}"
-            "QMenu::item{padding:5px 18px;}"
-            "QMenu::item:selected{background:rgba(255,29,67,0.45);}")
-        for sp in self._CATALOG:
-            if sp[0] in have:
-                continue
-            m.addAction(sp[0], lambda nm=sp[0]: self._add_chan(nm))
-        # menu lungo -> scrollabile (frecce di scroll native di QMenu)
-        m.setMaximumHeight(420)
-        if not m.isEmpty():
-            m.exec(self._plus.mapToGlobal(self._plus.rect().bottomLeft()))
+        names = [sp[0] for sp in self._CATALOG if sp[0] not in have]
+        if not names:
+            return
+        lw = QListWidget(self)
+        lw.setWindowFlags(Qt.Popup)
+        lw.setFrameShape(QFrame.NoFrame)
+        lw.addItems(names)
+        lw.setStyleSheet(
+            "QListWidget{background:#16181c;color:#f2f4f7;"
+            "border:1px solid #2a2c30;font-family:Archivo SemiExpanded;"
+            "font-size:12px;outline:none;}"
+            "QListWidget::item{padding:5px 18px;}"
+            "QListWidget::item:hover{background:rgba(255,29,67,0.30);}"
+            "QListWidget::item:selected{background:rgba(255,29,67,0.45);}"
+            "QScrollBar:vertical{background:#16181c;width:8px;}"
+            "QScrollBar::handle:vertical{background:#3a3d47;"
+            "border-radius:4px;min-height:24px;}"
+            "QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical"
+            "{height:0;}")
+        lw.setCursor(Qt.PointingHandCursor)
+        _rh = max(1, lw.sizeHintForRow(0))
+        _h = min(480, _rh * len(names) + 10)
+        lw.resize(max(250, lw.sizeHintForColumn(0) + 44), _h)
+        # posizione: sotto il "+", ma mai fuori dallo schermo
+        try:
+            _scr = self.screen().availableGeometry()
+            _pos = self._plus.mapToGlobal(self._plus.rect().bottomLeft())
+            _x = min(_pos.x(), _scr.right() - lw.width())
+            _y = _pos.y()
+            if _y + _h > _scr.bottom():
+                _y = max(_scr.top(), _scr.bottom() - _h)
+            lw.move(_x, _y)
+        except Exception:
+            lw.move(self._plus.mapToGlobal(
+                self._plus.rect().bottomLeft()))
+
+        def _pick(item, _lw=lw):
+            _lw.hide()
+            _lw.deleteLater()
+            self._add_chan(item.text())
+        lw.itemClicked.connect(_pick)
+        lw.show()
+        self._plus_pop = lw              # riferimento vivo
 
     def _series(self, lap, col, scale, con=None):
         con = con or self.data.con
