@@ -160,6 +160,119 @@ la stessa lingua (stesso motore diagnostico, questo doc).
 6. Bilancio aero (downforce) nel confronto col best.
 7. **Pagina Garage** (tab + advisor) — riusa il motore di questo doc.
 
+---
+
+## 5. Analisi POST-SESSIONE — spec formale (pagina Telemetria)
+
+> Il live (5 Hz) fa le regole semplici delle sezioni 2-3. L'analisi RIGOROSA
+> gira sui `samples` del recorder (SQLite, alta frequenza) — che registrano
+> GIA' per ruota: deflessione sospensione, ride height, pressione freno,
+> gomma a 3 strati, pressioni, usura, sterzo, G long/lat, brake bias.
+
+### 5.1 Pre-processing
+- **Resampling spaziale**: da dominio tempo a dominio distanza (`lapdist`)
+  con interpolazione — il confronto giro-su-giro è punto-a-punto (il delta
+  engine live usa gia' questo principio; qui si formalizza sui samples).
+- **Filtraggio**: passa-basso (Butterworth 2° ordine) su sterzo e G per il
+  post-processing; live bastano le medie mobili.
+- **Segmentazione**: per curva dalle curve APPRESE (d, apex) — niente GPS,
+  abbiamo lapdist + mPos.
+
+### 5.2 Dinamica longitudinale
+- **Pressure gradient** ΔP/Δt all'attacco del freno (canale `brake` +
+  `brake_p_*` per ruota): attacco troppo lento = staccata sprecata.
+- **Trail braking decay**: pendenza del rilascio freno vs sterzo/distanza
+  dall'apex → transizione del carico in ingresso.
+- **Throttle latency & linearity**: `t_gas_on − t_freno_off` + linearita'
+  della prima apertura.
+
+### 5.3 Dinamica laterale
+- **Slip per ruota MISURATO**: rF2 da' `mLateralPatchVel` — meglio della
+  stima di β da imbardata. (Da AGGIUNGERE ai samples: oggi e' solo live.)
+- **Steering smoothness**: inversioni di segno di dδ/dt per metro nella
+  stessa fase di inserimento = instabilita'/correzioni.
+- **Apex**: Vmin locale + POSIZIONE dell'apex vs riferimento.
+
+### 5.4 G-G e grip margin
+- **G-G per fase** (gia' esiste il canvas): riempimento dell'ellisse.
+- **Grip margin DIRETTO**: `mGripFract` (frazione di impronta che slitta,
+  per ruota) = il "potenziale inespresso" senza scomporre le forze.
+  (Da AGGIUNGERE ai samples insieme allo slip.)
+
+### 5.5 Estensioni assetto (dai canali per-ruota gia' registrati)
+- **Termica gomma vs slip**: gradiente termico (superficie/strato/carcassa)
+  correlato a slip ed eventi (bloccaggi, pattinate) → "stai bruciando le
+  gomme nei primi giri".
+- **Piattaforma aero**: escursioni `ride_h_*` in frenata e alta velocita' →
+  bottoming, beccheggio, piattaforma che cede (rake dinamico).
+- **Istogrammi velocita' ammortizzatori**: derivata di `susp_d_*` divisa in
+  basse/medie/alte velocita' per curva → cordoli presi troppo aggressivi,
+  piattaforma destabilizzata.
+- **Gradienti rollio/beccheggio**: rapporto G_lat/rollio e G_long/beccheggio
+  (da ride_h per angolo) → efficacia del trasferimento di carico.
+
+### 5.6 Output: Time-Loss Matrix (il re dei report)
+Per ogni curva e fase (Staccata / Percorrenza / Uscita):
+`ms_persi = ∫ (V_ref(s) − V(s)) ds / V_media` vs giro di riferimento →
+tabella "dove perdi e quanto", che alimenta ANCHE il debrief vocale
+("perdi 120 millesimi in ingresso curva 5") e i consigli assetto.
+Formato output per anomalia: `[Curva X] · [Fase] · [Parametro] ·
+scostamento quantificato · consiglio azionabile` — lo stesso pattern dei
+findings del muretto: UNA lingua per garage, voce e pagina.
+
+### Gap da colmare (piccoli)
+1. Aggiungere ai samples: `slip_l per ruota` + `grip_fract per ruota`
+   (8 colonne) — sblocca 5.3/5.4 dal registrato.
+2. Cadenza samples: verificare che basti per ΔP/Δt (>=20 Hz consigliati
+   in frenata).
+
+---
+
+## 6. Specifiche ENDURANCE (WEC / ELMS) — la nostra specialita'
+
+> L'endurance non e' il giro secco: e' gestione su ore, traffico
+> multiclasse e energia. Canali GIA' campionati nel recorder:
+> `soc, regen_kw, boost_state, fuel, ve` per sample + tempi/usura per giro.
+
+### 6.1 Ibrido (Hypercar) — deployment & recovery per giro
+- **Curva di rilascio** dell'elettrico vs posizione sul giro (`boost_state`,
+  `soc` sui samples): il pilota spende l'ibrido troppo presto? Arriva ai
+  rettilinei principali in **clipping** (batteria vuota)?
+- **Rigenerazione**: `regen_kw` in frenata correlata a lift-and-coast e
+  trail braking → efficienza di ricarica. Regole LMU gia' nel muretto:
+  regen max, SOC ~3/4, mai satura in staccata, mai box a batteria vuota.
+
+### 6.2 Consumo mirato (fuel/VE mapping)
+- `fuel`/`ve` per sample → **consumo per settore/curva** correlato al tempo:
+  il risparmio si suggerisce DOVE costa meno ("lift in staccata di curva 1:
+  −0,3 litri al giro per +0,05s"). Alimenta i piani eco gia' esistenti
+  (plan_eco_save / fuel_save_option).
+
+### 6.3 Aero spec WEC vs ELMS (LMP2/GT3)
+- Nota: stessi telai, pacchetti diversi (Le Mans low-downforce vs ELMS
+  high-downforce). L'algoritmo valuta il G_lat nei CURVONI vs l'atteso
+  della configurazione — richiede la config aero dichiarata: entrera'
+  dalla **pagina Garage** (input assetto). Nel frattempo: confronto col
+  TUO storico su quella pista+classe (baseline personale).
+- Canali live `df_front/df_rear` gia' esposti → (gap: aggiungerli ai
+  samples per l'analisi post).
+
+### 6.4 Traffico multiclasse & dirty air
+- **Perdita in scia**: delta settoriale anomalo quando segui da vicino →
+  quantificare il tempo perso nel traffico vs aria pulita.
+  (Gap: registrare `gap_ahead` per sample — 1 colonna.)
+- **Mappatura sorpassi doppiati**: dove anticipare/ritardare il sorpasso
+  della classe lenta per non perdere slancio — il muretto ha gia' i
+  mattoni live (traffic_ahead, box_anticipate/box_delay coi treni).
+
+### 6.5 Multi-stint: curva di degrado del passo
+- Sui `laps`: media e varianza dei tempi per stint (28-30 giri tipici),
+  fit del degrado (lineare/esponenziale) → **il giro esatto** in cui il
+  decadimento supera la convenienza del pit ("cliff detection" formale —
+  il live ha gia' tyre_cliff euristico + deg appreso per pista).
+- Output al pilota: "da meta' stint proteggi il posteriore: ingressi piu'
+  dolci e trazione anticipata ma progressiva".
+
 *Fonti: [YourDataDriven](https://www.yourdatadriven.com/guide-to-interpreting-tyre-temperatures-in-motorsports/),
 [Autosport Labs](https://www.autosportlabs.com/using_tire_temperatures_for_better_grip_and_faster_lap_times/),
 [Alsense](https://www.alsense.eu/racecar-engineering-tire-brake-temperature-sensors/),
