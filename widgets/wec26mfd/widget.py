@@ -501,11 +501,19 @@ class Wec26MfdOverlay(WecOnboardOverlay):
     def _apply_scale(self):
         s = float(self.cfg.scale)
         self.setFixedSize(int(_W * s), int(_H * s))
-        self.setWindowOpacity(
-            max(0.15, float(self.cfg.get("bg_opacity", 100)) / 100.0))
+        # la dash NON va mai in trasparenza (23/07): bg_opacity agisce
+        # SOLO sul cerchio del layout GEAR ONLY
+        self.setWindowOpacity(1.0)
 
     # ── pad: LB/RB sfogliano le pagine ────────────────────────────────
     def _poll_pad(self):
+        # GEAR ONLY / HEADER ONLY: pezzi separati SENZA
+        # comandi (niente MDF/pagine/menu) — rich. 23/07
+        try:
+            if int(self.cfg.get("dash_layout", 0) or 0) in (1, 2):
+                return
+        except Exception:
+            pass
         if self._xi is None:
             return
         st = _XINPUT_STATE()
@@ -2054,19 +2062,30 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         except Exception:
             _dl9 = 0
         _mc9 = getattr(self, "_minicar", None)
+        # ── QUATTRO WIDGET SEPARATI (rich. 23/07): ogni layout ha il
+        # suo percorso di disegno, niente ritagli della dash completa ──
         if _dl9 == 1:
-            # SOLO CAMBIO: tachimetro neon grande su fondo pulito
+            # GEAR ONLY: il pezzo centrale IDENTICO al MOD 1 (stesse
+            # misure e posizione: cambio+SOC+velocita' + acqua/olio/
+            # carburante). BG = SOLO un cerchio sotto il cambio, e SOLO
+            # il cerchio prende bg_opacity (il cambio resta sempre 100%)
             if _mc9 is not None and _mc9.isVisible():
                 _mc9.hide()
+            _gy1 = self.HDR + self.ROW_T \
+                + (_H - self.HDR - self.ROW_T - self.ROW_B) / 2.0 - 44.0
+            _al1 = int(255 * max(0.0, min(1.0, float(
+                self.cfg.get("bg_opacity", 100)) / 100.0)))
             p.setPen(Qt.NoPen)
-            p.setBrush(QColor(10, 14, 22, 235))
-            p.drawRoundedRect(QRectF(0, 0, _W, _H), 14, 14)
-            self._gauge_with_fade(p, _W / 2.0, _H / 2.0, 105.0,
+            p.setBrush(QColor(10, 14, 22, _al1))
+            p.drawEllipse(QPointF(_W / 2.0, _gy1), 102.0, 102.0)
+            self._gauge_with_fade(p, _W / 2.0, _gy1, 56.0,
                                   show_gear=True)
+            self._paint_temps(p, _gy1)
             p.end()
             return
         if _dl9 == 2:
-            # SOLO HEADER: resta la barra alta, il resto trasparente
+            # HEADER ONLY: solo la barra alta, STATICA (i comandi MDF
+            # sono disattivati: e' un pezzo separato, non cambia mai)
             if _mc9 is not None and _mc9.isVisible():
                 _mc9.hide()
             p.setClipRect(QRectF(0, 0, _W, self.HDR))
@@ -2074,8 +2093,16 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             p.end()
             return
         if _dl9 == 3:
-            # SENZA HEADER: tutto il corpo, barra alta trasparente
+            # NO HEADER: SOLO il corpo dash — _paint_frame NON viene
+            # chiamato: niente header, niente RUN, niente cella cambio
+            # (per i dashboard da volante)
+            p.setPen(Qt.NoPen)
+            p.setBrush(QColor(16, 17, 20))
+            p.drawRect(QRectF(0, self.HDR, _W, _H - self.HDR))
             p.setClipRect(QRectF(0, self.HDR, _W, _H - self.HDR))
+            self._paint_page(p)
+            p.end()
+            return
         # (radio SEPARATA: vive nell'overlay "Team Radio", non qui)
         self._paint_frame(p)
         self._paint_page(p)
@@ -3152,6 +3179,83 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         p.drawText(QRectF(0, yb, _W, 34 * by), Qt.AlignCenter,
                    "LEFT/RIGHT/UP/DOWN = Move")
 
+
+    def _paint_temps(self, p, gy):
+        """Blocco acqua/olio/carburante (identico al MOD 1): usato dal
+        MOD 1 e dal layout GEAR ONLY."""
+        try:
+            self._paint_temps_body(p, gy)
+        except Exception:
+            pass
+
+    def _paint_temps_body(self, p, gy):
+        if not hasattr(self, "_px_wat_ok"):
+            _ip = _ROOT / "assets" / "icons"
+            # ACQUA: SVG nuove dell'utente (warn rossa / ok neutra)
+            from PySide6.QtSvg import QSvgRenderer as _QSRw
+            self._svg_wat_ok = _QSRw(str(_ip / "acqua_ok.svg"))
+            self._svg_wat_wn = _QSRw(str(_ip / "acqua_warn.svg"))
+            self._svg_oil_ok = _QSRw(str(_ip / "olio_ok.svg"))
+            self._svg_oil_wn = _QSRw(str(_ip / "olio_warn.svg"))
+            self._px_wat_ok = True    # sentinella: init fatto
+        # spie come il vecchio HUD: acqua >=110, olio >=125
+        # (pulsano), warn fisso a motore spento
+        _eoff9 = (self._rpm or 0.0) < 50.0
+        _wt9 = self._water or 0.0
+        _ot9 = self._oil or 0.0
+        _pw9 = _wt9 >= 110.0
+        _po9 = _ot9 >= 125.0
+        wsvg = self._svg_wat_wn if (_pw9 or _eoff9) \
+            else self._svg_wat_ok
+        osvg = self._svg_oil_wn if (_po9 or _eoff9) \
+            else self._svg_oil_ok
+        # blocco COMPATTO e ordinato, appoggiato al cerchio:
+        # icona 18px + valore 11px, due righe allineate a destra
+        f_t = QFont("Archivo SemiExpanded")
+        f_t.setPixelSize(11)
+        f_t.setWeight(QFont.Bold)     # numeri temperature/fuel BOLD
+        p.setFont(f_t)
+        p.setPen(QColor(255, 255, 255, 240))
+        _xr = _W / 2.0 - 72.0        # bordo destro del blocco
+        if wsvg.isValid():
+            wsvg.render(p, QRectF(_xr - 44, gy + 18, 18, 18))
+        if self._water is not None:
+            p.drawText(QRectF(_xr - 40, gy + 18, 44, 18),
+                       Qt.AlignRight | Qt.AlignVCenter,
+                       "%.0f°C" % self._water)
+        if osvg.isValid():
+            osvg.render(p, QRectF(_xr - 35, gy + 34, 18, 18))
+        if self._oil is not None:
+            p.drawText(QRectF(_xr - 29, gy + 34, 44, 18),
+                       Qt.AlignRight | Qt.AlignVCenter,
+                       "%.0f°C" % self._oil)
+        # NUMERO energia/benzina sotto l'olio: BIANCO con l'icona
+        # carburante BIANCA a sinistra (rich. 23/07), come acqua/olio
+        _bp9 = getattr(self, "_bar_pct9", None)
+        if _bp9:
+            if not hasattr(self, "_svg_fuel_soft9"):
+                try:
+                    from PySide6.QtSvg import QSvgRenderer as _QSRf2
+                    from PySide6.QtCore import QByteArray as _QBAf2
+                    import re as _re2
+                    _tf2 = (_ROOT / "assets" / "icons"
+                            / "fuel_spia.svg").read_text(
+                                encoding="utf-8")
+                    # STESSO bianco morbido delle icone acqua/olio
+                    _tf2 = _re2.sub(r"#[0-9a-fA-F]{6}",
+                                    "#cfd6df", _tf2)
+                    self._svg_fuel_soft9 = _QSRf2(
+                        _QBAf2(_tf2.encode()))
+                except Exception:
+                    self._svg_fuel_soft9 = None
+            if getattr(self, "_svg_fuel_soft9", None) is not None:
+                # piccola e attaccata al numero (rifiniture 23/07)
+                self._svg_fuel_soft9.render(
+                    p, QRectF(_xr - 9, gy + 52, 13, 13))
+            p.setPen(QColor(255, 255, 255, 240))
+            p.drawText(QRectF(_xr - 18, gy + 50, 44, 18),
+                       Qt.AlignRight | Qt.AlignVCenter,
+                       "%d" % _bp9[0])
     def _paint_spie(self, p, gy):
         """TUTTE le spie del cruscotto (acqua/olio con
         temperature, fari/abbaglianti, tergi, ESP, LIM, benzina,
@@ -3166,73 +3270,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         # ACQUA e OLIO impilati a SINISTRA in basso: le ICONE PNG di
         # assets/icons (ok normale, warn quando il motore surriscalda)
         try:
-            if not hasattr(self, "_px_wat_ok"):
-                _ip = _ROOT / "assets" / "icons"
-                # ACQUA: SVG nuove dell'utente (warn rossa / ok neutra)
-                from PySide6.QtSvg import QSvgRenderer as _QSRw
-                self._svg_wat_ok = _QSRw(str(_ip / "acqua_ok.svg"))
-                self._svg_wat_wn = _QSRw(str(_ip / "acqua_warn.svg"))
-                self._svg_oil_ok = _QSRw(str(_ip / "olio_ok.svg"))
-                self._svg_oil_wn = _QSRw(str(_ip / "olio_warn.svg"))
-                self._px_wat_ok = True    # sentinella: init fatto
-            # spie come il vecchio HUD: acqua >=110, olio >=125
-            # (pulsano), warn fisso a motore spento
-            _eoff9 = (self._rpm or 0.0) < 50.0
-            _wt9 = self._water or 0.0
-            _ot9 = self._oil or 0.0
-            _pw9 = _wt9 >= 110.0
-            _po9 = _ot9 >= 125.0
-            wsvg = self._svg_wat_wn if (_pw9 or _eoff9) \
-                else self._svg_wat_ok
-            osvg = self._svg_oil_wn if (_po9 or _eoff9) \
-                else self._svg_oil_ok
-            # blocco COMPATTO e ordinato, appoggiato al cerchio:
-            # icona 18px + valore 11px, due righe allineate a destra
-            f_t = QFont("Archivo SemiExpanded")
-            f_t.setPixelSize(11)
-            f_t.setWeight(QFont.Bold)     # numeri temperature/fuel BOLD
-            p.setFont(f_t)
-            p.setPen(QColor(255, 255, 255, 240))
-            _xr = _W / 2.0 - 72.0        # bordo destro del blocco
-            if wsvg.isValid():
-                wsvg.render(p, QRectF(_xr - 44, gy + 18, 18, 18))
-            if self._water is not None:
-                p.drawText(QRectF(_xr - 40, gy + 18, 44, 18),
-                           Qt.AlignRight | Qt.AlignVCenter,
-                           "%.0f°C" % self._water)
-            if osvg.isValid():
-                osvg.render(p, QRectF(_xr - 35, gy + 34, 18, 18))
-            if self._oil is not None:
-                p.drawText(QRectF(_xr - 29, gy + 34, 44, 18),
-                           Qt.AlignRight | Qt.AlignVCenter,
-                           "%.0f°C" % self._oil)
-            # NUMERO energia/benzina sotto l'olio: BIANCO con l'icona
-            # carburante BIANCA a sinistra (rich. 23/07), come acqua/olio
-            _bp9 = getattr(self, "_bar_pct9", None)
-            if _bp9:
-                if not hasattr(self, "_svg_fuel_soft9"):
-                    try:
-                        from PySide6.QtSvg import QSvgRenderer as _QSRf2
-                        from PySide6.QtCore import QByteArray as _QBAf2
-                        import re as _re2
-                        _tf2 = (_ROOT / "assets" / "icons"
-                                / "fuel_spia.svg").read_text(
-                                    encoding="utf-8")
-                        # STESSO bianco morbido delle icone acqua/olio
-                        _tf2 = _re2.sub(r"#[0-9a-fA-F]{6}",
-                                        "#cfd6df", _tf2)
-                        self._svg_fuel_soft9 = _QSRf2(
-                            _QBAf2(_tf2.encode()))
-                    except Exception:
-                        self._svg_fuel_soft9 = None
-                if getattr(self, "_svg_fuel_soft9", None) is not None:
-                    # piccola e attaccata al numero (rifiniture 23/07)
-                    self._svg_fuel_soft9.render(
-                        p, QRectF(_xr - 9, gy + 52, 13, 13))
-                p.setPen(QColor(255, 255, 255, 240))
-                p.drawText(QRectF(_xr - 18, gy + 50, 44, 18),
-                           Qt.AlignRight | Qt.AlignVCenter,
-                           "%d" % _bp9[0])
+            self._paint_temps_body(p, gy)
         except Exception:
             pass
         # SPIE a destra del cerchio (speculari ad acqua/olio):

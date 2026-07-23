@@ -258,8 +258,10 @@ class ConfigWindow(QDialog):
             from PySide6.QtWidgets import QComboBox
             grid.addWidget(QLabel("Dash layout"), row_i, 0)
             _dlc = QComboBox()
-            _dlc.addItems(["Completa", "Solo cambio", "Solo header",
-                           "Senza header"])
+            # etichette in INGLESE: l'app resta EN finche' non e'
+            # multilingua (rich. 23/07)
+            _dlc.addItems(["Full", "Gear only", "Header only",
+                           "No header"])
             try:
                 from core.config import get_config as _gc9
                 _dlc.setCurrentIndex(int(_gc9().widget("wec26mfd")
