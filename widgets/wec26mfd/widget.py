@@ -1291,6 +1291,31 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                 t.mLiftAndCoastProgress) / 255.0
                         except Exception:
                             self._lico = 0.0
+                        # CALIBRAZIONE PUNTI LICO DI LMU (bug 23/07: i
+                        # nostri punti erano casuali, meta' Curva Grande).
+                        # Con l'eco NATIVO del gioco acceso, il progress
+                        # che tocca ~1 segna il punto di RILASCIO esatto:
+                        # lo registro per pista/classe e da li' in poi i
+                        # nostri LED chiamano DOVE chiama LMU.
+                        try:
+                            _lp9 = self._lico
+                            _lpv9 = getattr(self, "_lico_prev9", 0.0)
+                            self._lico_prev9 = _lp9
+                            _ld9c = getattr(self, "_lapdist", 0.0) or 0.0
+                            if _lp9 >= 0.97 and _lpv9 < 0.97 \
+                                    and _ld9c > 0.0:
+                                self._lico_cap = getattr(
+                                    self, "_lico_cap", [])
+                                self._lico_cap.append(round(_ld9c, 1))
+                                self._lico_cap_t = time.monotonic()
+                            # persisti (merge, dedupe 60m) max ogni 12s
+                            if getattr(self, "_lico_cap", None) \
+                                    and time.monotonic() - getattr(
+                                        self, "_lico_sav_t", 0.0) > 12.0:
+                                self._lico_sav_t = time.monotonic()
+                                self._lico_save_zones()
+                        except Exception:
+                            pass
                         self._wrot = [abs(float(t.mWheels[k].mRotation))
                                       for k in range(4)]
                         # slittamento alla TINYPEDAL: raggio APPRESO
@@ -5005,6 +5030,45 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             out["L"] = out["R"] = C_TC
         return out
 
+    def _lico_zone_file(self):
+        _fd = USER_DIR / "lico_zones"
+        _fd.mkdir(parents=True, exist_ok=True)
+        try:
+            from core.classes import class_tag as _ct
+            _tg = _ct(getattr(self, "_cls_name", "") or "") or "X"
+        except Exception:
+            _tg = "X"
+        _tr = re.sub(r"[^A-Za-z0-9]+", "_",
+                     getattr(self, "_track", "") or "track")[:40]
+        return _fd / ("%s_%s.json" % (_tr, _tg))
+
+    def _lico_save_zones(self):
+        """Unisce i punti di rilascio LMU appena catturati con quelli
+        salvati (dedupe 60m: tiene la media) e scrive su disco."""
+        new = getattr(self, "_lico_cap", None) or []
+        if not new:
+            return
+        self._lico_cap = []
+        f = self._lico_zone_file()
+        try:
+            pts = list(json.loads(f.read_text(encoding="utf-8"))
+                       .get("points") or [])
+        except Exception:
+            pts = []
+        for d in new:
+            for i, p in enumerate(pts):
+                if abs(p - d) < 60.0:
+                    pts[i] = round((p + d) / 2.0, 1)   # affina
+                    break
+            else:
+                pts.append(d)
+        pts.sort()
+        try:
+            f.write_text(json.dumps({"points": pts}), encoding="utf-8")
+            self._eco_ct = 0.0        # invalida la cache del coach
+        except Exception:
+            pass
+
     def _eco_lift_frac(self):
         """LIFT&COAST NOSTRO (0..1 come mLiftAndCoastProgress): con l'eco
         del muretto attivo, avvicinandosi a ogni curva frenata appresa i
@@ -5029,21 +5093,36 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             self._eco_ck = _key
             self._eco_ct = _now
             self._eco_corners = []
+            self._eco_lmu_pts = []
+            # 1) PUNTI VERI DI LMU (calibrati con l'eco nativo): se ci
+            #    sono, comandano loro — bug 23/07: i punti dedotti dalle
+            #    curve apprese cadevano anche dove LMU non chiama
             try:
-                from core import engineer_learn as _el
-                from core.classes import class_tag as _ct
-                prof = _el.load(_key[0], _ct(_key[1]) or _key[1])
-                cs = ((prof.get("cond") or {}).get("dry") or {}) \
-                    .get("corners") or []
-                self._eco_corners = [
-                    (float(c["d"]),
-                     min(max(float(c.get("brake_d") or 60.0), 25.0), 300.0))
-                    for c in cs
-                    if c.get("d") is not None
-                    and float(c.get("drop") or 0.0) >= 12.0]
+                _zp = json.loads(self._lico_zone_file()
+                                 .read_text(encoding="utf-8"))
+                self._eco_lmu_pts = [float(p) for p in
+                                     (_zp.get("points") or [])]
             except Exception:
-                self._eco_corners = []
-        if not self._eco_corners:
+                self._eco_lmu_pts = []
+            # 2) fallback: curve apprese, ma SOLO frenate vere (drop
+            #    >= 30 km/h — la Curva Grande non e' un punto lico)
+            if not self._eco_lmu_pts:
+                try:
+                    from core import engineer_learn as _el
+                    from core.classes import class_tag as _ct
+                    prof = _el.load(_key[0], _ct(_key[1]) or _key[1])
+                    cs = ((prof.get("cond") or {}).get("dry") or {}) \
+                        .get("corners") or []
+                    self._eco_corners = [
+                        (float(c["d"]),
+                         min(max(float(c.get("brake_d") or 60.0),
+                                 25.0), 300.0))
+                        for c in cs
+                        if c.get("d") is not None
+                        and float(c.get("drop") or 0.0) >= 30.0]
+                except Exception:
+                    self._eco_corners = []
+        if not self._eco_corners and not getattr(self, "_eco_lmu_pts", None):
             return None
         # margine adattivo dal muretto (eco_state.json: used vs target)
         if _now - getattr(self, "_eco_rt", 0.0) > 1.0:
@@ -5058,18 +5137,37 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             except Exception:
                 self._eco_ratio = 1.0
         _ratio = min(max(getattr(self, "_eco_ratio", 1.0), 0.8), 1.4)
-        margin = min(max(60.0 + (_ratio - 1.0) * 450.0, 40.0), 180.0)
-        # prossima curva frenata (wrap sul giro); se ho APPENA superato un
-        # punto di rilascio e sono ancora in zona frenata: pieno (LIFT!)
+        # MARGINE STILE LMU (misure utente 23/07): +1 -> ~150-200m,
+        # cresce col LIVELLO fino a ~300-350m a +4. L'adattivo dal
+        # consumo aggiusta di poco (+-40m), non stravolge.
+        _lvl = min(4, max(1, int(self._eco_active_laps() or 1)))
+        _adat = min(max((_ratio - 1.0) * 200.0, -40.0), 40.0)
+        _pts = getattr(self, "_eco_lmu_pts", None) or []
         best = None
-        for d, bd in self._eco_corners:
-            lift = d - bd - margin
-            past = (ld - lift) % tl
-            if past < margin + 20.0:
-                return 1.0
-            dl = (lift - ld) % tl
-            if best is None or dl < best:
-                best = dl
+        if _pts:
+            # PUNTI VERI DI LMU: il punto registrato E' il rilascio al
+            # livello di calibrazione (+1). Ogni livello in piu' anticipa
+            # di ~50m; l'adattivo rifinisce.
+            _ant = 50.0 * (_lvl - 1) + _adat
+            for d in _pts:
+                lift = d - _ant
+                past = (ld - lift) % tl
+                if past < 160.0 + 50.0 * (_lvl - 1):
+                    return 1.0            # in zona rilascio: PIENO
+                dl = (lift - ld) % tl
+                if best is None or dl < best:
+                    best = dl
+        else:
+            margin = min(max(150.0 + 50.0 * (_lvl - 1) + _adat,
+                             100.0), 380.0)
+            for d, bd in self._eco_corners:
+                lift = d - bd - margin
+                past = (ld - lift) % tl
+                if past < margin + 20.0:
+                    return 1.0
+                dl = (lift - ld) % tl
+                if best is None or dl < best:
+                    best = dl
         window = 220.0
         if best is not None and best <= window:
             return min(1.0, 1.0 - best / window + 0.001)

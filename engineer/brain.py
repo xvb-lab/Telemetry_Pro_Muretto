@@ -4347,6 +4347,11 @@ class Engineer:
                 # LED eco di LMU dicono la stessa cosa del muretto
                 per = self._fnum(raw.get("lmu_per_lap"))
                 ve = self._fnum(raw.get("ve_pct"))
+                # SOLO BENZINA (P2/P3/GTE, bug 23/07): niente VE ->
+                # stessi conti sui LITRI (il target esce in L/giro,
+                # le frasi sono neutre sull'unita')
+                if not (ve and ve > 1.0):
+                    ve = self._fnum(raw.get("fuel"))
                 tgt = laps_t = None
                 if per and per > 0 and ve and ve > 1.0:
                     laps_t = ve / per + extra          # come LMU: stimati+N
@@ -4395,6 +4400,8 @@ class Engineer:
             return []
         if mode in ("longrun", "ecofree", "racesim"):
             ve = self._fnum(raw.get("ve_pct"))
+            if not (ve and ve > 1.0):          # solo benzina: litri
+                ve = self._fnum(raw.get("fuel"))
             prev_ve = st.get("tm_ve_prev")
             st["tm_ve_prev"] = ve
             tgt = st.get("tm_target") if mode in ("longrun", "ecofree") \
