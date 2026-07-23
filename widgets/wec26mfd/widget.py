@@ -1676,8 +1676,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         bodyh = _H - self.HDR - self.ROW_T - self.ROW_B
         s = self.width() / float(_W)
         # child in PIXEL DEVICE (come nel vecchio dashboard): riempie
-        # ~80% del corpo pagina, ricreato se cambia la scala della card
-        _msc = (bodyh * s * 0.80) / 72.0
+        # ~65% del corpo pagina, ricreato se cambia la scala della card
+        _msc = (bodyh * s * 0.65) / 72.0
         mc = getattr(self, "_minicar", None)
         if mc is None or abs(mc._scale - _msc) > 0.06:
             if mc is not None:
