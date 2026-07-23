@@ -73,14 +73,24 @@ def role_for(code):
     return _MSG_ROLE.get(code, "engineer")
 
 
-# ── ruolo -> voce edge-tts per lingua (12 voci, collaudate) ───────────────
+# ── ruolo -> voce edge-tts per lingua ─────────────────────────────────────
+# FORMAZIONE 23/07 (provino con l'utente, voci Multilingual = modello
+# nuovo, gratis come le vecchie): Remy ingegnere di gara (accento
+# francese, Le Mans), Florian stratega (tedesco), Ava performance.
+# Le Multilingual parlano OGNI lingua: stessa voce su it/en/es/fr.
 ROLE_VOICES = {
-    "engineer":   {"it": "it-IT-GiuseppeNeural", "en": "en-GB-RyanNeural",
-                   "es": "es-ES-AlvaroNeural",   "fr": "fr-FR-HenriNeural"},
-    "strategist": {"it": "it-IT-DiegoNeural",    "en": "en-US-ChristopherNeural",
-                   "es": "es-MX-JorgeNeural",     "fr": "fr-CA-JeanNeural"},
-    "spotter":    {"it": "it-IT-IsabellaNeural", "en": "en-GB-SoniaNeural",
-                   "es": "es-ES-ElviraNeural",    "fr": "fr-FR-DeniseNeural"},
+    "engineer":   {"it": "fr-FR-RemyMultilingualNeural",
+                   "en": "fr-FR-RemyMultilingualNeural",
+                   "es": "fr-FR-RemyMultilingualNeural",
+                   "fr": "fr-FR-RemyMultilingualNeural"},
+    "strategist": {"it": "de-DE-FlorianMultilingualNeural",
+                   "en": "de-DE-FlorianMultilingualNeural",
+                   "es": "de-DE-FlorianMultilingualNeural",
+                   "fr": "de-DE-FlorianMultilingualNeural"},
+    "spotter":    {"it": "en-US-AvaMultilingualNeural",
+                   "en": "en-US-AvaMultilingualNeural",
+                   "es": "en-US-AvaMultilingualNeural",
+                   "fr": "en-US-AvaMultilingualNeural"},
 }
 
 ROLE_LABEL = {
