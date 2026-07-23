@@ -6097,7 +6097,11 @@
         "Pista {grip}, asfalto a {temp} gradi. Sei fuori con gomme {gomme}.",
         "Allora: asfalto a {temp} gradi, pista {grip}. Montate le {gomme}.",
         "Condizioni: {temp} gradi a terra, pista {grip}. Gomme {gomme} sotto.",
-        "Ti aggiorno: pista {grip}, {temp} gradi d'asfalto, sei sulle {gomme}."
+        "Ti aggiorno: pista {grip}, {temp} gradi d'asfalto, sei sulle {gomme}.",
+        "Quadro veloce: {temp} gradi d'asfalto, pista {grip}, treno {gomme}.",
+        "Fuori cosi': {gomme} montate, asfalto {temp} gradi, gommatura {grip}.",
+        "Situazione: pista {grip} e {temp} gradi a terra. Le {gomme} vanno bene per queste condizioni.",
+        "Report condizioni: asfalto {temp} gradi, pista {grip}. Gomme {gomme}, buona uscita."
       ],
       "en": "Track {grip}, tarmac {temp} degrees. You're on {gomme}.",
       "variants_en": [
@@ -7227,9 +7231,20 @@
       "beep": false,
       "it": "Out-lap: dischi in acciaio, li scaldi tu — due frenate decise e un filo di freno tenuto: il calore dei dischi entra nelle gomme. Freni in finestra sopra i trecento, gomme sopra i settanta al core prima di spingere.",
       "variants_it": [
-        "Out-lap: dischi in acciaio, li scaldi tu — due frenate decise e un filo di freno tenuto: il calore dei dischi entra nelle gomme. Freni in finestra sopra i trecento, gomme sopra i settanta al core prima di spingere.",
-        "Giro di lancio: sulle GT il freno scalda prima della gomma. Staccate progressive, niente strappi di sterzo: quando il core passa i settanta puoi attaccare.",
-        "Procedura out-lap: porta i dischi in temperatura con frenate decise, la gomma segue col calore dei cerchi. Un giro pulito e sei in finestra."
+        "Giro d'uscita: dischi in acciaio, scaldali tu — due frenate decise e un filo di freno tenuto, il calore passa alle gomme.",
+        "Out-lap: gomme fredde, primo settore in appoggio dolce. Le pressioni salgono tra un giro e mezzo.",
+        "In uscita: occhio ai cordoli finche' le gomme sono fredde, la macchina rimbalza senza grip.",
+        "Fuori: controlla che lo sterzo torni dritto e i freni mordano, poi si lavora sul passo.",
+        "Giro di lancio: TC lascialo dove sta finche' la posteriore non e' in temperatura, poi ottimizziamo.",
+        "Out-lap tranquillo: la pista davanti e' libera, costruisci temperatura senza fretta.",
+        "Uscita: frenate progressive, l'acciaio vuole un paio di staccate per arrivare in finestra.",
+        "Fuori adesso: primo giro pulito da riferimento, poi ti do i confronti.",
+        "Giro d'uscita: peso sulle anteriori in frenata, e' il modo piu' rapido di scaldare l'asse davanti.",
+        "In pista: la gommatura fa la meta' del lavoro — segui la traiettoria gommata anche nell'out-lap.",
+        "Out-lap: zig-zag corti solo sul dritto, il vero calore arriva dai carichi in curva.",
+        "Uscita: appena i freni superano i centocinquanta gradi hai il primo mordente vero, tienilo a mente in T1.",
+        "Fuori: giro di controllo — vibrazioni, bilancio in frenata, e mi dici come senti l'ingresso.",
+        "Giro di lancio: gomme nella finestra tra settanta e novanta gradi, ci arrivi a meta' del secondo giro."
       ],
       "en": "Out-lap: steel discs, you warm them — two firm brake applications and a touch of dragging: disc heat soaks into the tyres. Brakes above three hundred, tyre core above seventy before you push.",
       "es": "Vuelta de salida: discos de acero, caliéntalos tú con frenadas firmes; el calor pasa a las gomas.",
@@ -7241,9 +7256,18 @@
       "beep": false,
       "it": "Out-lap: freni in carbonio, sotto i duecentocinquanta non mordono — staccate progressive per portarli in finestra. Rigenerazione al massimo e batteria sui tre quarti: se satura, il brake-by-wire ti taglia un asse in staccata. Core gomma sopra i settantacinque.",
       "variants_it": [
-        "Out-lap: freni in carbonio, sotto i duecentocinquanta non mordono — staccate progressive per portarli in finestra. Rigenerazione al massimo e batteria sui tre quarti: se satura, il brake-by-wire ti taglia un asse in staccata. Core gomma sopra i settantacinque.",
-        "Giro di lancio Hypercar: scalda il carbonio con frenate crescenti e tieni d'occhio il SOC — batteria piena vuol dire niente rigenerazione e frenata sbilanciata. Spinta elettrica regolato per chiudere il giro con la stessa carica.",
-        "Procedura: carbonio in temperatura prima di tutto, poi la gomma. Gestisci la batteria: mai satura in frenata, mai vuota quando rientri — dal box esci solo in elettrico."
+        "Giro d'uscita: freni in carbonio, sotto i duecentocinquanta non mordono — staccate progressive per portarli in finestra.",
+        "Out-lap: esci in elettrico, quando entra il termico controlla che la rigenerazione carichi regolare.",
+        "In uscita: occhio al SOC — batteria piena vuol dire niente recupero e frenata piu' lunga in T1.",
+        "Fuori: il carico aerodinamico scalda le gomme piu' del traverso — appoggi puliti nei curvoni.",
+        "Giro di lancio: carbonio freddo e gomme fredde insieme: la prima staccata vale la meta', calcola il margine.",
+        "Out-lap: verifica la mappa elettrica, spinta piena solo quando le posteriori sono in temperatura.",
+        "Uscita: primo giro per stabilizzare pressioni e carcassa, il crono arriva dal terzo passaggio.",
+        "Fuori: le quattro ruote motrici in trazione mascherano il freddo — non fidarti del primo ingresso.",
+        "Giro d'uscita: energia al cento per cento, gestione normale — il piano parte dal prossimo passaggio.",
+        "Out-lap: due frenate decise sul dritto per svegliare il carbonio, poi progressivo.",
+        "In pista: controlla il bilancio in frenata col recupero attivo, se allunga dietro me lo dici.",
+        "Uscita: aero pulita e gomme fredde — la macchina sottosterza finche' la carcassa non sale sopra i settanta."
       ],
       "en": "Out-lap: carbon brakes don't bite below two-fifty — progressive braking to window them. Regen at max, battery around three quarters: if it saturates, brake-by-wire cuts an axle. Tyre core above seventy-five.",
       "es": "Vuelta de salida: frenos de carbono, no muerden por debajo de 250. Batería a tres cuartos.",
@@ -7255,9 +7279,14 @@
       "beep": false,
       "it": "Out-lap: carbonio anche qui — portalo sopra i duecentocinquanta con staccate progressive. La Goodyear vuole due giri veri: core sopra i settantacinque e la macchina si accende. Niente attacco al primo settore.",
       "variants_it": [
-        "Out-lap: carbonio anche qui — portalo sopra i duecentocinquanta con staccate progressive. La Goodyear vuole due giri veri: core sopra i settantacinque e la macchina si accende. Niente attacco al primo settore.",
-        "Giro d'uscita: carbonio anche qui — portalo sopra i duecentocinquanta con staccate progressive. La Goodyear vuole due giri veri: core sopra i settantacinque e la macchina si accende. Niente attacco al primo settore.",
-        "Ok, in uscita: carbonio anche qui — portalo sopra i duecentocinquanta con staccate progressive. La Goodyear vuole due giri veri: core sopra i settantacinque e la macchina si accende. Niente attacco al primo settore."
+        "Giro d'uscita: carbonio anche qui — portalo sopra i duecentocinquanta con staccate progressive.",
+        "Out-lap: la Goodyear vuole due giri veri — core sopra i settantacinque prima di spingere.",
+        "In uscita: il fondo lavora solo in velocita', nei curvoni il grip cresce col carico.",
+        "Fuori: primo giro di calibrazione — freni, pressioni, e un riferimento pulito in T1.",
+        "Giro di lancio: gomme fredde e telaio leggero, i cordoli li paghi — tienine fuori uno finche' non sei in finestra.",
+        "Out-lap: controlla il ritorno dello sterzo in staccata, poi mi dici il bilancio.",
+        "Uscita: la pista e' libera, costruisci temperatura e dal secondo giro si spinge.",
+        "Fuori: frenate lunghe e progressive, il calore dei dischi entra nei cerchi e scalda la carcassa."
       ],
       "en": "Out-lap: carbon brakes here too — above two-fifty with progressive stops. The Goodyear needs two proper laps: core above seventy-five and the car comes alive.",
       "es": "Vuelta de salida P2: carbono por encima de 250, la goma llega a la segunda vuelta.",
@@ -7269,9 +7298,14 @@
       "beep": false,
       "it": "Out-lap: scalda il carbonio con staccate progressive e dai due giri alla gomma. Meno carico e meno aiuti delle sorelle grandi: trazione dolce in uscita finché il posteriore non è in temperatura.",
       "variants_it": [
-        "Out-lap: scalda il carbonio con staccate progressive e dai due giri alla gomma. Meno carico e meno aiuti delle sorelle grandi: trazione dolce in uscita finché il posteriore non è in temperatura.",
-        "Giro d'uscita: scalda il carbonio con staccate progressive e dai due giri alla gomma. Meno carico e meno aiuti delle sorelle grandi: trazione dolce in uscita finché il posteriore non è in temperatura.",
-        "Ok, in uscita: scalda il carbonio con staccate progressive e dai due giri alla gomma. Meno carico e meno aiuti delle sorelle grandi: trazione dolce in uscita finché il posteriore non è in temperatura."
+        "Giro d'uscita: scalda il carbonio con staccate progressive e dai due giri alla gomma.",
+        "Out-lap: meno carico e meno aiuti delle sorelle grandi — trazione dolce finche' il posteriore non e' caldo.",
+        "In uscita: primo giro pulito, la P3 scivola parecchio a gomme fredde.",
+        "Fuori: freni sopra i duecentocinquanta e gomme sopra i settanta, poi hai la macchina vera.",
+        "Giro di lancio: usa i dritti per scaldare i freni, le curve per la carcassa — senza strappare.",
+        "Uscita: riferimento pulito al primo passaggio, il crono si costruisce dal secondo.",
+        "Out-lap: attenzione al primo ingresso in staccata, il carbonio freddo allunga tutto.",
+        "Fuori: pista libera davanti, porta tutto in temperatura e poi attacchiamo il piano."
       ],
       "en": "Out-lap: warm the carbon with progressive stops and give the tyre two laps. Gentle traction until the rear is in window.",
       "es": "Vuelta de salida P3: frenos primero, gomas despues. Traccion suave.",
@@ -7620,7 +7654,13 @@
         "Un momento: passo in rassegna la macchina — freni, gomme, livelli — e poi usciamo con un piano chiaro.",
         "Dammi due minuti: controllo la macchina e decidiamo il programma.",
         "Fermo un attimo: guardo pressioni e temperature, poi ti dico come usciamo.",
-        "Aspetta che do un'occhiata alla macchina, poi facciamo il piano."
+        "Aspetta che do un'occhiata alla macchina, poi facciamo il piano.",
+        "Due minuti di controlli e ti preparo l'uscita: pressioni, benzina e condizioni pista.",
+        "Prima di uscire faccio il giro dei dati: consumi, gomme, meteo. Ti aggiorno subito.",
+        "Vediamo i numeri un attimo: appena ho il quadro ti do il programma del run.",
+        "Controllo lo stato della macchina e le condizioni, poi decidiamo se giro secco o passo gara.",
+        "Un attimo che allineo i dati dell'ultimo run, cosi' usciamo con obiettivi chiari.",
+        "Fammi guardare le temperature d'asfalto e la gommatura, poi ti dico che finestra abbiamo."
       ],
       "en": "Hold on: give me two minutes to check pressures, temps and levels, then we decide the programme — hot lap or long run.",
       "es": "Espera dos minutos: reviso presiones y niveles y decidimos el programa.",
@@ -7635,7 +7675,11 @@
         "Ok, motore acceso: tranquillo, il briefing lo facciamo in pista.",
         "Va bene, partiamo: ti aggiorno mentre giri.",
         "Ok, si parte: le informazioni te le do in pista.",
-        "Vai pure: ci sentiamo in pista con i dettagli."
+        "Vai pure: ci sentiamo in pista con i dettagli.",
+        "D'accordo, esci: il quadro te lo do tra una curva e l'altra.",
+        "Motore acceso, va bene cosi': briefing in movimento.",
+        "Ok, andiamo: i numeri te li passo appena sei fuori dalla corsia.",
+        "Si parte: pensa all'uscita, al resto penso io."
       ],
       "en": "Okay, engine on: we'll do the checks on the move. I'll update you on track.",
       "es": "Vale, motor encendido: lo vemos en pista.",

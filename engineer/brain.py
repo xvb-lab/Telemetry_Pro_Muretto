@@ -4513,6 +4513,25 @@ class Engineer:
                  "P3": (172.0, 178.0), "GT3": (163.0, 168.0),
                  "GTE": (163.0, 168.0)}
     _PF_FADE_T = {"GT3": 700.0, "GTE": 700.0}     # acciaio; carbonio 850
+    # temperatura di ESERCIZIO carcassa (centro finestra dati_lmu S397:
+    # prototipi 75-87, GT 70-90)
+    _PF_TWORK = {"HY": 81.0, "P2": 81.0, "P3": 81.0,
+                 "GT3": 80.0, "GTE": 80.0}
+
+    def _press_cold_delta(self, p_meas, t_carc, t_amb, win, tag):
+        """LEGGE DEI GAS (Segers eq. 8.2): dal caldo MISURATO alla
+        carcassa ATTUALE calcola il caldo PREVISTO alla temperatura di
+        esercizio della classe, e da li la correzione ESATTA del freddo
+        nel menu (riportata a temperatura ambiente). Vale anche a gomma
+        fredda: la temperatura sta DENTRO la matematica."""
+        _tw = self._PF_TWORK.get(tag, 81.0)
+        _k = (p_meas + 101.325) / (t_carc + 273.15)
+        _p_work = _k * (_tw + 273.15) - 101.325
+        _mid = (win[0] + win[1]) / 2.0
+        _half = (win[1] - win[0]) / 2.0
+        if abs(_p_work - _mid) <= _half + 1.0:
+            return 0.0                     # a regime sara in finestra
+        return (_mid - _p_work) * (t_amb + 273.15) / (_tw + 273.15)
 
     def _pf_tag(self, raw):
         try:
@@ -4572,9 +4591,12 @@ class Engineer:
         # pressioni a caldo (oltre 120 km/h)
         _pr4 = raw.get("tyre_press") or []
         if spd > 120.0 and len(_pr4) >= 4:
+            _tcc4 = raw.get("tyre_carcass") or []
             for _i in range(4):
                 try:
                     _add("pr%d" % _i, float(_pr4[_i]))
+                    if len(_tcc4) >= 4:
+                        _add("carcT%d" % _i, float(_tcc4[_i]))
                 except (TypeError, ValueError):
                     pass
         # camber: spread interno-esterno (inner layer 3 zone per ruota)
@@ -4773,18 +4795,18 @@ class Engineer:
         # finestra, kPa): aggiornato OGNI giro, letto da setup_targets
         _win9 = self._PF_PRESS.get(tag)
         if _win9 and lap >= int(st.get("stint_lap0") or 0) + 3:
-            # target validi SOLO a gomme stabilizzate (Segers: 4-7
-            # giri) e SOLO per le ruote FUORI finestra (23/07 notte:
-            # non si pompano tutte e quattro alla cieca)
-            _mid9 = (_win9[0] + _win9[1]) / 2.0
-            _hf9 = (_win9[1] - _win9[0]) / 2.0
+            # target con la LEGGE DEI GAS, per ruota, a gomme
+            # stabilizzate (Segers: 4-7 giri)
+            _ta9 = self._fnum(raw.get("air_temp")) or 22.0
             _tgt9 = []
             for _i in range(4):
                 _pv9t = _avg("pr%d" % _i)
-                if _pv9t is None or abs(_pv9t - _mid9) <= _hf9 + 2.0:
+                _tc9t = _avg("carcT%d" % _i)
+                if _pv9t is None or _tc9t is None or _tc9t < 35.0:
                     _tgt9.append(0.0)
                 else:
-                    _tgt9.append(_mid9 - _pv9t)
+                    _tgt9.append(self._press_cold_delta(
+                        _pv9t, _tc9t, _ta9, _win9, tag))
             st["press_tgt"] = _tgt9
         # S1. GRIP PERSO: grip factor vs i primi 3 giri dello stint —
         # il degrado OGGETTIVO (parla a passi di 5%)
@@ -5119,18 +5141,15 @@ class Engineer:
         try:
             pf = self._st.get("pf") or {}
             _tgt = pf.get("press_tgt")
-            if not _tgt and raw:
-                # FALLBACK live: SOLO con la gomma LAVORATA (carcassa
-                # calda), correzione PER RUOTA, dimezzata e con tetto
-                # basso — 23/07 notte: a gomme tiepide tutto sembrava
-                # "basso" e spingeva +12 su tutte e quattro
+            if not _tgt and raw and not self._wet_mounted(raw):
+                # FALLBACK live: LEGGE DEI GAS per ruota — vale anche
+                # a gomma fredda, la carcassa sta dentro il calcolo
                 tag = self._pf_tag(raw)
                 _win = self._PF_PRESS.get(tag)
                 _pr = raw.get("tyre_press") or []
                 _tc4 = raw.get("tyre_carcass") or []
+                _ta = self._fnum(raw.get("air_temp")) or 22.0
                 if _win and len(_pr) >= 4 and len(_tc4) >= 4:
-                    _mid = (_win[0] + _win[1]) / 2.0
-                    _half = (_win[1] - _win[0]) / 2.0
                     _tgt = []
                     for _i in range(4):
                         try:
@@ -5139,15 +5158,13 @@ class Engineer:
                         except (TypeError, ValueError):
                             _tgt.append(0.0)
                             continue
-                        if _cw < 70.0:
-                            _tgt.append(0.0)   # gomma fredda: non tocco
-                        elif abs(_pv - _mid) <= _half + 2.0:
-                            _tgt.append(0.0)   # in finestra: non tocco
+                        if _cw < 35.0 or _cw > 150.0:
+                            _tgt.append(0.0)   # dato non affidabile
                         else:
-                            _tgt.append(max(-8.0, min(8.0,
-                                        (_mid - _pv) * 0.5)))
+                            _tgt.append(self._press_cold_delta(
+                                _pv, _cw, _ta, _win, tag))
             if _tgt:
-                out["press_delta"] = [max(-12.0, min(12.0, float(x)))
+                out["press_delta"] = [max(-15.0, min(15.0, float(x)))
                                       for x in _tgt]
             _sas = (self._st.get("sa") or {}).get("said") or set()
             if "wf" in _sas:

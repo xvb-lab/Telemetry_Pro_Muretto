@@ -8556,7 +8556,14 @@ class _AppPage(QWidget):
     def _back_clicked(self):
         """A sessione ARMATA l'uscita e' bloccata (l'auto-focus ti
         riporterebbe comunque qui): il lucchetto lo DICHIARA, invece di
-        sembrare un bug. Il click mostra il perche' in rosso."""
+        sembrare un bug. Il click mostra il perche' in rosso.
+        REGOLA 23/07: se questa pagina e' stata aperta DALLO stint
+        (Setups), il back torna allo stint = DENTRO la sessione ->
+        MAI bloccato."""
+        if getattr(self, "_return_stint", False):
+            if self._on_back:
+                self._on_back()
+            return
         if getattr(self, "_armed", False):
             try:
                 self._lock_note.setText("SESSION LIVE — STOP TO EXIT")
@@ -8572,6 +8579,8 @@ class _AppPage(QWidget):
     def _apply_back_lock(self, armed):
         """Freccia indietro <-> LUCCHETTO con la nota rossa di stato."""
         try:
+            if getattr(self, "_return_stint", False):
+                armed = False        # pagina interna: freccia libera
             if armed:
                 self._back.setText("lock")
                 self._back.setStyleSheet(self._BACK_QSS_LOCK)
