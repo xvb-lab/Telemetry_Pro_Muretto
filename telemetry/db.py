@@ -121,6 +121,15 @@ CREATE TABLE IF NOT EXISTS samples (
 );
 CREATE INDEX IF NOT EXISTS idx_samples_lap ON samples(lap);
 CREATE INDEX IF NOT EXISTS idx_sectors_lap ON sectors(lap);
+CREATE TABLE IF NOT EXISTS timeloss (
+    lap     INTEGER,            -- giro analizzato
+    ref     INTEGER,            -- giro di riferimento (best della sessione)
+    corner  TEXT,               -- 'T1'..'Tn'
+    d       REAL,               -- lapdist apice (m)
+    entry_s REAL, exit_s REAL, total_s REAL,   -- +perde / -guadagna
+    vmin REAL, vmin_ref REAL,   -- velocita' minima in curva (km/h)
+    PRIMARY KEY (lap, corner)
+);
 CREATE TABLE IF NOT EXISTS events (
     lap     INTEGER,
     t       REAL,               -- tempo dall'inizio giro (s)
@@ -224,6 +233,7 @@ class TelemetryDB:
         self._buf_sectors = []
         self._buf_samples = []
         self._buf_events = []
+        self._buf_timeloss = []
 
     def _migrate(self):
         """Aggiunge colonne mancanti a file esistenti (schema vecchio) così le
@@ -269,6 +279,7 @@ class TelemetryDB:
     def add_sector(self, row):    self._buf_sectors.append(row)
     def add_sample(self, row):    self._buf_samples.append(row)
     def add_event(self, row):     self._buf_events.append(row)
+    def add_timeloss(self, row):  self._buf_timeloss.append(row)
 
     def _flush_table(self, table, cols, buf):
         if not buf:
@@ -300,6 +311,8 @@ class TelemetryDB:
                  "w_fl", "w_fr", "w_rl", "w_rr",
                  "b_fl", "b_fr", "b_rl", "b_rr"]
     _EVT_COLS = ["lap", "t", "lapdist", "x", "z", "kind", "val"]
+    _TLM_COLS = ["lap", "ref", "corner", "d", "entry_s", "exit_s",
+                 "total_s", "vmin", "vmin_ref"]
 
     _SMP_COLS = ["lap", "t", "lapdist", "pos_x", "pos_y", "pos_z", "speed",
                  "throttle", "brake", "steer", "g_long", "g_lat",
@@ -334,7 +347,8 @@ class TelemetryDB:
         for table, cols, buf in (("laps", self._LAP_COLS, self._buf_laps),
                                  ("sectors", self._SEC_COLS, self._buf_sectors),
                                  ("samples", self._SMP_COLS, self._buf_samples),
-                                 ("events", self._EVT_COLS, self._buf_events)):
+                                 ("events", self._EVT_COLS, self._buf_events),
+                                 ("timeloss", self._TLM_COLS, self._buf_timeloss)):
             if not buf:
                 continue
             try:

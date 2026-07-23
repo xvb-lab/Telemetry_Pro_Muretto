@@ -1777,6 +1777,12 @@ class TelemetryRecorder:
                 self._ev_tl_prev = _tls
         except Exception:
             pass
+        # righe TIME-LOSS pronte dal thread: nel db dal thread giusto
+        _tlm = getattr(self, "_tlm_pending", None)
+        if _tlm:
+            self._tlm_pending = None
+            for _r in _tlm:
+                self._db.add_timeloss(_r)
 
         # DURATA SESSIONE: race_total all'apertura non e' assestato (legge 0/5/60),
         # cosi' la card mostrava "1m". Aggiorno col valore reale appena stabile.
@@ -2108,6 +2114,51 @@ class TelemetryRecorder:
                     self._upload_online_best(d, lt, sec1, sec2, sec3, wear)
             except Exception:
                 pass
+        # TIME-LOSS MATRIX: giro chiuso vs best sessione, in thread (mai
+        # nel tick); le righe tornano via _tlm_pending e vanno nel db
+        try:
+            if lt and lt > 20.0:
+                self._db.flush()
+                self._timeloss_kick(lap)
+        except Exception:
+            pass
+
+    def _timeloss_kick(self, lap_id):
+        """Time-Loss del giro appena chiuso contro il best della sessione.
+        Gira in un thread con una connessione READ-ONLY propria; le righe
+        pronte passano dal tick (thread del db) via _tlm_pending."""
+        path = getattr(self._db, "path", None)
+        track = self._evt_track
+        cls = self._evt_car
+        if not path or not track:
+            return
+
+        def _work():
+            try:
+                time.sleep(1.5)          # lascia committare il giro chiuso
+                import sqlite3 as _sq
+                uri = "file:%s?mode=ro" % str(path).replace("\\", "/")
+                con = _sq.connect(uri, uri=True, timeout=2.0)
+                try:
+                    rows = con.execute(
+                        "SELECT lap FROM laps WHERE lap_time>20 AND lap!=?"
+                        " AND (invalid IS NULL OR invalid=0)"
+                        " ORDER BY lap_time LIMIT 1", (lap_id,)).fetchall()
+                    if not rows:
+                        return
+                    ref = int(rows[0][0])
+                    from telemetry import timeloss as _tlmod
+                    res = _tlmod.compute(con, lap_id, ref,
+                                         track=track, car_class=cls)
+                finally:
+                    con.close()
+                if res:
+                    self._tlm_pending = [
+                        {"lap": res["lap"], "ref": res["ref"], **r}
+                        for r in res["corners"]]
+            except Exception:
+                pass
+        threading.Thread(target=_work, daemon=True).start()
 
     def _upload_online_best(self, d, lt, sec1, sec2, sec3, wear):
         """Invia il best appena salvato al Worker (POST /ref, async). Stessa
