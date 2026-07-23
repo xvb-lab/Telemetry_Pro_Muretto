@@ -3144,6 +3144,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             # icona 18px + valore 11px, due righe allineate a destra
             f_t = QFont("Archivo SemiExpanded")
             f_t.setPixelSize(11)
+            f_t.setWeight(QFont.Bold)     # numeri temperature/fuel BOLD
             p.setFont(f_t)
             p.setPen(QColor(255, 255, 255, 240))
             _xr = _W / 2.0 - 72.0        # bordo destro del blocco
@@ -3164,7 +3165,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _bp9 = getattr(self, "_bar_pct9", None)
             if _bp9:
                 p.setPen(QColor(_bp9[1]))
-                p.drawText(QRectF(_xr - 29, gy + 50, 44, 18),
+                p.drawText(QRectF(_xr - 21, gy + 50, 44, 18),
                            Qt.AlignRight | Qt.AlignVCenter,
                            "%d" % _bp9[0])
                 p.setPen(QColor(255, 255, 255, 240))
@@ -3512,7 +3513,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         def _gsym(gv):
             return "R" if gv < 0 else ("N" if gv == 0 else str(gv))
 
-        f_gear = QFont("Archivo SemiExpanded", 34); f_gear.setBold(True)
+        f_gear = QFont("Archivo SemiExpanded", 34)
+        f_gear.setWeight(QFont.Black)     # marcia principale EXTRA bold
         p.setFont(f_gear)
         fg = QFontMetricsF(f_gear)
         ts = (now - self._gear_t0) / 0.25 if self._gear_t0 else 2.0
@@ -4592,12 +4594,42 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         p.setFont(f_v)
                         p.setPen(_vc or QColor(255, 255, 255, 235))
                         p.drawText(QPointF(_gx, _yb), _vt)
-                    # ── LAP N: dentro la colonna, a destra ──
+                    # ── LAP N / CARBURANTE alternati ogni 10s (rich.
+                    # 23/07, come TEMP/GRIP): icona benzina BIANCA
+                    # (dal tuo SVG, ricolorato) + numero secco — senza
+                    # % ne' litri, vale per VE (GT3/HY) e benzina (P2/GTE)
+                    _bp10 = getattr(self, "_bar_pct9", None)
+                    _alt10 = (_bp10 is not None
+                              and int(time.monotonic() / 10.0) % 2 == 1)
                     p.setFont(f_lap)
-                    p.setPen(QColor(255, 255, 255, 220))
-                    p.drawText(QPointF(
-                        _bx1 - 12.0 - _lm.horizontalAdvance(_laptxt),
-                        _yb), _laptxt)
+                    if _alt10:
+                        if not hasattr(self, "_svg_fuel_w9"):
+                            try:
+                                from PySide6.QtSvg import QSvgRenderer \
+                                    as _QSRf
+                                from PySide6.QtCore import QByteArray
+                                _tf9 = (_ROOT / "assets" / "icons"
+                                        / "fuel_spia.svg").read_text(
+                                            encoding="utf-8")
+                                _tf9 = re.sub(r"#[0-9a-fA-F]{6}",
+                                              "#ffffff", _tf9)
+                                self._svg_fuel_w9 = _QSRf(
+                                    QByteArray(_tf9.encode()))
+                            except Exception:
+                                self._svg_fuel_w9 = None
+                        _ftx = "%d" % _bp10[0]
+                        _fw10 = _lm.horizontalAdvance(_ftx)
+                        _fx10 = _bx1 - 12.0 - _fw10
+                        p.setPen(QColor(255, 255, 255, 235))
+                        p.drawText(QPointF(_fx10, _yb), _ftx)
+                        if getattr(self, "_svg_fuel_w9", None) is not None:
+                            self._svg_fuel_w9.render(
+                                p, QRectF(_fx10 - 24.0, 8.0, 20.0, 20.0))
+                    else:
+                        p.setPen(QColor(255, 255, 255, 220))
+                        p.drawText(QPointF(
+                            _bx1 - 12.0 - _lm.horizontalAdvance(_laptxt),
+                            _yb), _laptxt)
                 # ── MOD 2/3/4: il gauge col cambio non c'e' -> la cella
                 # DESTRA dell'header diventa MARCIA + VELOCITA' (rich.
                 # 23/07). Z-sopra qualunque cosa ci fosse (LAP o TEMP);
