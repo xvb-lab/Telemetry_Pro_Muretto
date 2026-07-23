@@ -369,6 +369,7 @@ def _collect(brain, raw, ld, pace):
         (brain.timeloss_focus_call, (raw, ld)),   # dove perdi: curva ricorrente (prova)
         (brain.rain_pace_call, (raw, ld)),        # slick sotto pioggia: passo crollato
         (brain.setup_advice_call, (raw, ld)),     # assetto-consapevole: bias/ala/garage (23/07)
+        (brain.penalty_call, (raw,)),             # STOP&GO del pilota dal pit menu (23/07)
         # (brain.welcome_call TOLTO: il benvenuto aveva rotto, 23/07)
         (brain.stint_debrief, (raw, ld)),         # debrief a voce a fine stint (garage)
         # 🔵 STRATEGY
@@ -860,6 +861,7 @@ def run():
             raw["forecast_rain"] = _forecast(d)       # meteo gara (briefing al via)
             if live:
                 raw["lmu_per_lap"] = live.get("per_lap")
+                raw["stop_go"] = live.get("stop_go")
                 raw["lmu_strat"] = {
                     "constraint": live.get("constraint"),
                     "fuel_max": live.get("fuel_max"),

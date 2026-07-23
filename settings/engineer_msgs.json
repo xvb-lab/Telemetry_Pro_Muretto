@@ -8461,6 +8461,47 @@
       "en": "The rear steps out in the slow corners: mechanical. Back in the garage: softer rear bar or slightly different rear pressures.",
       "es": "La trasera se escapa en las curvas lentas: mecánica. En el garaje: barra trasera más blanda.",
       "fr": "L'arriere decroche dans les courbes lentes: mecanique. Au garage: barre arriere plus souple."
+    },
+    "penalty_sg": {
+      "cat": "penalita",
+      "level": "critical",
+      "beep": true,
+      "it": "Stop and go per noi! Hai {laps} giri per servirlo: entra, fermati in piazzola e riparti, non cambiamo niente.",
+      "variants_it": [
+        "Stop and go per noi! Hai {laps} giri per servirlo: entra, fermati in piazzola e riparti, non cambiamo niente.",
+        "Ci hanno dato uno stop and go: {laps} giri di tempo. Vieni dentro, piazzola, fermo e via.",
+        "Penalità: stop and go, da servire entro {laps} giri. Entra pulito, niente gomme e niente benzina."
+      ],
+      "en": "Stop and go for us! You have {laps} laps to serve it: come in, stop in the box and go, we change nothing.",
+      "es": "¡Stop and go para nosotros! Tienes {laps} vueltas para cumplirlo: entra, para en el box y sal.",
+      "fr": "Stop and go pour nous! Tu as {laps} tours pour le purger: rentre, arrete-toi et repars."
+    },
+    "penalty_sg_nolaps": {
+      "cat": "penalita",
+      "level": "critical",
+      "beep": true,
+      "it": "Stop and go per noi: servilo appena puoi — entra, fermati in piazzola e riparti.",
+      "variants_it": [
+        "Stop and go per noi: servilo appena puoi — entra, fermati in piazzola e riparti.",
+        "Penalità stop and go: vieni dentro appena possibile, piazzola, fermo e via."
+      ],
+      "en": "Stop and go for us: serve it as soon as you can — in, stop in the box, and go.",
+      "es": "Stop and go para nosotros: cúmplelo en cuanto puedas.",
+      "fr": "Stop and go pour nous: purge-le des que possible."
+    },
+    "penalty_served": {
+      "cat": "penalita",
+      "level": "good",
+      "beep": false,
+      "it": "Penalità scontata, pratica chiusa: testa alla gara.",
+      "variants_it": [
+        "Penalità scontata, pratica chiusa: testa alla gara.",
+        "Fatto, stop and go servito: si torna a correre.",
+        "Penalità archiviata: adesso recuperiamo."
+      ],
+      "en": "Penalty served, case closed: back to racing.",
+      "es": "Penalización cumplida: volvemos a la carrera.",
+      "fr": "Penalite purgee: on retourne a la course."
     }
   }
 }

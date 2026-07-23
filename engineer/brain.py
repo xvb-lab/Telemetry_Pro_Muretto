@@ -5181,6 +5181,35 @@ class Engineer:
             pass
         return out
 
+    def penalty_call(self, raw):
+        """PENALITA' DEL PILOTA (23/07 notte: MANCAVA — la voce
+        arrivava tardi dal conteggio scoring). Fonte VELOCE: la riga
+        STOP/GO del pit menu, la stessa della card. Annuncio immediato
+        all'assegnazione + conferma quando e' scontata."""
+        raw = raw or {}
+        if session_kind(raw.get("session_type")) != "race":
+            return []
+        st = self._st
+        txt = str(raw.get("stop_go") or "").strip().lower()
+        if not txt and st.get("sg_act") is None:
+            return []
+        act = bool(txt) and not txt.startswith("n") and (
+            txt.startswith("s") or txt.startswith("y")
+            or any(ch.isdigit() for ch in txt))
+        prev = st.get("sg_act")
+        st["sg_act"] = act
+        if prev is None:
+            return []                    # primo campione: stato base
+        if act and not prev:
+            import re as _re9
+            _m9 = _re9.search(r"(\d+)", txt)
+            if _m9:
+                return [self.msg("penalty_sg", laps=_m9.group(1))]
+            return [self.msg("penalty_sg_nolaps")]
+        if prev and not act:
+            return [self.msg("penalty_served")]
+        return []
+
     def _sane_one(self, m, raw):
         code = (m or {}).get("code") or ""
         # WARM-UP: appena acceso (o a sessione nuova) il muretto ASCOLTA

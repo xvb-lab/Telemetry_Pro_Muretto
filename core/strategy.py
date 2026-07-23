@@ -426,4 +426,10 @@ class StrategyFeed:
         live = build_lmu_live(physics or {}, ve_table, constraint, mpl, est_lap)
         if live is not None:
             live["pit_target"] = strat.get("pit_target")
+            # STOP/GO dal pit menu (23/07 notte): la fonte VELOCE della
+            # penalita' del pilota — la stessa che usa la card
+            for _k9, _v9 in pm.items():
+                if str(_k9).upper().startswith("STOP"):
+                    live["stop_go"] = _v9
+                    break
         return live

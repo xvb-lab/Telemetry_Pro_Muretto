@@ -4118,6 +4118,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 _csoc = QColor("#00e676")           # rigenera
             elif _emo == 2:
                 _csoc = QColor("#ff3cdc")           # boost: FUCSIA (23/07)
+            if _soc9 <= 0.15:
+                # CARICA CRITICA (rich. 23/07 notte): barra e numero
+                # ARANCIONI, qualunque cosa stia facendo l'ibrido
+                _csoc = QColor("#ff7a00")
             _span9 = 55.0 * max(0.0, min(1.0, _soc9))
             p.setPen(QPen(_csoc, 3.0, Qt.SolidLine, Qt.RoundCap))
             p.drawArc(rect2, int(117.5 * 16), int(-_span9 * 16))

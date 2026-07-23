@@ -77,6 +77,7 @@ _role(["grip_margin", "grip_over", "abs_high", "tc_high", "dirty_air",
        "opp_fading", "timeloss_focus", "brake_potential", "coast_waste",
        "brake_release_dirty", "gas_earlier"], "spotter")
 _role(["ve_burn", "grip_loss"], "strategist")
+_role(["penalty_sg", "penalty_sg_nolaps", "penalty_served"], "engineer")
 _role(["bias_ack", "adv_bias_back", "adv_bias_fwd", "adv_wing_front",
        "adv_wing_less", "setup_garage_front", "setup_garage_rear"],
       "engineer")
