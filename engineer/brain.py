@@ -760,6 +760,13 @@ class Engineer:
             except (TypeError, ValueError):
                 return []
         now = _time.monotonic()
+        # AI BOX niente verdetti di ritiro (23/07 sera: la HY spegne
+        # TUTTO alla sosta -> sembrava "motore morto" e partiva il
+        # "basta cosi' per oggi" durante un normale pit stop)
+        if raw.get("garage") or raw.get("in_pits") \
+                or raw.get("in_pitlane"):
+            self._st.pop("term_t0", None)
+            return []
         try:
             rpm = float(raw.get("rpm") or 0.0)
             imag = float(raw.get("impact_mag") or 0.0)
@@ -1582,7 +1589,8 @@ class Engineer:
             _rem = float(raw.get("race_remaining") or 0.0)
         except (TypeError, ValueError):
             _rem = 0.0
-        if in_box and session_kind(raw.get("session_type")) == "practice" \
+        if raw.get("garage") \
+                and session_kind(raw.get("session_type")) == "practice" \
                 and _rem > 600.0:
             _nowg = _time.monotonic()
             if rpm < 300.0 and not self._st.get("gp_said") \
@@ -1597,7 +1605,7 @@ class Engineer:
                 # motore acceso prima del check: si fa per strada
                 if _nowg - self._st.get("gp_t", 0.0) < 100.0:
                     return [self.msg("garage_prep_go")]
-        if not in_box:
+        if not raw.get("garage"):
             self._st.pop("gp_said", None)
             self._st.pop("gp_go", None)
         # USCITA vs RIENTRO (fix 23/07: dopo il long run, in corsia box,
