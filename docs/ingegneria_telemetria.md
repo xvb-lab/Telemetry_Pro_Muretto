@@ -396,6 +396,63 @@ curva/fase → 3. Curvatura κ → 4. Normalizzazione track temp/grip →
 5. ABS Index + blending LMDh (profili auto §7) → 6. PCA stile guida →
 7. Cliff predittivo → 8. Ghost lap vincolato → 9. Mining community.
 
+---
+
+## 9. MURETTO LIVE — matrice causa→effetto (guida → assetto → radio)
+
+> Il cuore operativo: dal SINTOMO rilevato al CONSIGLIO (di guida subito,
+> d'assetto al box). Gerarchia interventi: Aero → Molle → Ammortizzatori →
+> Geometrie. Regola radio: BREVE, si dice la SOLUZIONE, non il problema.
+
+### 9.1 Matrice assetto per FASE × VELOCITA'
+| Fase | Sintomo | Trigger nei nostri dati | Guida (subito) | Assetto (box) |
+|---|---|---|---|---|
+| **Ingresso** | Sottosterzo in staccata | slip F≫R + sterzo che cresce senza yaw | bias un filo indietro | ARB ant. morbida · bump ant. morbido · toe-out ant. |
+| **Ingresso** | Coda che scappa in staccata | slip R≫F in frenata · locks post. | bias avanti · +freno motore | rebound post. piu' duro · coast ramp diff giu' |
+| **Centro <120 km/h** | Sottosterzo | slip F≫R a pedali neutri | linea piu' a V | molla/ARB ant. morbida · +camber ant. (se 3-zone conferma) |
+| **Centro >160 km/h** | Sottosterzo | idem nei curvoni | — | +carico ant. (flap) o −ala post. · −ride height ant. |
+| **Centro** | Sovrasterzo | slip R≫F | — | ARB post. morbida (lenta) · +ala post. / −rake (veloce) |
+| **Uscita** | Pattinamento/sovrasterzo trazione | wheelspin per curva (gia' live) · raffiche tc_cut | TC su · gas piu' rotondo | molle/bump post. morbidi · toe-in post. · power ramp su |
+| **Uscita** | Power understeer | muso leggero sul gas (slip F sale col throttle) | — | molle post./heave piu' dure · power ramp giu' |
+| **Cordoli** | Instabilita' | kerb events + istogramma damper alto | meno cordolo (gia' live) | fast bump giu' · slow rebound post. su |
+| **Alta vel.** | Bottoming/stallo aero | ride_h a zero (gia' live) | — | heave/packers su · +2mm altezza |
+
+### 9.2 Regole live da muretto (lap-by-lap)
+- **ΔP gomme freddo→caldo**: target pressione a caldo per mescola; il
+  muretto calcola il delta dello stint e detta le pressioni di PARTENZA
+  del prossimo: *"parti 0,3 piu' bassa sulla posteriore destra: a caldo
+  gonfia oltre finestra e consuma il centro"* (canali gia' nei samples).
+- **Brake migration col carburante**: l'auto si svuota → il bilancio
+  arretra il baricentro → tendenza al bloccaggio ANTERIORE a fine stint
+  (trend dei lock per giro): *"sposta il bias 1,5 indietro, il serbatoio
+  e' leggero"*.
+- **Lift & Coast MIRATO**: dal fuel/VE mapping per curva (§6.2), il
+  suggerimento con costo/beneficio: *"alza 50 metri prima di curva 8:
+  perdi 0,15 ma risparmi 0,8 megajoule"* — MAI un L&C generico.
+- **Freni in finestra**: sotto finestra in rettilineo → "scalda i freni";
+  sopra → bias verso l'asse piu' freddo (finestre §2.4 per classe).
+- **ABS Index (GT3)**: frequenza abs_active alta a pedale pieno →
+  *"riduci la pressione iniziale dell'8%: l'ABS continuo scalda la gomma
+  e ALLUNGA la frenata"*.
+
+### 9.3 Formato radio (legge fissa)
+- ❌ "Stai perdendo tempo in curva 4" → ✅ *"Curva 4: sacrifica
+  l'ingresso, stacca 5 metri dopo, rotazione a V, gas pieno prima."*
+- ❌ "L'auto scivola dietro" → ✅ *"TC su di due. Bias a 52, due click
+  avanti."*
+- Traffico: ✅ *"GT3 in arrivo a curva 8, nessuno dietro: aspetta
+  l'uscita, niente tuffi."* (i mattoni live esistono: fast_class,
+  box_anticipate/delay)
+- E' la stessa regola dei nostri findings: `[Curva]·[Fase]·[Numero]·
+  [Azione]` — una lingua sola per voce, debrief e pagina Garage.
+
+### 9.4 Nota implementativa
+La matrice 9.1 e' il MOTORE della futura pagina Garage: ogni riga =
+regola dati→consiglio, coi nomi VERI del setup LMU (ARB, bump/rebound,
+heave, packers, ramp diff, ride height, ali). Il muretto ne usa gia' le
+colonne "Guida"; la colonna "Assetto" oggi esce nel debrief (§ findings)
+e domani diventera' il Garage advisor con valori cliccabili.
+
 *Fonti: [YourDataDriven](https://www.yourdatadriven.com/guide-to-interpreting-tyre-temperatures-in-motorsports/),
 [Autosport Labs](https://www.autosportlabs.com/using_tire_temperatures_for_better_grip_and_faster_lap_times/),
 [Alsense](https://www.alsense.eu/racecar-engineering-tire-brake-temperature-sensors/),
