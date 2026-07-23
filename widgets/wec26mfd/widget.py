@@ -3594,7 +3594,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             f_off.setPixelSize(14)
             p.setFont(f_off)
             p.setPen(QPen(QColor(255, 45, 45)))
-            p.drawText(QRectF(0, _H - self.ROW_B - 30.0, _W, 22),
+            p.drawText(QRectF(0, _H - self.ROW_B - 68.0, _W, 22),
                        Qt.AlignCenter, "ENGINE OFF")
             if not self._is_gt3 and self._erpm > 10.0:
                 f_off.setPixelSize(15)
@@ -5135,7 +5135,8 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     _key[0], float(getattr(self, "_track_len", 0.0)
                                    or 0.0))
                 if _mc0:
-                    self._eco_lmu_pts = _mc0
+                    self._eco_lmu_pts = [q[0] for q in _mc0]
+                    self._eco_lift_floor = [q[1] for q in _mc0]
                     self._eco_pts_kind = "corner"
             except Exception:
                 pass
@@ -5221,8 +5222,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         else:
             _ant = 50.0 * (_lvl - 1) + _adat
         _full9 = False
-        for d in _pts:
+        _floors9 = getattr(self, "_eco_lift_floor", None) or []
+        for _ip9, d in enumerate(_pts):
             lift = d - _ant
+            if _kind9 == "corner" and _ip9 < len(_floors9):
+                lift = max(lift, _floors9[_ip9])
             past = (ld - lift) % tl
             # zona PIENO: con la geometria copre TUTTO il coast fino
             # all'inizio curva; con gli altri archivi resta corta
@@ -5237,7 +5241,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         # RAMPA A TEMPO, non a metri fissi (collaudo 23/07: 220m fissi
         # suonavano prestissimo nei tratti veloci): ~2s alla velocita'
         # attuale, come il conto alla rovescia del nativo LMU
-        window = min(160.0, max(80.0, (spd / 3.6) * 2.0))
+        window = min(120.0, max(60.0, (spd / 3.6) * 1.4))
         _frac9 = None
         if _full9:
             _frac9 = 1.0

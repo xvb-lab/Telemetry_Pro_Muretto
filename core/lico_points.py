@@ -70,7 +70,7 @@ def map_turns(track, track_len):
                 tot += abs(sm[j])
                 j += 1
             if abs(tot) > math.radians(25.0):     # curva vera, non kink
-                turns_idx.append(i)               # INIZIO curva (entry)
+                turns_idx.append((i, min(j, n - 1)))   # (entry, end)
             i = j
         else:
             i += 1
@@ -82,8 +82,9 @@ def map_turns(track, track_len):
         a, b = ol[i - 1], ol[i]
         cum.append(cum[-1] + math.hypot(b[0] - a[0], b[1] - a[1]))
     k = track_len / cum[-1] if cum[-1] > 0 else 1.0
-    return [(round(cum[ix] * k, 1), "T%d" % (t + 1))
-            for t, ix in enumerate(turns_idx)]
+    return [(round(cum[ie] * k, 1), "T%d" % (t + 1),
+             round(cum[je] * k, 1))
+            for t, (ie, je) in enumerate(turns_idx)]
 
 
 def map_corner_lifts(track, track_len):
@@ -94,12 +95,21 @@ def map_corner_lifts(track, track_len):
     ts = map_turns(track, track_len)
     if not ts:
         return []
-    pts = sorted(d for d, _lab in ts)
-    ded = [pts[0]]
-    for p in pts[1:]:
-        if p - ded[-1] >= 250.0:      # chicane/complessi = UNA chiamata
-            ded.append(p)
-    return ded
+    ts = sorted(ts, key=lambda q: q[0])
+    ded = [ts[0]]
+    for q in ts[1:]:
+        if q[0] - ded[-1][0] >= 250.0:  # chicane/complessi = UNA chiamata
+            ded.append(q)
+        else:                            # assorbi: la FINE si estende
+            ded[-1] = (ded[-1][0], ded[-1][1], max(ded[-1][2], q[2]))
+    # (entry, floor): il rilascio non puo' cadere DENTRO o subito dopo
+    # la curva PRIMA (collaudo 23/07: Lesmo2 suonava sull'uscita di
+    # Lesmo1) -> pavimento = fine curva precedente + 60m
+    out = []
+    for ix, (entry, _lab, end) in enumerate(ded):
+        prev_end = ded[ix - 1][2] if ix > 0 else ded[-1][2] - track_len
+        out.append((entry, round(prev_end + 60.0, 1)))
+    return out
 
 
 def compute(track, cls_tag, max_files=6):
