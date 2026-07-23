@@ -2854,10 +2854,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 # QUADRO inserito, motore spento: spie BATTERIA e MOTORE
                 # accese fisse come su un'auto vera; si spengono
                 # all'avviamento (il ramo live non le disegna)
+                from PySide6.QtSvg import QSvgRenderer as _QSRbt
+                _ipb = _ROOT / "assets" / "icons"
                 if not hasattr(self, "_svg_batt9"):
-                    from PySide6.QtSvg import QSvgRenderer as _QSRbt
-                    _ipb = _ROOT / "assets" / "icons"
                     self._svg_batt9 = _QSRbt(str(_ipb / "batteria.svg"))
+                if not hasattr(self, "_svg_engoff9"):
                     self._svg_engoff9 = _QSRbt(
                         str(_ipb / "engine_warn.svg"))
                 if self._svg_engoff9.isValid():
