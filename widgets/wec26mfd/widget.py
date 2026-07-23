@@ -2904,6 +2904,48 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                self._it9("NO CHANGE"))
                     f.setPixelSize(18)
                     p.setFont(f)
+            elif "PRESS" in up:
+                # PRESSIONE: sigla ruota + valore kPa in AZZURRO —
+                # prima finiva nel ramo gomme e scriveva "NO CHANGE",
+                # indistinguibile dalle mescole (rich. 23/07 sera)
+                sig = self._it9(up[:2])
+                p.drawText(QRectF(TX, ry, 60.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter, sig)
+                p.setPen(QPen(QColor("#2fa8e0")))
+                p.drawText(QRectF(TX + 34.0, ry, 180.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter,
+                           "%s kPa" % vt.strip())
+            elif "BRAKE DUCT" in up:
+                p.drawText(QRectF(TX, ry, 120.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter,
+                           "DUCT %s" % ("F" if up.startswith("F")
+                                        else "R"))
+                p.setPen(QPen(QColor("#2fa8e0")))
+                p.drawText(QRectF(TX + 96.0, ry, 160.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter,
+                           self._it9(self._tr_pit(vt)))
+            elif "WING" in up or "AILERON" in up:
+                p.drawText(QRectF(TX, ry, 110.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter, "WING")
+                p.setPen(QPen(QColor("#2fa8e0")))
+                p.drawText(QRectF(TX + 78.0, ry, 140.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter, vt.strip())
+            elif "GRILLE" in up:
+                p.drawText(QRectF(TX, ry, 120.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter, "GRILLE")
+                p.setPen(QPen(QColor("#2fa8e0")))
+                p.drawText(QRectF(TX + 96.0, ry, 140.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter,
+                           self._it9(self._tr_pit(vt)))
+            elif "REPLACE BRAKES" in up:
+                p.drawText(QRectF(TX, ry, 140.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter, "BRAKES")
+                _low9 = vt.strip().lower()
+                _on9 = _low9.startswith("s") or _low9.startswith("y")
+                p.setPen(QPen(QColor("#00e676" if _on9 else "#ffee00")))
+                p.drawText(QRectF(TX + 110.0, ry, 100.0, ROWH),
+                           Qt.AlignLeft | Qt.AlignVCenter,
+                           "SI" if _on9 else "NO")
             elif up[:2] in ("FL", "FR", "RL", "RR"):
                 sig = self._it9(up[:2])      # IT: AS/AD/PS/PD
                 p.drawText(QRectF(TX, ry, 60.0, ROWH),
