@@ -4716,13 +4716,17 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.setClipRect(QRectF(_gx0, 0.0, _bx1 - _gx0,
                                          self.HDR))
                     p.setPen(Qt.NoPen)
-                    p.setBrush(QColor("#554A92"))   # viola chiaro PIT
+                    p.setBrush(QColor("#554A92"))   # viola PIT...
+                    p.drawRect(QRectF(_gx0, 0.0, _bx1 - _gx0, self.HDR))
+                    # ...con un VELO di bianco sopra (rich. 23/07): si
+                    # stacca dal box di sinistra quando e' tutto aperto
+                    p.setBrush(QColor(255, 255, 255, 26))
                     p.drawRect(QRectF(_gx0, 0.0, _bx1 - _gx0, self.HDR))
                     f_gg = QFont("Archivo SemiExpanded", 24)
                     f_gg.setWeight(QFont.Black)
                     p.setFont(f_gg)
-                    p.setPen(QColor("#ffb020") if _g9 in ("R", "N")
-                             else QColor(255, 255, 255, 245))
+                    # tutto BIANCO, anche R/N (l'ambra non piaceva)
+                    p.setPen(QColor(255, 255, 255, 245))
                     p.drawText(QPointF(_bx1 - _gw9 + 12.0, _yb + 2.0),
                                _g9)
                     f_sp = QFont("Archivo SemiExpanded", 15)
