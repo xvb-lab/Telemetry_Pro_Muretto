@@ -1721,10 +1721,19 @@ class _LiveMap(QWidget):
                           Qt.RoundJoin))
             p.setBrush(Qt.NoBrush)
             _offl = _LANE.get(_sk, 0) * (_segw + 1.4)
+            # REPLAY: i colori appaiono SOLO sulla scia gia' percorsa
+            # (dietro la macchina), mai davanti (rich. 23/07)
+            _pld9 = getattr(self, "_play_ld", None)
+            _lda9 = _pld9[0] if _pld9 else None
             for _sg in _ssegs:
                 if len(_sg) < 2:
                     continue
-                _qs = [P(_x9, _z9) for _x9, _z9 in _sg]
+                if _lda9 is not None:
+                    _sg = [_q9 for _q9 in _sg
+                           if len(_q9) < 3 or _q9[2] <= _lda9]
+                    if len(_sg) < 2:
+                        continue
+                _qs = [P(_q9[0], _q9[1]) for _q9 in _sg]
                 if _offl:
                     _qo = []
                     _nq = len(_qs)
@@ -3297,7 +3306,8 @@ class _WorksheetTab(QWidget):
                         "SELECT pos_x, pos_z,"
                         " (ABS(slat_fl)+ABS(slat_fr)+ABS(slat_rl)"
                         "  +ABS(slat_rr))/4.0, speed, tc_active,"
-                        " abs_active, throttle, brake FROM samples"
+                        " abs_active, throttle, brake, lapdist"
+                        " FROM samples"
                         " WHERE rowid % 3 = 0 ORDER BY rowid").fetchall()
                     _cur9 = {"slide": [], "tc": [], "abs": [],
                              "lico": []}
@@ -3306,8 +3316,9 @@ class _WorksheetTab(QWidget):
                         if len(_cur9[k]) >= 4:      # ~0.5s sostenuto
                             _segs9[k].append(_cur9[k])
                         _cur9[k] = []
-                    for _px9, _pz9, _sl9, _sp9, _tc9, _ab9,                             _th9, _br9 in _rows9:
-                        _pt9 = (float(_px9), float(_pz9))
+                    for _px9, _pz9, _sl9, _sp9, _tc9, _ab9,                             _th9, _br9, _ld9 in _rows9:
+                        _pt9 = (float(_px9), float(_pz9),
+                                float(_ld9 or 0.0))
                         if (_sl9 or 0.0) >= 3.5 and (_sp9 or 0) > 60.0:
                             _cur9["slide"].append(_pt9)
                         elif (_sl9 or 0.0) < 2.0:
