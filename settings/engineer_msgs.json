@@ -7317,9 +7317,12 @@
       "beep": false,
       "it": "In curva {n} prendi troppo cordolo: il colpo è violento, scomponi la macchina e stressi le sospensioni. Usane meno.",
       "variants_it": [
-        "In curva {n} prendi troppo cordolo: il colpo è violento, scomponi la macchina e stressi le sospensioni. Usane meno.",
-        "Curva {n}: quel cordolo ti sta sbattendo la macchina. Tienine meno, guadagni stabilità.",
-        "Troppo cordolo in curva {n}: la sospensione prende botte secche. Traiettoria un filo più larga."
+        "In curva {n} prendi troppo cordolo: il colpo è violento, scomponi la macchina e stressi le sospensioni.",
+        "Curva {n}: quel cordolo scarica la ruota interna e il differenziale apre — perdi trazione proprio in uscita.",
+        "In {n} stai montando il cordolo: la sospensione arriva a fine corsa e il colpo passa dritto al telaio.",
+        "Curva {n}, troppo cordolo: l'impronta della gomma si stacca da terra e il grip va e viene. Tienila piu' pulita.",
+        "In {n} il cordolo ti scompone l'appoggio: entra mezzo metro piu' largo e la percorrenza torna stabile.",
+        "Occhio in curva {n}: cordolo violento, e li' rischi anche il fondo — l'altezza posteriore non e' infinita."
       ],
       "en": "Too much kerb at turn {n}: the hit is violent, it unsettles the car and stresses the suspension. Use less.",
       "es": "Demasiado piano en la curva {n}: el golpe es violento. Usa menos.",
@@ -7332,7 +7335,12 @@
       "it": "Stai prendendo troppo cordolo in quel punto: colpi secchi sulle sospensioni. Addolcisci il passaggio.",
       "variants_it": [
         "Stai prendendo troppo cordolo in quel punto: colpi secchi sulle sospensioni. Addolcisci il passaggio.",
-        "Quel cordolo è violento: la macchina si scompone. Usane meno."
+        "Troppo cordolo li': ogni colpo scarica la ruota e per un attimo perdi l'impronta a terra — e con lei il grip.",
+        "Quel cordolo lo stai montando: l'ammortizzatore va oltre i duecento millimetri al secondo, zona in cui non controlla piu' niente.",
+        "Occhio al cordolo: il picco di carico passa nella scocca e la macchina atterra scomposta. Mezzo metro piu' stretto e non perdi nulla.",
+        "Cordolo aggressivo: oltre a scomporre la macchina, li' sotto ci passa il fondo — non regaliamo millimetri di altezza.",
+        "Su quel cordolo la gomma lavora di spalla, non d'impronta: meno appoggio di quello che senti. Prendine meno.",
+        "Il cordolo alto li' ti costa piu' di quel che rende: la sospensione chiude a pacco e il carico schizza. Traiettoria piu' pulita."
       ],
       "en": "Too much kerb there: sharp hits on the suspension. Smooth it out.",
       "es": "Demasiado piano ahí: golpes secos. Suaviza el paso.",
@@ -7345,9 +7353,12 @@
       "it": "Stai scivolando parecchio: gomme oltre il limite, pulisci la guida per un paio di curve.",
       "variants_it": [
         "Stai scivolando parecchio: gomme oltre il limite, pulisci la guida per un paio di curve.",
-        "La macchina scivola: riprendi il ritmo con ingressi più dolci.",
-        "Troppo di traverso: così scaldi le gomme e perdi tempo. Pulito.",
-        "Stai facendo scivolare le gomme: un paio di curve tranquille e tornano."
+        "La macchina scivola: ogni traverso scalda la superficie della gomma senza scaldare la carcassa — grip subito, degrado dopo.",
+        "Troppo di traverso: il pattino laterale e' alto e la spalla si surriscalda. Ingressi piu' dolci e la gomma respira.",
+        "Stai facendo lavorare la gomma oltre l'angolo di deriva utile: da li' in poi e' solo attrito e temperatura, non velocita'.",
+        "Scivoli tanto: cosi' l'usura sale e la finestra di temperatura scappa verso l'alto. Due curve pulite e rientra tutto.",
+        "La posteriore patina in uscita: ogni pattinata e' superficie che si vetrifica. Gas piu' progressivo.",
+        "Traversi lunghi: spettacolari ma la mescola si strappa — il crono lo fai con l'impronta ferma a terra."
       ],
       "en": "You're sliding a lot: tyres over the limit, tidy it up for a couple of corners.",
       "es": "Estás derrapando mucho: limpia la conducción un par de curvas.",
@@ -7359,8 +7370,11 @@
       "beep": false,
       "it": "Con questi bloccaggi rischi lo spiattellamento: se senti vibrazione al volante, la gomma è segnata e resta così. Valutiamo il cambio alla sosta.",
       "variants_it": [
-        "Con questi bloccaggi rischi lo spiattellamento: se senti vibrazione al volante, la gomma è segnata e resta così. Valutiamo il cambio alla sosta.",
-        "Occhio allo spiattellamento: se il volante vibra, quella gomma è rovinata per sempre. Dimmelo e pianifichiamo il cambio."
+        "Con questi bloccaggi rischi lo spiattellamento: se senti vibrazione al volante, la gomma è segnata.",
+        "Bloccaggio lungo: se ora vibra sul dritto, hai un piatto sulla gomma — la vibrazione martella anche la sospensione.",
+        "Occhio: ruota bloccata e strisciata — se lo spiattellamento e' profondo non passa col consumo, va cambiata al box.",
+        "Bloccaggio: il piatto sulla mescola si sente sopra i duecento all'ora come un tamburo. Dimmi se vibra e valutiamo.",
+        "Hai strisciato la gomma: il punto piatto scalda in modo irregolare tutta la carcassa. Se la vibrazione cresce, la cambiamo."
       ],
       "en": "With these lockups you risk a flat spot: if the wheel vibrates, the tyre is marked for good. We can swap it at the stop.",
       "es": "Con esos bloqueos puedes hacer un plano en la goma: si vibra el volante, la cambiamos en la parada.",
@@ -7827,8 +7841,12 @@
       "beep": false,
       "it": "La macchina tocca il fondo ripetutamente in velocità: valutiamo un paio di millimetri di altezza o molle più sostenute.",
       "variants_it": [
-        "La macchina tocca il fondo ripetutamente in velocità: valutiamo un paio di millimetri di altezza o molle più sostenute.",
-        "Bottoming nei dati: il fondo striscia nei punti veloci. Alziamo di poco o induriamo il posteriore."
+        "La macchina tocca il fondo ripetutamente in velocità: valutiamo un paio di millimetri di altezza in più.",
+        "Il fondo striscia nei punti veloci: ogni tocco e' carico aerodinamico che va e viene di colpo — instabile e lento.",
+        "Tocchiamo il fondo piu' volte a pieno carico: o alziamo di due millimetri dietro, o irrigidiamo il terzo elemento.",
+        "Fondo a terra in compressione: quando appoggia, il flusso sotto la macchina stalla e il posteriore si alleggerisce di colpo.",
+        "Il pattino tocca troppo spesso: consumiamo il fondo e rischiamo il danno — dal setup: piu' altezza o piu' pacchetto molle.",
+        "Bottoming ripetuto nei curvoni: il segnale e' chiaro dalle altezze — due millimetri dietro e la macchina torna pulita."
       ],
       "en": "La macchina tocca il fondo ripetutamente in velocità: valutiamo un paio di millimetri di altezza o molle più sostenute.",
       "es": "La macchina tocca il fondo ripetutamente in velocità: valutiamo un paio di millimetri di altezza o molle più sostenute.",
@@ -8074,7 +8092,10 @@
       "it": "Sulla {ruota} c'è uno spread di {deg} gradi tra spalla interna ed esterna: camber da rivedere in garage.",
       "variants_it": [
         "Sulla {ruota} c'è uno spread di {deg} gradi tra spalla interna ed esterna: camber da rivedere in garage.",
-        "La {ruota} lavora storta: {deg} gradi di differenza tra interno ed esterno. Me lo segno per l'assetto."
+        "La {ruota} lavora storta: {deg} gradi di differenza tra interno ed esterno. Me lo segno per l'assetto.",
+        "Spalla interna della {ruota} molto piu' calda dell'esterna, {deg} gradi: troppo camber, la gomma appoggia solo di taglio.",
+        "La {ruota} scalda solo meta' impronta: {deg} gradi di spread. Mezzo grado di camber in meno e usi tutta la gomma.",
+        "Lettura tre zone sulla {ruota}: interno-esterno distano {deg} gradi. In rettilineo cuoce la spalla — da correggere in garage."
       ],
       "en": "The {ruota} shows a {deg} degree spread between inner and outer shoulder: camber to review in the garage.",
       "es": "La {ruota} muestra {deg} grados de diferencia entre el hombro interior y el exterior: hay que revisar la caída en el garaje.",
@@ -8087,7 +8108,10 @@
       "it": "La {ruota} si sta vetrificando: superficie molto più calda del cuore. Un giro pulito senza farla pattinare e la riprendi.",
       "variants_it": [
         "La {ruota} si sta vetrificando: superficie molto più calda del cuore. Un giro pulito senza farla pattinare e la riprendi.",
-        "Attenzione alla {ruota}: gomma lucida, superficie surriscaldata e niente grip. Un giro dolce e la fai respirare."
+        "Attenzione alla {ruota}: gomma lucida, superficie surriscaldata e niente grip. Un giro dolce e la fai respirare.",
+        "La {ruota} ha la superficie cotta e la carcassa indietro: e' smaltata — il grip torna solo se smetti di farla slittare.",
+        "Vetrificazione sulla {ruota}: lo strato esterno si e' lucidato e non morde piu'. Serve un giro intero di gestione, non due curve.",
+        "La {ruota} lavora solo in superficie: il cuore e' freddo e la pelle brucia. Meno pattinamento, piu' carico progressivo."
       ],
       "en": "The {ruota} is glazing: surface much hotter than the core. One clean lap without spinning it and it comes back.",
       "es": "La {ruota} se está cristalizando: superficie mucho más caliente que el núcleo. Una vuelta limpia sin patinar y se recupera.",
@@ -8113,7 +8137,10 @@
       "it": "Freni in fade: stessa pressione, meno decelerazione, temperature alte. Raffreddali un paio di curve e allunga le staccate.",
       "variants_it": [
         "Freni in fade: stessa pressione, meno decelerazione, temperature alte. Raffreddali un paio di curve e allunga le staccate.",
-        "Il pedale c'è ma la macchina non rallenta come prima: freni cotti. Gestiscili due curve, poi tornano."
+        "Il pedale c'è ma la macchina non rallenta come prima: freni cotti. Gestiscili due curve, poi tornano.",
+        "Fade termico: il coefficiente d'attrito crolla sopra la soglia del materiale. Due curve d'aria e torna il mordente.",
+        "I dischi sono oltre la finestra: la stessa pressione ti da' mezzo G in meno. Anticipa i punti di frenata finche' non raffreddano.",
+        "Freni oltre soglia: se insisti si vetrificano anche le pastiglie e il fade diventa permanente. Gestione adesso."
       ],
       "en": "Brakes are fading: same pressure, less deceleration, temperatures are high. Cool them for a couple of corners and brake earlier.",
       "es": "Los frenos pierden eficacia: misma presión, menos deceleración, temperaturas altas. Enfríalos un par de curvas y frena antes.",
@@ -8178,7 +8205,10 @@
       "it": "La {ruota} è {kpa} punti sopra la finestra a caldo: alla sosta togliamo pressione.",
       "variants_it": [
         "La {ruota} è {kpa} punti sopra la finestra a caldo: alla sosta togliamo pressione.",
-        "Pressione alta sulla {ruota}: {kpa} sopra il target. La sistemiamo al pit."
+        "Pressione alta sulla {ruota}: {kpa} sopra il target. La sistemiamo al pit.",
+        "La {ruota} è gonfia di {kpa} oltre la finestra: l'impronta si stringe al centro e il grip cala. Correzione alla sosta.",
+        "{kpa} punti di troppo sulla {ruota}: cosi' lavora solo il centro battistrada e il centro si cuoce. Al box aggiustiamo.",
+        "La {ruota} sopra finestra di {kpa}: piu' rigida, meno impronta, piu' nervosa sui trasferimenti. Al pit la riportiamo giu'."
       ],
       "en": "The {ruota} is {kpa} points above the hot window: we'll take pressure out at the stop.",
       "es": "La {ruota} está {kpa} puntos por encima de la ventana en caliente: quitaremos presión en la parada.",
@@ -8191,7 +8221,10 @@
       "it": "La {ruota} è {kpa} punti sotto la finestra a caldo: alla sosta aggiungiamo pressione.",
       "variants_it": [
         "La {ruota} è {kpa} punti sotto la finestra a caldo: alla sosta aggiungiamo pressione.",
-        "Pressione bassa sulla {ruota}: {kpa} sotto il target. La sistemiamo al pit."
+        "Pressione bassa sulla {ruota}: {kpa} sotto il target. La sistemiamo al pit.",
+        "La {ruota} è sgonfia di {kpa}: lavorano solo le spalle, il centro non appoggia e la carcassa flette troppo — scalda lei invece del battistrada.",
+        "{kpa} sotto finestra sulla {ruota}: piu' flessione vuol dire piu' calore nella carcassa e risposta lenta dello sterzo. Correggiamo alla sosta.",
+        "La {ruota} bassa di {kpa}: bello il grip iniziale, ma la spalla si consuma il doppio. Al box la rimettiamo in finestra."
       ],
       "en": "The {ruota} is {kpa} points below the hot window: we'll add pressure at the stop.",
       "es": "La {ruota} está {kpa} puntos por debajo de la ventana en caliente: añadiremos presión en la parada.",
