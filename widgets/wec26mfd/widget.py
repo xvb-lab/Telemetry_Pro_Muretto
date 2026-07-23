@@ -2654,6 +2654,31 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         # - ECO verde: risparmio attivo (long run / race sim / ECO FREE)
         try:
             self._cfg_pull()
+            # STRATO BASE: tutte le icone della fila SEMPRE visibili in
+            # grigio spento; le accese si disegnano sopra a colore (i
+            # lampeggi alternano colore/grigio, da cruscotto vero)
+            if not hasattr(self, "_svg_offmap"):
+                from PySide6.QtSvg import QSvgRenderer as _QSRo
+                _ipo = _ROOT / "assets" / "icons"
+                self._svg_offmap = {
+                    nm0: _QSRo(str(_ipo / (nm0 + "_off.svg")))
+                    for nm0 in ("fuel_spia", "pit_limiter", "abbaglianti",
+                                "esp_tc", "engine_warn", "tyre_warn",
+                                "warning_light", "freni_warn", "batteria",
+                                "eco_spia")}
+            for _nm0, _dx0 in (("fuel_spia", -72.0),
+                               ("pit_limiter", -100.0),
+                               ("abbaglianti", -156.0),
+                               ("esp_tc", -184.0),
+                               ("engine_warn", 50.0),
+                               ("tyre_warn", 78.0),
+                               ("warning_light", 106.0),
+                               ("freni_warn", 134.0),
+                               ("batteria", 162.0)):
+                _r0 = self._svg_offmap.get(_nm0)
+                if _r0 is not None and _r0.isValid():
+                    _r0.render(p, QRectF(_W / 2.0 + _dx0, gy - 48.0,
+                                         22, 22))
             f_e = QFont("Archivo SemiExpanded")
             f_e.setPixelSize(12)
             f_e.setBold(True)
@@ -2686,6 +2711,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _en = self._eco_active_laps()
             if _lt and not _en:
                 _en = -1                    # lamp test: icona accesa
+            if not _en:
+                _re0 = self._svg_offmap.get("eco_spia")
+                if _re0 is not None and _re0.isValid():
+                    _re0.render(p, QRectF(_xl, gy + 41, 26, 26))
             if _en:
                 # icona ECO verde (SVG utente) + eventuale +N accanto
                 if not hasattr(self, "_svg_eco9"):
