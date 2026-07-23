@@ -1464,7 +1464,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         """3 stati settore (logica relative): fastest / improved / normal /
         current. Acceso appena il settore chiude nel giro corrente."""
         st = ["", "", ""]
+        # giro ABORTITO: tacche neutralizzate finche' non si richiude
+        if getattr(self, "_lap_aborted", False):
+            return st
         ins = getattr(self, "_sector", 1)          # 0=S3, 1=S1, 2=S2
+        if ins != 1:
+            self._abort_prev = False   # via dal primo settore: reset flag
         cs = self._cs or (0.0, 0.0)                 # (S1, split S2)
         last = self._ls or (0.0, 0.0, 0.0)
         best = self._bs or (0.0, 0.0, 0.0)
@@ -1483,7 +1488,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             st[0] = _state(cs[0], best[0] if len(best) > 0 else -1, 0)
         if ins == 0 and len(cs) > 1 and cs[1] > 0:
             st[1] = _state(cs[1], best[1] if len(best) > 1 else -1, 1)
-        if ins == 1:                    # giro appena chiuso: tutti e 3 dal last
+        if ins == 1 and getattr(self, "_abort_prev", False):
+            pass        # il giro prima era buttato: riparti pulito da S1
+        elif ins == 1:                  # giro appena chiuso: tutti e 3 dal last
             for si in range(3):
                 lt = last[si] if si < len(last) else -1
                 if lt and lt > 0:
@@ -1685,6 +1692,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         # ── NUOVO GIRO: valuta il giro chiuso come reference + freeze tempo giro
         if self._laps != self._dl_lap:
             if self._lap_aborted:            # giro CHIUSO era buttato -> nuovo RUN
+                self._abort_prev = True      # tacche: riparti pulito da S1
                 self._run += 1
             self._lap_aborted = False
             # COOL-DOWN: se il giro appena chiuso era veloce (hai segnato un
