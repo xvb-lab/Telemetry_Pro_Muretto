@@ -2691,6 +2691,16 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._svg_lim9.render(
                         p, QRectF(_W / 2.0 - 100.0, gy - 48.0, 22, 22))
                 self.update()          # lampeggio fluido
+            # SPIA BENZINA (icona utente): autonomia sotto i 2 giri
+            # (stessa soglia/isteresi del cerchio), fissa gialla
+            if getattr(self, "_fuel_low", False):
+                if not hasattr(self, "_svg_fuel9"):
+                    from PySide6.QtSvg import QSvgRenderer as _QSRu
+                    self._svg_fuel9 = _QSRu(
+                        str(_ROOT / "assets" / "icons" / "fuel_spia.svg"))
+                if self._svg_fuel9.isValid():
+                    self._svg_fuel9.render(
+                        p, QRectF(_W / 2.0 - 72.0, gy - 48.0, 22, 22))
             # TRIANGOLO WARNING (icona utente): sospensione GRAVE (danno
             # >=50%) o pneumatico danneggiato/perso -> lampeggia in alto
             # a destra della corona, speculare ai fari
