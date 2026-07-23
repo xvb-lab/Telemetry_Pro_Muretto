@@ -2403,6 +2403,9 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         mod = act[self._page % len(act)]
         if mod != 4 and _mc0 is not None and _mc0.isVisible():
             _mc0.hide()          # la macchinina vive SOLO nel MOD 4
+        _mc1 = getattr(self, "_minicar1", None)
+        if mod != 1 and _mc1 is not None and _mc1.isVisible():
+            _mc1.hide()          # la mini vive SOLO nel MOD 1
         fn = getattr(self, "_paint_mod%d" % mod, None)
         if fn is not None:
             fn(p)
@@ -3386,6 +3389,25 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             p.drawText(QRectF(_xr - 18, gy + 50, 44, 18),
                        Qt.AlignRight | Qt.AlignVCenter,
                        "%d" % _bp9[0])
+            # SPECULARE a destra (rich. 23/07 notte): GIRI stimati col
+            # carburante + bandierina a scacchi
+            _lpe9 = self._fuel_laps_est()
+            if _lpe9 is not None:
+                _xr2 = _W - _xr               # specchio del blocco sx
+                _t9f = "%d" % _lpe9
+                p.drawText(QRectF(_xr2 - 26, gy + 50, 44, 18),
+                           Qt.AlignLeft | Qt.AlignVCenter, _t9f)
+                try:
+                    if not hasattr(self, "_flag_rnd"):
+                        from ui.icons import FLAG_SVG
+                        self._flag_rnd = QSvgRenderer(
+                            QByteArray(FLAG_SVG.encode()))
+                    _fw9 = QFontMetricsF(p.font())                        .horizontalAdvance(_t9f)
+                    self._flag_rnd.render(
+                        p, QRectF(_xr2 - 26 + _fw9 + 5, gy + 51,
+                                  14, 14))
+                except Exception:
+                    pass
     def _paint_spie(self, p, gy):
         """TUTTE le spie del cruscotto (acqua/olio con
         temperature, fari/abbaglianti, tergi, ESP, LIM, benzina,
@@ -3476,7 +3498,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _has_map9 = (_tagsc == "HY"
                          or (getattr(self, "_mmap", 0) or 0) > 0)
             _map0 = (getattr(self, "_mmap", None) == 0)
-            _rsc = QRectF(_xl + 66, gy + 20, 34, 19)
+            _rsc = QRectF(_xl, gy + 43, 34, 19)   # SOTTO il MOD (23/07)
             if not _has_map9:
                 pass                       # niente chip: mappa fissa
             elif _map0 or _lt:
@@ -3708,6 +3730,75 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawText(QRectF(bx, by, BW, BH), Qt.AlignCenter,
                            "%d" % round(_tv))
 
+    def _sync_minicar1(self, gy, show):
+        """MOD1: macchinina DANNI in miniatura a destra dei chip MOD/SC
+        (schizzo 23/07 notte). Stesso widget del MOD4, scala ridotta."""
+        mc = getattr(self, "_minicar1", None)
+        if not show:
+            if mc is not None and mc.isVisible():
+                mc.hide()
+            return
+        s = self.width() / float(_W)
+        _msc = max(0.35, 1.05 * s)
+        if mc is None or abs(mc._scale - _msc) > 0.06:
+            if mc is not None:
+                mc.deleteLater()
+            from .minicar import TyreBrakeGrid
+            mc = self._minicar1 = TyreBrakeGrid(scale=_msc,
+                                                rear_ext=0.3)
+            mc.setParent(self)
+        mc.move(int((_W / 2.0 + 150.0) * s),
+                int((gy - 18.0) * s))
+        if not mc.isVisible():
+            mc.show()
+        mc.raise_()
+        try:
+            from core.classes import class_tag as _ct
+            _tag = _ct(getattr(self, "_cls_name", "") or "") or ""
+        except Exception:
+            _tag = ""
+        try:
+            _t4m = getattr(self, "_inn4", None) or self._carc4
+            mc.set_data(_t4m, getattr(self, "_brk4", None), _tag,
+                        getattr(self, "_dent8", None),
+                        getattr(self, "_wsusp", None),
+                        getattr(self, "_waero", None),
+                        getattr(self, "_flat4", None),
+                        getattr(self, "_det4", None),
+                        getattr(self, "_det_part", False))
+        except Exception:
+            pass
+
+    def _fuel_laps_est(self):
+        """GIRI stimati col carburante/energia attuale, dalla tabella
+        %->giri di LMU (opzioni VIRTUAL ENERGY del pit menu)."""
+        try:
+            _bp = getattr(self, "_bar_pct9", None)
+            if not _bp:
+                return None
+            pct = int(_bp[0])
+            _cch = getattr(self, "_flaps_cache9", None)
+            if _cch and _cch[0] == pct:
+                return _cch[1]
+            best = None
+            for it in (self._pm_items or []):
+                nm = str((it or {}).get("name") or "").upper()
+                if not nm.startswith("VIRTUAL ENERGY"):
+                    continue
+                for op in (it.get("settings") or []):
+                    m = re.match(r"\s*(\d+)%\s+(\d+(?:\.\d+)?)",
+                                 str((op or {}).get("text") or ""))
+                    if m and int(m.group(1)) <= pct:
+                        v = float(m.group(2))
+                        if best is None or v > best:
+                            best = v
+                break
+            out = int(best) if best is not None else None
+            self._flaps_cache9 = (pct, out)
+            return out
+        except Exception:
+            return None
+
     def _paint_mod1(self, p):
         # (corrente/boot gestiti a monte in _paint_page)
         # DASH: SOLO il tachimetro NEON al centro (il gear 2024 e'
@@ -3775,10 +3866,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             except Exception:
                 pass
             self._paint_tyres_mini(p, gy)
+            self._sync_minicar1(gy, True)
             return
         self._gauge_with_fade(p, _W / 2.0, gy, 56.0, show_gear=True)
         self._paint_spie(p, gy)
         self._paint_tyres_mini(p, gy)
+        self._sync_minicar1(gy, True)
         return
         gx = 110.0
         gr = 30.0
