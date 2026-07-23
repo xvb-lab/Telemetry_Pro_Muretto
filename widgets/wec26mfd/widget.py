@@ -13,6 +13,7 @@ brand (arte originale) e a fine messaggio torna alla pagina attiva.
 """
 import ctypes
 import json
+import os
 import re
 import time
 from pathlib import Path
@@ -1682,6 +1683,85 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         p.restore()
         return hh
 
+    def _dl_persist(self):
+        """Salva il riferimento delta su disco: sopravvive al riavvio
+        dell'app nella STESSA sessione LMU (ripristino in _update_delta)."""
+        try:
+            _fd9 = USER_DIR / "delta"
+            _fd9.mkdir(parents=True, exist_ok=True)
+            (_fd9 / "session_ref.json").write_text(json.dumps({
+                "track": self._track, "vclass": self._vclass,
+                "sess_type": getattr(self, "_sess_type", None),
+                "remain": float(getattr(self, "_sess_remain", 0.0) or 0.0),
+                "wall": time.time(),
+                "ref_time": self._dl_ref_time,
+                "ref_inv": bool(getattr(self, "_dl_ref_inv", False)),
+                "trace": [[round(a, 1), round(b, 3)]
+                          for a, b in (self._dl_ref or [])]}))
+        except Exception:
+            pass
+
+    def _ref_from_db(self, best):
+        """RIPESCA dal recorder (.lmtel) la traccia del BEST di sessione
+        LMU perso dai riavvii (bug 23/07 secondo atto: LMU migliore
+        1:53.203, noi rif. 1:54.0 post-riavvio). Cerca nei log recenti
+        un giro con tempo IDENTICO (<6ms) su stessa pista/classe e ne
+        ricostruisce (lapdist, t) dai samples. Thread: il risultato va
+        in _refdb_out, consumato dal tick GUI."""
+        try:
+            import sqlite3
+            import glob as _gl
+            base = os.path.join(os.environ.get("APPDATA", ""),
+                                "LMU_TelemetryPro", "logs")
+            files = sorted(_gl.glob(os.path.join(base, "*.lmtel")),
+                           key=os.path.getmtime, reverse=True)[:14]
+            now = time.time()
+            for f in files:
+                if now - os.path.getmtime(f) > 12 * 3600.0:
+                    break                      # troppo vecchio: altra sessione
+                try:
+                    con = sqlite3.connect(
+                        "file:%s?mode=ro" % f.replace("\\", "/"), uri=True)
+                except Exception:
+                    continue
+                try:
+                    meta = con.execute("SELECT track, car_class FROM "
+                                       "session_meta LIMIT 1").fetchone()
+                    if not meta or meta[0] != self._track \
+                            or meta[1] != self._vclass:
+                        continue
+                    row = con.execute(
+                        "SELECT lap, lap_time FROM laps WHERE "
+                        "ABS(lap_time - ?) < 0.006 LIMIT 1",
+                        (best,)).fetchone()
+                    if not row:
+                        continue
+                    smp = con.execute(
+                        "SELECT t, lapdist FROM samples WHERE lap=? "
+                        "ORDER BY t", (int(row[0]),)).fetchall()
+                finally:
+                    con.close()
+                if len(smp) < 100:
+                    continue
+                # trace (lapdist, t): salta i campioni pre-traguardo
+                # (lapdist ancora alta), poi solo avanzamenti >= 3m
+                tr, last, started = [], -1e9, False
+                for t9, ld9 in smp:
+                    if not started:
+                        if ld9 < 200.0:
+                            started = True
+                        else:
+                            continue
+                    if ld9 >= last + 3.0:
+                        tr.append((float(ld9), float(t9)))
+                        last = ld9
+                # sanita': copre il giro e finisce vicino al tempo giro
+                if len(tr) > 80 and abs(tr[-1][1] - row[1]) < 4.0:
+                    self._refdb_out = (tr, float(row[1]))
+                    return
+        except Exception:
+            pass
+
     def _update_delta(self, v):
         """DELTA live (vs mio best trace, ancorato al best di CLASSE) +
         freeze 5s del tempo di settore/giro alla chiusura."""
@@ -1740,6 +1820,32 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         self._dl_ref_inv = bool(_d9.get("ref_inv"))
                 except Exception:
                     pass
+        # RIPESCAGGIO dal recorder: se LMU ha un best di sessione
+        # migliore del nostro riferimento (riavvii multipli), il giro
+        # vero sta nei log — cercalo in un thread (una volta per best)
+        try:
+            _bst9 = float(self._best or 0.0)
+        except (TypeError, ValueError):
+            _bst9 = 0.0
+        if _bst9 > 10.0 \
+                and (self._dl_ref_time is None
+                     or self._dl_ref_time > _bst9 + 0.15) \
+                and getattr(self, "_refdb_for", None) != _bst9:
+            self._refdb_for = _bst9
+            import threading as _th9d
+            _th9d.Thread(target=self._ref_from_db, args=(_bst9,),
+                         daemon=True).start()
+        # consumo del risultato (solo se migliora il rif. attuale)
+        _cand9 = getattr(self, "_refdb_out", None)
+        if _cand9 and (self._dl_ref_time is None
+                       or _cand9[1] < self._dl_ref_time - 0.01):
+            self._refdb_out = None
+            self._dl_ref = _cand9[0]
+            self._dl_ref_time = _cand9[1]
+            self._dl_ref_inv = False
+            self._dl_persist()
+        elif _cand9:
+            self._refdb_out = None
         _MAG, _GRN, _YEL = (QColor("#ff2bd6"), QColor("#00e676"),
                             QColor("#ffe24d"))          # rosa/verde/giallo WEC
 
@@ -1798,23 +1904,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._dl_ref = self._dl_cur      # nuovo trace di rif.
                     self._dl_ref_time = self._last
                     self._dl_ref_inv = _cur_inv
-                    # PERSISTI il rif.: sopravvive al riavvio app nella
-                    # STESSA sessione LMU (vedi ripristino sopra)
-                    try:
-                        _fd9 = USER_DIR / "delta"
-                        _fd9.mkdir(parents=True, exist_ok=True)
-                        (_fd9 / "session_ref.json").write_text(json.dumps({
-                            "track": self._track, "vclass": self._vclass,
-                            "sess_type": getattr(self, "_sess_type", None),
-                            "remain": float(getattr(self, "_sess_remain",
-                                                    0.0) or 0.0),
-                            "wall": time.time(),
-                            "ref_time": self._dl_ref_time,
-                            "ref_inv": bool(_cur_inv),
-                            "trace": [[round(a, 1), round(b, 3)]
-                                      for a, b in self._dl_ref]}))
-                    except Exception:
-                        pass
+                    self._dl_persist()   # sopravvive al riavvio app
             self._lap_was_inv = False
             self._dl_cur = [(0.0, 0.0)]      # ANCHOR all'origine (stile TinyPedal)
             self._dl_pos_last = 0.0
