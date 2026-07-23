@@ -273,6 +273,129 @@ findings del muretto: UNA lingua per garage, voce e pagina.
 - Output al pilota: "da meta' stint proteggi il posteriore: ingressi piu'
   dolci e trazione anticipata ma progressiva".
 
+---
+
+## 7. Profili PER CLASSE e PER AUTO (2023-2026) — regole specifiche
+
+> La fisica cambia per vettura, non solo per classe. Queste regole vanno in
+> un file dati (`settings/car_profiles.json`) letto da muretto e analisi:
+> stessa fonte, zero hardcoding.
+
+### 7.1 Verita' sui canali (cosa LMU espone DAVVERO)
+| Canale richiesto | Stato da noi |
+|---|---|
+| MGU torque (± = regen) | ✅ `mElectricBoostMotorTorque` gia' nel reader (`emotor_tq`/`boost_torque`) |
+| ABS activity / TC cut | ✅ GIA' nei samples (`abs_active`, `tc_cut`) |
+| Wheel speed per ruota | ✅ `wheel_rot` (lockup detector live gia' attivo) |
+| BBW / pressione freno per ruota | ✅ `brake_p_*` nei samples |
+| Ride height ant/post | ✅ `ride_h_*` |
+| Yaw rate | ⚠️ `mLocalRot` esiste nella struct — DA ESPORRE (1 campo) |
+| MGU per ASSE (front vs rear) | ❌ LMU modella UN motore boost: la ripartizione LMH/LMDh si INFERISCE dal profilo auto |
+| Torque sensor BoP sui semiassi | ❌ non esposto: il clipping si inferisce da coppia/gas/TC |
+
+### 7.2 HYPERCAR — LMH (AWD) vs LMDh (RWD)
+- **LMH (499P, GR010, 9X8, Valkyrie*)**: soglia ingaggio anteriore da BoP
+  (~190-210 km/h, per-auto nel profilo). REGOLA: sotto soglia = 100% RWD
+  (occhio sovrasterzo in trazione), sopra = tende al sottosterzo da
+  trazione. Rilevazione: `boost_torque > 0` + `speed` vs soglia profilo +
+  variazione yaw (quando esposto).
+- **499P**: BBW complesso — in staccata, se `brake_p` anteriore alta MENTRE
+  `emotor_tq < 0` (harvest) forte → rischio bloccaggio trascinato interno.
+- **GR010**: tollera altezze basse ma monitorare **bottoming** in
+  transizione frenata-inserimento (gia' rilevato); stint: micro-slip
+  posteriore che scalda la carcassa (slip_lat rear + carcass trend).
+- **9X8 2023 vs Evo 24+**: profilo pitch-sensitive (muso che si alza in
+  rilascio = perdita effetto suolo) vs Evo con ala (validare trazione
+  posteriore: slip ratio rear in uscita lenta).
+- **LMDh (963, V-Series.R, M Hybrid, A424)**: harvest POSTERIORE — in
+  staccata la derivata della decelerazione "a gradini" = blending
+  freno/motore/MGU mal calibrato → retrotreno nervoso. 963: sospensioni
+  rigide, cordoli con cautela. **Cadillac**: aspirato, gas lineare — se il
+  pilota apre a gradino → pattinamento evitabile. **BMW/Alpine**: turbo
+  lag — ritardo gas→coppia; se il turbo carica in piena piega il TC taglia
+  a "pompaggio" (oscillazione `tc_cut` ripetuta = firma).
+- **Valkyrie (25+)**: 100% termica — niente ibrido da gestire: focus tutto
+  su bias termico freni e gomma.
+
+### 7.3 LMP2 (Oreca 07) — no ABS, alto carico
+- **Lockup senza ABS**: gia' attivo (transizione ruota <30%); aggiungere
+  soglia PRE-allerta stile spec (`V_ruota < 0.85 × V_auto` in staccata).
+- **Pitch sensitivity**: ride height ANTERIORE oltre soglia nei curvoni =
+  muso che perde carico di colpo.
+
+### 7.4 LMP3 — telaio flessibile
+- **Rollio nei cambi di direzione**: gas prima che il rollio si stabilizzi
+  = sovrasterzo pendolare (g_lat vs derivata ride_h dx/sx nelle esse).
+
+### 7.5 GT: GTE (no ABS) vs LMGT3 (ABS obbligatorio)
+- **GTE**: trail-braking chirurgico o spiattelli l'anteriore interna
+  (rilascio lento + tanto sterzo = firma flat-spot; `mFlat` conferma).
+- **LMGT3 — ABS Intervention Index**: frequenza di `abs_active` con freno
+  a fondo → "riduci la pressione iniziale dell'8%, l'ABS che lavora
+  sempre scalda la gomma e ALLUNGA la frenata". GIA' calcolabile dai
+  samples. TC: raffiche di `tc_cut` in uscita = erogazione da rivedere.
+
+### 7.6 Schema `car_profiles.json` (da creare)
+```json
+{ "Ferrari 499P": {"drive": "AWD", "awd_engage_kmh": 190,
+    "hybrid": "front", "bbw": true, "note": "harvest ant in staccata"},
+  "Porsche 963":  {"drive": "RWD", "hybrid": "rear",
+    "kerb_tolerance": "low", "blending_check": true},
+  "Cadillac V-Series.R": {"drive": "RWD", "aspirated": true,
+    "throttle_linearity_check": true},
+  "BMW M Hybrid V8": {"turbo": "twin", "turbo_lag_check": true},
+  "Alpine A424": {"turbo": "single", "turbo_lag_check": true},
+  "Aston Martin Valkyrie": {"hybrid": null, "pure_ice": true},
+  "Toyota GR010": {"bottoming_watch": true, "awd_engage_kmh": 190} }
+```
+Il muretto legge il profilo dal `vehicle` corrente e attiva le regole
+giuste; l'out-lap per classe diventa out-lap PER AUTO.
+
+---
+
+## 8. Livello "Ingegnere Virtuale" — AI, tracciato, pipeline sim
+
+### 8.1 Pipeline dati (PRIMA di tutto — igiene del segnale)
+- **Outlier/jitter filtering**: filtro MEDIANO sui picchi impossibili
+  (50G per 1 frame da netcode/framerate) prima di ogni media/derivata.
+  Obbligatorio e cheap: entra nella Time-Loss Matrix dal giorno 1.
+- **Resampling a griglia fissa**: rF2 campiona a passo variabile (dipende
+  dal frame): interpolazione (cubica) a frequenza fissa PRIMA delle
+  derivate (gradiente frenata, velocita' ammortizzatori) — altrimenti i
+  numeri mentono. Nota nostra: il recorder logga gia' t+lapdist per
+  sample, quindi il resampling e' un passaggio di analisi, non di raccolta.
+- **Normalizzazione condizioni**: tempi normalizzati per `track_temp` (gia'
+  nei samples) e gommatura — MAI sgridare il pilota per un giro lento con
+  l'asfalto 10 gradi piu' freddo. (Gap piccolo: loggare `track_grip` nei
+  samples, 1 colonna.)
+
+### 8.2 Tracciato
+- **Curvatura κ della traiettoria** (da pos_x/pos_z gia' campionati):
+  κ = |x'y'' − y'x''| / (x'²+y'²)^{3/2}. Picchi di curvatura oltre la
+  geometria della curva = pilota che "spigola" → perde velocita' minima.
+  Fattibile SUBITO, ottimo compagno della Time-Loss Matrix.
+- **Ghost lap teorico**: non la somma dei best micro-settori (fisicamente
+  incompatibili) ma ottimizzazione su cerchio d'aderenza. Passo intermedio
+  gia' nostro: `theo_lap` (somma settori) → poi la versione vincolata.
+
+### 8.3 Machine Learning (nell'ordine giusto)
+1. **PCA/clustering stile di guida** (aggressivo/conservativo/traffico →
+   quale stile paga sul PASSO MEDIO, non sul giro secco): fattibile in
+   numpy puro sui nostri laps/samples appena c'e' storico. Primo ML da fare.
+2. **Predizione cliff gomma** (LSTM su slip+temperature interne, 5-6 giri
+   d'anticipo): PRIMA la versione statistica (pendenza EWMA del passo +
+   trend carcassa — mezzo gia' vivo con tyre_cliff/deg appreso), POI la
+   rete quando i dati bastano.
+3. **"Slip magico" del tyre model** (mining sui giri dei piu' veloci):
+   possibile col nostro bacino community (refs online + submissions) —
+   e' IL vantaggio di avere 10k utenti: dataset che i singoli non hanno.
+
+### 8.4 Priorita' consigliata (dal fattibile-subito al visionario)
+1. Pipeline igiene (mediano + resampling) → 2. Time-Loss Matrix per
+curva/fase → 3. Curvatura κ → 4. Normalizzazione track temp/grip →
+5. ABS Index + blending LMDh (profili auto §7) → 6. PCA stile guida →
+7. Cliff predittivo → 8. Ghost lap vincolato → 9. Mining community.
+
 *Fonti: [YourDataDriven](https://www.yourdatadriven.com/guide-to-interpreting-tyre-temperatures-in-motorsports/),
 [Autosport Labs](https://www.autosportlabs.com/using_tire_temperatures_for_better_grip_and_faster_lap_times/),
 [Alsense](https://www.alsense.eu/racecar-engineering-tire-brake-temperature-sensors/),
