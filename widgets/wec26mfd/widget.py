@@ -704,12 +704,13 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                         time.monotonic())
                     self._page_beep()
                     self.update()
-                elif self._m3_sel == 8:    # WIPER: velocita' tergi
+                elif self._m3_sel == 8:    # WIPER: ciclo velocita' tergi
+                    # LMU ha UN'azione "Wipers" a ciclo (non +/-): 51/52
+                    # erano Steer Left/Right in keyboard.json — sterzava!
+                    # Bind "Wipers"=40 (DIK ') scritto a gioco chiuso.
                     if getattr(self, "_prefs", {}).get("electric_control"):
-                        _send_scancode(51 if (b & _XI_DR) else 52)
-                        self._m3_msg = ("WIPER %s" %
-                                        ("+" if (b & _XI_DR) else "-"),
-                                        time.monotonic())
+                        _send_scancode(40)
+                        self._m3_msg = ("WIPER CYCLE", time.monotonic())
                     else:
                         self._m3_msg = ("ENABLE ELECTRIC CONTROL FIRST",
                                         time.monotonic())
