@@ -4259,15 +4259,21 @@ class Engineer:
             st["tm_ok"] = 0
             if mode == "longrun":
                 extra = int(self._fnum(raw.get("test_extra")) or 2)
+                # consumo stimato DI LMU (stessa fonte del pannello
+                # Carburante): il target combacia coi numeri del gioco,
+                # cosi' il pilota imposta lo stesso +N sul volante e i
+                # LED eco di LMU dicono la stessa cosa del muretto
                 per = self._fnum(raw.get("lmu_per_lap"))
                 ve = self._fnum(raw.get("ve_pct"))
-                tgt = None
+                tgt = laps_t = None
                 if per and per > 0 and ve and ve > 1.0:
-                    tgt = ve / (ve / per + extra)
+                    laps_t = ve / per + extra          # come LMU: stimati+N
+                    tgt = ve / laps_t
                 st["tm_target"] = tgt
                 st["tm_ve_prev"] = ve
                 if tgt:
                     out.append(self.msg("longrun_on", extra=extra,
+                                        laps="%.0f" % laps_t,
                                         target="%.1f" % tgt,
                                         cur="%.1f" % per))
                 else:

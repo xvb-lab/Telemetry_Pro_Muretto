@@ -7789,11 +7789,11 @@
       "cat": "strategy",
       "level": "info",
       "beep": false,
-      "it": "Long run: obiettivo più {extra} giri di stint. Ti serve {target} a giro, adesso stai sui {cur}. Costruiscilo alzando prima il piede a fine rettilineo, le curve non toccarle.",
+      "it": "Long run: obiettivo {laps} giri, più {extra} sul pannello. Servono {target} a giro, oggi stai sui {cur}. Imposta lo stesso più {extra} sul volante, così i led del risparmio ti seguono.",
       "variants_it": [
-        "Long run: obiettivo più {extra} giri di stint. Ti serve {target} a giro, adesso stai sui {cur}. Costruiscilo alzando prima il piede a fine rettilineo, le curve non toccarle.",
-        "Partiamo col long run: vogliamo allungare di {extra} giri. Il numero da tenere è {target} a giro, oggi viaggi a {cur}.",
-        "Programma long run, più {extra} giri: target {target} a giro. Il risparmio si costruisce in staccata, la velocità di curva resta tutta."
+        "Long run: obiettivo {laps} giri, più {extra} sul pannello. Servono {target} a giro, oggi stai sui {cur}. Imposta lo stesso più {extra} sul volante, così i led del risparmio ti seguono.",
+        "Partiamo col long run: {laps} giri totali, cioè più {extra}. Il numero da tenere è {target} a giro, ora viaggi a {cur}. Metti più {extra} anche nel menu carburante: led accesi e siamo allineati.",
+        "Programma long run: allunghiamo di {extra}, obiettivo {laps} giri a {target} di energia l'uno. Stesso obiettivo sul volante, mi raccomando: i led di LMU lavorano con noi."
       ]
     },
     "longrun_on_nodata": {
