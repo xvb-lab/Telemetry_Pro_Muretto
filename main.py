@@ -79,7 +79,22 @@ def _sharp_dpi():
         pass
 
 
+def _single_instance():
+    """UNA sola app: mutex di Windows col nome del prodotto. Se esiste
+    gia' (app aperta), la nuova istanza esce in silenzio (rich. 23/07:
+    'l'app non deve duplicarsi se e' gia' aperta')."""
+    try:
+        import ctypes
+        ctypes.windll.kernel32.CreateMutexW(
+            None, False, "LMU_TelemetryPro_SingleInstance")
+        return ctypes.windll.kernel32.GetLastError() != 183  # ALREADY_EXISTS
+    except Exception:
+        return True
+
+
 def main():
+    if not _single_instance():
+        return
     _set_win_taskbar_id()
     _sharp_dpi()
     app = QApplication(sys.argv)
