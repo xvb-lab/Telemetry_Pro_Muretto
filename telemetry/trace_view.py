@@ -3110,9 +3110,28 @@ class _WorksheetTab(QWidget):
         # (tempo mio qui) - (tempo suo qui): + = sono dietro
         _gap9 = None
         if ld_a is not None and self._rp_tb:
-            _tb9 = self._t_at_ld(self._rp_tb, ld_a)
+            # serie MONOTONA senza il transitorio del traguardo (bug
+            # 23/07: i giri partono a lapdist ~5779 PRIMA della linea
+            # -> la ricerca inciampava e il gap mostrava 77-102s)
+            if getattr(self, "_rp_tb_src", None) != id(self._rp_tb):
+                self._rp_tb_src = id(self._rp_tb)
+                _mn9, _last9, _st9 = [], -1e9, False
+                for _t9, _d9 in self._rp_tb:
+                    if not _st9:
+                        if _d9 < 200.0:
+                            _st9 = True
+                        else:
+                            continue
+                    if _d9 > _last9:
+                        _mn9.append((_t9, _d9))
+                        _last9 = _d9
+                self._rp_tb_mono = _mn9
+            _tbl9 = getattr(self, "_rp_tb_mono", None) or []
+            _tb9 = self._t_at_ld(_tbl9, ld_a) if len(_tbl9) > 10 else None
             if _tb9 is not None:
                 _gap9 = (self._rp_t - _off) - _tb9
+                if abs(_gap9) > 30.0:
+                    _gap9 = None       # fuori scala: meglio niente
         self.map_w.set_play_pos(ld_a if ld_a is not None else ld_b,
                                 ld_b, _gap9)
         # i grafici seguono il giro SELEZIONATO (cursore + readout)
