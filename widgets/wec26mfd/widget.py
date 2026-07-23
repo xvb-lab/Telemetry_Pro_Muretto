@@ -3691,11 +3691,11 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             _wr = getattr(self, "_wear4", None) or [None] * 4
         except Exception:
             return
-        CW, CH, GAP = 58.0, 34.0, 6.0
-        x0 = 20.0
+        CW, CH, GAP = 46.0, 27.0, 6.0     # celle usura piu' piccole
+        x0 = 20.0                          # (i badge temp restano uguali)
         y0 = _H - self.ROW_B - 60.0 - (CH * 2 + GAP)
         f_big = QFont("Archivo SemiExpanded")
-        f_big.setPixelSize(16)
+        f_big.setPixelSize(13)
         f_big.setWeight(QFont.Bold)
         f_sm = QFont("Archivo SemiExpanded")
         f_sm.setPixelSize(10)
