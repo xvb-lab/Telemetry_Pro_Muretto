@@ -5103,13 +5103,27 @@ class Engineer:
             out.append(adv)
         return [m for m in out if m]
 
-    def setup_targets(self):
+    def setup_targets(self, raw=None):
         """Target AUTO-SETUP per il pit (letti da run_engineer):
-        {press_delta:[kPa x4] da sommare al freddo, wing:-1/0/+1}."""
+        {press_delta:[kPa x4] da sommare al freddo, wing:-1/0/+1}.
+        Se lo stint non ha ancora prodotto i target (riavvio, giri
+        incompleti) usa le pressioni LIVE a caldo vs finestra classe."""
         out = {"press_delta": [0.0] * 4, "wing": 0}
         try:
             pf = self._st.get("pf") or {}
             _tgt = pf.get("press_tgt")
+            if not _tgt and raw:
+                tag = self._pf_tag(raw)
+                _win = self._PF_PRESS.get(tag)
+                _pr = raw.get("tyre_press") or []
+                if _win and len(_pr) >= 4:
+                    _mid = (_win[0] + _win[1]) / 2.0
+                    _tgt = []
+                    for _x in _pr[:4]:
+                        try:
+                            _tgt.append(_mid - float(_x))
+                        except (TypeError, ValueError):
+                            _tgt.append(0.0)
             if _tgt:
                 out["press_delta"] = [max(-12.0, min(12.0, float(x)))
                                       for x in _tgt]

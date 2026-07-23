@@ -642,14 +642,14 @@ def _auto_wet_apply(vox, lang):
         _ur.urlopen(req, timeout=1.5)
         try:
             from engineer.roles import voice_for
-            _T = {"it": "Piove e sei su slick: le wet sono gia' "
-                        "pronte nel menu box.",
-                  "en": "It's raining and you're on slicks: the wets "
-                        "are already set in the pit menu.",
-                  "es": "Llueve y vas con slicks: las de lluvia ya "
-                        "estan puestas en el menu de boxes.",
-                  "fr": "Il pleut et tu es en slicks: les pluie sont "
-                        "deja pretes dans le menu des stands."}
+            _T = {"it": "Piove e sei su slick: quando arrivi "
+                        "montiamo le wet.",
+                  "en": "It's raining and you're on slicks: when you "
+                        "come in we're fitting the wets.",
+                  "es": "Llueve y vas con slicks: cuando entres "
+                        "montamos las de lluvia.",
+                  "fr": "Il pleut et tu es en slicks: quand tu "
+                        "rentres on monte les pluie."}
             vox.speak(_T.get(lang, _T["it"]),
                       voice=voice_for("rain_box_now", lang))
         except Exception:
@@ -913,15 +913,19 @@ def run():
                     _asx = globals().setdefault("_AS_ST", {})
                     _inp9 = bool(raw.get("in_pits")) \
                         and not raw.get("garage")
-                    if _inp9 and not _asx.get("done"):
+                    # dalla CHIAMATA BOX (rich. 23/07): la comunicazione
+                    # parte quando chiami il box, non quando entri
+                    _req9 = int(raw.get("pit_state") or 0) in (1, 2)
+                    if (_inp9 or _req9) and not _asx.get("done"):
                         _asx["done"] = True
                         if bool(engineer_cfg.load().get("auto_setup")):
                             import threading as _th9
                             _th9.Thread(
                                 target=_auto_setup_apply,
-                                args=(brain.setup_targets(), vox, lang),
+                                args=(brain.setup_targets(raw), vox,
+                                      lang),
                                 daemon=True).start()
-                    elif not _inp9:
+                    elif not (_inp9 or _req9):
                         _asx["done"] = False
                 except Exception:
                     pass

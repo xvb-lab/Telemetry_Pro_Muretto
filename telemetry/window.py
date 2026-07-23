@@ -5038,13 +5038,10 @@ class _AppPage(QWidget):
         sembrare un bug. Il click mostra il perche' in rosso.
         REGOLA (23/07): le pagine aperte DALLO stint (Setups) tornano
         allo stint = dentro la sessione -> MAI bloccate."""
-        try:
-            if getattr(self.window(), "_app_return_stint", False):
-                if self._on_back:
-                    self._on_back()
-                return
-        except Exception:
-            pass
+        if getattr(self, "_return_stint", False):
+            if self._on_back:
+                self._on_back()
+            return
         if getattr(self, "_armed", False):
             try:
                 self._lock_note.setText("SESSION LIVE — STOP TO EXIT")
@@ -5060,7 +5057,7 @@ class _AppPage(QWidget):
     def _apply_back_lock(self, armed):
         """Freccia indietro <-> LUCCHETTO con la nota rossa di stato."""
         try:
-            if getattr(self.window(), "_app_return_stint", False):
+            if getattr(self, "_return_stint", False):
                 armed = False        # pagina interna: freccia libera
             if armed:
                 self._back.setText("lock")
@@ -11253,7 +11250,8 @@ class TelemetryWindow(QMainWindow):
         except Exception:
             pass
         self._app_return_stint = True         # back -> pagina stint
-        try:                                   # freccia subito libera
+        try:
+            self._app._return_stint = True     # flag SULLA pagina
             self._app._apply_back_lock(getattr(self._app, "_armed",
                                                False))
         except Exception:
@@ -11564,6 +11562,12 @@ class TelemetryWindow(QMainWindow):
         # il back torna alla pagina stint, non al menu
         if getattr(self, "_app_return_stint", False):
             self._app_return_stint = False
+            try:
+                self._app._return_stint = False
+                self._app._apply_back_lock(getattr(self._app, "_armed",
+                                                   False))
+            except Exception:
+                pass
             self._stack.setCurrentWidget(self._stint_page)
             return
         # Teams aperto dalla pagina Sessions: back -> Sessions (ricaricata,
