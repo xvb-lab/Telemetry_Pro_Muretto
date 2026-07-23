@@ -5137,6 +5137,15 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     if not _cov:
                         self._eco_lmu_pts.append(round(_bp - 110.0, 1))
                 self._eco_lmu_pts.sort()
+            # DEDUPE (collaudo pista 23/07: doppio punto in Variante =
+            # zona doppia continua): punti a <150m si fondono, resta
+            # il PRIMO (si alza una volta sola)
+            if self._eco_lmu_pts:
+                _ded9 = [self._eco_lmu_pts[0]]
+                for _p9 in self._eco_lmu_pts[1:]:
+                    if _p9 - _ded9[-1] >= 150.0:
+                        _ded9.append(_p9)
+                self._eco_lmu_pts = _ded9
             if not self._eco_lmu_pts:
                 try:
                     if _auto:
@@ -5190,13 +5199,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         for d in _pts:
             lift = d - _ant
             past = (ld - lift) % tl
-            if past < 160.0 + 50.0 * (_lvl - 1):
+            # zona PIENO corta (collaudo 23/07: 160+50/lvl incatenava
+            # le curve vicine in un lampeggio unico)
+            if past < 110.0 + 30.0 * (_lvl - 1):
                 _full9 = True         # in zona rilascio: PIENO
                 break
             dl = (lift - ld) % tl
             if best is None or dl < best:
                 best = dl
-        window = 220.0
+        # RAMPA A TEMPO, non a metri fissi (collaudo 23/07: 220m fissi
+        # suonavano prestissimo nei tratti veloci): ~2s alla velocita'
+        # attuale, come il conto alla rovescia del nativo LMU
+        window = min(160.0, max(80.0, (spd / 3.6) * 2.0))
         _frac9 = None
         if _full9:
             _frac9 = 1.0
