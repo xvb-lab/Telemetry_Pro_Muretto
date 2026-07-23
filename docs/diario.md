@@ -507,3 +507,11 @@ dato? Indagine su TUTTI i canali.
   best) vs mostrato — la certificazione che il delta converge al traguardo.
   Delta = SEMPRE vs il proprio best di sessione; fuxia/verde/bianco = solo
   contesto colore (P1 di classe / best personale / non migliori).
+
+**Countdown pit (task #9) — stesso giorno.** MOD 2 (pagina PIT), nello spazio
+ex-gauge: pannello "PIT STOP EST" con il totale della sosta e la scomposizione
+LMU vera (ENERGY/TYRES/DAMAGE/PENALTY..., rotta `strategy/pitstop-estimate`,
+aggiornata ogni 2s dalla corsia lenta wearables). Da FERMI in corsia box il
+numero grande diventa il CRONO: stima − trascorso in ambra, oltre la stima
+passa a +X rosso, si azzera quando riparti. Verificato offscreen (3 stati:
+stima, countdown, overtime).

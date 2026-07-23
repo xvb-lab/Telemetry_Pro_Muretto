@@ -296,9 +296,24 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         if "aero" in _bd9 else None
                 except Exception:
                     pass
+                # STIMA SOSTA (rotta scoperta 23/07 dai binari LMU):
+                # tempo pit GIA' scomposto — fuel/ve, tires, brakes,
+                # damage, penalties, total. Alimenta il pannello MOD 2.
+                try:
+                    with _ur.urlopen(_ur.Request(
+                            "http://localhost:6397/rest/strategy"
+                            "/pitstop-estimate",
+                            headers={"Accept": "application/json"}),
+                            timeout=0.4) as r:
+                        self._pit_est = _js.loads(r.read())
+                except Exception:
+                    pass
                 _tt.sleep(2.0)
         import threading as _th9
         _th9.Thread(target=_wear_loop, daemon=True).start()
+        self._pit_est = None       # stima sosta (dalla corsia lenta sopra)
+        self._pit_t0 = None        # inizio sosta (fermo ai box)
+        self._pit_run = 0.0        # ultimo tempo sosta corso (per il FATTO)
         self._m2_sel = 0           # voce selezionata nella pagina PIT
         self._auto_pit = False     # AUTO PIT (engineer_cfg): mostrato nel Mod 3
         self._ap_ts = 0.0          # throttle rilettura flag auto_pit/engineer_on
@@ -1113,6 +1128,22 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                                 and time.monotonic() - self._stop_t0 > 5.0)
                         except Exception:
                             self._hazard9 = False
+                        # CRONO SOSTA (MOD 2): parte quando sei FERMO in
+                        # corsia box (non in garage), si azzera quando
+                        # riparti. Il pannello mostra stima - trascorso.
+                        try:
+                            if getattr(self, "_in_pits", False) \
+                                    and not getattr(self, "_in_garage",
+                                                    False) \
+                                    and (self._speed or 0.0) < 0.5:
+                                if self._pit_t0 is None:
+                                    self._pit_t0 = time.monotonic()
+                                self._pit_run = (time.monotonic()
+                                                 - self._pit_t0)
+                            elif (self._speed or 0.0) > 1.5:
+                                self._pit_t0 = None
+                        except Exception:
+                            pass
                         self._batt9 = float(getattr(
                             t, "mBatteryChargeFraction", 0.0) or 0.0)
                         self._emo9 = int(getattr(
@@ -2575,6 +2606,73 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                               60 * by),
                        Qt.AlignRight | Qt.AlignVCenter,
                        "NEW SLICKS %d/%d" % (_mounted, _tmax))
+        # ── PANNELLO TEMPO SOSTA (spazio ex-gauge): stima LMU scomposta
+        # (rotta pitstop-estimate, 23/07) e CRONO che scorre da fermi ai
+        # box: grande = stima − trascorso (ambra), oltre stima = +X rosso ──
+        _est9 = getattr(self, "_pit_est", None) or {}
+        try:
+            _tot9 = float(_est9.get("total") or 0.0)
+        except (TypeError, ValueError):
+            _tot9 = 0.0
+        _stopping = getattr(self, "_pit_t0", None) is not None
+        if _tot9 > 0.05 or _stopping:
+            _px0, _px1 = 300.0, 530.0
+            _pxc = (_px0 + _px1) / 2.0
+            f.setPixelSize(12)
+            f.setWeight(QFont.Bold)
+            p.setFont(f)
+            p.setPen(QPen(QColor(255, 255, 255, 150)))
+            p.drawText(QRectF(_px0, 96.0, _px1 - _px0, 16.0),
+                       Qt.AlignCenter,
+                       "PIT STOP" if _stopping else "PIT STOP EST")
+            _big = QFont(FAM)
+            _big.setPixelSize(34)
+            _big.setWeight(QFont.Bold)
+            p.setFont(_big)
+            if _stopping:
+                _rem = _tot9 - self._pit_run
+                if _tot9 > 0.05 and _rem >= 0.0:
+                    p.setPen(QPen(QColor("#ffb020")))       # ambra: scorre
+                    _bt = "%.1f" % _rem
+                elif _tot9 > 0.05:
+                    p.setPen(QPen(QColor("#ff2b2b")))       # oltre stima
+                    _bt = "+%.1f" % (-_rem)
+                else:
+                    p.setPen(QPen(QColor("#ffb020")))       # senza stima
+                    _bt = "%.1f" % self._pit_run
+            else:
+                p.setPen(QPen(QColor(255, 255, 255, 235)))
+                _bt = "%.1f" % _tot9
+            p.drawText(QRectF(_px0, 112.0, _px1 - _px0, 42.0),
+                       Qt.AlignCenter, _bt + "s")
+            # scomposizione: solo le voci > 0, dalla piu' pesante
+            _LBL = (("ve", "ENERGY"), ("fuel", "FUEL"),
+                    ("tires", "TYRES"), ("damage", "DAMAGE"),
+                    ("penalties", "PENALTY"), ("brakes", "BRAKES"),
+                    ("driverSwap", "DRIVER"), ("brakeDucts", "DUCTS"))
+            _parts9 = []
+            for _k9, _l9 in _LBL:
+                try:
+                    _v9 = float(_est9.get(_k9) or 0.0)
+                except (TypeError, ValueError):
+                    _v9 = 0.0
+                if _v9 > 0.05:
+                    _parts9.append((_v9, _l9))
+            _parts9.sort(reverse=True)
+            f.setPixelSize(12)
+            f.setWeight(QFont.Medium)
+            p.setFont(f)
+            _fme = QFontMetricsF(f)
+            _yy9 = 168.0
+            for _v9, _l9 in _parts9[:4]:
+                p.setPen(QPen(QColor(255, 255, 255, 140)))
+                p.drawText(QPointF(_pxc - 62.0, _yy9), _l9)
+                p.setPen(QPen(QColor(255, 255, 255, 220)))
+                _vt9 = "%.1fs" % _v9
+                p.drawText(QPointF(_pxc + 62.0
+                                   - _fme.horizontalAdvance(_vt9), _yy9),
+                           _vt9)
+                _yy9 += 17.0
         f.setPixelSize(max(6, int(26 * by)))
         f.setWeight(QFont.Normal)                # hint torna Regular
         p.setFont(f)
