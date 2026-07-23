@@ -790,6 +790,88 @@ class TelemetryRecorder:
             except Exception:
                 pass
 
+    def _rest_loop(self):
+        """Thread CORSIA LENTA: TUTTE le urlopen al WebUI di LMU vivono qui.
+        Prima stavano nel tick e ogni timeout (0.4-1.5s) FERMAVA il
+        campionamento: misurati buchi fino a 3.8s nei samples (le traiettorie
+        a corde sulla mappa). Il tick ora legge solo attributi-cache;
+        l'assegnazione e' atomica (GIL), niente lock necessari."""
+        while self._running:
+            _t0 = time.monotonic()
+            if getattr(self, "_has_data", False):
+                now = _t0
+                try:      # wearables sospensione/aero (2s)
+                    if now - getattr(self, "_wear_ts", 0.0) >= 2.0:
+                        self._wear_cache = _fetch_wearables()
+                        self._wear_ts = now
+                except Exception:
+                    pass
+                try:      # est_lap + penalita' dallo standings (2s)
+                    if now - getattr(self, "_estlap_ts", 0.0) >= 2.0:
+                        self._player_cache = _fetch_player()
+                        self._estlap_ts = now
+                except Exception:
+                    pass
+                try:      # stima sosta del gioco (3s)
+                    if now - getattr(self, "_pit_est_ts", 0.0) >= 3.0:
+                        self._pit_est_ts = now
+                        self._pit_est = _fetch_pit_est()
+                except Exception:
+                    pass
+                try:      # pit menu strutturato (3s)
+                    if now - getattr(self, "_pmenu_ts", 0.0) >= 3.0:
+                        self._pmenu_cache = _fetch_pit_menu()
+                        self._pmenu_ts = now
+                except Exception:
+                    pass
+                try:      # storico passi rivali (10s)
+                    if now - getattr(self, "_pace_ts", 0.0) >= 10.0:
+                        self._pace_cache = _fetch_lap_history()
+                        self._pace_ts = now
+                except Exception:
+                    pass
+                try:      # prossimo nodo meteo (30s)
+                    if now - getattr(self, "_wxn_ts", 0.0) >= 30.0:
+                        self._wxn_cache = _fetch_weather_next()
+                        self._wxn_ts = now
+                except Exception:
+                    pass
+                try:      # forecast pioggia 5 nodi (30s; input dal tick)
+                    _styp = getattr(self, "_rest_styp", None)
+                    if (_styp is not None
+                            and now - getattr(self, "_fcr_ts", 0.0) >= 30.0):
+                        self._fcr_cache = _fetch_weather5(
+                            _styp, getattr(self, "_rest_tod", None) or 43200)
+                        self._fcr_ts = now
+                except Exception:
+                    pass
+                try:      # dotazione gomme (30s; primo fetch generoso)
+                    if now - getattr(self, "_tinv_ts", 0.0) >= 30.0:
+                        _first = not hasattr(self, "_tinv_seen")
+                        self._tinv_cache = _fetch_tyre_inventory(
+                            timeout=1.5 if _first else 0.4)
+                        self._tinv_ts = now
+                        if self._tinv_cache and self._tinv_cache.get("max_tires"):
+                            self._tinv_seen = True
+                except Exception:
+                    pass
+                try:      # regole sessione (60s)
+                    if now - getattr(self, "_rules_ts", 0.0) >= 60.0:
+                        self._rules_cache = _fetch_session_rules()
+                        self._rules_ts = now
+                except Exception:
+                    pass
+                try:      # PitEntryDist (una volta; ritenta ogni 30s)
+                    if getattr(self, "_pit_entry", None) is None:
+                        if now - getattr(self, "_pit_entry_ts", 0.0) >= 30.0:
+                            self._pit_entry_ts = now
+                            self._pit_entry = _fetch_pit_entry()
+                except Exception:
+                    pass
+            _sl = 0.7 - (time.monotonic() - _t0)
+            if _sl > 0:
+                time.sleep(_sl)
+
     def start(self):
         if self._running:
             return
@@ -798,6 +880,8 @@ class TelemetryRecorder:
         # thread separato per la strategia LMU: la sua chiamata da ~2s non
         # deve mai rallentare il campionamento telemetria qui sopra.
         threading.Thread(target=self._strategy_loop, daemon=True).start()
+        # corsia lenta REST: meteo/regole/pit menu/stime — mai nel tick
+        threading.Thread(target=self._rest_loop, daemon=True).start()
         _diag("recorder avviato (record=%s)" % self._record)
 
     def stop(self):
@@ -971,45 +1055,22 @@ class TelemetryRecorder:
         # PASSO VERO dei piloti (storico giri dal REST, cache 10s): arricchisce
         # i rivali con la mediana MISURATA degli ultimi 3 giri — la base per
         # undercut/overcut su dati, non su stime
-        _pace = None
-        try:
-            now9 = time.monotonic()
-            if now9 - getattr(self, "_pace_ts", 0.0) >= 10.0:
-                self._pace_cache = _fetch_lap_history()
-                self._pace_ts = now9
-            _pace = getattr(self, "_pace_cache", None)
-        except Exception:
-            _pace = None
+        # (fetch nel thread _rest_loop: il tick legge SOLO la cache)
+        _pace = getattr(self, "_pace_cache", None)
         if _riv and _pace:
             _riv = dict(_riv)
             _riv["ahead_pace"] = _pace.get(str(_riv.get("name_ahead") or "").strip())
             _riv["behind_pace"] = _pace.get(str(_riv.get("name_behind") or "").strip())
             _riv["my_pace"] = _pace.get(str(d.get("driver") or "").strip())
-        # pit menu STRUTTURATO (voce per voce, cache 3s) + prossimo nodo meteo
-        _pmenu = None
-        try:
-            now10 = time.monotonic()
-            if now10 - getattr(self, "_pmenu_ts", 0.0) >= 3.0:
-                self._pmenu_cache = _fetch_pit_menu()
-                self._pmenu_ts = now10
-            _pmenu = getattr(self, "_pmenu_cache", None)
-        except Exception:
-            _pmenu = None
+        # pit menu STRUTTURATO + prossimo nodo meteo (cache dal thread REST)
+        _pmenu = getattr(self, "_pmenu_cache", None)
         # il menu integrale ("_raw") resta QUI per l'auto fuel: nel raw
         # pubblicato va solo la versione leggera {nome: testo}
         _pm_raw = None
         if _pmenu and "_raw" in _pmenu:
             _pm_raw = _pmenu.get("_raw")
             _pmenu = {k: v for k, v in _pmenu.items() if k != "_raw"}
-        _wxnext = None
-        try:
-            now11 = time.monotonic()
-            if now11 - getattr(self, "_wxn_ts", 0.0) >= 30.0:
-                self._wxn_cache = _fetch_weather_next()
-                self._wxn_ts = now11
-            _wxnext = getattr(self, "_wxn_cache", None)
-        except Exception:
-            _wxnext = None
+        _wxnext = getattr(self, "_wxn_cache", None)
         # STIMA GIRI TOTALI (gare a tempo): la bandiera la decide il LEADER.
         # totale = giri leader + rimanente / passo leader (mediana ultimi 5,
         # robusta a traffico e giri sporchi; fallback best leader).
@@ -1050,13 +1111,9 @@ class TelemetryRecorder:
             _dmg = getattr(self, "_dmg_cache", None)
         except Exception:
             _dmg = None
-        # wearables (sospensione/aero) dalla REST API, cache ~2s
+        # wearables (sospensione/aero) — cache dal thread REST
         _susp = _aero = None
         try:
-            now3 = time.monotonic()
-            if now3 - getattr(self, "_wear_ts", 0.0) >= 2.0:
-                self._wear_cache = _fetch_wearables()
-                self._wear_ts = now3
             _w = getattr(self, "_wear_cache", None) or {}
             _susp = _w.get("susp")
             _aero = _w.get("aero")
@@ -1107,14 +1164,10 @@ class TelemetryRecorder:
                     self._strat_last = dict(_base9)
         except Exception:
             pass
-        # dati della tua auto dallo standings (est_lap + penalita'), cache ~2s
+        # dati della tua auto dallo standings — cache dal thread REST
         _est_standings = None
         _penalties = 0
         try:
-            now5 = time.monotonic()
-            if now5 - getattr(self, "_estlap_ts", 0.0) >= 2.0:
-                self._player_cache = _fetch_player()
-                self._estlap_ts = now5
             _pl = getattr(self, "_player_cache", None) or {}
             _est_standings = _pl.get("est_lap")
             _penalties = int(_pl.get("penalties") or 0)
@@ -1124,36 +1177,19 @@ class TelemetryRecorder:
         # est_lap affidabile: telemetria se valida, altrimenti standings
         _est_tel = float(d.get("est_lap") or 0.0)
         _est_lap = _est_tel if _est_tel > 0 else (_est_standings or 0.0)
-        # forecast pioggia ai 5 nodi (cache ~30s, cambia lentamente)
+        # forecast pioggia ai 5 nodi (cache dal thread REST; qui solo gli input)
         _fc_rain = None
         try:
-            now6 = time.monotonic()
-            if now6 - getattr(self, "_fcr_ts", 0.0) >= 30.0:
-                self._fcr_cache = _fetch_weather5(
-                    d.get("session_type"), d.get("time_of_day") or 43200)
-                self._fcr_ts = now6
+            self._rest_styp = d.get("session_type")
+            self._rest_tod = d.get("time_of_day")
             _w5 = getattr(self, "_fcr_cache", None) or {}
             _fc_rain = _w5.get("rain")
             _fc_ico = _w5.get("icons")      # "sun,cloud,rain,..." per i 5 nodi
         except Exception:
             _fc_rain = None
             _fc_ico = None
-        # dotazione gomme dal REST (cache 30s: cambia solo alle soste)
-        _tyre_inv = None
-        try:
-            now7 = time.monotonic()
-            if now7 - getattr(self, "_tinv_ts", 0.0) >= 30.0:
-                # primo fetch generoso (1.5s), poi rapido: il WebUI a inizio
-                # sessione puo' tardare a rispondere
-                _first = not hasattr(self, "_tinv_seen")
-                self._tinv_cache = _fetch_tyre_inventory(
-                    timeout=1.5 if _first else 0.4)
-                self._tinv_ts = now7
-                if self._tinv_cache and self._tinv_cache.get("max_tires"):
-                    self._tinv_seen = True
-            _tyre_inv = getattr(self, "_tinv_cache", None)
-        except Exception:
-            _tyre_inv = None
+        # dotazione gomme dal REST (cache dal thread REST)
+        _tyre_inv = getattr(self, "_tinv_cache", None)
         # OROLOGIO SESSIONE LISCIO: lo scoring arriva a raffiche e a volte
         # strappato -> race_remaining ballava avanti/indietro e i secondi
         # saltellavano su TUTTI i display. Conto alla rovescia locale
@@ -1174,17 +1210,8 @@ class TelemetryRecorder:
                 self._rr_smooth = None
         except Exception:
             pass
-        # REGOLE sessione dal REST (dato certo; cambiano solo al cambio
-        # sessione: cache 60s)
-        _rules = None
-        try:
-            now5b = time.monotonic()
-            if now5b - getattr(self, "_rules_ts", 0.0) >= 60.0:
-                self._rules_cache = _fetch_session_rules()
-                self._rules_ts = now5b
-            _rules = getattr(self, "_rules_cache", None)
-        except Exception:
-            _rules = None
+        # REGOLE sessione dal REST (cache dal thread REST)
+        _rules = getattr(self, "_rules_cache", None)
         # bandiere (gialla a distanza, blu per classe), cache ~0.5s
         _flags = None
         try:
@@ -1831,40 +1858,30 @@ class TelemetryRecorder:
         if best[0] == cur_ix:
             return
         item["currentSetting"] = best[0]
-        try:
-            import json as _js
-            import urllib.request as _ur
-            req = _ur.Request(
-                "http://localhost:6397/rest/garage/PitMenu/loadPitMenu",
-                data=_js.dumps(menu_raw).encode("utf-8"),
-                headers={"Content-Type": "application/json"},
-                method="POST")
-            _ur.urlopen(req, timeout=1.5)
-        except Exception:
-            pass
+
+        # POST fuori dal tick (fino a 1.5s): fire-and-forget su thread
+        def _send(_payload=menu_raw):
+            try:
+                import json as _js
+                import urllib.request as _ur
+                req = _ur.Request(
+                    "http://localhost:6397/rest/garage/PitMenu/loadPitMenu",
+                    data=_js.dumps(_payload).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST")
+                _ur.urlopen(req, timeout=1.5)
+            except Exception:
+                pass
+        threading.Thread(target=_send, daemon=True).start()
 
     def _pit_est_cached(self):
-        """Stima sosta del gioco (pitstop-estimate), cache ~3s."""
-        import time as _t
-        now = _t.monotonic()
-        if now - getattr(self, "_pit_est_ts", 0.0) >= 3.0:
-            self._pit_est_ts = now
-            self._pit_est = _fetch_pit_est()
+        """Stima sosta del gioco: cache riempita dal thread _rest_loop."""
         return getattr(self, "_pit_est", None)
 
     def _pit_entry_cached(self):
-        """PitEntryDist della pista corrente: fetch REST una volta, poi cache.
-        Ritenta ogni 30s finche' non arriva. Azzerato a cambio evento."""
-        import time as _t
-        v = getattr(self, "_pit_entry", None)
-        if v is not None:
-            return v
-        now = _t.monotonic()
-        if now - getattr(self, "_pit_entry_ts", 0.0) < 30.0:
-            return None
-        self._pit_entry_ts = now
-        self._pit_entry = _fetch_pit_entry()
-        return self._pit_entry
+        """PitEntryDist della pista: cache riempita dal thread _rest_loop
+        (fetch una volta, ritenta ogni 30s; azzerata a cambio evento)."""
+        return getattr(self, "_pit_entry", None)
 
     def _maybe_new_event(self, d):
         track = d.get("track") or ""

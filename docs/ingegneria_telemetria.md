@@ -644,6 +644,13 @@ due misure: in garage E in guida (79 km/h, stessa sessione):
    (max 2 tentativi). Snapshot misurato: 0,23 ms. Copre anche il caso
    raro del blip mInRealtime (che resta debounced come seconda cintura).
 6. Misure rifatte in guida il 23/07/2026 — capitolo frequenze CHIUSO.
+7. **SCOPERTA 23/07 (dai dati di Monza)**: il tick del recorder faceva
+   9 urlopen INLINE al WebUI (wearables/standings 2s, pit menu/stima 3s,
+   passi 10s, meteo/gomme 30s, regole 60s) e ogni risposta lenta FERMAVA
+   il campionamento: misurati buchi fino a 3,8 s nei samples (168 m di
+   pista persi → traiettorie a corde sulla mappa). **FIX**: thread
+   `_rest_loop` dedicato (corsia lenta), il tick legge solo cache.
+   Regola PERMANENTE: **mai I/O bloccante nel loop di campionamento**.
 
 *Fonti: [YourDataDriven](https://www.yourdatadriven.com/guide-to-interpreting-tyre-temperatures-in-motorsports/),
 [Autosport Labs](https://www.autosportlabs.com/using_tire_temperatures_for_better_grip_and_faster_lap_times/),
