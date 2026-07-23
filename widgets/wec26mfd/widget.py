@@ -3743,6 +3743,37 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         if _vef > 0.005 and _cbar is not None:
             p.setPen(QPen(_cbar, 3.0, Qt.SolidLine, Qt.RoundCap))
             p.drawArc(rect2, int(229 * 16), int(82 * _vef * 16))
+        # PERCENTUALE energia/benzina SEMPRE sott'occhio (rich. 23/07):
+        # numero piccolo sotto a sinistra del cerchio, colore della barra
+        if _cbar is not None and _vef > 0.0:
+            f_pc9 = QFont("Archivo SemiExpanded", 12)
+            f_pc9.setWeight(QFont.DemiBold)
+            p.setFont(f_pc9)
+            p.setPen(_cbar)
+            _pct9 = "%d%%" % round(_vef * 100)
+            p.drawText(QPointF(
+                cx - r - 10.0
+                - QFontMetricsF(f_pc9).horizontalAdvance(_pct9),
+                cy + r * 0.55), _pct9)
+        # SOC nel SEMICERCHIO ALTO (il varco vuoto del gauge, rich.
+        # 23/07): carica batteria ibrida — VERDE quando rigenera,
+        # AMBRA quando scarica (boost), BIANCO neutro. Solo se l'auto
+        # ha la batteria (HY); sulle altre resta vuoto com'era.
+        _soc9 = float(getattr(self, "_batt9", 0.0) or 0.0)
+        _emo = int(getattr(self, "_emo9", 0) or 0)
+        if _soc9 > 0.001 or _emo >= 2:
+            # varco: 55 gradi centrati in alto (90) — sfondo tenue
+            p.setPen(QPen(QColor(255, 255, 255, 45), 3.0,
+                          Qt.SolidLine, Qt.FlatCap))
+            p.drawArc(rect2, int(117.5 * 16), int(-55 * 16))
+            _csoc = QColor(255, 255, 255, 235)      # neutro
+            if _emo == 3:
+                _csoc = QColor("#00e676")           # rigenera
+            elif _emo == 2:
+                _csoc = QColor("#ffb020")           # scarica (boost)
+            p.setPen(QPen(_csoc, 3.0, Qt.SolidLine, Qt.RoundCap))
+            p.drawArc(rect2, int(117.5 * 16),
+                      int(-55 * max(0.0, min(1.0, _soc9)) * 16))
         # RPM: arco sul lato SINISTRO in basso (meno di mezzo cerchio),
         # parte dal fondo e sale a sinistra — BLU che sfuma al BIANCO
         # (arco RPM RIMOSSO il 21/07: resta solo l'effetto cambiata)
@@ -4565,7 +4596,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     # _speed e' GIA' in km/h: niente x3.6 doppio
                     _sp9 = (self._speed or 0.0) / (1.609344 if _mph9
                                                    else 1.0)
-                    _gw9 = 92.0     # solo marcia+numero (niente KPH/MPH)
+                    # larghezza PIENA fino al bordo (il trattino residuo
+                    # a sinistra era la colonna sotto che spuntava) e
+                    # velocita' allineata a destra con margine
+                    _gw9 = 104.0
                     _gx0 = _bx1 - _gw9 * _kg
                     p.save()
                     p.setClipRect(QRectF(_gx0, 0.0, _bx1 - _gx0,
@@ -4578,16 +4612,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.setFont(f_gg)
                     p.setPen(QColor("#ffb020") if _g9 in ("R", "N")
                              else QColor(255, 255, 255, 245))
-                    _gx9 = _bx1 - _gw9 + 14.0
-                    p.drawText(QPointF(_gx9, _yb + 2.0), _g9)
-                    _gx9 += QFontMetricsF(f_gg).horizontalAdvance(_g9) \
-                        + 12.0
+                    p.drawText(QPointF(_bx1 - _gw9 + 12.0, _yb + 2.0),
+                               _g9)
                     f_sp = QFont("Archivo SemiExpanded", 15)
                     f_sp.setWeight(QFont.DemiBold)
                     f_sp.setItalic(True)
                     p.setFont(f_sp)
                     p.setPen(QColor(255, 255, 255, 235))
-                    p.drawText(QPointF(_gx9, _yb), "%d" % round(_sp9))
+                    _spt9 = "%d" % round(_sp9)
+                    p.drawText(QPointF(
+                        _bx1 - 12.0
+                        - QFontMetricsF(f_sp).horizontalAdvance(_spt9),
+                        _yb), _spt9)
                     p.restore()
                 p.restore()
         # ── ROW ALTA: <MDF> celeste a sinistra, pagina 1/3 a destra
