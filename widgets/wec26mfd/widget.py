@@ -781,6 +781,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             except Exception:
                 self._track_len = 0.0
             try:
+                self._sess_id = int(sim.scoring.scoringInfo.mSession)
+            except Exception:
+                self._sess_id = 0
+            try:
                 _end = float(sim.scoring.scoringInfo.mEndET)
                 self._sess_remain = max(0.0, _end - cur_et) \
                     if _end > 0 else 0.0
@@ -3845,6 +3849,10 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 if _lbl is not None:
                     p.drawText(QPointF(_tx, _yb), _lbl)
                     _tx += QFontMetricsF(f_big).horizontalAdvance(_lbl) + 16.0
+                elif int(getattr(self, "_sess_id", 0) or 0) >= 10:
+                    # GARA: etichetta RACE al posto del contatore run
+                    p.drawText(QPointF(_tx, _yb), "RACE")
+                    _tx += QFontMetricsF(f_big).horizontalAdvance("RACE")                         + 14.0
                 else:
                     _run = max(1, int(self._run))    # 1 = primo stint
                     _d2 = _run % 100
