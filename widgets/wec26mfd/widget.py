@@ -2205,22 +2205,26 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                         if isinstance(self._press4, list)
                         and self._press4[wi] else None)
                 if _pr9:
+                    # piu' piccola, NON bold, con unita' "p" (rich. 23/07)
+                    p.setFont(QFont("Arial", 9))
                     p.setPen(QColor(255, 255, 255, 150))
-                    p.drawText(QRectF(_lx, cy + 16.0, _CW, 15),
+                    p.drawText(QRectF(_lx, cy + 16.0, _CW, 13),
                                Qt.AlignHCenter | Qt.AlignVCenter,
-                               "%d" % int(round(_pr9)))
+                               "%dp" % int(round(_pr9)))
+                    p.setFont(QFont("Arial", 11, QFont.Bold))
                 _bk9 = getattr(self, "_brk4", None)
                 if _bk9 and _bk9[wi] is not None and _bk9[wi] > -100:
                     p.setPen(mc._brake_grad_color(
                         int(round(_bk9[wi])), _tag))
-                    p.drawText(QRectF(_lx, cy + 31.0, _CW, 15),
+                    p.drawText(QRectF(_lx, cy + 30.0, _CW, 15),
                                Qt.AlignHCenter | Qt.AlignVCenter,
-                               "%d°" % int(round(_bk9[wi])))
-                _ccx = _lx - 30.0 if side < 0 else _lx + _CW + 4.0
+                               "%d°C" % int(round(_bk9[wi])))
+                # compound RADDOPPIATO e spinto all'esterno (rich. 23/07)
+                _ccx = _lx - 58.0 if side < 0 else _lx + _CW + 8.0
                 _sg9 = (_sgf if wi < 2 else _sgr) or _sig4.get(_co4[wi])
                 if _sg9:
                     _prnd(_tcs(_sg9, True)).render(
-                        p, QRectF(_ccx, cy - 13.0, 26, 26))
+                        p, QRectF(_ccx, cy - 24.0, 48, 48))
 
             # (acqua/olio TOLTI dal MOD 4 su richiesta: vivono in MOD 1)
             _bt9 = getattr(self, "_batt9", None)
