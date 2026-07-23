@@ -630,18 +630,19 @@ due misure: in garage E in guida (79 km/h, stessa sessione):
 | Tearing su copia in blocco (324 KB) | 0/2000 | **1/2000** (0,05%) | raro ma reale in guida; guardia pseudo-tick con mElapsedTime = cintura gratis |
 
 **Conseguenze (chiuse, decise):**
-1. La fonte in guida fa **100 Hz**: il recorder a 64 Hz ne perde ~1/3.
-   Portare `sample_hz` a 100 ([recorder.py] un parametro) cattura il
-   100% di cio' che LMU espone. Oltre 100 e' spreco puro.
+1. La fonte in guida fa **100 Hz**: il recorder a 64 Hz ne perdeva ~1/3.
+   **FATTO 23/07**: `sample_hz=100` in recorder.py — si cattura il 100%
+   di cio' che LMU espone. Oltre 100 e' spreco puro.
 2. Niente motore C++: il collo di bottiglia e' il GIOCO, non Python
    (400 Hz non esistono alla fonte). Energie sull'analisi: parser XML,
    Time-Loss, NumPy.
 3. Istogrammi damper a 100 Hz: bande lente/medie affidabili (Nyquist
    50 Hz); i colpi di cordolo secchi restano al detector sulle delta.
 4. ΔP/Δt freno: 10 ms per campione — buono per la forma della frenata.
-5. Anti-tearing: leggere mElapsedTime prima/dopo la copia, se cambia
-   si ricopia (max 2 tentativi). Costo nullo, elimina anche il caso
-   raro del blip mInRealtime (oggi solo debounced).
+5. Anti-tearing — **FATTO 23/07**: guardia in SimInfo (lmu_data.py),
+   confronto mElapsedTime copia/vivo dopo la copia, ricopia se strappato
+   (max 2 tentativi). Snapshot misurato: 0,23 ms. Copre anche il caso
+   raro del blip mInRealtime (che resta debounced come seconda cintura).
 6. Misure rifatte in guida il 23/07/2026 — capitolo frequenze CHIUSO.
 
 *Fonti: [YourDataDriven](https://www.yourdatadriven.com/guide-to-interpreting-tyre-temperatures-in-motorsports/),

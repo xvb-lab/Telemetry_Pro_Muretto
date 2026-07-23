@@ -568,7 +568,9 @@ def _diag(msg):
 
 
 class TelemetryRecorder:
-    def __init__(self, sample_hz=64, margin_laps=2.0, window=3, record=True):
+    # 100 Hz = rate reale della shared memory LMU in guida (sonda 23/07,
+    # doc ingegneria_telemetria §14.1): a 64 se ne perdeva ~1/3
+    def __init__(self, sample_hz=100, margin_laps=2.0, window=3, record=True):
         self._reader = TelemetryReader()
         from core.shared_memory import SharedMemory
         self._mem = SharedMemory.instance()

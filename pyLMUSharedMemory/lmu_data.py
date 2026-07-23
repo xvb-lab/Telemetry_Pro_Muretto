@@ -511,6 +511,13 @@ class _OfficialSimInfo:
 MAX_MAPPED_VEHICLES = LMUConstants.MAX_MAPPED_VEHICLES
 LMU_SHARED_MEMORY_FILE = LMUConstants.LMU_SHARED_MEMORY_FILE
 
+# Offset per la guardia anti-tearing di SimInfo (mElapsedTime del player)
+_OFF_TELEM = getattr(LMUObjectOut, "telemetry").offset
+_OFF_PLY_IDX = _OFF_TELEM + getattr(LMUTelemetryData, "playerVehicleIdx").offset
+_OFF_TELEM_INFO = _OFF_TELEM + getattr(LMUTelemetryData, "telemInfo").offset
+_SZ_VEH_TELEM = ctypes.sizeof(LMUVehicleTelemetry)
+_OFF_VEH_ELAP = getattr(LMUVehicleTelemetry, "mElapsedTime").offset
+
 
 class SimInfo:
     """Wrapper compatibile: legge l'intero LMUObjectOut dalla shared memory
@@ -521,6 +528,20 @@ class SimInfo:
         mm = mmap.mmap(0, size, tagname=LMU_SHARED_MEMORY_FILE,
                        access=mmap.ACCESS_READ)
         buf = mm.read(size)
+        # Guardia anti-tearing: LMU scrive a 100 Hz e la memoria non ha
+        # version counter (doc §14.1) -> se mElapsedTime del player nella
+        # copia non coincide piu' col vivo, il frame e' strappato: ricopia.
+        try:
+            ply = mm[_OFF_PLY_IDX]
+            if ply < MAX_MAPPED_VEHICLES:
+                off = _OFF_TELEM_INFO + ply * _SZ_VEH_TELEM + _OFF_VEH_ELAP
+                for _ in range(2):
+                    if buf[off:off + 8] == mm[off:off + 8]:
+                        break
+                    mm.seek(0)
+                    buf = mm.read(size)
+        except Exception:
+            pass
         mm.close()
         data = LMUObjectOut.from_buffer_copy(buf)
         self.scoring = data.scoring
