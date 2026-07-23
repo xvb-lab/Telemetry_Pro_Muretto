@@ -2685,14 +2685,14 @@ class Wec26MfdOverlay(WecOnboardOverlay):
     # GARAGE, LAP, LICO, MDF, MOD/SC, ON/OFF, elettronica) restano
     # in inglese SEMPRE. L'app principale non c'entra: solo la card.
     _IT9 = {"DAMAGE": "DANNO", "ENERGY": "ENERGIA", "FUEL": "BENZINA",
-            "4 TYRES": "4 GOMME", "TYRES": "GOMME", "ALL": "TUTTE",
+            "4 TYRES": "4 GOMME", "TYRES": "GOMME", "ALL": "GOMME",
             "REPAIR ALL": "RIPARA TUTTO",
             "REPAIR BODY": "RIPARA CARROZZERIA",
             "REPAIR SUSP": "RIPARA SOSPENSIONI",
             "REPAIR AERO": "RIPARA AERO",
             "NO REPAIR": "NON RIPARARE",
             "NO DAMAGE": "NESSUN DANNO",
-            "NO CHANGE": "NESSUNA MODIFICA",
+            "NO CHANGE": "NIENTE",
             "MIXED": "MISTE",
             "FL": "AS", "FR": "AD", "RL": "PS", "RR": "PD",
             "PENALTY": "PENALITA'", "BRAKES": "FRENI",
@@ -2802,7 +2802,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         #    RATIO, 4 TYRES, FL, FR, RL, RR. Righe/font AUTO-FIT sul numero
         #    di voci (max 25 alto): con la penalità o piu' voci si stringono. ──
         COLW = 220.0          # larghezza colonna testo
-        SELW = 175.0          # larghezza banda SELEZIONE (piu' stretta)
+        SELW = 250.0          # larghezza banda SELEZIONE (rich. 24/07)
         ROWH = 25.0           # altezza riga FISSA (il menu SCROLLA)
         XC = 20.0             # margine sinistro colonna
         TX = XC + 14.0        # rientro testo
