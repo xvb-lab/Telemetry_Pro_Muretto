@@ -2712,6 +2712,18 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 if self._svg_fuel9.isValid():
                     self._svg_fuel9.render(
                         p, QRectF(_W / 2.0 - 72.0, gy - 48.0, 22, 22))
+            # SPIA ESP/TC (icona utente): sfarfalla quando il controllo
+            # trazione sta intervenendo, come su una stradale
+            if getattr(self, "_tc_on", False):
+                if not hasattr(self, "_svg_esp9"):
+                    from PySide6.QtSvg import QSvgRenderer as _QSRz
+                    self._svg_esp9 = _QSRz(
+                        str(_ROOT / "assets" / "icons" / "esp_tc.svg"))
+                if (time.monotonic() % 0.3) < 0.18 \
+                        and self._svg_esp9.isValid():
+                    self._svg_esp9.render(
+                        p, QRectF(_W / 2.0 - 156.0, gy - 48.0, 22, 22))
+                self.update()          # sfarfallio fluido
             # ── gruppo spie DESTRO (icone utente), da dentro a fuori:
             # MOTORE rossa (surriscaldo/danno), GOMMA TPMS (forata/persa),
             # TRIANGOLO (sospensione GRAVE >=50%)
