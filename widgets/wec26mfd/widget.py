@@ -4062,32 +4062,57 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     p.setPen(Qt.NoPen)
                     p.setBrush(QColor("#181246"))
                     p.drawRect(QRectF(_lap_x0, 0.0, _lapw, self.HDR))
-                    # ── testo: freeze (5s) / INVALID / milestone sessione / DELTA ──
-                    _bgb9 = "#262c38"          # DELTA: ardesia, MAI il blu dei tempi
-                    if time.monotonic() < self._freeze_until \
-                            and self._freeze_txt:
+                    # ── testo EVENTI: freeze (5s) / INVALID / milestone ──
+                    if time.monotonic() < self._freeze_until                             and self._freeze_txt:
                         _vt, _vc, _lim = self._freeze_txt, self._freeze_col, False
-                        _bgb9 = "#0a0031"      # tempi/settori: blu classico
-                    elif self._lap_limits and \
-                            time.monotonic() - getattr(self, "_inv_t",
+                    elif self._lap_limits and                             time.monotonic() - getattr(self, "_inv_t",
                                                        -99.0) < 5.0:
-                        # INVALID: 5 secondi, poi la casella torna al DELTA
-                        _vt, _vc, _lim = "INVALID", \
-                            QColor(255, 255, 255, 150), True
-                        _bgb9 = "#0a0031"
+                        _vt, _vc, _lim = "INVALID",                             QColor(255, 255, 255, 150), True
                     elif time.monotonic() - getattr(self, "_sess_flash_t",
                                                     -99.0) < 5.0:
-                        # traguardo tempo sessione (60/30/15/10/5/1 min):
-                        # residuo mostrato 5s nella casella tempo
                         _rm = int(round(getattr(self, "_sess_flash_v", 0.0)))
                         _vt = ("LAST MINUTE" if _rm <= 60
                                else "LEFT %d MIN" % (_rm // 60))
                         _vc, _lim = QColor(255, 255, 255, 200), False
-                        _bgb9 = "#0a0031"
                     else:
-                        _vt, _vc, _lim = self._delta_txt, self._delta_col, False
-                    # ── COLONNA DELTA col COLLASSO: senza testo scivola
-                    # verso la cella LAP e sfuma; col testo si riapre ──
+                        _vt, _vc, _lim = None, None, False
+                    # ── CELLA DELTA (ardesia, STRETTA sul testo): stessa
+                    # animazione LATERALE WEC, ancorata alla colonna LAP ──
+                    _dtx = self._delta_txt or ""
+                    if _dtx:
+                        self._d_last = _dtx
+                        self._d_lastc = self._delta_col
+                    _tgtd = 0.0 if _dtx else 1.0
+                    _kd = getattr(self, "_dcell_k", _tgtd)
+                    _kd += (_tgtd - _kd) * 0.12
+                    if abs(_tgtd - _kd) > 0.005:
+                        self.update()
+                    else:
+                        _kd = _tgtd
+                    self._dcell_k = _kd
+                    f_d9 = QFont("Archivo SemiExpanded", 14)
+                    f_d9.setWeight(QFont.DemiBold)
+                    f_d9.setItalic(True)
+                    _dtx_show = _dtx or getattr(self, "_d_last", "")
+                    _dwf = QFontMetricsF(f_d9).horizontalAdvance(
+                        _dtx_show or "+0.000") + 14.0
+                    _dx1 = _lap_x0
+                    _dx0 = _dx1 - _dwf * (1.0 - _kd)
+                    if _kd < 0.999 and _dtx_show:
+                        _bgd9 = QColor("#262c38")
+                        _bgd9.setAlpha(int(255 * (1.0 - _kd)))
+                        p.setPen(Qt.NoPen)
+                        p.setBrush(_bgd9)
+                        p.drawRect(QRectF(_dx0, 0.0, _dx1 - _dx0, self.HDR))
+                        if _kd < 0.5:
+                            p.setFont(f_d9)
+                            _pcd = QColor(self._d_lastc)                                 if _dtx and self._d_lastc                                 else QColor(255, 255, 255, 235)
+                            p.setPen(_pcd)
+                            _twd = QFontMetricsF(f_d9)                                 .horizontalAdvance(_dtx_show)
+                            p.drawText(QPointF(
+                                _dx0 + (_dwf - _twd) / 2.0, _yb), _dtx_show)
+                    # ── CELLA EVENTI (blu): l'ORIGINALE con l'animazione
+                    # laterale, ancorata al bordo sinistro della cella delta ──
                     _tgt9 = 0.0 if _vt else 1.0
                     _k9 = getattr(self, "_dl_coll", _tgt9)
                     _k9 += (_tgt9 - _k9) * 0.12
@@ -4096,54 +4121,28 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     else:
                         _k9 = _tgt9
                     self._dl_coll = _k9
-                    _dl_x0 = _tx + (_lap_x0 - _tx) * _k9
-                    _dl_x1 = _lap_x0
-                    # ── FADE D'ENTRATA degli EVENTI: il blu sfuma
-                    # SOPRA l'ardesia del delta anche a cella gia' aperta
-                    _is_ev9 = (_bgb9 == "#0a0031")
-                    if _is_ev9:
-                        _sg0 = (_vt, round(getattr(self, "_freeze_until",
-                                                   0.0), 1))
-                        if getattr(self, "_ev_sig9", None) != _sg0:
-                            self._ev_sig9 = _sg0
-                            self._ev_t0 = time.monotonic()
-                        _ka9 = min(1.0, (time.monotonic()
-                                         - self._ev_t0) / 0.30)
-                        if _ka9 < 1.0:
-                            self.update()
-                    else:
-                        self._ev_sig9 = None
-                        _ka9 = 1.0
-                    _op9 = 255 * (1.0 - _k9 * 0.9)
+                    _ex1 = _dx0
+                    _dl_x0 = _tx + (_ex1 - _tx) * _k9
+                    _dl_x1 = _ex1
+                    _bgc9 = QColor("#0a0031")
+                    _bgc9.setAlpha(int(255 * (1.0 - _k9 * 0.9)))
                     p.setPen(Qt.NoPen)
-                    if _is_ev9 and _ka9 < 1.0:
-                        _base9 = QColor("#262c38")     # sotto: ardesia delta
-                        _base9.setAlpha(int(_op9))
-                        p.setBrush(_base9)
-                        p.drawRect(QRectF(_dl_x0, 0.0, _dl_x1 - _dl_x0,
-                                          self.HDR))
-                    _bgc9 = QColor(_bgb9)
-                    _bgc9.setAlpha(int(_op9 * (_ka9 if _is_ev9 else 1.0)))
                     p.setBrush(_bgc9)
                     p.drawRect(QRectF(_dl_x0, 0.0, _dl_x1 - _dl_x0,
                                       self.HDR))
-                    if _lim:                     # INVALID: bold dritto, bianco soft
+                    if _lim:
                         f_v = QFont("Archivo SemiExpanded", 12)
                         f_v.setWeight(QFont.Bold)
                         f_v.setItalic(False)
-                    else:                        # delta/freeze: demibold 14
+                    else:
                         f_v = QFont("Archivo SemiExpanded", 14)
                         f_v.setWeight(QFont.DemiBold)
                         f_v.setItalic(True)
-                    # ── SOLO il tempo, CENTRATO nel box delta ──
                     if _vt:
                         _txt_w = QFontMetricsF(f_v).horizontalAdvance(_vt)
                         _gx = _dl_x0 + max(6.0, (_dl_x1 - _dl_x0 - _txt_w) / 2.0)
                         p.setFont(f_v)
-                        _pc9 = QColor(_vc or QColor(255, 255, 255, 235))
-                        if _is_ev9 and _ka9 < 1.0:
-                            _pc9.setAlpha(int(_pc9.alpha() * _ka9))
-                        p.setPen(_pc9)
+                        p.setPen(_vc or QColor(255, 255, 255, 235))
                         p.drawText(QPointF(_gx, _yb), _vt)
                     # ── LAP N: dentro la colonna, a destra ──
                     p.setFont(f_lap)
