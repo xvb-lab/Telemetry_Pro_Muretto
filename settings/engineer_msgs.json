@@ -7518,9 +7518,9 @@
       "cat": "garage",
       "level": "info",
       "beep": false,
-      "it": "Esci con gomma usata e fredda, {gomme}: i primi minuti scivola, accompagnala. Asfalto a {temp} gradi.",
+      "it": "Esci con gomma usata e fredda, {gomme}: i primi minuti scivola, accompagnalà. Asfalto a {temp} gradi.",
       "variants_it": [
-        "Esci con gomma usata e fredda, {gomme}: i primi minuti scivola, accompagnala. Asfalto a {temp} gradi.",
+        "Esci con gomma usata e fredda, {gomme}: i primi minuti scivola, accompagnalà. Asfalto a {temp} gradi.",
         "Treno usato di {gomme}, temperatura bassa: doppia attenzione al primo giro, il grip arriva tardi.",
         "Gomma {gomme} già lavorata e fredda: entra piano nelle prime staccate, poi si stabilizza.",
         "Set usato e freddo: le {gomme} vanno rispettate per un giro pieno. {temp} gradi a terra.",
