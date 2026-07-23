@@ -11039,8 +11039,11 @@ class TelemetryWindow(QMainWindow):
         self._stack.currentChanged.connect(lambda *_: self._update_footer())
         # colonna sonora: traccia scelta dalla pagina corrente
         self._stack.currentChanged.connect(lambda *_: self._music_sync())
+        self._stack.currentChanged.connect(
+            lambda *_: self._update_footer())
 
         intro = self._make_intro()
+        self._intro_page = intro
         if intro is not None:
             self._stack.addWidget(intro)
             self._stack.setCurrentWidget(intro)
@@ -11070,10 +11073,11 @@ class TelemetryWindow(QMainWindow):
             self._update_footer()
 
     def _update_footer(self):
-        """Footer visibile su menu/app, nascosto sull'intro."""
-        on_page = self._stack.currentWidget() in (self._menu, self._app,
-                                                  self._stint_page)
-        self._footer.setVisible(on_page)
+        """Footer FISSO su TUTTE le pagine (rich. 23/07: era sparito
+        fuori dalla home) — via solo durante il video intro."""
+        _w9 = self._stack.currentWidget()
+        self._footer.setVisible(
+            _w9 is not getattr(self, "_intro_page", None))
 
     _BANNER_COLS = {
         "idle": ("#989ba2", "#16171a", "#2a2c30"),
