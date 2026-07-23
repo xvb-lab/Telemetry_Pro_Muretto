@@ -2810,23 +2810,13 @@ class Wec26MfdOverlay(WecOnboardOverlay):
             p.setFont(_big)
             if _stopping:
                 # UN SOLO countdown fluido: ancora fotografata all'arrivo
-                # meno il NOSTRO orologio (la stima d'ingresso e' esatta
-                # al decimo: test 45.99 vs 45.9). Se la squadra AGGIUNGE
-                # lavoro a sosta in corso (menu cambiato), ri-ancora.
-                try:
-                    _live9 = float((getattr(self, "_pit_est", None)
-                                    or {}).get("total") or 0.0)
-                except (TypeError, ValueError):
-                    _live9 = 0.0
+                # meno il NOSTRO orologio (stima d'ingresso esatta al
+                # decimo: test 45.99 vs 45.9). NESSUN ri-ancoraggio: verso
+                # fine sosta LMU riarma il preventivo della sosta DOPO
+                # (~12-14s) e riagganciarlo impallava il conto li' (video
+                # + dettato 23/07). L'ancora vive dallo stop al via.
                 _rem = max(0.0, getattr(self, "_pit_total0", 0.0)
                            - self._pit_run)
-                if _live9 > _rem + 2.5 and self._pit_run > 1.0:
-                    self._pit_total0 = _live9 + self._pit_run
-                    try:
-                        self._pit_est0 = dict(self._pit_est or {})
-                    except Exception:
-                        pass
-                    _rem = _live9
                 if _rem > 0.05:
                     p.setPen(QPen(QColor("#ffb020")))       # ambra: lavori
                     _bt = "%.1f" % _rem
