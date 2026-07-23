@@ -2775,7 +2775,7 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                 p.drawRoundedRect(_rm, 4, 4)
                 p.setFont(f_e)          # STESSO font da acceso e spento
                 p.setPen(QPen(_gd))
-                p.drawText(_rm, Qt.AlignCenter, "MOD OFF")
+                p.drawText(_rm, Qt.AlignCenter, "MOD 0")
             # SPIA "SC" (mappa motore 0 = safety car map) nello slot
             # che era dell'ECO: ambra fissa quando sei in mappa 0
             _map0 = (getattr(self, "_mmap", None) == 0)
