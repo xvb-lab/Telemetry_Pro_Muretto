@@ -1940,9 +1940,12 @@ class Wec26MfdOverlay(WecOnboardOverlay):
         if not act:
             return
         # RETROILLUMINAZIONE notte: fari FISSI accesi -> velo blu leggero
-        # su tutto lo schermo del dash (sotto il contenuto della pagina)
-        if getattr(self, "_beam", False) \
-                and not getattr(self, "_light_flash", False):
+        # su tutto lo schermo. Durante il LAMPEGGIO segue lo stato
+        # congelato pre-lampeggio (di notte NON si spegne mai)
+        _bl9 = getattr(self, "_beam_pre", False) \
+            if getattr(self, "_light_flash", False) \
+            else getattr(self, "_beam", False)
+        if _bl9:
             p.setPen(Qt.NoPen)
             p.setBrush(QColor(64, 130, 255, 14))
             p.drawRect(scr)
