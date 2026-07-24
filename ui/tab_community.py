@@ -74,10 +74,15 @@ class _TrackRow(QFrame):
         h.addLayout(cls_row)
 
 
-def _car_render_path(model):
+def _car_render_path(model, team=None):
     """Modello del record ('Porsche 911 GT3 R LMGT3') -> render
     ufficiale in assets/car-th (WEC 2026 -> 2025 -> ELMS). None se
-    non c'e' un render onesto per quel modello."""
+    non c'e' un render onesto per quel modello.
+
+    LIVREA ESATTA (rich. utente 24/07 sera): il numero di gara e' nel
+    campo team ('...#69:WEC'); se un render di QUEL numero+modello c'e'
+    lo si preferisce (la #69 verde, non la #32 rossa). Altrimenti
+    ripiega sul primo render del modello."""
     ml = (model or "").lower()
     if not ml:
         return None
@@ -99,15 +104,30 @@ def _car_render_path(model):
     tok = next((t for k, t in RULES if k in ml), None)
     if not tok:
         return None
+    # numero di gara dal team ("Team WRT 2026 #69:WEC" -> 69)
+    _num = None
+    if team:
+        import re as _re
+        _m = _re.search(r"#\s*(\d+)", str(team))
+        if _m:
+            _num = int(_m.group(1))
     root = Path(__file__).resolve().parent.parent / "assets"
+    _best = None
     for sub in ("car-th", "car-th/2025", "car-th/elms"):
         d = root / sub
         if not d.is_dir():
             continue
         for f in sorted(d.glob("*.png")):
-            if tok in f.name.lower():
-                return f
-    return None
+            nl = f.name.lower()
+            if tok not in nl:
+                continue
+            if _best is None:
+                _best = f                      # primo del modello (fallback)
+            if _num is not None:
+                for _sg in nl[:-4].split("-"):
+                    if _sg.isdigit() and int(_sg) == _num:
+                        return f                # livrea ESATTA per numero
+    return _best
 
 
 class _RankRow(QFrame):

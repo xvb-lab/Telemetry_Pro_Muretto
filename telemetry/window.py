@@ -10500,6 +10500,26 @@ class _SessionCard(QFrame):
         ncw = QWidget(); ncw.setLayout(ncol)
         ncw.setStyleSheet("background:transparent;")
         h.addWidget(ncw)
+        # RENDER dell'auto (modello riconosciuto dal veicolo) sul lato
+        # brand (rich. utente 24/07 sera: i modellini delle classifiche)
+        try:
+            from ui.tab_community import _car_render_path
+            from PySide6.QtGui import QPixmap as _QPr
+            _crp = _car_render_path(s.get("vehicle"), s.get("team"))
+            if _crp:
+                _pmc = _QPr(str(_crp))
+                if not _pmc.isNull():
+                    _cr = QLabel()
+                    _cr.setFixedSize(124, 54)
+                    _cr.setStyleSheet("background:transparent;")
+                    _cr.setAlignment(Qt.AlignCenter)
+                    _cr.setPixmap(_pmc.scaled(
+                        124, 54, Qt.KeepAspectRatio,
+                        Qt.SmoothTransformation))
+                    h.addSpacing(12)
+                    h.addWidget(_cr, 0, Qt.AlignVCenter)
+        except Exception:
+            pass
         # colonna CASCO accanto al nome: la TUA livrea sulle card personali,
         # tre caschi affiancati (fila piloti) sulle card team
         try:
