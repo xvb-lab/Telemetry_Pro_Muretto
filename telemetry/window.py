@@ -9758,7 +9758,7 @@ class _TrackMapView(QWidget):
 
         used = []                        # rettangoli etichette occupati
 
-        def _label(txt, cx, cy, col, small=False):
+        def _label(txt, cx, cy, col, small=False, force=False):
             f2 = QFont("Archivo SemiExpanded", 8 if small else 9)
             f2.setBold(True)
             m2 = QFontMetrics(f2)
@@ -9774,16 +9774,18 @@ class _TrackMapView(QWidget):
                 r.moveTop(2)
             if r.bottom() > H - 2:
                 r.moveBottom(H - 2)
-            for u in used:
-                if r.intersects(u):
-                    return False
-            used.append(r.adjusted(-3, -2, 3, 2))
+            if not force:                    # force: disegna comunque
+                for u in used:
+                    if r.intersects(u):
+                        return False
+            used.append(r.adjusted(-1, -1, 1, 1))
             p.setFont(f2)
             p.setPen(QColor(10, 12, 16, 200))
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 p.drawText(r.translated(dx, dy), Qt.AlignCenter, txt)
             p.setPen(col)
             p.drawText(r, Qt.AlignCenter, txt)
+            return True
             return True
 
         def _tick(idx, col, ln, wd):
@@ -9822,11 +9824,22 @@ class _TrackMapView(QWidget):
                     + ((P[a].y() - ny) - cy0) ** 2:
                 nx, ny = -nx, -ny
             base_t = "T%d" % (tn_i + 1)
-            for dist in (14.0, 26.0, 38.0):
+            # TUTTE le curve devono comparire (rich. 24/07 sera: a Le
+            # Mans mancavano T2/T11/T14/T21/T22/T25/T28 perche' i numeri
+            # si accavallavano e venivano scartati). Piu' tentativi di
+            # posizione; se proprio non c'e' buco -> disegna COMUNQUE
+            _pl9 = False
+            for dist in (11.0, 18.0, 26.0, 34.0, 44.0):
                 if _label(base_t, P[a].x() + nx * (trk / 2 + dist),
                           P[a].y() + ny * (trk / 2 + dist),
-                          QColor(242, 244, 247, 245)):
+                          QColor(242, 244, 247, 245), small=True):
+                    _pl9 = True
                     break
+            if not _pl9:
+                _label(base_t, P[a].x() + nx * (trk / 2 + 11.0),
+                       P[a].y() + ny * (trk / 2 + 11.0),
+                       QColor(242, 244, 247, 245), small=True,
+                       force=True)
 
 
 class _TrackPage(QWidget):
