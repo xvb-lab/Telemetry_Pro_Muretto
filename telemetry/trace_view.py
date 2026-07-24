@@ -1735,7 +1735,7 @@ class _LiveMap(QWidget):
         # (che vive a +-6 m dalla mezzeria) usciva dal nastro. 13 m
         # di carreggiata convertiti con lo zoom: le macchine stanno
         # SULLA pista a qualsiasi ingrandimento.
-        trk_w = max(6.0, min(300.0, 15.0 * getattr(self, "_ppm9", 1.0)))
+        trk_w = max(6.0, min(300.0, 18.0 * getattr(self, "_ppm9", 1.0)))
         ln_w = max(1.4, min(16.0, 2.2 * zm))
         # macchinine in SCALA VERA (rich. 23/07: in pista ci stanno 3
         # auto affiancate -> il simbolo e' 1/3 della carreggiata)
