@@ -45,20 +45,21 @@ _CLASS_COL = {
 _YELLOW = QColor("#ffd400")
 
 # COLORI CORDOLI per pista (rich. 24/07: "come sono veramente") —
-# (base, strisce); default bianco/rosso. Chiave = pezzo del nome.
-_KERB_COLS = {
-    "silverstone": (QColor(240, 240, 240, 235), QColor(28, 30, 36, 235)),
-    "spa": (QColor(255, 212, 0, 235), QColor(224, 40, 60, 235)),
-    "monza": (QColor(240, 240, 240, 235), QColor(224, 40, 60, 235)),
-}
+# tabella CONDIVISA in data/kerb_colors.py (dettata per 16 circuiti).
+# Qui (mappetta piccola) si usano SEMPRE 2 colori: per i tricolore
+# (Imola/Monza/Interlagos) si prendono gli ultimi due — il tricolore
+# per lungo vive solo sulla pagina pista grande.
 
 
 def _kerb_cols9(track):
-    tl = (track or "").lower()
-    for k, v in _KERB_COLS.items():
-        if k in tl:
-            return v
-    return (QColor(240, 240, 240, 235), QColor(224, 40, 60, 235))
+    try:
+        from data.kerb_colors import kerb_colors
+        cs = kerb_colors(track)
+        a, b = cs[-2], cs[-1]
+        return (QColor(a[0], a[1], a[2], 235),
+                QColor(b[0], b[1], b[2], 235))
+    except Exception:
+        return (QColor(240, 240, 240, 235), QColor(224, 40, 60, 235))
 
 
 def _safe(track):

@@ -9296,19 +9296,131 @@ class _PillButton(QPushButton):
         p.drawText(self.rect(), Qt.AlignCenter, self.text())
 
 
+def _real_map_load(track):
+    """Mappa VERA per la pagina pista (rich. 24/07): cerca la _2026
+    (ufficiale LMU o registrata) con match STRETTO — uguale, o nome
+    file DENTRO il nome pagina; MAI il contrario, se no la National
+    comparirebbe sulla pagina del GP. -> (pts, secs, pit, piazzole)."""
+    import re
+    import json
+    from pathlib import Path
+
+    def _nm(s):
+        s = re.sub(r"#U([0-9a-fA-F]{4})",
+                   lambda m: chr(int(m.group(1), 16)), (s or "").lower())
+        for w in ("grand prix", "circuit", "international",
+                  "raceway", "speedway", "the ", "2026"):
+            s = s.replace(w, " ")
+        return re.sub(r"[^a-z0-9]+", "", s)
+
+    tn = _nm(track)
+    if not tn:
+        return None, [], [], []
+    dirs = []
+    try:
+        from core.paths import USER_DIR as _UD
+        dirs.append(_UD / "trackmap_auto")
+    except Exception:
+        _UD = None
+    dirs.append(Path(__file__).resolve().parent.parent
+                / "settings" / "trackmap_auto")
+    f = None
+    for d in dirs:
+        if not d.exists():
+            continue
+        best = -1
+        for sv in d.glob("*.svg"):
+            sn = _nm(sv.stem)
+            if not sn:
+                continue
+            if sn == tn:
+                f = sv
+                break
+            if sn in tn and len(sn) > best:
+                best = len(sn)
+                f = sv
+        if f is not None:
+            break
+    if f is None:
+        return None, [], [], []
+    txt = f.read_text(encoding="utf-8", errors="ignore")
+    m = re.search(r'points="([^"]+)"', txt)
+    if not m:
+        return None, [], [], []
+    pts = []
+    for tok in m.group(1).split():
+        if "," in tok:
+            a, b = tok.split(",")[:2]
+            pts.append((float(a), -float(b)))
+    if len(pts) < 10:
+        return None, [], [], []
+    secs = []
+    dm = re.search(r"<desc>([\d,\s]+)</desc>", txt)
+    if dm:
+        secs = [int(x) for x in re.findall(r"\d+", dm.group(1))][:2]
+    pit = []
+    pm = re.search(r'id="pitlane"[^>]*points="([^"]+)"', txt)
+    if pm:
+        for tok in pm.group(1).split():
+            if "," in tok:
+                a, b = tok.split(",")[:2]
+                pit.append((float(a), -float(b)))
+    # PIAZZOLE dal payload GREZZO ufficiale ("piu' roba abbiamo
+    # meglio e'"): coppie type>=2 = segmentini box/griglia ~3.9 m
+    spots = []
+    try:
+        if _UD is not None:
+            fn = _nm(f.stem)
+            for j in (_UD / "trackmap_official").glob("*_lmu_raw.json"):
+                if _nm(j.stem.replace("_lmu_raw", "")) == fn:
+                    seg = {}
+                    # NB: z NON negata — il loader SVG rinega la y del
+                    # file, quindi il piano di lavoro e' (x, z) mondo
+                    for q in json.loads(j.read_text(encoding="utf-8")):
+                        t = int(q.get("type", 0))
+                        if t >= 2:
+                            seg.setdefault(t, []).append(
+                                (float(q["x"]), float(q["z"])))
+                    for pp in seg.values():
+                        for i in range(0, len(pp) - 1, 2):
+                            spots.append((pp[i], pp[i + 1]))
+                    break
+    except Exception:
+        spots = []
+    return pts, secs, pit, spots
+
+
 class _TrackMapView(QWidget):
-    """Trackmap resa ESATTAMENTE come sulle card del menu: stessa SVG
-    (_OV_TRACKMAPS_SVG_DIR), colori ORIGINALI, stessa rotazione (_MAP_ROTATION),
-    sfondo trasparente. Cosi' su questa pagina la pista appare identica alla card."""
+    """Trackmap della pagina pista. Se esiste la mappa VERA _2026
+    (ufficiale LMU) la disegna in scala reale con cordoli colorati,
+    settori, corsia box, piazzole e curve col NOME (rich. 24/07);
+    altrimenti la SVG stilizzata della card come prima."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._r = None
         self._rot = 0
+        self._real = None
         self.setMinimumHeight(260)
+
+    def set_real(self, track):
+        """Prova la mappa VERA. -> True se trovata (niente fallback)."""
+        self._real = None
+        try:
+            pts, secs, pit, spots = _real_map_load(track)
+        except Exception:
+            pts = None
+        if not pts:
+            self.update()
+            return False
+        self._r = None
+        self._real = (track, pts, secs, pit, spots)
+        self.update()
+        return True
 
     def set_map(self, cmap, rot):
         self._r = None
+        self._real = None
         try:
             if cmap and QSvgRenderer is not None:
                 p = _OV_TRACKMAPS_SVG_DIR / cmap
@@ -9322,6 +9434,15 @@ class _TrackMapView(QWidget):
         self.update()
 
     def paintEvent(self, e):
+        if self._real is not None:
+            p = QPainter(self)
+            p.setRenderHint(QPainter.Antialiasing, True)
+            try:
+                self._paint_real(p)
+            except Exception:
+                pass
+            p.end()
+            return
         if self._r is None:
             return
         p = QPainter(self)
@@ -9342,6 +9463,222 @@ class _TrackMapView(QWidget):
             p.rotate(rot)
         # colori ORIGINALI della SVG, come sulla card (niente tinta)
         self._r.render(p, QRectF(-sw / 2.0, -sh / 2.0, sw, sh))
+
+    def _paint_real(self, p):
+        import math
+        from bisect import bisect_left
+        from PySide6.QtGui import (QColor, QPen, QFont, QFontMetrics,
+                                   QPainterPath)
+        from PySide6.QtCore import QPointF, QRectF
+        track, pts, secs, pit, spots = self._real
+        W, H = float(self.width()), float(self.height())
+        mrg = 40.0                       # aria per le etichette nomi
+        xs = [q[0] for q in pts] + [q[0] for q in pit]
+        zs = [q[1] for q in pts] + [q[1] for q in pit]
+        x0, x1 = min(xs), max(xs)
+        z0, z1 = min(zs), max(zs)
+        bw, bh = max(1.0, x1 - x0), max(1.0, z1 - z0)
+        sc = min((W - 2 * mrg) / bw, (H - 2 * mrg) / bh)
+        ox = (W - bw * sc) / 2.0 - x0 * sc
+        oz = (H - bh * sc) / 2.0 - z0 * sc
+
+        def T(q):
+            return QPointF(q[0] * sc + ox, q[1] * sc + oz)
+
+        # larghezza REALE della carreggiata ("un metro e' un metro")
+        try:
+            from data.track_info import width_for_track
+            trk = max(6.0, width_for_track(track) * sc)
+        except Exception:
+            trk = 9.0
+        P = [T(q) for q in pts]
+        Pc = P + [P[0]]                  # anello chiuso
+
+        def _pl(pen, seq):
+            p.setPen(pen)
+            p.setBrush(Qt.NoBrush)
+            path = QPainterPath(seq[0])
+            for q in seq[1:]:
+                path.lineTo(q)
+            p.drawPath(path)
+
+        # lunghezze d'arco (metri veri) + curvatura locale
+        n = len(pts)
+        cum = [0.0]
+        for i in range(1, n):
+            cum.append(cum[-1] + math.hypot(pts[i][0] - pts[i - 1][0],
+                                            pts[i][1] - pts[i - 1][1]))
+        L = cum[-1] + math.hypot(pts[0][0] - pts[-1][0],
+                                 pts[0][1] - pts[-1][1])
+        st = max(1, int(round(8.0 / max(0.5, L / n))))   # passo ~8 m
+
+        def _turn(i):
+            a = pts[(i - st) % n]
+            b = pts[i]
+            c = pts[(i + st) % n]
+            h1 = math.atan2(b[1] - a[1], b[0] - a[0])
+            h2 = math.atan2(c[1] - b[1], c[0] - b[0])
+            d = math.degrees(h2 - h1)
+            while d > 180.0:
+                d -= 360.0
+            while d < -180.0:
+                d += 360.0
+            return d
+
+        def _norm(i):
+            a = pts[(i - 1) % n]
+            b = pts[(i + 1) % n]
+            dx, dz = b[0] - a[0], b[1] - a[1]
+            m = math.hypot(dx, dz) or 1.0
+            return (-dz / m, dx / m)     # perpendicolare unitaria
+
+        # ── ombra + corsia box + strada con bordi bianchi ──
+        _pl(QPen(QColor(0, 0, 0, 80), trk + 7.0,
+                 Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin), Pc)
+        if len(pit) > 4:
+            Q = [T(q) for q in pit]
+            _pl(QPen(QColor(0, 0, 0, 70), trk * 0.5 + 3.0,
+                     Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin), Q)
+            _pl(QPen(QColor(130, 136, 150, 200), max(2.0, trk * 0.5),
+                     Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin), Q)
+        _pl(QPen(QColor(232, 235, 242, 215), trk + 2.6,
+                 Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin), Pc)
+        _pl(QPen(QColor(56, 60, 70, 245), trk,
+                 Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin), Pc)
+
+        # ── piazzole box/griglia dal payload grezzo ──
+        if spots:
+            p.setPen(QPen(QColor(205, 215, 235, 170),
+                          max(1.5, 1.0 * sc), Qt.SolidLine, Qt.FlatCap))
+            for a, b in spots:
+                p.drawLine(T(a), T(b))
+
+        # ── traguardo ──
+        nx, nz = _norm(0)
+        hw = trk * 0.62
+        p.setPen(QPen(QColor(245, 247, 252, 240), max(2.2, trk * 0.16),
+                      Qt.SolidLine, Qt.FlatCap))
+        p.drawLine(QPointF(P[0].x() - nx * hw, P[0].y() - nz * hw),
+                   QPointF(P[0].x() + nx * hw, P[0].y() + nz * hw))
+
+        # ── settori: tacche gialle S2/S3 agli indici del <desc> ──
+        fnt = QFont("Archivo SemiExpanded", 9)
+        fnt.setBold(True)
+        fm = QFontMetrics(fnt)
+        used = []                        # rettangoli occupati (etichette)
+
+        def _label(txt, cx, cy, col, small=False):
+            f2 = QFont("Archivo SemiExpanded", 8 if small else 9)
+            f2.setBold(True)
+            m2 = QFontMetrics(f2)
+            w = m2.horizontalAdvance(txt)
+            h = m2.height()
+            r = QRectF(cx - w / 2.0, cy - h / 2.0, w, h)
+            for u in used:
+                if r.intersects(u):
+                    return False
+            used.append(r.adjusted(-3, -2, 3, 2))
+            p.setFont(f2)
+            p.setPen(QColor(10, 12, 16, 200))
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                p.drawText(r.translated(dx, dy), Qt.AlignCenter, txt)
+            p.setPen(col)
+            p.drawText(r, Qt.AlignCenter, txt)
+            return True
+
+        for si, idx in enumerate(secs[:2]):
+            if not (0 < idx < n):
+                continue
+            nx, nz = _norm(idx)
+            hw = trk * 0.68
+            p.setPen(QPen(QColor(255, 212, 0, 235), max(2.0, trk * 0.12),
+                          Qt.SolidLine, Qt.FlatCap))
+            p.drawLine(QPointF(P[idx].x() - nx * hw, P[idx].y() - nz * hw),
+                       QPointF(P[idx].x() + nx * hw, P[idx].y() + nz * hw))
+            _label("S%d" % (si + 2), P[idx].x() + nx * (hw + 10),
+                   P[idx].y() + nz * (hw + 10),
+                   QColor(255, 212, 0, 240), small=True)
+
+        # ── curve censite: cordoli colorati + T + NOME ufficiale ──
+        try:
+            from data.track_corners import corners_for_track
+            mets = corners_for_track(track, L) or []
+        except Exception:
+            mets = []
+        try:
+            from data.track_corner_names import corner_name
+        except Exception:
+            def corner_name(t, i):
+                return None
+        try:
+            from data.kerb_colors import kerb_colors
+            kc = kerb_colors(track)
+        except Exception:
+            kc = [(240, 240, 240), (224, 40, 60)]
+        kw = max(2.0, min(trk * 0.34, 3.0 * sc))     # cordolo ~3 m
+        for tn_i, mt in enumerate(mets):
+            a = bisect_left(cum, mt % L) % n
+            i0 = a
+            while (a - i0) < 40 and abs(_turn((i0 - 1) % n)) > 0.9:
+                i0 -= 1
+            j0 = a
+            while (j0 - a) < 40 and abs(_turn((j0 + 1) % n)) > 0.9:
+                j0 += 1
+            i0 = max(a - 40, min(a - 3, i0))
+            j0 = min(a + 40, max(a + 3, j0))
+            sgn = 1.0 if sum(_turn(k % n)
+                             for k in range(i0, j0 + 1)) >= 0 else -1.0
+
+            def _band(rng, side, off_extra=0.0):
+                out = []
+                for k in rng:
+                    q = pts[k % n]
+                    nx2, nz2 = _norm(k % n)
+                    off = (trk / 2.0 + off_extra) * side / sc
+                    out.append(T((q[0] + nx2 * off, q[1] + nz2 * off)))
+                return out
+
+            for rng, side in (
+                    (range(i0, a + 1), sgn),          # interno: ingresso->apice
+                    (range(a, j0 + 1), -sgn)):        # esterno: apice->uscita
+                if len(kc) >= 3:
+                    # TRICOLORE per lungo: 3 bande parallele
+                    for bi, c in enumerate(kc):
+                        seq = _band(rng, side,
+                                    (bi - 1) * kw / sc / 1.9)
+                        _pl(QPen(QColor(c[0], c[1], c[2], 235),
+                                 max(1.1, kw / 2.6), Qt.SolidLine,
+                                 Qt.FlatCap, Qt.RoundJoin), seq)
+                else:
+                    seq = _band(rng, side)
+                    c1, c2 = kc[0], kc[1]
+                    _pl(QPen(QColor(c1[0], c1[1], c1[2], 235), kw,
+                             Qt.SolidLine, Qt.FlatCap, Qt.RoundJoin), seq)
+                    pen2 = QPen(QColor(c2[0], c2[1], c2[2], 235), kw,
+                                Qt.CustomDashLine, Qt.FlatCap, Qt.RoundJoin)
+                    d = max(0.6, 5.0 / kw)   # strisce FINI (unita' Qt x pen)
+                    pen2.setDashPattern([d, d])
+                    _pl(pen2, seq)
+
+            # etichetta: T + nome (fuori curva, anti-affollamento)
+            nm = corner_name(track, tn_i + 1)
+            nx2, nz2 = _norm(a)
+            base_t = "T%d" % (tn_i + 1)
+            txt = (base_t + " " + nm) if nm else base_t
+            ok = False
+            for dist in (16.0, 28.0, 40.0):
+                if _label(txt, P[a].x() - nx2 * sgn * (trk / 2 + dist),
+                          P[a].y() - nz2 * sgn * (trk / 2 + dist),
+                          QColor(242, 244, 247, 245)):
+                    ok = True
+                    break
+            if not ok and nm:
+                for dist in (16.0, 28.0):   # niente spazio: solo numero
+                    if _label(base_t,
+                              P[a].x() - nx2 * sgn * (trk / 2 + dist),
+                              P[a].y() - nz2 * sgn * (trk / 2 + dist),
+                              QColor(242, 244, 247, 245)):
+                        break
 
 
 class _TrackPage(QWidget):
@@ -9761,7 +10098,11 @@ class _TrackPage(QWidget):
         except Exception:
             self._title.setText((name or "").upper())
         try:
-            self._map.set_map(mapname, _MAP_ROTATION.get(base or "", 0))
+            # PRIMA la mappa VERA _2026 (rich. 24/07): circuito reale
+            # con cordoli/settori/nomi curve; la stilizzata resta il
+            # fallback (e resta SEMPRE sulle card del menu)
+            if not self._map.set_real(name):
+                self._map.set_map(mapname, _MAP_ROTATION.get(base or "", 0))
         except Exception:
             pass
         self._trk = self._trk_slug(name)     # slug per le chiavi online
