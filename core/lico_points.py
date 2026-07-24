@@ -31,6 +31,22 @@ def _auto_file(track, cls_tag):
     return _OUT / ("%s_%s_auto.json" % (tr, cls_tag or "X"))
 
 
+def _spy9(track, fonte, ts):
+    """SPIA curve ingegnere (rich. 24/07: "devo sapere COSA legge"):
+    ogni lettura finisce in engineer_curve_debug.txt con fonte e
+    posizioni — mai piu' dubbi su un "curva 13"."""
+    try:
+        import time as _t
+        from core.paths import USER_DIR
+        with open(USER_DIR / "engineer_curve_debug.txt", "a",
+                  encoding="utf-8") as fh:
+            fh.write("[%s] %s: fonte=%s curve=%d  %s\n" % (
+                _t.strftime("%H:%M:%S"), track, fonte, len(ts),
+                " ".join("%s@%dm" % (q[1], q[0]) for q in ts[:14])))
+    except Exception:
+        pass
+
+
 def map_turns(track, track_len):
     """[(lapdist, 'Tn')] — CURVE dalla mappa SVG ufficiale (stessa
     matematica del Worksheet: curvatura dell'outline, numerate dalla
@@ -45,8 +61,10 @@ def map_turns(track, track_len):
     except Exception:
         _db9 = None
     if _db9:
-        return [(max(0.0, round(p - 40.0, 1)), "T%d" % (i + 1),
-                 round(p + 40.0, 1)) for i, p in enumerate(_db9)]
+        out = [(max(0.0, round(p - 40.0, 1)), "T%d" % (i + 1),
+                round(p + 40.0, 1)) for i, p in enumerate(_db9)]
+        _spy9(track, "CENSIMENTO", out)
+        return out
     try:
         from telemetry.trace_view import _load_track_svg
         ol, _secs, _pit9 = _load_track_svg(track)
@@ -106,6 +124,8 @@ def map_turns(track, track_len):
         from data.track_info import info_for_track
         _inf9 = info_for_track(track, track_len)
         if _inf9 and len(turns_idx) != int(_inf9[1]):
+            _spy9(track, "MUTO (geometrico %d vs scheda %d)"
+                  % (len(turns_idx), int(_inf9[1])), [])
             return []
     except Exception:
         pass
@@ -115,9 +135,11 @@ def map_turns(track, track_len):
         a, b = ol[i - 1], ol[i]
         cum.append(cum[-1] + math.hypot(b[0] - a[0], b[1] - a[1]))
     k = track_len / cum[-1] if cum[-1] > 0 else 1.0
-    return [(round(cum[ie] * k, 1), "T%d" % (t + 1),
-             round(cum[je] * k, 1))
-            for t, (ie, je) in enumerate(turns_idx)]
+    out = [(round(cum[ie] * k, 1), "T%d" % (t + 1),
+            round(cum[je] * k, 1))
+           for t, (ie, je) in enumerate(turns_idx)]
+    _spy9(track, "GEOMETRICO", out)
+    return out
 
 
 def map_corner_lifts(track, track_len):
