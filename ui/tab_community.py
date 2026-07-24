@@ -276,16 +276,15 @@ class _RankRow(QFrame):
         # secondi/decimi di differenza
         _gap = ("%.3f" % ((_ms0 - leader_ms) / 1000.0)) \
             if (leader_ms and _ms0 and _ms0 > leader_ms) else ""
-        gcol = QLabel(_gap)
-        # GAP piu' grande (24/07: 13->22px). Lo sfondo #55526e SQUADRATO
-        # a tutta altezza lo disegna il paintEvent (con reveal animato
-        # sinistra->destra), non lo stylesheet
-        gcol.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:22px;"
-                           "font-weight:800;background:transparent;"
-                           % ("#f2f4f7",))
-        gcol.setContentsMargins(8, 0, 8, 0)
+        # il gap: label VUOTA solo per riservare lo spazio; il NUMERO
+        # (centrato) e lo sfondo #55526e li disegna il paintEvent con il
+        # reveal, cosi' numero+BG entrano INSIEME (rich. utente 24/07)
+        gcol = QLabel("")
+        gcol.setStyleSheet("background:transparent;")
         gcol.setFixedWidth(112 if _gap else 96)
         self._gcol9 = gcol
+        self._gaptext9 = _gap
+        self._gpos9 = pos
         self._gap_on9 = bool(_gap)
         self._greveal9 = 0.0
         self._gtimer9 = None
@@ -524,10 +523,26 @@ class _RankRow(QFrame):
                 _rend = float(gr.x() + gr.width())   # bordo destro gap
                 _full = _rend - cut                  # attacca al taglio
                 if _full > 0:
-                    _rw = _full * max(0.0, min(1.0, self._greveal9))
-                    p.fillRect(QRectF(cut, 0.0, _rw,
-                                      float(self.height())),
-                               QColor("#55526e"))
+                    _rev = max(0.0, min(1.0, self._greveal9))
+                    _rw = _full * _rev
+                    _clip = QRectF(cut, 0.0, _rw, float(self.height()))
+                    # BG squadrato, rivelato sinistra->destra
+                    p.fillRect(_clip, QColor("#55526e"))
+                    # NUMERO gap CENTRATO nel blocco, rivelato INSIEME al
+                    # BG (clip uguale): niente numero visibile prima
+                    if self._gaptext9:
+                        from PySide6.QtGui import QFont
+                        p.save()
+                        p.setClipRect(_clip)
+                        _gf = QFont("Archivo SemiExpanded")
+                        _gf.setPixelSize(22)
+                        _gf.setBold(True)
+                        p.setFont(_gf)
+                        p.setPen(QColor("#f2f4f7"))
+                        p.drawText(QRectF(cut, 0.0, _full,
+                                          float(self.height())),
+                                   Qt.AlignCenter, self._gaptext9)
+                        p.restore()
             p.end()
         super().paintEvent(e)
 
@@ -540,7 +555,10 @@ class _RankRow(QFrame):
                 and not getattr(self, "_gqueued9", False):
             self._gqueued9 = True
             from PySide6.QtCore import QTimer
-            QTimer.singleShot(3000, self._gstart9)
+            # 3s dall'apertura + SFALSAMENTO un decimo per riga (cascata,
+            # rich. utente 24/07 sera)
+            _delay = 3000 + max(0, self._gpos9 - 1) * 100
+            QTimer.singleShot(_delay, self._gstart9)
 
     def _gstart9(self):
         if self._gtimer9 is not None:
