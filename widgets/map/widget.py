@@ -593,7 +593,7 @@ class MapCanvas(QWidget):
             _zf9 = zoom / 5.5
             self._zoomf9 = _zf9
             z2 = scl * zoom * gcal
-            track_w_mult = 6.6 * gcal * _zf9    # ESPERIMENTO: doppia
+            track_w_mult = 4.4 * gcal * _zf9    # doppia -1/3 (24/07)
             dot_mult = 1.75 * gcal * _zf9       # macchine INVARIATE
             hm = getattr(self, "_l2_hm", -math.pi / 2.0)        # heading map-space (smussato)
             prev = getattr(self, "_l2_prev", None)
@@ -623,7 +623,7 @@ class MapCanvas(QWidget):
         else:
             self._gps_active = False
             self._zoomf9 = 1.0
-            track_w_mult = 1.33   # mappa intera: traccia +1/3 (24/07)
+            track_w_mult = 1.77   # mappa intera: +1/3 ancora (24/07)
             def tf(x, z):
                 return (offx + (x - minx) * scl, offz + (maxz - z) * scl)
 
