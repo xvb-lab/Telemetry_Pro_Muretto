@@ -1739,7 +1739,7 @@ class _LiveMap(QWidget):
         ln_w = max(1.4, min(16.0, 2.2 * zm))
         # macchinine in SCALA VERA (rich. 23/07: in pista ci stanno 3
         # auto affiancate -> il simbolo e' 1/3 della carreggiata)
-        dot_r = max(2.5, trk_w / 6.0)
+        dot_r = max(3.5, trk_w / 3.0)   # macchinina DOPPIA (rich. 24/07)
 
         # pista larga (colore scuro pickabile) usando il giro Selected come tracciato
         # decima i punti SOLO per il disegno (cursore/dot usano i punti pieni)

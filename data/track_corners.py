@@ -15,7 +15,10 @@ metri degli apici (l'utente corregge a voce: 'la T3 sta a X')."""
 CORNERS = {
     # Silverstone National, 6 curve (censita 24/07 dai giri utente;
     # posizioni da rifinire con lui)
-    "silverstone national": (2641, [284, 900, 1005, 1833, 2020, 2330]),
+    # MISURATE 24/07 dai giri utente (apici = picchi di curvatura
+    # della mezzeria ufficiale, confermati dai minimi di velocita')
+    "silverstone national": (2635, [378, 1077, 1124, 1922, 2109,
+                                    2195]),
 }
 
 
