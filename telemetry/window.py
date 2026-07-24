@@ -10449,10 +10449,12 @@ class _SessionCard(QFrame):
         # TEAM (importata dall'amico): card ROSSO LMU (bg scuro + bordo)
         bord = "#ff1d43" if _team else _sess_border(cls)
         _bg = "rgba(84,6,20,0.92)" if _team else "rgba(13,27,42,0.90)"
+        # SQUADRATA, niente bordo azzurro a sx, piu' ALTA e piu' STRETTA
+        # (rich. utente 24/07 sera): prova
         self.setStyleSheet(
-            "#sessCard{background:%s;border:none;"
-            "border-left:3px solid %s;border-radius:9px;}" % (_bg, bord))
-        h = QHBoxLayout(self); h.setContentsMargins(13, 10, 14, 10); h.setSpacing(0)
+            "#sessCard{background:%s;border:none;border-radius:0;}" % _bg)
+        self.setFixedWidth(660)
+        h = QHBoxLayout(self); h.setContentsMargins(14, 16, 16, 16); h.setSpacing(0)
         # data/ora (come la posizione)
         dt = self._fmt_dt(s.get("started_at"))
         dcol = QVBoxLayout(); dcol.setSpacing(1); dcol.setContentsMargins(0, 0, 0, 0)
@@ -10515,38 +10517,44 @@ class _SessionCard(QFrame):
         except Exception:
             pass
         h.addStretch(1)
-        # meteo previsto (5 nodi) come nelle card vecchie
+        # colonna DESTRA (rich. utente 24/07 sera): BEST LAP grande sopra,
+        # METEO sotto, n. giri sotto ancora
+        rcol = QVBoxLayout(); rcol.setSpacing(3); rcol.setContentsMargins(0, 0, 0, 0)
+        bl = QLabel(_sess_fmt_lap(s.get("best_lap")))
+        bl.setStyleSheet("color:#f2f4f7;font-family:'Archivo SemiExpanded';font-size:20px;"
+                         "font-weight:800;background:transparent;")
+        bl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        rcol.addWidget(bl)
+        # meteo previsto (5 nodi) SOTTO il best lap
         fc5 = (s.get("forecast5") or "").strip()
         if fc5:
             _wdir = Path(__file__).resolve().parent.parent / "assets" / "weather"
             _fcw = QWidget(); _fcw.setStyleSheet("background:transparent;")
             _fcl = QHBoxLayout(_fcw)
-            _fcl.setContentsMargins(0, 0, 0, 0); _fcl.setSpacing(5)
+            _fcl.setContentsMargins(0, 0, 0, 0); _fcl.setSpacing(4)
+            _fcl.addStretch(1)
             _nic = 0
             for _nm in [x.strip() for x in fc5.split(",") if x.strip()][:5]:
                 _wp = _wdir / ("%s.svg" % _nm)
                 if not _wp.exists():
                     continue
-                _ic = _SvgBox(); _ic.setFixedSize(30, 30)
+                _ic = _SvgBox(); _ic.setFixedSize(24, 24)
                 _ic.setStyleSheet("background:transparent;")
                 _ic.load(str(_wp))
                 _fcl.addWidget(_ic, 0, Qt.AlignVCenter)
                 _nic += 1
             if _nic:
-                h.addWidget(_fcw, 0, Qt.AlignVCenter); h.addSpacing(16)
+                rcol.addWidget(_fcw)
             else:
                 _fcw.deleteLater()
-        # best lap + n giri
-        bl = QLabel(_sess_fmt_lap(s.get("best_lap")))
-        bl.setStyleSheet("color:#f2f4f7;font-family:'Archivo SemiExpanded';font-size:19px;"
-                         "font-weight:800;background:transparent;")
-        bl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        h.addWidget(bl); h.addSpacing(12)
         lp = QLabel("%d laps" % int(s.get("laps") or 0))
         lp.setStyleSheet("color:#8a90a0;font-family:'Archivo SemiExpanded';font-size:12px;"
                          "font-weight:700;background:transparent;")
-        lp.setFixedWidth(64); lp.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        h.addWidget(lp)
+        lp.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        rcol.addWidget(lp)
+        rcw = QWidget(); rcw.setLayout(rcol)
+        rcw.setStyleSheet("background:transparent;")
+        h.addWidget(rcw, 0, Qt.AlignVCenter)
         # export in alto / X elimina in basso, come nelle card vecchie
         rb = QVBoxLayout(); rb.setSpacing(4); rb.setContentsMargins(0, 0, 0, 0)
         if s.get("team_session"):
