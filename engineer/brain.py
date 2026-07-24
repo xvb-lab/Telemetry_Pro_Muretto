@@ -4757,6 +4757,17 @@ class Engineer:
              self._L("posteriore destra", "rear right",
                      "trasera derecha", "arriere droite"))
         kind = session_kind(raw.get("session_type"))
+
+        # CONSIGLI GARAGE (24/07 sera): oltre al parlato, il consiglio
+        # CONCRETO finisce scritto nella pagina Setups (garage_advice)
+        def _gadv(sezione, voce, consiglio, motivo=""):
+            try:
+                from core.garage_advice import add as _ga9
+                _ga9(str(raw.get("track") or ""),
+                     str(raw.get("car_class") or tag or ""),
+                     sezione, voce, consiglio, motivo)
+            except Exception:
+                pass
         # 1. FRENI IN FADE: decel peggiora con freni roventi
         _dec = acc.get("decel", 0.0)
         if _dec < -0.5:
@@ -4768,6 +4779,11 @@ class Engineer:
                         tag, 850.0):
                 said.add("fade")
                 out = self.msg("brake_fade")
+                _gadv("FRENI", "Condotti freni",
+                      "apri i condotti freno (brake ducts) di 1 "
+                      "posizione",
+                      "frenata in fade: decelerazione calata coi "
+                      "freni oltre soglia")
         # 2. PRESSIONI fuori finestra (dal 3o giro di stint)
         if out is None and "press" not in said \
                 and lap >= int(st.get("stint_lap0") or 0) + 3:
@@ -4779,13 +4795,23 @@ class Engineer:
                         continue
                     if _pv > _win[1] + 2.0:
                         said.add("press")
+                        _k9 = int(round(_pv - _win[1]))
                         out = self.msg("press_high", ruota=W[_i],
-                                       kpa=int(round(_pv - _win[1])))
+                                       kpa=_k9)
+                        _gadv("GOMME", "Pressione %s" % W[_i],
+                              "abbassa la pressione a freddo di "
+                              "~%d kPa" % _k9,
+                              "a caldo %d kPa sopra la finestra" % _k9)
                         break
                     if _pv < _win[0] - 2.0:
                         said.add("press")
+                        _k9 = int(round(_win[0] - _pv))
                         out = self.msg("press_low", ruota=W[_i],
-                                       kpa=int(round(_win[0] - _pv)))
+                                       kpa=_k9)
+                        _gadv("GOMME", "Pressione %s" % W[_i],
+                              "alza la pressione a freddo di "
+                              "~%d kPa" % _k9,
+                              "a caldo %d kPa sotto la finestra" % _k9)
                         break
         # 3. GLAZING/BLISTER
         if out is None and "glaze" not in said:
@@ -4794,6 +4820,11 @@ class Engineer:
                 if _gv is not None and _gv > 20.0:
                     said.add("glaze")
                     out = self.msg("tyre_glaze", ruota=W[_i])
+                    _gadv("GOMME", "Gomma %s vetrificata" % W[_i],
+                          "riscaldala piu' dolce (niente pattinamenti"
+                          " o bloccaggi) e prova -1 kPa a freddo",
+                          "superficie oltre 20 gradi piu' calda "
+                          "della carcassa")
                     break
         # 4. CAMBER spread (solo prova: e' roba da assetto)
         if out is None and "camber" not in said and kind == "practice":
@@ -4803,6 +4834,12 @@ class Engineer:
                     said.add("camber")
                     out = self.msg("camber_spread", ruota=W[_i],
                                    deg=int(round(_cv)))
+                    _gadv("CORNERS", "Camber %s" % W[_i],
+                          "ritocca il camber di 0.3-0.5 gradi: se la "
+                          "spalla INTERNA e' la piu' calda riduci "
+                          "l'angolo, se e' l'esterna aumentalo",
+                          "differenza di %d gradi tra i bordi della "
+                          "gomma in appoggio" % int(round(_cv)))
                     break
         # 5. STALLO DIFFUSORE
         if out is None and "stall" not in said:
@@ -4810,6 +4847,11 @@ class Engineer:
             if _sv is not None and _sv > 0.25:
                 said.add("stall")
                 out = self.msg("diffuser_stall")
+                _gadv("SOSPENSIONI", "Altezza posteriore",
+                      "alza il ride height posteriore di 1-2 mm "
+                      "(o irrigidisci le molle posteriori)",
+                      "fondo sotto la soglia di stallo alle alte "
+                      "velocita'")
         # 6. TC/ABS troppo carichi (GT: hardware vero)
         if out is None and tag in ("GT3", "GTE"):
             _tcv = _avg("tc_on")
@@ -4817,15 +4859,27 @@ class Engineer:
             if "tc" not in said and _tcv is not None and _tcv > 0.08:
                 said.add("tc")
                 out = self.msg("tc_high", pct=int(round(_tcv * 100)))
+                _gadv("ELETTRONICA", "Traction Control",
+                      "scendi di 1 posizione di TC",
+                      "TC in intervento il %d%% del giro"
+                      % int(round(_tcv * 100)))
             elif "abs" not in said and _abv is not None \
                     and _abv > 0.15:
                 said.add("abs")
                 out = self.msg("abs_high", pct=int(round(_abv * 100)))
+                _gadv("ELETTRONICA", "ABS",
+                      "scendi di 1 posizione di ABS",
+                      "ABS in intervento il %d%% del giro"
+                      % int(round(_abv * 100)))
         # 7. POWER CLIP (HY)
         if out is None and "clip" not in said \
                 and acc.get("clip", 0) > 25:
             said.add("clip")
             out = self.msg("power_clip")
+            _gadv("AERO", "Ala posteriore",
+                  "prova -1 di ala: tocchi il limite di potenza sul "
+                  "dritto (power clip)",
+                  "gas pieno senza accelerare sul rettilineo")
         # 8. BURN RATE energia (HY)
         if out is None and tag == "HY" and "burn" not in said:
             _ve = self._fnum(raw.get("ve_pct"))

@@ -115,6 +115,27 @@ class _SettingsTab(QWidget):
         bar.addWidget(self.btn_load); bar.addWidget(self.lb_file, 1)
         bar.addWidget(self.btn_save); bar.addWidget(self.btn_saveas)
         root.addLayout(bar)
+        # CONSIGLI GARAGE dell'ingegnere (rich. 24/07 sera): quello che
+        # il muretto dice a voce ("rivedi il camber") appare QUI scritto
+        # con la regolazione consigliata e il motivo — leggi, regoli, provi
+        self._adv_card = QFrame(); self._adv_card.setObjectName("svmCard")
+        _avl = QVBoxLayout(self._adv_card)
+        _avl.setContentsMargins(12, 8, 12, 10); _avl.setSpacing(4)
+        _ah = QHBoxLayout()
+        _at = QLabel("CONSIGLI GARAGE — INGEGNERE")
+        _at.setObjectName("svmHdr")
+        self._adv_clear = QPushButton("Pulisci")
+        self._adv_clear.setObjectName("backBtn")
+        self._adv_clear.setCursor(Qt.PointingHandCursor)
+        self._adv_clear.clicked.connect(self._adv_wipe)
+        _ah.addWidget(_at); _ah.addStretch(1)
+        _ah.addWidget(self._adv_clear)
+        _avl.addLayout(_ah)
+        _l9 = QFrame(); _l9.setObjectName("svmHdrLine"); _avl.addWidget(_l9)
+        self._adv_rows = QVBoxLayout(); self._adv_rows.setSpacing(2)
+        _avl.addLayout(self._adv_rows)
+        self._adv_card.setVisible(False)
+        root.addWidget(self._adv_card)
         self.sub = QTabWidget(); root.addWidget(self.sub, 1)
         self.setStyleSheet(
             "#svmCard{background:#16181c;border:none;border-radius:10px;}"
@@ -143,6 +164,51 @@ class _SettingsTab(QWidget):
         lbl.setStyleSheet("color:#989ba2;font-size:14px;"); lbl.setAlignment(Qt.AlignCenter)
         l.addStretch(); l.addWidget(lbl); l.addStretch()
         self.sub.addTab(w, "Setup")
+
+    def _adv_wipe(self):
+        try:
+            from core.garage_advice import clear
+            clear()
+        except Exception:
+            pass
+        self._adv_refresh()
+
+    def _adv_refresh(self):
+        """Ricarica i consigli garage (a ogni apertura della pagina)."""
+        while self._adv_rows.count():
+            _it = self._adv_rows.takeAt(0)
+            _w = _it.widget()
+            if _w:
+                _w.deleteLater()
+        try:
+            from core.garage_advice import list_all
+            rows = list_all()[:8]
+        except Exception:
+            rows = []
+        self._adv_card.setVisible(bool(rows))
+        for r in rows:
+            head = " · ".join(x for x in (r.get("data"), r.get("track"),
+                                          r.get("car"), r.get("sezione"))
+                              if x)
+            t1 = QLabel("%s — %s" % (r.get("voce", ""),
+                                     r.get("consiglio", "")))
+            t1.setWordWrap(True)
+            t1.setStyleSheet("color:#e8eaef;font-size:12px;"
+                             "font-weight:600;background:transparent;")
+            t2 = QLabel(head + ((" — " + r.get("motivo", ""))
+                                if r.get("motivo") else ""))
+            t2.setWordWrap(True)
+            t2.setStyleSheet("color:#8a90a0;font-size:11px;"
+                             "background:transparent;")
+            self._adv_rows.addWidget(t1)
+            self._adv_rows.addWidget(t2)
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        try:
+            self._adv_refresh()
+        except Exception:
+            pass
 
     def load_path(self, path):
         try:
