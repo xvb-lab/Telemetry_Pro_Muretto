@@ -90,11 +90,17 @@ class MapReader:
                 vv = v.mLocalVel
                 mem_speed = (vv.x * vv.x + vv.y * vv.y + vv.z * vv.z) ** 0.5
                 info = rinfo.get(vid, {})
+                try:
+                    _nm9 = bytes(v.mDriverName).split(b"\x00")[0] \
+                        .decode("utf-8", "ignore").strip()
+                except Exception:
+                    _nm9 = ""
                 car = {
                     "id": vid,
                     "x": px,
                     "z": pz,
                     "cls": class_tag(cls),
+                    "name": _nm9,
                     "num": info.get("num", ""),
                     "is_player": bool(v.mIsPlayer),
                     "in_pits": in_pits,

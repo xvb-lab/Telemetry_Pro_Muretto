@@ -312,9 +312,10 @@ class MapCanvas(QWidget):
         self._tm_cache = out
         return out
 
-    def _draw_decor9(self, p, tf, lw):
+    def _draw_decor9(self, p, tf, lw, vis=None):
         """CORDOLI + tacche/etichette SETTORE + numeri CURVA esterni,
-        come la mappa della telemetria (rich. 24/07)."""
+        come la mappa della telemetria (rich. 24/07). vis(i) = filtro
+        del focus GPS: fuori finestra non si disegna."""
         ol = self._path or []
         n = len(ol)
         if n < 20:
@@ -342,6 +343,8 @@ class MapCanvas(QWidget):
         # CORDOLO LUNGO (24/07): copre il tratto VERO della curva
         # rilevato dalla detection (i..j), non una finestrella fissa
         for _ti_idx, _lab, _i0k, _j0k in self._turns_map():
+            if vis is not None and not vis(_ti_idx % n):
+                continue          # fuori dal focus GPS
             c0 = _scr(_ti_idx)
             if not (-60 <= c0.x() <= w + 60 and -60 <= c0.y() <= h + 60):
                 continue
@@ -390,6 +393,8 @@ class MapCanvas(QWidget):
         # tacche bianche ai confini settore + etichette S1/S2/S3
         secs = [s for s in (self._secs or []) if 0 <= s < n]
         for si in secs:
+            if vis is not None and not vis(si):
+                continue
             nx, ny = _norm(si)
             c = _scr(si)
             hw = lw / 2.0 + 3.0
@@ -401,6 +406,8 @@ class MapCanvas(QWidget):
             _sb = [0] + secs + [n - 1]
             for si in range(min(3, len(_sb) - 1)):
                 mid = (_sb[si] + _sb[si + 1]) // 2
+                if vis is not None and not vis(mid):
+                    continue
                 c = _scr(mid)
                 if not (-40 <= c.x() <= w + 40 and -40 <= c.y() <= h + 40):
                     continue
@@ -509,6 +516,38 @@ class MapCanvas(QWidget):
         # ── layout 2: vista GPS, player al centro, pista ruotata e zoomata ──
         _cfg = get_config().widget("map")
         layout = _cfg.get("map_layout", 1)
+        # MAPPA ADATTIVA (rich. 24/07): intera di norma, ma quando
+        # qualcuno ti arriva VICINO (~80 m lungo il nastro) passa da
+        # sola alla vista GPS zoomata per vedere la battaglia; torna
+        # intera quando il vicino sparisce da >130 m per 3 secondi
+        if layout == 1 and _cfg.get("map_adaptive") \
+                and self._track_len > 0:
+            _md9 = None
+            for c in self._cars:
+                if c.get("is_player") or c.get("garage") \
+                        or c.get("in_pits"):
+                    continue
+                _ld9 = c.get("lapdist")
+                if _ld9 is None:
+                    continue
+                d9 = abs((_ld9 - self._my_dist) % self._track_len)
+                d9 = min(d9, self._track_len - d9)
+                if _md9 is None or d9 < _md9:
+                    _md9 = d9
+            _now9 = time.monotonic()
+            st9 = getattr(self, "_adapt9", None) or {"on": False,
+                                                     "t": 0.0}
+            if _md9 is not None and _md9 < 80.0:
+                st9["on"] = True
+                st9["t"] = _now9
+            elif st9["on"]:
+                if _md9 is not None and _md9 <= 130.0:
+                    st9["t"] = _now9
+                elif _now9 - st9["t"] > 3.0:
+                    st9["on"] = False
+            self._adapt9 = st9
+            if st9["on"]:
+                layout = 2
         dot_mult = 1.0
         track_w_mult = 1.0
         ply = None
@@ -553,19 +592,59 @@ class MapCanvas(QWidget):
             def tf(x, z):
                 return (offx + (x - minx) * scl, offz + (maxz - z) * scl)
 
+        # ── FOCUS GPS (rich. 24/07): in vista GPS si disegna SOLO il
+        # tratto di pista ATTORNO al player (±550 m lungo il nastro) —
+        # le strade parallele lontane sparivano nel nulla e "si
+        # vedevano tre strade senza capirci niente" ──
+        _vis9 = None
+        _arcvis9 = None
+        if layout == 2 and ply is not None and self._cum \
+                and self._cum_total > 0 and self._track_len > 0:
+            _pd9 = ((self._my_dist or 0.0) % self._track_len) \
+                / self._track_len * self._cum_total
+            _vw9 = 550.0
+
+            def _vis9(i, _pd=_pd9, _vw=_vw9):
+                d = abs(self._cum[min(i, len(self._cum) - 1)] - _pd)
+                d = min(d, self._cum_total - d)
+                return d <= _vw
+
+            def _arcvis9(ld, _pd=_pd9, _vw=_vw9):
+                # stessa finestra, ma per la LAPDIST delle auto
+                if ld is None:
+                    return True
+                d = abs((ld % self._track_len) / self._track_len
+                        * self._cum_total - _pd)
+                d = min(d, self._cum_total - d)
+                return d <= _vw + 60.0
+
         def arc(p0, p1, color, width):
             if p1 <= p0:
                 return
             sub = QPainterPath()
-            X, Y = tf(*self._path[p0]); sub.moveTo(X, Y)
-            for (x, z) in self._path[p0 + 1:p1]:
-                X, Y = tf(x, z); sub.lineTo(X, Y)
+            _op = False
+            for i in range(p0, p1):
+                if _vis9 is not None and not _vis9(i):
+                    _op = False
+                    continue
+                X, Y = tf(*self._path[i])
+                if not _op:
+                    sub.moveTo(X, Y); _op = True
+                else:
+                    sub.lineTo(X, Y)
             p.setPen(QPen(color, width)); p.setBrush(Qt.NoBrush)
             p.drawPath(sub)
 
         # ── CORSIA BOX (dalla mappa auto-registrata): sotto la pista,
         # cosi' si vede DOVE vanno le macchine quando sono nel pit ──
-        if getattr(self, "_pit9", None) and len(self._pit9) >= 4:
+        _pit_ok9 = getattr(self, "_pit9", None) and len(self._pit9) >= 4
+        if _pit_ok9 and _vis9 is not None and ply is not None:
+            # in GPS la corsia si mostra solo se sei nei paraggi
+            _pd2 = min((self._pit9[i][0] - ply[0]) ** 2
+                       + (self._pit9[i][1] - ply[1]) ** 2
+                       for i in range(0, len(self._pit9), 10))
+            _pit_ok9 = _pd2 <= 450.0 ** 2
+        if _pit_ok9:
             pl9 = QPainterPath()
             _px9, _py9 = tf(*self._pit9[0]); pl9.moveTo(_px9, _py9)
             for (x, z) in self._pit9[1:]:
@@ -581,10 +660,18 @@ class MapCanvas(QWidget):
 
         # ── tracciato: bordo nero opacizzato sotto + linea chiara sopra ──
         base = QPainterPath()
-        fx, fy = tf(*self._path[0]); base.moveTo(fx, fy)
-        for (x, z) in self._path[1:]:
-            X, Y = tf(x, z); base.lineTo(X, Y)
-        base.closeSubpath()
+        _opb9 = False
+        for _ib9, (x, z) in enumerate(self._path):
+            if _vis9 is not None and not _vis9(_ib9):
+                _opb9 = False
+                continue
+            X, Y = tf(x, z)
+            if not _opb9:
+                base.moveTo(X, Y); _opb9 = True
+            else:
+                base.lineTo(X, Y)
+        if _vis9 is None:
+            base.closeSubpath()
         lw = max(4.0, 5.0 * sc) * track_w_mult
         p.setPen(QPen(QColor(0, 0, 0, 150), lw + max(3.0, 3.5 * sc) * track_w_mult))  # alone nero (bordo proporzionale)
         p.setBrush(Qt.NoBrush)
@@ -593,7 +680,7 @@ class MapCanvas(QWidget):
         p.drawPath(base)
         # cordoli + settori + numeri curva (come la mappa telemetria)
         try:
-            self._draw_decor9(p, tf, lw)
+            self._draw_decor9(p, tf, lw, _vis9)
         except Exception:
             pass
 
@@ -711,6 +798,7 @@ class MapCanvas(QWidget):
                 p.drawText(QRectF(cx - rr, cy - rr, rr * 2, rr * 2), Qt.AlignCenter, numtxt)
 
         pcls = next((c.get("cls") for c in self._cars if c.get("is_player")), None)
+        _names9 = bool(_cfg.get("map_names", True))
         for c in self._cars:
             rx, rz = self._rendered.get(c["id"], (c["x"], c["z"]))
             X, Y = tf(rx, rz)
@@ -718,7 +806,29 @@ class MapCanvas(QWidget):
                 if pcls is None or c.get("cls") == pcls or c.get("is_player"):
                     garage_cars.append(c)                           # solo classe del pilota (+ pilota)
                 continue                                            # garage: fuori dalla pista
+            if _arcvis9 is not None and not c.get("is_player") \
+                    and not _arcvis9(c.get("lapdist")):
+                continue          # fuori dal focus GPS: pista nascosta
             draw_dot(X, Y, c, r)
+            # TAG PILOTA stile F1 (rich. 24/07): 3 lettere del cognome
+            # in bold bianco bordato nero, solo in vista GPS/zoom
+            if _names9 and _vis9 is not None:
+                _nm3 = (c.get("name", "").split() or [""])[-1][:3] \
+                    .upper()
+                if _nm3:
+                    _ft9 = QFont("Archivo SemiExpanded")
+                    _ft9.setBold(True)
+                    _ft9.setPixelSize(max(8, int(9 * sc * dot_mult)))
+                    p.setFont(_ft9)
+                    _tx9 = X + r + 4.0
+                    _ty9 = Y + 4.0
+                    p.setPen(QPen(QColor(0, 0, 0, 230)))
+                    for _dx9, _dy9 in ((1, 1), (-1, 1), (1, -1),
+                                       (-1, -1)):
+                        p.drawText(QPointF(_tx9 + _dx9, _ty9 + _dy9),
+                                   _nm3)
+                    p.setPen(QPen(QColor(255, 255, 255, 240)))
+                    p.drawText(QPointF(_tx9, _ty9), _nm3)
 
         # ── auto in GARAGE: colonna stretta in basso a sinistra + label "GAR" ──
         if garage_cars:

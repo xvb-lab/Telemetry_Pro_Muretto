@@ -225,6 +225,14 @@ class ConfigWindow(QDialog):
             grid.addWidget(QLabel("Layout GPS"), row_i, 0)
             grid.addWidget(self._make_toggle("gps"), row_i, 1)
             row_i += 1
+            # nomi piloti (3 lettere stile F1) accanto ai pallini
+            grid.addWidget(QLabel("Driver tags"), row_i, 0)
+            grid.addWidget(self._make_toggle("names"), row_i, 1)
+            row_i += 1
+            # mappa ADATTIVA: intera, ma zoom GPS quando c'e' battaglia
+            grid.addWidget(QLabel("Adaptive zoom"), row_i, 0)
+            grid.addWidget(self._make_toggle("adaptive"), row_i, 1)
+            row_i += 1
         # wec26mfd (Dashboard): AUTO PIT (i Mod 1-8 si gestiscono in overlay)
         elif self._key == "wec26mfd":
             # Il muretto scrive la Virtual Energy nel pit menu. Salva SUBITO in
@@ -484,6 +492,9 @@ class ConfigWindow(QDialog):
             self._set_toggle("record", cfg.get("record", True))
         elif self._key == "map":
             self._set_toggle("gps", cfg.get("map_layout", 1) == 2)
+            self._set_toggle("names", bool(cfg.get("map_names", True)))
+            self._set_toggle("adaptive",
+                             bool(cfg.get("map_adaptive", False)))
         elif self._key in ("wec26battle", "wec26battleb", "wec26flag",
                            "wec26radio"):
             if self._key in ("wec26battle", "wec26battleb"):
@@ -753,6 +764,10 @@ class ConfigWindow(QDialog):
             self._config.set_value(self._key, "record", self._toggle_state.get("record", True))
         elif self._key == "map":
             self._config.set_value(self._key, "map_layout", 2 if self._toggle_state.get("gps") else 1)
+            self._config.set_value(self._key, "map_names",
+                                   bool(self._toggle_state.get("names", True)))
+            self._config.set_value(self._key, "map_adaptive",
+                                   bool(self._toggle_state.get("adaptive", False)))
         elif self._key in ("wec26battle", "wec26battleb", "wec26flag",
                            "wec26radio"):
             if self._key in ("wec26battle", "wec26battleb"):
