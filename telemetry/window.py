@@ -9950,8 +9950,9 @@ class _TrackPage(QWidget):
         left.setStyleSheet("#tpInfo{background:transparent;border:none;}")
         # niente larghezza fissa: proporzionale (responsive con la finestra)
         lv = QVBoxLayout(left); lv.setContentsMargins(18, 18, 18, 18); lv.setSpacing(10)
-        # LOGO circuito SOPRA la mappa (esperimento 24/07 sera)
-        self._clogo = _SvgBox(); self._clogo.setFixedSize(200, 50)
+        # LOGO circuito SOPRA la mappa (esperimento 24/07 sera) — il
+        # DOPPIO (rich.): erano piccolini
+        self._clogo = _SvgBox(); self._clogo.setFixedSize(320, 100)
         self._clogo.setStyleSheet("background:transparent;")
         self._clogo.setVisible(False)
         lv.addWidget(self._clogo, 0, Qt.AlignHCenter)

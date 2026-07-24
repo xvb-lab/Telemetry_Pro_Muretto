@@ -307,7 +307,10 @@ class _RankRow(QFrame):
             tc.set_tyre(single, None, single_new=_new)
         tc.setFixedHeight(26 if _oncard else 34)
         # mescola sopra, USURA % sotto
-        _tcol = QVBoxLayout(); _tcol.setSpacing(1); _tcol.setContentsMargins(0, 0, 0, 0)
+        # margine BASSO sulla card (rich. 24/07 sera): con la riga
+        # centrata verticalmente, un pad in basso alza il simbolo gomma
+        _tcol = QVBoxLayout(); _tcol.setSpacing(1)
+        _tcol.setContentsMargins(0, 0, 0, 8 if _oncard else 0)
         _tcol.addWidget(tc, 0, Qt.AlignHCenter)
         _wl = QLabel(("%d%%" % round(_ts)) if _ts is not None else "—")
         _wl.setAlignment(Qt.AlignHCenter)
@@ -322,7 +325,9 @@ class _RankRow(QFrame):
         _fcol = QVBoxLayout(); _fcol.setSpacing(1)
         _fcol.setContentsMargins(0, 0 if _oncard else 8, 0, 0)
         _fic = _SvgBox()
-        _fic.setFixedSize(*((24, 24) if _oncard else (32, 32)))
+        # benzina un filo piu' grande (rich. 24/07 sera: stesso diametro
+        # del simbolo gomma) 24->28
+        _fic.setFixedSize(*((28, 28) if _oncard else (32, 32)))
         try:
             from ui.icons import FUEL_WEIGHT_SVG as _FWS
             _fic.load(_FWS.encode("utf-8") if isinstance(_FWS, str) else _FWS)
