@@ -10251,9 +10251,9 @@ class _TrackPage(QWidget):
             sx = max(0, (scaled.width() - r.width()) // 2)
             sy = max(0, (scaled.height() - r.height()) // 2)
             p.setRenderHint(QPainter.SmoothPixmapTransform, True)
-            # foto sfondo pagina: 0.20 -> 0.35 (rich. utente 24/07 sera,
-            # "piu' capacita' allo sfondo immagine")
-            p.setOpacity(0.35)
+            # foto sfondo pagina piu' PRESENTE (rich. utente 24/07 sera):
+            # 0.20 -> 0.50; sotto resta il blu #000833
+            p.setOpacity(0.50)
             p.drawPixmap(r, scaled, QRect(sx, sy, r.width(), r.height()))
             p.setOpacity(1.0)
         if self._DARK_CORNERS:
