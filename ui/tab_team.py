@@ -92,6 +92,19 @@ class _TeamTab(QWidget):
         self._bgphoto9 = pm
         self.update()
 
+    def showEvent(self, e):
+        super().showEvent(e)
+        # se non ho ancora una foto, uso l'ULTIMA pista vista (rich.
+        # utente 24/07 sera: Teams aperta dal menu restava senza sfondo)
+        if getattr(self, "_bgphoto9", None) is None:
+            try:
+                import telemetry.window as _wm
+                _k = getattr(_wm, "_CUR_BGKEY9", None)
+                if _k:
+                    self.set_bg(_k)
+            except Exception:
+                pass
+
     def paintEvent(self, e):
         from PySide6.QtCore import QRect
         p = QPainter(self)

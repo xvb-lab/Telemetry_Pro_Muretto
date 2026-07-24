@@ -10287,6 +10287,8 @@ class _TrackPage(QWidget):
     def set_track(self, idx, base, name, mapname, bgkey=None):
         self._idx = idx
         self._bgkey = bgkey              # foto card come sfondo pagina
+        if bgkey:                        # ricorda l'ULTIMA pista vista
+            globals()["_CUR_BGKEY9"] = bgkey   # (Teams la riusa)
         _stem9 = ""                      # cmap canonico (fuori dai try)
         try:
             from data.track_info import track_name, track_country
