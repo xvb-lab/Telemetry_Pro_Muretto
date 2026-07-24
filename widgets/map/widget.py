@@ -253,12 +253,21 @@ class MapCanvas(QWidget):
                             if abs(sm[j]) > mx:
                                 mx = abs(sm[j]); apex = j
                             j += 1
-                        if abs(tot) > minang:
-                            turns.append(apex)
+                        # (24/07) tratto MINIMO 3 punti: lo zigzag della
+                        # linea di guida registrata non e' una curva.
+                        # Estensione (i..j) tenuta per i cordoli
+                        if abs(tot) > minang and (j - i) >= 3:
+                            turns.append((apex, i, j))
                         i = j if j > i else i + 1
                     else:
                         i += 1
-                return turns
+                # dedupe: apici quasi coincidenti = stessa curva
+                out2 = []
+                for t in turns:
+                    if out2 and t[0] - out2[-1][0] < 5:
+                        continue
+                    out2.append(t)
+                return out2
 
             official = None
             try:
@@ -279,7 +288,8 @@ class MapCanvas(QWidget):
                     if d == 0:
                         break
             turns = best[1] if best else _detect(math.radians(28.0))
-            out = [(idx, "T%d" % (k + 1)) for k, idx in enumerate(turns)]
+            out = [(idx, "T%d" % (k + 1), i0, j0)
+                   for k, (idx, i0, j0) in enumerate(turns)]
         self._tm_key = key
         self._tm_cache = out
         return out
@@ -305,38 +315,15 @@ class MapCanvas(QWidget):
             L = math.hypot(dx, dy) or 1.0
             return (-dy / L, dx / L)
 
-        # CORDOLO LUNGO (rich. 24/07): si estende per TUTTA la curva —
-        # dall'apice si allarga finche' la strada continua a girare
-        # nello stesso verso, non solo una finestrella fissa
-        def _dh9(i):
-            a2 = ol[i % n]; b2 = ol[(i + 1) % n]
-            c2 = ol[(i + 2) % n]
-            h1 = math.atan2(b2[1] - a2[1], b2[0] - a2[0])
-            h2 = math.atan2(c2[1] - b2[1], c2[0] - b2[0])
-            d = h2 - h1
-            while d > math.pi:
-                d -= 2 * math.pi
-            while d < -math.pi:
-                d += 2 * math.pi
-            return d
-
-        def _kerb_span9(apex, max_pts=45):
-            s0 = 1.0 if _dh9(apex) >= 0 else -1.0
-            th = math.radians(1.0)
-            i0 = apex
-            while apex - i0 < max_pts and _dh9(i0 - 1) * s0 > th:
-                i0 -= 1
-            j0 = apex
-            while j0 - apex < max_pts and _dh9(j0 + 1) * s0 > th:
-                j0 += 1
-            return min(i0, apex - 3), max(j0, apex + 3)
-
         f9 = QFont("Archivo SemiExpanded")
         f9.setPixelSize(max(7, int(9 * sc)))
         f9.setBold(True)
         p.setFont(f9)
+        _used9 = []                 # rettangoli etichette gia' disegnate
         _kw = max(2.5, lw * 0.5)
-        for _ti_idx, _lab in self._turns_map():
+        # CORDOLO LUNGO (24/07): copre il tratto VERO della curva
+        # rilevato dalla detection (i..j), non una finestrella fissa
+        for _ti_idx, _lab, _i0k, _j0k in self._turns_map():
             c0 = _scr(_ti_idx)
             if not (-60 <= c0.x() <= w + 60 and -60 <= c0.y() <= h + 60):
                 continue
@@ -345,9 +332,8 @@ class MapCanvas(QWidget):
             vx, vy = b.x() - c0.x(), b.y() - c0.y()
             _ins = 1.0 if (ux * vy - uy * vx) > 0 else -1.0   # lato interno
             _off = lw / 2.0 + _kw / 2.0 + 1.0
-            _i0k, _j0k = _kerb_span9(_ti_idx)
             kpath = QPainterPath(); started = False
-            for i in range(_i0k, _j0k + 1):
+            for i in range(_i0k - 1, _j0k + 2):
                 cc = _scr(i)
                 nx, ny = _norm(i)
                 pt = QPointF(cc.x() + nx * _ins * _off,
@@ -364,11 +350,21 @@ class MapCanvas(QWidget):
             _kr.setCapStyle(Qt.FlatCap)
             _kr.setDashPattern([2.0, 2.0])            # strisce rosse
             p.setPen(_kr); p.drawPath(kpath)
-            # numero curva sul lato ESTERNO
+            # numero curva sul lato ESTERNO — con ANTI-COLLISIONE:
+            # se il posto e' occupato da un'altra etichetta, si sposta
+            # piu' fuori (T9/T11 uscivano una sopra l'altra, 24/07)
             nx, ny = _norm(_ti_idx)
-            _lx = c0.x() - nx * _ins * (lw / 2.0 + 10.0 * sc)
-            _ly = c0.y() - ny * _ins * (lw / 2.0 + 10.0 * sc)
             _tw = p.fontMetrics().horizontalAdvance(_lab)
+            _r9 = None
+            for _try9 in range(4):
+                _d9 = lw / 2.0 + (10.0 + 11.0 * _try9) * sc
+                _lx = c0.x() - nx * _ins * _d9
+                _ly = c0.y() - ny * _ins * _d9
+                _r9 = QRectF(_lx - _tw / 2.0 - 2, _ly - 7,
+                             _tw + 4, 13)
+                if not any(_r9.intersects(u) for u in _used9):
+                    break
+            _used9.append(_r9)
             p.setPen(QColor(0, 0, 0, 210))
             p.drawText(QPointF(_lx - _tw / 2.0 + 1, _ly + 4), _lab)
             p.setPen(QColor(230, 235, 245, 235))
@@ -391,10 +387,17 @@ class MapCanvas(QWidget):
                 if not (-40 <= c.x() <= w + 40 and -40 <= c.y() <= h + 40):
                     continue
                 nx, ny = _norm(mid)
-                off = lw / 2.0 + 15.0 * sc
                 lab = "S%d" % (si + 1)
                 _tw = p.fontMetrics().horizontalAdvance(lab)
-                lx, ly = c.x() + nx * off, c.y() + ny * off
+                _rs9 = None
+                for _try9 in range(4):
+                    off = lw / 2.0 + (15.0 + 11.0 * _try9) * sc
+                    lx, ly = c.x() + nx * off, c.y() + ny * off
+                    _rs9 = QRectF(lx - _tw / 2.0 - 2, ly - 7,
+                                  _tw + 4, 13)
+                    if not any(_rs9.intersects(u) for u in _used9):
+                        break
+                _used9.append(_rs9)
                 p.setPen(QColor(0, 0, 0, 210))
                 p.drawText(QPointF(lx - _tw / 2.0 + 1, ly + 4), lab)
                 p.setPen(QColor(255, 255, 255, 235))
