@@ -2621,6 +2621,40 @@ _MAP_ROTATION = {   # gradi orari per la mappa-circuito di certe piste
     "fuji": 90,
 }
 
+# ROTAZIONI STILIZZATE (rich. 24/07 sera): angoli salvati dall'utente
+# col tool tools/gira_stilizzate.py — le card erano "orientate alla
+# cazzo". Chiave = stem SVG decodificato; vince sul vecchio
+# _MAP_ROTATION. Cache con controllo mtime (il tool scrive a parte).
+_STYL_ROT_FP = (Path(__file__).resolve().parent.parent / "settings"
+                / "stylized_rotations.json")
+_styl_rot_cache = [None, 0.0]     # (dict, mtime)
+
+
+def _styl_rot9(cmap, base=""):
+    try:
+        import re as _r
+        stem = _r.sub(r"#U([0-9a-fA-F]{4})",
+                      lambda m: chr(int(m.group(1), 16)),
+                      str(cmap or "").rsplit(".", 1)[0])
+        try:
+            mt = _STYL_ROT_FP.stat().st_mtime
+        except OSError:
+            mt = 0.0
+        if _styl_rot_cache[0] is None or _styl_rot_cache[1] != mt:
+            try:
+                import json as _j
+                _styl_rot_cache[0] = _j.loads(
+                    _STYL_ROT_FP.read_text(encoding="utf-8"))
+            except Exception:
+                _styl_rot_cache[0] = {}
+            _styl_rot_cache[1] = mt
+        v = _styl_rot_cache[0].get(stem)
+        if v is not None:
+            return float(v)
+    except Exception:
+        pass
+    return float(_MAP_ROTATION.get(base or "", 0))
+
 
 
 
@@ -2650,7 +2684,7 @@ class _Card(QFrame):
         self._cat = cat
         self._locked = (cat == "imsa")   # IMSA chiusa (rich. 24/07)
         self._map = self._load_map(cmap)
-        self._map_rot = _MAP_ROTATION.get(track or "", 0)
+        self._map_rot = _styl_rot9(cmap, track)   # angolo salvato dal tool
         self._op = QGraphicsOpacityEffect(self)
         self._op.setOpacity(1.0)
         self.setGraphicsEffect(self._op)
@@ -2796,21 +2830,25 @@ class _Card(QFrame):
             if self._map is not None:
                 ds = self._map.defaultSize()
                 if ds.width() > 0 and ds.height() > 0:
-                    rot = self._map_rot
-                    ar = ds.width() / ds.height()
-                    ar_d = (1.0 / ar) if rot in (90, 270) else ar   # aspect mostrato
-                    mw = W * 0.78
-                    mh = mw / ar_d
-                    cap = H * 0.34
-                    if mh > cap:
-                        mh = cap
-                        mw = mh * ar_d
+                    # angolo LIBERO (tool gira_stilizzate): fit sul
+                    # bounding box ruotato, niente piu' scatti 90
+                    rot = float(self._map_rot or 0.0)
+                    _aw, _ah = float(ds.width()), float(ds.height())
+                    _th = math.radians(rot)
+                    _bw = abs(_aw * math.cos(_th)) \
+                        + abs(_ah * math.sin(_th))
+                    _bh = abs(_aw * math.sin(_th)) \
+                        + abs(_ah * math.cos(_th))
+                    _s = min(W * 0.78 / max(1.0, _bw),
+                             H * 0.34 / max(1.0, _bh))
+                    _mh = _bh * _s
                     p.save()
-                    p.translate(W / 2.0, H * 0.40 + mh / 2.0)        # centro del box
+                    p.translate(W / 2.0, H * 0.40 + _mh / 2.0)
                     if rot:
                         p.rotate(rot)
-                    sw, sh = (mh, mw) if rot in (90, 270) else (mw, mh)
-                    self._map.render(p, QRectF(-sw / 2.0, -sh / 2.0, sw, sh))
+                    self._map.render(p, QRectF(-_aw * _s / 2.0,
+                                               -_ah * _s / 2.0,
+                                               _aw * _s, _ah * _s))
                     p.restore()
             p.setOpacity(1.0)
         # bordo bianco rimosso
@@ -6209,6 +6247,40 @@ _MAP_ROTATION = {   # gradi orari per la mappa-circuito di certe piste
     "fuji": 90,
 }
 
+# ROTAZIONI STILIZZATE (rich. 24/07 sera): angoli salvati dall'utente
+# col tool tools/gira_stilizzate.py — le card erano "orientate alla
+# cazzo". Chiave = stem SVG decodificato; vince sul vecchio
+# _MAP_ROTATION. Cache con controllo mtime (il tool scrive a parte).
+_STYL_ROT_FP = (Path(__file__).resolve().parent.parent / "settings"
+                / "stylized_rotations.json")
+_styl_rot_cache = [None, 0.0]     # (dict, mtime)
+
+
+def _styl_rot9(cmap, base=""):
+    try:
+        import re as _r
+        stem = _r.sub(r"#U([0-9a-fA-F]{4})",
+                      lambda m: chr(int(m.group(1), 16)),
+                      str(cmap or "").rsplit(".", 1)[0])
+        try:
+            mt = _STYL_ROT_FP.stat().st_mtime
+        except OSError:
+            mt = 0.0
+        if _styl_rot_cache[0] is None or _styl_rot_cache[1] != mt:
+            try:
+                import json as _j
+                _styl_rot_cache[0] = _j.loads(
+                    _STYL_ROT_FP.read_text(encoding="utf-8"))
+            except Exception:
+                _styl_rot_cache[0] = {}
+            _styl_rot_cache[1] = mt
+        v = _styl_rot_cache[0].get(stem)
+        if v is not None:
+            return float(v)
+    except Exception:
+        pass
+    return float(_MAP_ROTATION.get(base or "", 0))
+
 
 def _draw_card_lock9(p, w, h, radius=13):
     """Velo scuro + LUCCHETTO rosso (stessa grafica della sessione
@@ -6256,7 +6328,7 @@ class _Card(QFrame):
         self._cat = cat
         self._locked = (cat == "imsa")   # IMSA chiusa (rich. 24/07)
         self._map = self._load_map(cmap)
-        self._map_rot = _MAP_ROTATION.get(track or "", 0)
+        self._map_rot = _styl_rot9(cmap, track)   # angolo salvato dal tool
         self._op = QGraphicsOpacityEffect(self)
         self._op.setOpacity(1.0)
         self.setGraphicsEffect(self._op)
@@ -6402,21 +6474,25 @@ class _Card(QFrame):
             if self._map is not None:
                 ds = self._map.defaultSize()
                 if ds.width() > 0 and ds.height() > 0:
-                    rot = self._map_rot
-                    ar = ds.width() / ds.height()
-                    ar_d = (1.0 / ar) if rot in (90, 270) else ar   # aspect mostrato
-                    mw = W * 0.78
-                    mh = mw / ar_d
-                    cap = H * 0.34
-                    if mh > cap:
-                        mh = cap
-                        mw = mh * ar_d
+                    # angolo LIBERO (tool gira_stilizzate): fit sul
+                    # bounding box ruotato, niente piu' scatti 90
+                    rot = float(self._map_rot or 0.0)
+                    _aw, _ah = float(ds.width()), float(ds.height())
+                    _th = math.radians(rot)
+                    _bw = abs(_aw * math.cos(_th)) \
+                        + abs(_ah * math.sin(_th))
+                    _bh = abs(_aw * math.sin(_th)) \
+                        + abs(_ah * math.cos(_th))
+                    _s = min(W * 0.78 / max(1.0, _bw),
+                             H * 0.34 / max(1.0, _bh))
+                    _mh = _bh * _s
                     p.save()
-                    p.translate(W / 2.0, H * 0.40 + mh / 2.0)        # centro del box
+                    p.translate(W / 2.0, H * 0.40 + _mh / 2.0)
                     if rot:
                         p.rotate(rot)
-                    sw, sh = (mh, mw) if rot in (90, 270) else (mw, mh)
-                    self._map.render(p, QRectF(-sw / 2.0, -sh / 2.0, sw, sh))
+                    self._map.render(p, QRectF(-_aw * _s / 2.0,
+                                               -_ah * _s / 2.0,
+                                               _aw * _s, _ah * _s))
                     p.restore()
             p.setOpacity(1.0)
         # bordo bianco rimosso
@@ -9522,7 +9598,7 @@ class _TrackMapView(QWidget):
                         self._r = rr
         except Exception:
             self._r = None
-        self._rot = int(rot or 0)
+        self._rot = float(rot or 0.0)   # angolo libero dal tool
         self.update()
 
     def paintEvent(self, e):
@@ -9539,22 +9615,20 @@ class _TrackMapView(QWidget):
             return
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing, True)
-        W, H = self.width(), self.height()
+        W, H = float(self.width()), float(self.height())
         ds = self._r.defaultSize()
-        dw, dh = max(1, ds.width()), max(1, ds.height())
-        ar = dw / dh
-        rot = self._rot
-        ar_d = (1.0 / ar) if rot in (90, 270) else ar   # aspetto MOSTRATO
-        mw, mh = float(W), W / ar_d
-        if mh > H:
-            mh, mw = float(H), H * ar_d
-        mw *= 0.95; mh *= 0.95                                 # 95%: margine anti-sforo
-        sw, sh = (mh, mw) if rot in (90, 270) else (mw, mh)   # PRE-rotazione
+        _aw, _ah = float(max(1, ds.width())), float(max(1, ds.height()))
+        rot = float(self._rot or 0.0)   # angolo LIBERO dal tool
+        _th = math.radians(rot)
+        _bw = abs(_aw * math.cos(_th)) + abs(_ah * math.sin(_th))
+        _bh = abs(_aw * math.sin(_th)) + abs(_ah * math.cos(_th))
+        _s = min(W * 0.95 / max(1.0, _bw), H * 0.95 / max(1.0, _bh))
         p.translate(W / 2.0, H / 2.0)
         if rot:
             p.rotate(rot)
         # colori ORIGINALI della SVG, come sulla card (niente tinta)
-        self._r.render(p, QRectF(-sw / 2.0, -sh / 2.0, sw, sh))
+        self._r.render(p, QRectF(-_aw * _s / 2.0, -_ah * _s / 2.0,
+                                 _aw * _s, _ah * _s))
 
     def _paint_real(self, p):
         """Stile ORIGINALE LMU (rich. 24/07 sera): linea bianca pulita,
@@ -10197,8 +10271,7 @@ class _TrackPage(QWidget):
             # ("Circuit of the Americas") = il nome che usa LMU nei file
             if not self._map.set_real(name) \
                     and not (_stem9 and self._map.set_real(_stem9)):
-                self._map.set_map(mapname,
-                                  _MAP_ROTATION.get(base or "", 0))
+                self._map.set_map(mapname, _styl_rot9(mapname, base))
         except Exception:
             pass
         self._trk = self._trk_slug(name)     # slug per le chiavi online
