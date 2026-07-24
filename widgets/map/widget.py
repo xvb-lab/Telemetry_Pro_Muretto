@@ -224,6 +224,23 @@ class MapCanvas(QWidget):
         out = []
         ol = self._path or []
         n = len(ol)
+        _step9 = 1
+        if n > 20:
+            # NORMALIZZAZIONE DENSITA' (24/07): le mappe auto-registrate
+            # hanno un punto ogni ~3 m (le vecchie ~10) — l'analisi
+            # curvatura lavora SEMPRE a passo ~8 m, poi riporta gli
+            # indici sull'originale. Senza, le curve strette si
+            # spezzavano (T1/T2/T3 attaccate) e i curvoni sparivano.
+            _L9 = 0.0
+            for i in range(1, n):
+                _L9 += math.hypot(ol[i][0] - ol[i - 1][0],
+                                  ol[i][1] - ol[i - 1][1])
+            _sp9 = _L9 / max(1, n - 1)
+            if _sp9 > 0:
+                _step9 = max(1, int(round(8.0 / _sp9)))
+            if _step9 > 1:
+                ol = ol[::_step9]
+                n = len(ol)
         if n > 20:
             hd = []
             for i in range(n):
@@ -288,7 +305,8 @@ class MapCanvas(QWidget):
                     if d == 0:
                         break
             turns = best[1] if best else _detect(math.radians(28.0))
-            out = [(idx, "T%d" % (k + 1), i0, j0)
+            out = [(idx * _step9, "T%d" % (k + 1),
+                    i0 * _step9, j0 * _step9)
                    for k, (idx, i0, j0) in enumerate(turns)]
         self._tm_key = key
         self._tm_cache = out

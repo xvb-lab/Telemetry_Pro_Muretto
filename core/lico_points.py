@@ -44,6 +44,17 @@ def map_turns(track, track_len):
         ol = None
     if not ol or len(ol) < 30 or not track_len:
         return []
+    # NORMALIZZAZIONE DENSITA' (24/07): le mappe auto-registrate hanno
+    # un punto ogni ~3 m — l'analisi curvatura lavora a passo ~8 m come
+    # sulle mappe vecchie, senno' le soglie per-punto non tornano
+    n = len(ol)
+    _L9 = sum(math.hypot(ol[i][0] - ol[i - 1][0],
+                         ol[i][1] - ol[i - 1][1]) for i in range(1, n))
+    _sp9 = _L9 / max(1, n - 1)
+    if _sp9 > 0:
+        _step9 = max(1, int(round(8.0 / _sp9)))
+        if _step9 > 1:
+            ol = ol[::_step9]
     n = len(ol)
     hd = [math.atan2(ol[(i + 1) % n][1] - ol[i][1],
                      ol[(i + 1) % n][0] - ol[i][0]) for i in range(n)]

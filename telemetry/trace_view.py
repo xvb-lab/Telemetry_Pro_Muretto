@@ -1192,6 +1192,20 @@ class _LiveMap(QWidget):
         out = []
         ol = self._outline
         n = len(ol)
+        _step9 = 1
+        if n > 20:
+            # NORMALIZZAZIONE DENSITA' (24/07): analisi a passo ~8 m
+            # qualunque sia la fittezza della mappa (vedi widget Mappa)
+            _L9 = 0.0
+            for i in range(1, n):
+                _L9 += math.hypot(ol[i][0] - ol[i - 1][0],
+                                  ol[i][1] - ol[i - 1][1])
+            _sp9 = _L9 / max(1, n - 1)
+            if _sp9 > 0:
+                _step9 = max(1, int(round(8.0 / _sp9)))
+            if _step9 > 1:
+                ol = ol[::_step9]
+                n = len(ol)
         if n > 20:
             hd = []
             for i in range(n):
@@ -1261,7 +1275,8 @@ class _LiveMap(QWidget):
                     if d == 0:
                         break
             turns = best[1] if best else _detect(math.radians(28.0))
-            out = [(idx, "T%d" % (k + 1), i0, j0)
+            out = [(idx * _step9, "T%d" % (k + 1),
+                    i0 * _step9, j0 * _step9)
                    for k, (idx, i0, j0) in enumerate(turns)]
         self._turns_key = key
         self._turns_cache = out
@@ -3924,7 +3939,7 @@ class _WorksheetTab(QWidget):
                 _turns = [(_d9 * _f9, _lb9) for _d9, _lb9 in _turns]
                 _tl9 = _ldmax9
             for _en9, _fl9 in _mcl(self.map_w._track, _tl9):
-                for _dm9 in (200.0, 150.0, 100.0, 50.0):
+                for _dm9 in (250.0, 200.0, 150.0, 100.0, 50.0):
                     _pb9 = _en9 - _dm9
                     if _pb9 > 0:
                         _boards.append((_pb9, "%d" % int(_dm9)))
