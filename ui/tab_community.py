@@ -275,11 +275,15 @@ class _RankRow(QFrame):
         _gap = ("+%.3f" % ((_ms0 - leader_ms) / 1000.0)) \
             if (leader_ms and _ms0 and _ms0 > leader_ms) else ""
         gcol = QLabel(_gap)
-        # GAP piu' grande (rich. 24/07 sera: quasi doppio, 13->22px)
+        # GAP piu' grande (24/07: 13->22px) + sfondo #55526e SOLO dietro
+        # il gap (rich. utente 24/07 sera; niente sfondo sul leader che
+        # il gap non ce l'ha)
+        _gbg = ("background:#55526e;border-radius:6px;padding:2px 8px;"
+                if _gap else "background:transparent;")
         gcol.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:22px;"
-                           "font-weight:800;background:transparent;"
-                           % ("#f2f4f7"))
-        gcol.setFixedWidth(96)
+                           "font-weight:800;%s"
+                           % ("#f2f4f7", _gbg))
+        gcol.setFixedWidth(112 if _gap else 96)
         gcol.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         # (il gap viene aggiunto ACCANTO AL TEMPO, sul blu: leggibile)
         from core.tyre_cell import TyreCell
