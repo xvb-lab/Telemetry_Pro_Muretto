@@ -275,10 +275,11 @@ class _RankRow(QFrame):
         _gap = ("+%.3f" % ((_ms0 - leader_ms) / 1000.0)) \
             if (leader_ms and _ms0 and _ms0 > leader_ms) else ""
         gcol = QLabel(_gap)
-        gcol.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:13px;"
-                           "font-weight:700;background:transparent;"
+        # GAP piu' grande (rich. 24/07 sera: quasi doppio, 13->22px)
+        gcol.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:22px;"
+                           "font-weight:800;background:transparent;"
                            % ("#f2f4f7"))
-        gcol.setFixedWidth(66)
+        gcol.setFixedWidth(96)
         gcol.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         # (il gap viene aggiunto ACCANTO AL TEMPO, sul blu: leggibile)
         from core.tyre_cell import TyreCell
@@ -468,10 +469,13 @@ class _RankRow(QFrame):
                 g.setColorAt(0.0, bg.lighter(112))
                 g.setColorAt(1.0, bg)
             p.fillRect(QRectF(0, 0, cut, self.height()), g)
-            # parte destra (tempi) TRASLUCIDA CHIARA (esperimento
-            # 24/07 sera: vetro smerigliato invece del blu scuro)
+            # parte destra (tempi) TRASLUCIDA (esperimento 24/07 sera):
+            # base scura semi-trasparente + velo chiaro tenue = vetro
+            # smerigliato ma piu' OPACO (era troppo chiaro)
             p.fillRect(QRectF(cut, 0, self.width() - cut,
-                              self.height()), QColor(228, 236, 248, 46))
+                              self.height()), QColor(13, 27, 42, 150))
+            p.fillRect(QRectF(cut, 0, self.width() - cut,
+                              self.height()), QColor(228, 236, 248, 22))
             # STRISCE oblique sul taglio (stile Alpine) per i team scelti
             _acc = getattr(self, "_card_acc", None) or []
             if _acc:
