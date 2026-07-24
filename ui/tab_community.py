@@ -313,7 +313,7 @@ class _RankRow(QFrame):
         _wl.setAlignment(Qt.AlignHCenter)
         _wl.setStyleSheet("color:#f2f4f7;font-size:%dpx;font-weight:700;"
                           "background:transparent;"
-                          % (10 if _oncard else 12))
+                          % (12 if _oncard else 12))
         _tcol.addWidget(_wl, 0, Qt.AlignHCenter)
         _tw = QWidget(); _tw.setLayout(_tcol)
         _tw.setStyleSheet("background:transparent;")
@@ -332,7 +332,7 @@ class _RankRow(QFrame):
         fk = QLabel(("+%.0f kg" % (fl * 0.75)) if fl is not None else "\u2014")
         fk.setStyleSheet("color:#e8eaee;font-size:%dpx;font-weight:700;"
                          "background:transparent;margin-top:2px;"
-                         % (10 if _oncard else 12))
+                         % (12 if _oncard else 12))
         fk.setAlignment(Qt.AlignHCenter)
         _fcol.addWidget(fk, 0, Qt.AlignHCenter)
         _fw = QWidget(); _fw.setFixedWidth(46 if _oncard else 64)
@@ -376,8 +376,9 @@ class _RankRow(QFrame):
                 for _sk, _c in zip(("s1_ms", "s2_ms", "s3_ms"), _SCOL9))
             _s2 = QLabel(_secs)
             _s2.setTextFormat(Qt.RichText)
+            # settori un filo piu' grandi (rich. 24/07 sera): 11->13px
             _s2.setStyleSheet("font-family:'Archivo SemiExpanded';"
-                              "font-size:11px;font-weight:700;"
+                              "font-size:13px;font-weight:700;"
                               "background:transparent;")
             _s2.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             _tcol2.addWidget(_s2)
