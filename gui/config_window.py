@@ -271,29 +271,28 @@ class ConfigWindow(QDialog):
             grid.addWidget(QLabel("Dark track"), row_i, 0)
             grid.addWidget(self._make_toggle("darktrack"), row_i, 1)
             row_i += 1
-            # ── GESTORE MAPPE REGISTRATE (rich. 24/07): elenco col
-            # nome pista + Delete: giro sporco? la cancelli e la
-            # rifai al giro dopo, senza toccare cartelle ──
-            from PySide6.QtWidgets import (QPushButton as _QPB9,
-                                           QHBoxLayout as _QHL9,
-                                           QWidget as _QW9)
-            grid.addWidget(QLabel("Maps"), row_i, 0)
-            _wrap9 = _QW9()
-            _hl9 = _QHL9(_wrap9)
-            _hl9.setContentsMargins(0, 0, 0, 0)
-            _hl9.setSpacing(4)
-            self.cb_maps = _QCB9()
-            self.cb_maps.setFixedSize(150, 26)
-            self.cb_maps.setStyleSheet(_CSS9)
-            _bt9 = _QPB9("Delete")
-            _bt9.setFixedSize(58, 26)
-            _bt9.setStyleSheet(_CSS9)
-            _bt9.setCursor(Qt.PointingHandCursor)
-            _bt9.clicked.connect(self._map_delete9)
-            _hl9.addWidget(self.cb_maps)
-            _hl9.addWidget(_bt9)
-            grid.addWidget(_wrap9, row_i, 1)
-            row_i += 1
+            # ── GESTORE MAPPE (rich. 24/07): COLONNA a destra stile
+            # elenco stint — tutte le piste registrate, cestino per
+            # cancellare (si riscrive al giro pulito dopo), scrollabile ──
+            from PySide6.QtWidgets import (QVBoxLayout as _QVL9,
+                                           QWidget as _QW9,
+                                           QScrollArea as _QSA9)
+            _side9 = _QW9()
+            _sv9 = _QVL9(_side9)
+            _sv9.setContentsMargins(16, 0, 0, 0)
+            _sv9.setSpacing(4)
+            _ttl9 = QLabel("Maps")
+            _ttl9.setStyleSheet("font-weight:600; font-size:12px;")
+            _sv9.addWidget(_ttl9)
+            self._maps_sa9 = _QSA9()
+            self._maps_sa9.setWidgetResizable(True)
+            self._maps_sa9.setFixedSize(238, 290)   # ~10 righe + scroll
+            self._maps_sa9.setStyleSheet(
+                "QScrollArea{border:1px solid rgba(255,255,255,0.10);"
+                "border-radius:6px; background:transparent;}")
+            _sv9.addWidget(self._maps_sa9)
+            _sv9.addStretch(1)
+            grid.addWidget(_side9, 0, 2, max(row_i + 1, 11), 1)
             self._maps_refresh9()
         # wec26mfd (Dashboard): AUTO PIT (i Mod 1-8 si gestiscono in overlay)
         elif self._key == "wec26mfd":
@@ -612,33 +611,58 @@ class ConfigWindow(QDialog):
         return wrap
 
     def _maps_refresh9(self):
-        """Riempie l'elenco delle mappe auto-registrate dell'utente."""
+        """Colonna mappe registrate: righe nome pista + cestino,
+        come l'elenco degli stint."""
         try:
             from core.paths import USER_DIR
-            self.cb_maps.clear()
+            from PySide6.QtWidgets import (QWidget, QVBoxLayout,
+                                           QHBoxLayout, QLabel,
+                                           QPushButton)
+            body = QWidget()
+            lay = QVBoxLayout(body)
+            lay.setContentsMargins(6, 6, 6, 6)
+            lay.setSpacing(2)
             d = USER_DIR / "trackmap_auto"
-            if d.exists():
-                for f in sorted(d.glob("*.svg")):
-                    n = f.stem
-                    if n.endswith("_2026"):
-                        n = n[:-5]
-                    self.cb_maps.addItem(n, str(f))
-            if self.cb_maps.count() == 0:
-                self.cb_maps.addItem("(no maps yet)", "")
+            files = sorted(d.glob("*.svg")) if d.exists() else []
+            if not files:
+                _e = QLabel("(no maps yet — drive a clean lap)")
+                _e.setStyleSheet("color:#8a8f99; font-size:12px;")
+                lay.addWidget(_e)
+            for f in files:
+                n = f.stem
+                if n.endswith("_2026"):
+                    n = n[:-5]
+                row = QWidget()
+                hl = QHBoxLayout(row)
+                hl.setContentsMargins(2, 0, 2, 0)
+                hl.setSpacing(6)
+                _lb = QLabel(n)
+                _lb.setStyleSheet("font-size:12px;")
+                _lb.setToolTip(n)
+                hl.addWidget(_lb, 1)
+                _x = QPushButton("✕")
+                _x.setFixedSize(24, 22)
+                _x.setCursor(Qt.PointingHandCursor)
+                _x.setStyleSheet("font-size:12px; padding:0;")
+                _x.setToolTip("Cancella: si riscrive al giro pulito dopo")
+                _x.clicked.connect(
+                    lambda _c=False, _fp=str(f): self._map_delete9(_fp))
+                hl.addWidget(_x)
+                lay.addWidget(row)
+            lay.addStretch(1)
+            self._maps_sa9.setWidget(body)
         except Exception:
             pass
 
-    def _map_delete9(self):
-        """Cancella la mappa selezionata: al giro pulito dopo si
-        riscrive da sola (corsia compresa al passaggio in pit)."""
+    def _map_delete9(self, fp):
+        """Cancella la mappa: al giro pulito dopo si riscrive da sola
+        (corsia compresa al passaggio in pit)."""
         try:
             from pathlib import Path
-            fp = self.cb_maps.currentData()
-            if fp:
-                Path(fp).unlink(missing_ok=True)
-            self._maps_refresh9()
+            Path(fp).unlink(missing_ok=True)
         except Exception:
             pass
+        self._maps_refresh9()
 
     def _make_toggle(self, name):
         """Switch singolo compatto ON/OFF per una feature."""
