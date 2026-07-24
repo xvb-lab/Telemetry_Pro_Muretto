@@ -3046,7 +3046,7 @@ class _CategoryMenu(QWidget):
         # FIA WEC 2026 (8 round) + Monza (storica WEC, tenuta qui per non
         # perdere la pista dal menu)
         "wec": {"imola", "spa", "lemans", "interlagos", "cota", "fuji",
-                "lusail", "bahrain", "monza"},
+                "lusail", "bahrain", "monza", "sebring"},
         # ELMS 2026 (6 round europei)
         "elms": {"barcelona", "paulricard", "imola", "spa", "silverstone",
                  "portimao"},
@@ -3068,6 +3068,11 @@ class _CategoryMenu(QWidget):
         # Il deck gira in loop; cambia solo il LOGO in alto secondo la card di
         # testa. Dalla card categoria si entra sulla prima pista di quella serie.
         def _cat_of(base):
+            # Sebring e COTA sono nel GIOCO BASE (round WEC di LMU):
+            # stanno con le WEC e NON sotto il lucchetto IMSA
+            # (rich. utente 24/07 sera)
+            if base in ("sebring", "cota"):
+                return "wec"
             if base in self._BASES["imsa"]:
                 return "imsa"
             if base in self._BASES["elms"]:
@@ -6647,7 +6652,7 @@ class _CategoryMenu(QWidget):
         # FIA WEC 2026 (8 round) + Monza (storica WEC, tenuta qui per non
         # perdere la pista dal menu)
         "wec": {"imola", "spa", "lemans", "interlagos", "cota", "fuji",
-                "lusail", "bahrain", "monza"},
+                "lusail", "bahrain", "monza", "sebring"},
         # ELMS 2026 (6 round europei)
         "elms": {"barcelona", "paulricard", "imola", "spa", "silverstone",
                  "portimao"},
@@ -6669,6 +6674,11 @@ class _CategoryMenu(QWidget):
         # Il deck gira in loop; cambia solo il LOGO in alto secondo la card di
         # testa. Dalla card categoria si entra sulla prima pista di quella serie.
         def _cat_of(base):
+            # Sebring e COTA sono nel GIOCO BASE (round WEC di LMU):
+            # stanno con le WEC e NON sotto il lucchetto IMSA
+            # (rich. utente 24/07 sera)
+            if base in ("sebring", "cota"):
+                return "wec"
             if base in self._BASES["imsa"]:
                 return "imsa"
             if base in self._BASES["elms"]:
@@ -10148,7 +10158,23 @@ class _TrackPage(QWidget):
         try:
             from data.track_info import track_name, track_country
             _full = track_name(base) or name or ""
-            _lay = _track_layout_label(name) or ""
+            # LAYOUT dal CMAP della card (identita' canonica, rich.
+            # 24/07 sera): il nome corto ("Bahrain Endurance") non
+            # combaciava con la tabella e il titolo restava spoglio
+            _stem9 = ""
+            _lay = ""
+            try:
+                import re as _re9
+                _stem9 = _re9.sub(
+                    r"#U([0-9a-fA-F]{4})",
+                    lambda m: chr(int(m.group(1), 16)),
+                    str(mapname or "").rsplit(".", 1)[0])
+                from data.tracks import _LAYOUT_LABELS as _LL9
+                _lay = _LL9.get(_stem9, "")
+            except Exception:
+                _lay = ""
+            if not _lay:
+                _lay = _track_layout_label(name) or ""
             self._title.setText((_full + ((" — " + _lay)
                               if _lay else "")).upper())
             _cc = track_country(base)
@@ -10177,9 +10203,19 @@ class _TrackPage(QWidget):
             # scheda per LAYOUT (rich. 24/07 sera): info_for_track
             # legge PRIMA LAYOUT_INFO per nome (Endurance/Outer/...),
             # poi ripiega sulla base — track_info(base) dava sempre il
-            # GP anche sull'Endurance (15 curve invece di 24)
-            from data.track_info import info_for_track, track_info
-            info = info_for_track(name, None) or track_info(base)
+            # GP anche sull'Endurance (15 curve invece di 24). Si prova
+            # anche col CMAP (nome completo) come per il titolo.
+            from data.track_info import (info_for_track, track_info,
+                                         LAYOUT_INFO as _LI9)
+            info = None
+            _nm9 = (name or "").lower()
+            _sm9 = (locals().get("_stem9") or "").lower()
+            for _k9, _v9 in _LI9.items():
+                if _k9 in _nm9 or (_sm9 and _k9 in _sm9):
+                    info = _v9
+                    break
+            if not info:
+                info = track_info(base)
         except Exception:
             info = None
         if info:
