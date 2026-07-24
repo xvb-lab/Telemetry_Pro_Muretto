@@ -9563,10 +9563,37 @@ class _TrackMapView(QWidget):
             return min(xs), max(xs), min(ys), max(ys)
 
         x0, x1, y0, y1 = _bb(pts + pit if pit else pts)
-        # auto-rotazione 90 (come fa LMU nei suoi pannelli): se la
-        # pista riempie meglio il riquadro ruotata, si ruota — MAI
-        # specchiata, il verso di marcia resta quello vero
-        if ((x1 - x0) > (y1 - y0)) != ((W - 2 * mrg) > (H - 2 * mrg)):
+        # ROTAZIONE SALVATA (rich. 24/07 sera): la STESSA che l'utente
+        # ha messo sull'overlay (map_rotations.json) — cosi' la pagina
+        # classifiche appare orientata come la mappa in pista. NB: qui
+        # il piano e' (x, -z), l'overlay (x, z): stesso verso visivo =
+        # angolo INVERTITO (-rot); MAI specchiata.
+        _rot = 0.0
+        try:
+            import json as _js
+            from core.paths import USER_DIR as _UDr
+            _rd = _js.loads((_UDr / "map_rotations.json").read_text(
+                encoding="utf-8"))
+            _rot = -float(_rd.get(track or "", 0.0))
+        except Exception:
+            _rot = 0.0
+        if abs(_rot) > 1e-4:
+            cxr = (x0 + x1) / 2.0
+            cyr = (y0 + y1) / 2.0
+            crr = math.cos(_rot)
+            srr = math.sin(_rot)
+
+            def _rp(q):
+                dx = q[0] - cxr
+                dy = q[1] - cyr
+                return (cxr + dx * crr - dy * srr,
+                        cyr + dx * srr + dy * crr)
+
+            pts = [_rp(q) for q in pts]
+            pit = [_rp(q) for q in pit]
+            x0, x1, y0, y1 = _bb(pts + pit if pit else pts)
+        elif ((x1 - x0) > (y1 - y0)) != ((W - 2 * mrg) > (H - 2 * mrg)):
+            # nessun verso salvato: auto-rotazione 90 solo per riempire
             pts = [(-q[1], q[0]) for q in pts]
             pit = [(-q[1], q[0]) for q in pit]
             x0, x1, y0, y1 = _bb(pts + pit if pit else pts)
@@ -10125,12 +10152,13 @@ class _TrackPage(QWidget):
         except Exception:
             self._title.setText((name or "").upper())
         try:
-            # 24/07 sera, decisione finale: la pagina classifiche resta
-            # con la SVG stilizzata delle card ("com'era prima"); le
-            # mappe VERE vivono su overlay in pista e telemetria.
-            # Il disegnatore reale (set_real/_paint_real) resta
-            # dormiente, collaudato, riattivabile con questa riga.
-            self._map.set_map(mapname, _MAP_ROTATION.get(base or "", 0))
+            # 24/07 sera (2a decisione): ora che le mappe sono girate nel
+            # verso giusto e le curve sistemate, la pagina classifiche usa
+            # la mappa VERA (bianca pulita, settori, curve, verso salvato);
+            # la stilizzata resta il fallback dove la vera non c'e' ancora
+            if not self._map.set_real(name):
+                self._map.set_map(mapname,
+                                  _MAP_ROTATION.get(base or "", 0))
         except Exception:
             pass
         self._trk = self._trk_slug(name)     # slug per le chiavi online
