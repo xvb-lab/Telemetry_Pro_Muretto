@@ -658,18 +658,6 @@ class Wec26MfdOverlay(WecOnboardOverlay):
                     self._page_beep()
                     self.update()
                 elif self._m3_sel == 4:    # RADIO (engineer_on): come Options
-                    # SPEGNERE richiede DOPPIA pressione entro 2s
-                    # (24/07: due volte in una notte un colpo di pad ha
-                    # ammutolito il muretto senza accorgersene)
-                    _nowr = time.monotonic()
-                    if self._radio_en and _nowr - getattr(
-                            self, "_radio_arm9", 0.0) > 2.0:
-                        self._radio_arm9 = _nowr
-                        self._m3_msg = ("PREMI ANCORA: RADIO OFF",
-                                        time.monotonic())
-                        self._page_beep()
-                        self.update()
-                        return
                     self._radio_en = not self._radio_en
                     self._ap_ts = time.monotonic()
                     try:
