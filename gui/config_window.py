@@ -271,9 +271,47 @@ class ConfigWindow(QDialog):
             grid.addWidget(QLabel("Curve details"), row_i, 0)
             grid.addWidget(self._make_toggle("detail"), row_i, 1)
             row_i += 1
-            # pista scura (asfalto, default) o bianca
+            # pista scura (asfalto) o bianca (default)
             grid.addWidget(QLabel("Dark track"), row_i, 0)
             grid.addWidget(self._make_toggle("darktrack"), row_i, 1)
+            row_i += 1
+            # colore pista PERSONALIZZATO (pallino-picker) + RESET ai
+            # default di fabbrica (dettati 24/07)
+            from PySide6.QtWidgets import (QPushButton as _QPB8,
+                                           QHBoxLayout as _QHB8,
+                                           QWidget as _QW8)
+            grid.addWidget(QLabel("Track color"), row_i, 0)
+            _wrap8 = _QW8()
+            _hl8 = _QHB8(_wrap8)
+            _hl8.setContentsMargins(0, 0, 0, 0)
+            _hl8.setSpacing(6)
+            self.bt_mcol = _QPB8()
+            self.bt_mcol.setFixedSize(26, 26)
+            self.bt_mcol.setCursor(Qt.PointingHandCursor)
+            self.bt_mcol.setToolTip("Colore pista (vuoto = automatico)")
+            self.bt_mcol.clicked.connect(self._map_pick_color9)
+            self._map_col9 = ""
+            self._map_col_apply9()
+            _rst8 = _QPB8("Reset")
+            _rst8.setFixedSize(58, 26)
+            _rst8.setStyleSheet("font-size:12px;")
+            _rst8.setCursor(Qt.PointingHandCursor)
+            _rst8.setToolTip("Riporta la mappa ai default")
+            _rst8.clicked.connect(self._map_reset9)
+            _hl8.addWidget(self.bt_mcol)
+            _hl8.addWidget(_rst8)
+            _hl8.addStretch(1)
+            grid.addWidget(_wrap8, row_i, 1)
+            row_i += 1
+            # dimensione dot/macchinine a piacere (rich. 24/07)
+            grid.addWidget(QLabel("Dot size"), row_i, 0)
+            self.sp_mdot = _QDSB9()
+            self.sp_mdot.setRange(0.5, 2.0)
+            self.sp_mdot.setSingleStep(0.1)
+            self.sp_mdot.setValue(1.0)
+            self.sp_mdot.setFixedSize(104, 28)
+            self.sp_mdot.setStyleSheet(_CSS9)
+            grid.addWidget(self.sp_mdot, row_i, 1)
             row_i += 1
             # ── GESTORE MAPPE (rich. 24/07): COLONNA a destra stile
             # elenco stint — tutte le piste registrate, cestino per
@@ -564,14 +602,18 @@ class ConfigWindow(QDialog):
                 self.cb_mmode.setCurrentIndex(0)          # intera
             self._set_toggle("names", bool(cfg.get("map_names", True)))
             self._set_toggle("caricons",
-                             bool(cfg.get("map_car_icons", True)))
+                             bool(cfg.get("map_car_icons", False)))
             self._set_toggle("detail", bool(cfg.get("map_detail", True)))
             self._set_toggle("darktrack",
-                             bool(cfg.get("map_dark_track", True)))
+                             bool(cfg.get("map_dark_track", False)))
+            self._map_col9 = str(cfg.get("map_track_color", "") or "")
+            self._map_col_apply9()
             try:
                 self.sp_mzoom.setValue(float(cfg.get("map_zoom", 5.5)))
                 self.sp_again.setValue(
-                    float(cfg.get("map_adapt_gap", 1.0)))
+                    float(cfg.get("map_adapt_gap", 1.5)))
+                self.sp_mdot.setValue(
+                    float(cfg.get("map_dot_scale", 1.0)))
             except Exception:
                 pass
         elif self._key in ("wec26battle", "wec26battleb", "wec26flag",
@@ -613,6 +655,44 @@ class ConfigWindow(QDialog):
         # spinge le due colonne a sinistra
         g.setColumnStretch(4, 1)
         return wrap
+
+    def _map_col_apply9(self):
+        """Aggiorna il pallino col colore pista scelto."""
+        c = self._map_col9 or "#f3f4f8"
+        self.bt_mcol.setStyleSheet(
+            "background:%s; border:1px solid rgba(255,255,255,0.35);"
+            "border-radius:13px;" % c)
+
+    def _map_pick_color9(self):
+        try:
+            from PySide6.QtWidgets import QColorDialog
+            from PySide6.QtGui import QColor
+            c = QColorDialog.getColor(
+                QColor(self._map_col9 or "#f3f4f8"), self, "Track color")
+            if c.isValid():
+                self._map_col9 = c.name()
+                self._map_col_apply9()
+        except Exception:
+            pass
+
+    def _map_reset9(self):
+        """DEFAULT DI FABBRICA mappa (dettati 24/07): adattiva, zoom
+        5.5, gap 1.5s, tag on, macchinine off, dettagli on, pista
+        bianca, colore automatico, scala 1.0."""
+        try:
+            self.cb_mmode.setCurrentIndex(2)
+            self.sp_mzoom.setValue(5.5)
+            self.sp_again.setValue(1.5)
+            self._set_toggle("names", True)
+            self._set_toggle("caricons", False)
+            self._set_toggle("detail", True)
+            self._set_toggle("darktrack", False)
+            self._map_col9 = ""
+            self._map_col_apply9()
+            self.sp_mdot.setValue(1.0)
+            self._reset_scale()
+        except Exception:
+            pass
 
     def _maps_refresh9(self):
         """Colonna mappe registrate: righe nome pista + cestino,
@@ -904,7 +984,9 @@ class ConfigWindow(QDialog):
             self._config.set_value(self._key, "map_names",
                                    bool(self._toggle_state.get("names", True)))
             self._config.set_value(self._key, "map_car_icons",
-                                   bool(self._toggle_state.get("caricons", True)))
+                                   bool(self._toggle_state.get("caricons", False)))
+            self._config.set_value(self._key, "map_track_color",
+                                   str(getattr(self, "_map_col9", "") or ""))
             self._config.set_value(self._key, "map_detail",
                                    bool(self._toggle_state.get("detail", True)))
             self._config.set_value(self._key, "map_dark_track",
@@ -914,6 +996,8 @@ class ConfigWindow(QDialog):
                                        float(self.sp_mzoom.value()))
                 self._config.set_value(self._key, "map_adapt_gap",
                                        float(self.sp_again.value()))
+                self._config.set_value(self._key, "map_dot_scale",
+                                       float(self.sp_mdot.value()))
             except Exception:
                 pass
         elif self._key in ("wec26battle", "wec26battleb", "wec26flag",
