@@ -9960,12 +9960,21 @@ class _TrackPage(QWidget):
         self._map = _TrackMapView()
         self._map.setStyleSheet("background:transparent;")
         lv.addWidget(self._map, 1)
-        # tasto SESSIONS: sotto il circuito, prima delle info
+        # tasto SESSIONS: sotto il circuito, prima delle info — con
+        # DRY/WET accanto (rich. utente 24/07 sera)
+        _sessrow = QHBoxLayout(); _sessrow.setSpacing(8)
+        _sessrow.addStretch(1)
         _btn_sess = _PillButton("SESSIONS", px=13)
         _btn_sess.setMinimumSize(120, 38)
         _btn_sess.clicked.connect(self._go_sessions)
         self._btn_sess = _btn_sess
-        lv.addWidget(_btn_sess, 0, Qt.AlignHCenter)
+        _sessrow.addWidget(_btn_sess)
+        self._dry_btn = self._filter_btn("DRY", lambda: self._set_cond("DRY"))
+        self._wet_btn = self._filter_btn("WET", lambda: self._set_cond("WET"))
+        _sessrow.addWidget(self._dry_btn)
+        _sessrow.addWidget(self._wet_btn)
+        _sessrow.addStretch(1)
+        lv.addLayout(_sessrow)
         lv.addSpacing(6)
         # righe info
         self._info_len = self._info_row(lv, "LENGTH")
@@ -9986,9 +9995,8 @@ class _TrackPage(QWidget):
         self._cls_row = QHBoxLayout(); self._cls_row.setSpacing(1)
         filt.addLayout(self._cls_row)
         filt.addStretch(1)
-        self._dry_btn = self._filter_btn("DRY", lambda: self._set_cond("DRY"))
-        self._wet_btn = self._filter_btn("WET", lambda: self._set_cond("WET"))
-        filt.addWidget(self._dry_btn); filt.addWidget(self._wet_btn)
+        # DRY/WET spostati accanto a SESSIONS (rich. utente 24/07 sera):
+        # qui resta solo la fila dei badge classe
         rv.addWidget(_fw)
         # lista classifica scrollabile
         from PySide6.QtWidgets import QScrollArea
