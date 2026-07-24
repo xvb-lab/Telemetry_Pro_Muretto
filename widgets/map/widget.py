@@ -522,12 +522,19 @@ class MapCanvas(QWidget):
         _cfg = get_config().widget("map")
         layout = _cfg.get("map_layout", 1)
         # MAPPA ADATTIVA (rich. 24/07): intera di norma, ma quando
-        # qualcuno ti arriva VICINO (~80 m lungo il nastro) passa da
-        # sola alla vista GPS zoomata per vedere la battaglia; torna
-        # intera quando il vicino sparisce da >130 m per 3 secondi
+        # qualcuno e' entro ~1 SECONDO da te (gap in TEMPO, non metri:
+        # a metri fissi scattava anche col traffico lontano nei tratti
+        # lenti) passa alla vista GPS zoomata per vedere la battaglia;
+        # torna intera quando il vicino esce da 1.8s per 3 secondi
         if layout == 1 and _cfg.get("map_adaptive") \
                 and self._track_len > 0:
-            _md9 = None
+            _spd9 = 0.0
+            for c in self._cars:
+                if c.get("is_player"):
+                    _spd9 = float(c.get("speed") or 0.0)
+                    break
+            _ref9 = max(20.0, _spd9)      # fermi/lenti: metro da 72km/h
+            _mt9 = None                   # gap MINIMO in secondi
             for c in self._cars:
                 if c.get("is_player") or c.get("garage") \
                         or c.get("in_pits"):
@@ -537,16 +544,17 @@ class MapCanvas(QWidget):
                     continue
                 d9 = abs((_ld9 - self._my_dist) % self._track_len)
                 d9 = min(d9, self._track_len - d9)
-                if _md9 is None or d9 < _md9:
-                    _md9 = d9
+                t9 = d9 / _ref9
+                if _mt9 is None or t9 < _mt9:
+                    _mt9 = t9
             _now9 = time.monotonic()
             st9 = getattr(self, "_adapt9", None) or {"on": False,
                                                      "t": 0.0}
-            if _md9 is not None and _md9 < 80.0:
+            if _mt9 is not None and _mt9 < 1.0:
                 st9["on"] = True
                 st9["t"] = _now9
             elif st9["on"]:
-                if _md9 is not None and _md9 <= 130.0:
+                if _mt9 is not None and _mt9 <= 1.8:
                     st9["t"] = _now9
                 elif _now9 - st9["t"] > 3.0:
                     st9["on"] = False

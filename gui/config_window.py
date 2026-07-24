@@ -555,6 +555,14 @@ class ConfigWindow(QDialog):
         btn = self._toggles[name]
         btn.setChecked(on)
         btn.setText("ON" if on else "OFF")
+        # Map: GPS fisso e Adattiva sono MUTUAMENTE ESCLUSIVI (24/07:
+        # l'adattiva vale solo con la mappa intera — col GPS gia'
+        # attivo non ha senso): accenderne uno spegne l'altro
+        if on and self._key == "map" and name in ("gps", "adaptive"):
+            _other = "adaptive" if name == "gps" else "gps"
+            if self._toggle_state.get(_other) and _other in \
+                    getattr(self, "_toggles", {}):
+                self._set_toggle(_other, False)
 
     # ── Impostazioni ingegnere condivise (radio/voce/coaching) ──────────
     def _add_engineer_opts(self, grid, row_i):
