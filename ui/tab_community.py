@@ -275,15 +275,18 @@ class _RankRow(QFrame):
         _gap = ("+%.3f" % ((_ms0 - leader_ms) / 1000.0)) \
             if (leader_ms and _ms0 and _ms0 > leader_ms) else ""
         gcol = QLabel(_gap)
-        # GAP piu' grande (24/07: 13->22px) + sfondo #55526e SOLO dietro
-        # il gap (rich. utente 24/07 sera; niente sfondo sul leader che
-        # il gap non ce l'ha)
-        _gbg = ("background:#55526e;border-radius:6px;padding:2px 8px;"
-                if _gap else "background:transparent;")
+        # GAP piu' grande (24/07: 13->22px). Lo sfondo #55526e SQUADRATO
+        # a tutta altezza lo disegna il paintEvent (con reveal animato
+        # sinistra->destra), non lo stylesheet
         gcol.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:22px;"
-                           "font-weight:800;%s"
-                           % ("#f2f4f7", _gbg))
+                           "font-weight:800;background:transparent;"
+                           % ("#f2f4f7",))
+        gcol.setContentsMargins(8, 0, 8, 0)
         gcol.setFixedWidth(112 if _gap else 96)
+        self._gcol9 = gcol
+        self._gap_on9 = bool(_gap)
+        self._greveal9 = 0.0
+        self._gtimer9 = None
         gcol.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         # (il gap viene aggiunto ACCANTO AL TEMPO, sul blu: leggibile)
         from core.tyre_cell import TyreCell
@@ -509,8 +512,36 @@ class _RankRow(QFrame):
                         QPointF(_tr - _bw, 0.0), QPointF(_tr, 0.0),
                         QPointF(_tr - _sl, _h),
                         QPointF(_tr - _sl - _bw, _h)]))
+            # SFONDO GAP #55526e squadrato a tutta altezza, con REVEAL
+            # animato sinistra->destra (rich. utente 24/07 sera, come il
+            # dashboard). Disegnato QUI = sotto il testo del gap
+            if getattr(self, "_gap_on9", False) and \
+                    getattr(self, "_gcol9", None) is not None:
+                gr = self._gcol9.geometry()
+                if gr.width() > 0:
+                    _rw = gr.width() * max(0.0, min(1.0, self._greveal9))
+                    p.fillRect(QRectF(gr.x(), 0.0, _rw,
+                                      float(self.height())),
+                               QColor("#55526e"))
             p.end()
         super().paintEvent(e)
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        # avvia il reveal del gap una volta, quando la riga compare
+        if getattr(self, "_gap_on9", False) and self._gtimer9 is None \
+                and self._greveal9 <= 0.0:
+            from PySide6.QtCore import QTimer
+            self._gtimer9 = QTimer(self)
+            self._gtimer9.setInterval(12)
+            self._gtimer9.timeout.connect(self._gtick9)
+            self._gtimer9.start()
+
+    def _gtick9(self):
+        self._greveal9 = min(1.0, self._greveal9 + 0.16)
+        if self._greveal9 >= 1.0 and self._gtimer9 is not None:
+            self._gtimer9.stop()
+        self.update()
 
 
 class _CommunityTab(QWidget):
