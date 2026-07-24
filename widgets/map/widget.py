@@ -918,7 +918,7 @@ class MapCanvas(QWidget):
         sector_tick(0, QColor("#ff3b30"), max(12.0, 14.0 * sc), max(2.4, 2.8 * sc))
 
         # ── auto ── (posizione interpolata per fluidità)
-        r = 7.8 * sc * dot_mult
+        r = 10.5 * sc * dot_mult   # base +35% (rich. 24/07: dot cicci)
         garage_cars = []
         def _shadow(X, Y, rad):
             p.setPen(Qt.NoPen)
