@@ -322,9 +322,12 @@ class _RankRow(QFrame):
         _tw = QWidget(); _tw.setLayout(_tcol)
         _tw.setStyleSheet("background:transparent;")
         fl = rec.get("fuel_l")
-        # goccia viola benzina sopra, kg sotto
-        _fcol = QVBoxLayout(); _fcol.setSpacing(1)
-        _fcol.setContentsMargins(0, 0 if _oncard else 8, 0, 0)
+        # goccia viola benzina sopra, kg sotto. Su card: pad basso alza
+        # il blocco (simbolo +3px) e spacing 2 alza il simbolo un filo
+        # piu' del testo (rich. utente 24/07 sera)
+        _fcol = QVBoxLayout(); _fcol.setSpacing(2 if _oncard else 1)
+        _fcol.setContentsMargins(0, 0 if _oncard else 8, 0,
+                                 5 if _oncard else 0)
         _fic = _SvgBox()
         # benzina un filo piu' grande (rich. 24/07 sera: stesso diametro
         # del simbolo gomma) 24->28
