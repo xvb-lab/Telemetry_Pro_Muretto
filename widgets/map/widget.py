@@ -926,6 +926,11 @@ class MapCanvas(QWidget):
                     # rivali pieni: bordino scuro per staccare la sagoma
                     p.setPen(QPen(QColor(15, 17, 22, 210),
                                   max(1.0, 1.2 * sc)))
+                elif is_player and not is_yellow and not in_pit:
+                    # ESPERIMENTO 24/07: player nero, numero bianco,
+                    # bordo classe (stile bandiera gialla)
+                    p.setBrush(QBrush(QColor("#000000")))
+                    numc = QColor("#ffffff")
                 p.save()
                 p.translate(cx, cy)
                 p.rotate(_ang9)
