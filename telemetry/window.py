@@ -10591,7 +10591,9 @@ class _SessionsPage(_TrackPage):
     pista (filtri dai metadati, nessun fetch online). Click su una card apre la
     sessione. Niente tasto SESSIONS (siamo gia' qui). Tutto in inglese."""
 
-    _DARK_CORNERS = True     # angoli scuri (come la pagina stint)
+    # sfondo IDENTICO alle classifiche (rich. utente 24/07 sera): foto
+    # a 0.50 sul blu, niente angoli scuri
+    _DARK_CORNERS = False
 
     def __init__(self, on_open=None, on_back=None, on_teams=None,
                  on_export=None, on_delete=None, parent=None):
@@ -10602,8 +10604,10 @@ class _SessionsPage(_TrackPage):
         self._on_delete = on_delete
         self._sessions = []
         try:
-            self._btn_sess.setVisible(False)
-            self._left_panel.setVisible(False)   # card sessioni a tutta pagina
+            self._btn_sess.setVisible(False)     # siamo gia' in Sessions
+            # card SINISTRA (circuito+info) come nelle classifiche
+            # (rich. utente 24/07 sera): sessioni a DESTRA — non si
+            # nasconde piu' il pannello sinistro
             # TEAMS dopo DRY/WET nella riga filtri
             _bt = _PillButton("TEAMS", px=12)
             _bt.setMinimumWidth(80)
