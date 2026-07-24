@@ -103,18 +103,10 @@ class TrajectoryView(QWidget):
         self.update()
 
     def _fit_map9(self):
-        """Aggancia la mappa SVG ai punti guidati (24/07): stesse
-        coordinate mondo ma versioni pista diverse = scarto visibile.
-        Il best-fit rifiuta da solo i giri parziali."""
-        try:
-            _r = getattr(self, "_map_raw", None)
-            if _r and len(self._pts) > 200:
-                _a = _align_svg_outline(
-                    _r, [(q[0], q[1]) for q in self._pts])
-                if _a:
-                    self._map = _a
-        except Exception:
-            pass
+        """DISATTIVATO (24/07 sera): l'aggancio era per le TinyPedal
+        di versioni pista diverse — le mappe ufficiali/registrate sono
+        gia' in coordinate esatte, deformarle era dannoso."""
+        return
 
     def paintEvent(self, e):
         p = QPainter(self); p.setRenderHint(QPainter.Antialiasing)
@@ -1395,21 +1387,10 @@ class _LiveMap(QWidget):
     def set_scrub_pts(self, pts):
         self._scrub_pts = pts or []
         self._hi = None
-        # AGGANCIO SVG->GUIDATO (24/07): la pista grigia usciva
-        # parallela alle traiettorie (SVG di una versione pista
-        # diversa) — best-fit sull'intero giro selezionato
-        try:
-            _raw9 = getattr(self, "_outline_raw", None)
-            if _raw9 and len(self._scrub_pts) > 80:
-                _drv9 = sorted((q[2], q[0], q[1])
-                               for q in self._scrub_pts
-                               if q[2] is not None)
-                _al9 = _align_svg_outline(_raw9,
-                                          [(q[1], q[2]) for q in _drv9])
-                if _al9:
-                    self._outline = _al9
-        except Exception:
-            pass
+        # AGGANCIO legacy DISATTIVATO (24/07 sera): era per le
+        # TinyPedal di versioni pista diverse — ora le mappe sono
+        # UFFICIALI o registrate, coordinate esatte: deformarle sulla
+        # traiettoria le peggiorava ("cose strane" in review)
         self.update()
 
     def set_path(self, pts):
@@ -1849,10 +1830,18 @@ class _LiveMap(QWidget):
                 L = math.hypot(dx, dy) or 1.0
                 return (-dy / L, dx / L)
 
-            # CORDOLI bianco-rossi all'interno delle curve: bianco pieno
-            # sotto + rosso tratteggiato sopra. LUNGHI (24/07): coprono
-            # il tratto VERO della curva rilevato dalla detection (i..j)
+            # CORDOLI come il widget Mappa (24/07 sera): colori VERI
+            # per pista, strisce FINI (~5px, il tratteggio Qt scala
+            # con lo spessore), INTERNO ingresso->apice ed ESTERNO
+            # apice->uscita (mai paralleli, come dal vero)
+            try:
+                from widgets.map.widget import _kerb_cols9 as _kc9
+                _kb9, _ks9 = _kc9(self._track)
+            except Exception:
+                _kb9 = QColor(240, 240, 240, 235)
+                _ks9 = QColor(224, 40, 60, 235)
             _kw = max(3.0, ln_w * 1.6)
+            _dsh9 = max(0.6, 5.0 / max(1.0, _kw))
             for _ti_idx, _lab, _i0k, _j0k in self._turns():
                 a = _scr(_ti_idx - 2); b = _scr(_ti_idx + 2); c0 = _scr(_ti_idx)
                 if not (-60 <= c0.x() <= w + 60 and -60 <= c0.y() <= h + 60):
@@ -1863,7 +1852,7 @@ class _LiveMap(QWidget):
                 _ins = 1.0 if _cr > 0 else -1.0        # lato INTERNO curva
                 _off = trk_w / 2.0 + _kw / 2.0 + 1.0
                 kpath = QPainterPath(); started = False
-                for i in range(_i0k - 1, _j0k + 2):
+                for i in range(_i0k - 1, _ti_idx + 2):
                     cc = _scr(i)
                     nx, ny = _norm(i)
                     pt = QPointF(cc.x() + nx * _ins * _off,
@@ -1872,14 +1861,25 @@ class _LiveMap(QWidget):
                         kpath.moveTo(pt); started = True
                     else:
                         kpath.lineTo(pt)
+                kpath2 = QPainterPath(); started = False
+                for i in range(_ti_idx - 1, _j0k + 2):
+                    cc = _scr(i)
+                    nx, ny = _norm(i)
+                    pt2 = QPointF(cc.x() - nx * _ins * _off,
+                                  cc.y() - ny * _ins * _off)
+                    if not started:
+                        kpath2.moveTo(pt2); started = True
+                    else:
+                        kpath2.lineTo(pt2)
                 p.setBrush(Qt.NoBrush)
-                _kp = QPen(QColor(240, 240, 240, 235), _kw)
-                _kp.setCapStyle(Qt.FlatCap)
-                p.setPen(_kp); p.drawPath(kpath)        # base bianca
-                _kr = QPen(QColor(224, 40, 60, 235), _kw)
-                _kr.setCapStyle(Qt.FlatCap)
-                _kr.setDashPattern([2.0, 2.0])          # strisce rosse
-                p.setPen(_kr); p.drawPath(kpath)
+                for _kpth9 in (kpath, kpath2):
+                    _kp = QPen(_kb9, _kw)
+                    _kp.setCapStyle(Qt.FlatCap)
+                    p.setPen(_kp); p.drawPath(_kpth9)     # base
+                    _kr = QPen(_ks9, _kw)
+                    _kr.setCapStyle(Qt.FlatCap)
+                    _kr.setDashPattern([_dsh9, _dsh9])    # strisce fini
+                    p.setPen(_kr); p.drawPath(_kpth9)
             for si in (self._secs or []):
                 if not (0 <= si < len(ol)):
                     continue
