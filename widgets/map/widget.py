@@ -28,7 +28,12 @@ _ROOT = Path(__file__).parent.parent.parent
 from core.paths import POSITIONS_FILE  # dati utente, fuori dall'app
 MAPS_DIR = _ROOT / "settings" / "maps"
 TRACKMAP_DIR = _ROOT / "settings" / "trackmap"   # SVG pronti (stile TinyPedal)
-AUTOMAP_DIR = _ROOT / "settings" / "trackmap_auto"  # registrate da noi (priorita')
+AUTOMAP_DIR = _ROOT / "settings" / "trackmap_auto"  # dotazione app
+try:
+    from core.paths import USER_DIR as _UDM
+    USERMAP_DIR = _UDM / "trackmap_auto"   # registrate dall'UTENTE (vince)
+except Exception:
+    USERMAP_DIR = AUTOMAP_DIR
 
 _CLASS_COL = {
     "HY":  QColor("#bd1016"),
@@ -53,9 +58,9 @@ def _svg_index():
     if _svg_index_cache is None:
         idx = {}
         try:
-            # la cartella AUTO (coordinate vere di gioco) VINCE sulla
-            # TinyPedal: si indicizza per ultima e sovrascrive
-            for _dir9 in (TRACKMAP_DIR, AUTOMAP_DIR):
+            # priorita' crescente (l'ultima sovrascrive): vecchie ->
+            # dotazione app -> registrate dall'UTENTE
+            for _dir9 in (TRACKMAP_DIR, AUTOMAP_DIR, USERMAP_DIR):
                 if not _dir9.exists():
                     continue
                 for f in _dir9.glob("*.svg"):
@@ -600,8 +605,18 @@ class MapCanvas(QWidget):
         _arcvis9 = None
         if layout == 2 and ply is not None and self._cum \
                 and self._cum_total > 0 and self._track_len > 0:
-            _pd9 = ((self._my_dist or 0.0) % self._track_len) \
+            _tgt9 = ((self._my_dist or 0.0) % self._track_len) \
                 / self._track_len * self._cum_total
+            # finestra LISCIATA (rich. 24/07: "scatta"): insegue la
+            # posizione con un low-pass, con wrap sul giro
+            _prev9 = getattr(self, "_pd_s9", None)
+            if _prev9 is None:
+                _pd9 = _tgt9
+            else:
+                _dd9 = (_tgt9 - _prev9 + self._cum_total / 2.0) \
+                    % self._cum_total - self._cum_total / 2.0
+                _pd9 = (_prev9 + _dd9 * 0.25) % self._cum_total
+            self._pd_s9 = _pd9
             _vw9 = 550.0
 
             def _vis9(i, _pd=_pd9, _vw=_vw9):
@@ -637,47 +652,105 @@ class MapCanvas(QWidget):
 
         # ── CORSIA BOX (dalla mappa auto-registrata): sotto la pista,
         # cosi' si vede DOVE vanno le macchine quando sono nel pit ──
-        _pit_ok9 = getattr(self, "_pit9", None) and len(self._pit9) >= 4
-        if _pit_ok9 and _vis9 is not None and ply is not None:
-            # in GPS la corsia si mostra solo se sei nei paraggi
-            _pd2 = min((self._pit9[i][0] - ply[0]) ** 2
-                       + (self._pit9[i][1] - ply[1]) ** 2
-                       for i in range(0, len(self._pit9), 10))
-            _pit_ok9 = _pd2 <= 450.0 ** 2
-        if _pit_ok9:
-            pl9 = QPainterPath()
-            _px9, _py9 = tf(*self._pit9[0]); pl9.moveTo(_px9, _py9)
-            for (x, z) in self._pit9[1:]:
-                X, Y = tf(x, z); pl9.lineTo(X, Y)
-            _plw = max(2.5, 3.0 * sc) * track_w_mult
-            p.setBrush(Qt.NoBrush)
-            p.setPen(QPen(QColor(0, 0, 0, 80), _plw + 2.0))
-            p.drawPath(pl9)
-            # come la grafica LMU: stessa tinta della pista ma
-            # OPACIZZATA/trasparente — si capisce subito che e' corsia
-            p.setPen(QPen(QColor(243, 244, 248, 105), _plw))
-            p.drawPath(pl9)
+        _plw = max(2.5, 3.0 * sc) * track_w_mult
+        if getattr(self, "_pit9", None) and len(self._pit9) >= 4:
+            if _vis9 is None or ply is None:
+                pl9 = QPainterPath()
+                _px9, _py9 = tf(*self._pit9[0]); pl9.moveTo(_px9, _py9)
+                for (x, z) in self._pit9[1:]:
+                    X, Y = tf(x, z); pl9.lineTo(X, Y)
+                p.setBrush(Qt.NoBrush)
+                p.setPen(QPen(QColor(0, 0, 0, 80), _plw + 2.0))
+                p.drawPath(pl9)
+                # stile LMU: tinta pista OPACIZZATA/trasparente
+                p.setPen(QPen(QColor(243, 244, 248, 105), _plw))
+                p.drawPath(pl9)
+            else:
+                # in GPS la corsia SFUMA con la distanza dal player:
+                # niente pezzi che restano in giro (rich. 24/07)
+                def _wp9(q):
+                    d = math.hypot(q[0] - ply[0], q[1] - ply[1])
+                    if d <= 330.0:
+                        return 1.0
+                    if d >= 500.0:
+                        return 0.0
+                    return 1.0 - (d - 330.0) / 170.0
+                p.setBrush(Qt.NoBrush)
+                for _alp9, _colp9, _wwp9 in (
+                        (80, QColor(0, 0, 0), _plw + 2.0),
+                        (105, QColor(243, 244, 248), _plw)):
+                    for i in range(1, len(self._pit9)):
+                        _wa9 = min(_wp9(self._pit9[i - 1]),
+                                   _wp9(self._pit9[i]))
+                        if _wa9 <= 0.03:
+                            continue
+                        _c9 = QColor(_colp9)
+                        _c9.setAlpha(int(_alp9 * _wa9))
+                        p.setPen(QPen(_c9, _wwp9, Qt.SolidLine,
+                                      Qt.RoundCap))
+                        p.drawLine(
+                            QPointF(*tf(*self._pit9[i - 1])),
+                            QPointF(*tf(*self._pit9[i])))
 
         # ── tracciato: bordo nero opacizzato sotto + linea chiara sopra ──
-        base = QPainterPath()
-        _opb9 = False
-        for _ib9, (x, z) in enumerate(self._path):
-            if _vis9 is not None and not _vis9(_ib9):
-                _opb9 = False
-                continue
-            X, Y = tf(x, z)
-            if not _opb9:
-                base.moveTo(X, Y); _opb9 = True
-            else:
-                base.lineTo(X, Y)
-        if _vis9 is None:
-            base.closeSubpath()
         lw = max(4.0, 5.0 * sc) * track_w_mult
-        p.setPen(QPen(QColor(0, 0, 0, 150), lw + max(3.0, 3.5 * sc) * track_w_mult))  # alone nero (bordo proporzionale)
-        p.setBrush(Qt.NoBrush)
-        p.drawPath(base)
-        p.setPen(QPen(QColor("#f3f4f8"), lw))
-        p.drawPath(base)
+        _hw9 = lw + max(3.0, 3.5 * sc) * track_w_mult
+        if _vis9 is None:
+            base = QPainterPath()
+            fx, fy = tf(*self._path[0]); base.moveTo(fx, fy)
+            for (x, z) in self._path[1:]:
+                X, Y = tf(x, z); base.lineTo(X, Y)
+            base.closeSubpath()
+            p.setPen(QPen(QColor(0, 0, 0, 150), _hw9))
+            p.setBrush(Qt.NoBrush)
+            p.drawPath(base)
+            p.setPen(QPen(QColor("#f3f4f8"), lw))
+            p.drawPath(base)
+        else:
+            # FOCUS GPS SFUMATO (rich. 24/07): nucleo pieno attorno al
+            # player + estremita' che EVAPORANO in trasparenza, niente
+            # taglio netto che scatta mentre la finestra avanza
+            _CORE9, _EDGE9 = 430.0, 550.0
+
+            def _wf9(i):
+                d = abs(self._cum[min(i, len(self._cum) - 1)] - _pd_l9)
+                d = min(d, self._cum_total - d)
+                if d <= _CORE9:
+                    return 1.0
+                if d >= _EDGE9:
+                    return 0.0
+                return 1.0 - (d - _CORE9) / (_EDGE9 - _CORE9)
+
+            _pd_l9 = self._pd_s9
+            _n9 = len(self._path)
+            _ws9 = [_wf9(i) for i in range(_n9)]
+            base = QPainterPath()
+            _opb9 = False
+            for i, (x, z) in enumerate(self._path):
+                if _ws9[i] < 1.0:
+                    _opb9 = False
+                    continue
+                X, Y = tf(x, z)
+                if not _opb9:
+                    base.moveTo(X, Y); _opb9 = True
+                else:
+                    base.lineTo(X, Y)
+            p.setBrush(Qt.NoBrush)
+            p.setPen(QPen(QColor(0, 0, 0, 150), _hw9))
+            p.drawPath(base)
+            for _al9, _hex9, _ww9 in ((150, None, _hw9),
+                                      (255, "#f3f4f8", lw)):
+                for i in range(1, _n9):
+                    _wa9 = min(_ws9[i - 1], _ws9[i])
+                    if _wa9 <= 0.03 or _wa9 >= 1.0:
+                        continue
+                    _c9 = QColor(_hex9) if _hex9 else QColor(0, 0, 0)
+                    _c9.setAlpha(int(_al9 * _wa9))
+                    p.setPen(QPen(_c9, _ww9, Qt.SolidLine, Qt.RoundCap))
+                    p.drawLine(QPointF(*tf(*self._path[i - 1])),
+                               QPointF(*tf(*self._path[i])))
+            p.setPen(QPen(QColor("#f3f4f8"), lw))
+            p.drawPath(base)
         # cordoli + settori + numeri curva (come la mappa telemetria)
         try:
             self._draw_decor9(p, tf, lw, _vis9)
@@ -811,8 +884,8 @@ class MapCanvas(QWidget):
                 continue          # fuori dal focus GPS: pista nascosta
             draw_dot(X, Y, c, r)
             # TAG PILOTA stile F1 (rich. 24/07): 3 lettere del cognome
-            # in bold bianco bordato nero, solo in vista GPS/zoom
-            if _names9 and _vis9 is not None:
+            # in bold bianco bordato nero — in TUTTE le viste (toggle)
+            if _names9:
                 _nm3 = (c.get("name", "").split() or [""])[-1][:3] \
                     .upper()
                 if _nm3:

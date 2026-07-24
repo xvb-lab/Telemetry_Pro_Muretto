@@ -9,7 +9,16 @@ pista/traiettoria ne' cartelli fuori posto."""
 import re
 from pathlib import Path
 
-_DIR = Path(__file__).resolve().parent.parent / "settings" / "trackmap_auto"
+# le mappe si SCRIVONO nella cartella di configurazione dell'UTENTE
+# (rich. 24/07: ogni pilota si registra le sue col primo giro, e
+# sopravvivono agli aggiornamenti dell'app); quelle in
+# settings/trackmap_auto dentro l'app restano come dotazione/esempio
+try:
+    from core.paths import USER_DIR as _UD
+    _DIR = _UD / "trackmap_auto"
+except Exception:
+    _DIR = Path(__file__).resolve().parent.parent \
+        / "settings" / "trackmap_auto"
 
 
 def _safe_name(track):

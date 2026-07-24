@@ -971,10 +971,16 @@ def _load_track_svg(track):
     if not track:
         return None, [], []
     _root9 = Path(__file__).resolve().parent.parent / "settings"
-    # PRIORITA' alla mappa AUTO-REGISTRATA (24/07): coordinate vere del
-    # gioco, versione pista attuale — la TinyPedal e' il ripiego
-    _bases9 = [b for b in (_root9 / "trackmap_auto", _root9 / "trackmap")
-               if b.exists()]
+    # PRIORITA' alla mappa AUTO-REGISTRATA (24/07): prima quella
+    # dell'UTENTE (%APPDATA%, registrata coi suoi giri), poi la
+    # dotazione dell'app, poi le vecchie in settings/trackmap
+    try:
+        from core.paths import USER_DIR as _UD9
+        _cand9 = (_UD9 / "trackmap_auto", _root9 / "trackmap_auto",
+                  _root9 / "trackmap")
+    except Exception:
+        _cand9 = (_root9 / "trackmap_auto", _root9 / "trackmap")
+    _bases9 = [b for b in _cand9 if b.exists()]
     if not _bases9:
         return None, [], []
     def _norm9(s):
@@ -5581,8 +5587,11 @@ class MappaView(QWidget):
         pts = []
         try:
             cand = None
-            # prima la mappa AUTO-REGISTRATA (coordinate vere di gioco)
-            for base in (_ROOT / "settings" / "trackmap_auto",
+            # prima la mappa AUTO-REGISTRATA (coordinate vere di gioco):
+            # quella dell'UTENTE, poi la dotazione app, poi le vecchie
+            from core.paths import USER_DIR as _UD5
+            for base in (_UD5 / "trackmap_auto",
+                         _ROOT / "settings" / "trackmap_auto",
                          _ROOT / "settings" / "trackmap"):
                 if not base.exists():
                     continue
