@@ -550,7 +550,7 @@ class MapCanvas(QWidget):
         p.setRenderHint(QPainter.Antialiasing)
         w = self.width(); h = self.height()
         sc = self._scale
-        pad = 14 * sc
+        pad = 38 * sc   # aria per etichette/cordoli (rich. 24/07)
 
         if not self._path:
             p.setPen(QPen(QColor("#8a8a90")))
