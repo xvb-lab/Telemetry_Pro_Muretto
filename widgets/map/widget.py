@@ -115,20 +115,8 @@ def _load_map(track):
     path, secs, pit = _load_svg_map(track)
     if path:
         return path, secs, pit
-    # 2) mappa registrata in precedenza
-    try:
-        f = MAPS_DIR / f"{_safe(track)}.json"
-        if f.exists():
-            raw = json.loads(f.read_text())
-            if isinstance(raw, dict):
-                path = [tuple(p) for p in raw.get("path", [])]
-                secs = list(raw.get("secs", []))
-            else:
-                path = [tuple(p) for p in raw]
-                secs = []
-            return path, secs, []
-    except Exception:
-        pass
+    # LEGACY JSON SPENTO (24/07): esiste solo il sistema _2026 —
+    # niente mappa finche' il recorder non scrive quella vera
     return None, [], []
 
 
@@ -474,7 +462,18 @@ class MapCanvas(QWidget):
             if cid not in live:
                 self._targets.pop(cid, None); self._rendered.pop(cid, None)
         if self._recording and player and not player.get("in_pits"):
-            self._record_point(player, player_sector)
+            # LEGACY SPENTO (24/07): niente piu' mappe JSON dal widget —
+            # la mappa vera la scrive il recorder (_2026, con settori e
+            # corsia). Qui si RIPROVA solo a caricarla, finche' appare.
+            _nowr9 = time.monotonic()
+            if _nowr9 - getattr(self, "_map_probe9", 0.0) > 5.0:
+                self._map_probe9 = _nowr9
+                globals()["_svg_index_cache"] = None
+                _p9, _s9, _pl9 = _load_map(self._track)
+                if _p9:
+                    self._path, self._secs, self._pit9 = _p9, _s9, _pl9
+                    self._recording = False
+                    self._build_cum()
         self.update()
 
     def _record_point(self, player, player_sector):
