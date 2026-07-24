@@ -480,45 +480,10 @@ class MapCanvas(QWidget):
             ux, uy = c0.x() - a.x(), c0.y() - a.y()
             vx, vy = b.x() - c0.x(), b.y() - c0.y()
             _ins = 1.0 if (ux * vy - uy * vx) > 0 else -1.0   # lato interno
-            _off = lw / 2.0 + _kw / 2.0 + 1.0
-            # cordolo su ENTRAMBI i lati (rich. 24/07: mancava
-            # l'esterno) — due percorsi paralleli
-            kpath = QPainterPath()      # INTERNO: ingresso -> apice
-            started = False
-            for i in range(_i0k - 1, _ti_idx + 2):
-                cc = _scr(i)
-                nx, ny = _norm(i)
-                pt = QPointF(cc.x() + nx * _ins * _off,
-                             cc.y() + ny * _ins * _off)
-                if not started:
-                    kpath.moveTo(pt); started = True
-                else:
-                    kpath.lineTo(pt)
-            kpath2 = QPainterPath()     # ESTERNO: apice -> uscita
-            started = False
-            for i in range(_ti_idx - 1, _j0k + 2):
-                cc = _scr(i)
-                nx, ny = _norm(i)
-                pt2 = QPointF(cc.x() - nx * _ins * _off,
-                              cc.y() - ny * _ins * _off)
-                if not started:
-                    kpath2.moveTo(pt2); started = True
-                else:
-                    kpath2.lineTo(pt2)
-            p.setBrush(Qt.NoBrush)
-            # colori VERI per pista (Silverstone bianco/nero, Spa
-            # giallo/rosso...) + STRISCE FINI: il tratteggio Qt scala
-            # con lo spessore, quindi si normalizza a ~5px veri
-            _kb9, _ks9 = _kerb_cols9(self._track)
-            _dsh9 = max(0.6, 5.0 * sc / max(1.0, _kw))
-            for _kpth9 in (kpath, kpath2):
-                _kp = QPen(_kb9, _kw)
-                _kp.setCapStyle(Qt.FlatCap)
-                p.setPen(_kp); p.drawPath(_kpth9)       # base
-                _kr = QPen(_ks9, _kw)
-                _kr.setCapStyle(Qt.FlatCap)
-                _kr.setDashPattern([_dsh9, _dsh9])      # strisce fini
-                p.setPen(_kr); p.drawPath(_kpth9)
+            # CORDOLI TOLTI (rich. utente 24/07 sera: "li lascerei
+            # senza, quello che conta e' che le curve siano giuste") —
+            # restano numeri curva e settori; i colori cordolo vivono
+            # in data/kerb_colors.py se mai torneranno
             # numero curva sul lato ESTERNO — con ANTI-COLLISIONE:
             # se il posto e' occupato da un'altra etichetta, si sposta
             # piu' fuori (T9/T11 uscivano una sopra l'altra, 24/07)

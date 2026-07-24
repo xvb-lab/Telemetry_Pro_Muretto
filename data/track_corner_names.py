@@ -21,12 +21,14 @@ CORNER_NAMES = {
     "americas": _rng(_rng({1: "Big Red", 11: "Hairpin",
                            20: "Ultima curva"},
                           2, 6, "The Esses"), 12, 15, "Stadium"),
-    "algarve": {1: "Primeira", 3: "Lagos", 5: "Torre VIP", 8: "Macau",
-                10: "Portimao", 11: "Portimao", 13: "Sagres",
-                14: "Craig Jones", 15: "Galp"},
-    "portimao": {1: "Primeira", 3: "Lagos", 5: "Torre VIP", 8: "Macau",
-                 10: "Portimao", 11: "Portimao", 13: "Sagres",
-                 14: "Craig Jones", 15: "Galp"},
+    # corretti 24/07 sull'immagine UFFICIALE F1 (Wikipedia, portata
+    # dall'utente): 8 Samsung, 9 Craig Jones, 14 Sagres
+    "algarve": {1: "Primeira", 3: "Lagos", 5: "Torre VIP",
+                8: "Samsung", 9: "Craig Jones", 10: "Portimao",
+                11: "Portimao", 14: "Sagres", 15: "Galp"},
+    "portimao": {1: "Primeira", 3: "Lagos", 5: "Torre VIP",
+                 8: "Samsung", 9: "Craig Jones", 10: "Portimao",
+                 11: "Portimao", 14: "Sagres", 15: "Galp"},
     "bahrain": {1: "Michael Schumacher"},
     "enzo e dino": _rng(_rng(_rng(_rng(_rng(
         {7: "Tosa", 9: "Piratella"},
