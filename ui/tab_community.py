@@ -563,7 +563,7 @@ class _RankRow(QFrame):
             from PySide6.QtCore import QTimer
             # 3s dall'apertura + SFALSAMENTO un decimo per riga (cascata,
             # rich. utente 24/07 sera)
-            _delay = 1500 + max(0, self._gpos9 - 1) * 100
+            _delay = 1000 + max(0, self._gpos9 - 1) * 100
             QTimer.singleShot(_delay, self._gstart9)
 
     def _gstart9(self):
