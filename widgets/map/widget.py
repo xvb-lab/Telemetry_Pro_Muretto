@@ -492,6 +492,19 @@ class MapCanvas(QWidget):
         try:
             import json
             fp = self._rot_file9()
+            # SPIA (24/07 sera, giallo COTA): traccia COSA salva e sotto
+            # che chiave — l'utente giurava d'aver girato COTA ma il file
+            # non la conteneva
+            try:
+                import time as _t
+                from core.paths import USER_DIR as _UDs
+                with open(_UDs / "rot_save_debug.txt", "a",
+                          encoding="utf-8") as _fh:
+                    _fh.write("[%s] SAVE track=%r rot=%.4f\n" % (
+                        _t.strftime("%H:%M:%S"), self._track,
+                        self._map_rot9))
+            except Exception:
+                pass
             d = {}
             try:
                 d = json.loads(fp.read_text(encoding="utf-8"))
