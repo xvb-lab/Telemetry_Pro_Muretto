@@ -9366,8 +9366,11 @@ def _real_map_load(track):
     from pathlib import Path
 
     def _nm(s):
+        # decodifica #Uxxxx PRIMA del lower (24/07 sera: col lower
+        # prima, '#U00f3' diventava '#u00f3' e la regex maiuscola non
+        # decodificava piu' -> Jose Carlos Pace non matchava mai)
         s = re.sub(r"#U([0-9a-fA-F]{4})",
-                   lambda m: chr(int(m.group(1), 16)), (s or "").lower())
+                   lambda m: chr(int(m.group(1), 16)), s or "").lower()
         for w in ("grand prix", "circuit", "international",
                   "raceway", "speedway", "the ", "2026"):
             s = s.replace(w, " ")
@@ -9587,7 +9590,7 @@ class _TrackMapView(QWidget):
             def _nmk(s):
                 s = _re.sub(r"#U([0-9a-fA-F]{4})",
                             lambda m: chr(int(m.group(1), 16)),
-                            (s or "").lower())
+                            s or "").lower()
                 for w in ("grand prix", "circuit", "international",
                           "raceway", "speedway", "the ", "2026"):
                     s = s.replace(w, " ")
@@ -10155,6 +10158,7 @@ class _TrackPage(QWidget):
     def set_track(self, idx, base, name, mapname, bgkey=None):
         self._idx = idx
         self._bgkey = bgkey              # foto card come sfondo pagina
+        _stem9 = ""                      # cmap canonico (fuori dai try)
         try:
             from data.track_info import track_name, track_country
             _full = track_name(base) or name or ""
@@ -10188,8 +10192,11 @@ class _TrackPage(QWidget):
             # 24/07 sera (2a decisione): ora che le mappe sono girate nel
             # verso giusto e le curve sistemate, la pagina classifiche usa
             # la mappa VERA (bianca pulita, settori, curve, verso salvato);
-            # la stilizzata resta il fallback dove la vera non c'e' ancora
-            if not self._map.set_real(name):
+            # la stilizzata resta il fallback dove la vera non c'e' ancora.
+            # Doppio tentativo: nome card ("COTA") poi CMAP canonico
+            # ("Circuit of the Americas") = il nome che usa LMU nei file
+            if not self._map.set_real(name) \
+                    and not (_stem9 and self._map.set_real(_stem9)):
                 self._map.set_map(mapname,
                                   _MAP_ROTATION.get(base or "", 0))
         except Exception:

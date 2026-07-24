@@ -42,9 +42,10 @@ def corners_for_track(name, track_len=None):
         from core.paths import USER_DIR
 
         def _nm(s):
+            # #Uxxxx decodificato PRIMA del lower (bug 24/07 sera)
             s = _re.sub(r"#U([0-9a-fA-F]{4})",
                         lambda m: chr(int(m.group(1), 16)),
-                        (s or "").lower())
+                        s or "").lower()
             for w in ("grand prix", "circuit", "international",
                       "raceway", "speedway", "the ", "2026"):
                 s = s.replace(w, " ")
