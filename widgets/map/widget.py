@@ -582,10 +582,7 @@ class MapCanvas(QWidget):
             _zf9 = zoom / 5.5
             self._zoomf9 = _zf9
             z2 = scl * zoom * gcal
-            # CARREGGIATA LARGA come la mappa di LMU (confronto foto
-            # 24/07: la loro strada e' ~1.5-2 volte il pallino, la
-            # nostra era piu' stretta del pallino stesso)
-            track_w_mult = 8.0 * gcal * _zf9                    # pista
+            track_w_mult = 2.6 * gcal * _zf9                    # pista
             dot_mult = 1.75 * gcal * _zf9                       # piloti
             hm = getattr(self, "_l2_hm", -math.pi / 2.0)        # heading map-space (smussato)
             prev = getattr(self, "_l2_prev", None)
@@ -736,9 +733,9 @@ class MapCanvas(QWidget):
             p.drawPath(base)
         else:
             # FOCUS GPS SFUMATO (rich. 24/07): nucleo pieno attorno al
-            # player + estremita' che EVAPORANO in trasparenza su una
-            # RAMPA LUNGA, come la mappa di LMU (non un taglio corto)
-            _CORE9, _EDGE9 = 250.0, 560.0
+            # player + estremita' che EVAPORANO in trasparenza, niente
+            # taglio netto che scatta mentre la finestra avanza
+            _CORE9, _EDGE9 = 430.0, 550.0
 
             def _wf9(i):
                 d = abs(self._cum[min(i, len(self._cum) - 1)] - _pd_l9)
