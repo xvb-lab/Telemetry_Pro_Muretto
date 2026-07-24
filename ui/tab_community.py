@@ -327,7 +327,7 @@ class _RankRow(QFrame):
         # piu' del testo (rich. utente 24/07 sera)
         _fcol = QVBoxLayout(); _fcol.setSpacing(2 if _oncard else 1)
         _fcol.setContentsMargins(0, 0 if _oncard else 8, 0,
-                                 5 if _oncard else 0)
+                                 9 if _oncard else 0)
         _fic = _SvgBox()
         # benzina un filo piu' grande (rich. 24/07 sera: stesso diametro
         # del simbolo gomma) 24->28
