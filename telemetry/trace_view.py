@@ -1685,6 +1685,7 @@ class _LiveMap(QWidget):
                 ang = _prev + _d * 0.15
             self._gps_ang = ang
             zoom = fit * 6.0 * self._zoom_mult
+            self._ppm9 = zoom     # pixel per METRO (vista GPS)
             ca = math.cos(-ang + math.pi / 2.0); sa = math.sin(-ang + math.pi / 2.0)
             cx = w / 2.0 + self._pan_off[0]
             cy = h * 0.62 + self._pan_off[1]
@@ -1695,6 +1696,7 @@ class _LiveMap(QWidget):
                 return QPointF(cx + ru * zoom, cy - rv * zoom)
         else:
             z = fit * self._zoom_mult
+            self._ppm9 = z        # pixel per METRO (vista intera)
             cxm = (min(xs) + max(xs)) / 2.0
             czm = (min(zs) + max(zs)) / 2.0
             cx = w / 2.0 + self._pan_off[0]
@@ -1728,7 +1730,12 @@ class _LiveMap(QWidget):
         sel_c = QColor(_sel_col()); cmp_c = QColor(_cmp_col(self._cmp_gold))
         trk_c = QColor(_common._TRK_COL)     # via modulo: segue il pick-color
         zm = self._zoom_mult
-        trk_w = max(8.0, min(200.0, 17.0 * zm))
+        # LARGHEZZA IN METRI VERI (24/07 sera): la mappa ufficiale e'
+        # la MEZZERIA — con la strada a pixel fissi la traiettoria
+        # (che vive a +-6 m dalla mezzeria) usciva dal nastro. 13 m
+        # di carreggiata convertiti con lo zoom: le macchine stanno
+        # SULLA pista a qualsiasi ingrandimento.
+        trk_w = max(6.0, min(300.0, 13.0 * getattr(self, "_ppm9", 1.0)))
         ln_w = max(1.4, min(16.0, 2.2 * zm))
         # macchinine in SCALA VERA (rich. 23/07: in pista ci stanno 3
         # auto affiancate -> il simbolo e' 1/3 della carreggiata)
