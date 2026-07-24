@@ -6,6 +6,7 @@ con le coordinate VERE del gioco: versione pista attuale, partenza =
 traguardo, lapdist del gioco. I lettori (mappa review, mappa live,
 curve del muretto) la preferiscono alla TinyPedal: niente piu' scarti
 pista/traiettoria ne' cartelli fuori posto."""
+import math
 import re
 from pathlib import Path
 
@@ -181,6 +182,21 @@ def save_official(track, payload, track_len=None, sf_xy=None,
         return False
     if len(t0) < 50:
         return False
+    # SANITA' LUNGHEZZA (24/07 sera, caso Monza Curva Grande): su
+    # alcuni LAYOUT CORTI il REST serve la mezzeria del circuito
+    # INTERO (5732 m sul layout da ~3 km). Giudice = il righello del
+    # GIOCO (track_len del giro): se la mezzeria non torna (+-15%),
+    # si RIFIUTA e resta la mappa registrata dai giri, fedele al
+    # layout per costruzione. Il grezzo e' comunque salvato sopra.
+    try:
+        if track_len:
+            _La = sum(math.hypot(t0[i][0] - t0[i - 1][0],
+                                 t0[i][1] - t0[i - 1][1])
+                      for i in range(1, len(t0)))
+            if abs(_La - float(track_len)) / float(track_len) > 0.15:
+                return False
+    except (TypeError, ValueError, ZeroDivisionError):
+        pass
     dest = _DIR / (n + _SUF + ".svg")
     try:
         if dest.exists() and "UFFICIALE LMU" in dest.read_text(
