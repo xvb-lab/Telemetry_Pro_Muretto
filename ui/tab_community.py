@@ -272,7 +272,9 @@ class _RankRow(QFrame):
             pass
         # GAP subito dopo il nome (prima dei simboli). Bianco, accento sul 1°.
         _ms0 = rec.get("lap_ms")
-        _gap = ("+%.3f" % ((_ms0 - leader_ms) / 1000.0)) \
+        # niente "+" (rich. utente 24/07 sera): sono tutti gap, solo i
+        # secondi/decimi di differenza
+        _gap = ("%.3f" % ((_ms0 - leader_ms) / 1000.0)) \
             if (leader_ms and _ms0 and _ms0 > leader_ms) else ""
         gcol = QLabel(_gap)
         # GAP piu' grande (24/07: 13->22px). Lo sfondo #55526e SQUADRATO
@@ -512,15 +514,18 @@ class _RankRow(QFrame):
                         QPointF(_tr - _bw, 0.0), QPointF(_tr, 0.0),
                         QPointF(_tr - _sl, _h),
                         QPointF(_tr - _sl - _bw, _h)]))
-            # SFONDO GAP #55526e squadrato a tutta altezza, con REVEAL
-            # animato sinistra->destra (rich. utente 24/07 sera, come il
-            # dashboard). Disegnato QUI = sotto il testo del gap
+            # SFONDO GAP #55526e squadrato a tutta altezza, ATTACCATO
+            # alla scheda pilota (parte dal taglio 'cut', niente riga
+            # blu a sinistra) con REVEAL animato sinistra->destra
+            # (rich. utente 24/07 sera, come il dashboard)
             if getattr(self, "_gap_on9", False) and \
                     getattr(self, "_gcol9", None) is not None:
                 gr = self._gcol9.geometry()
-                if gr.width() > 0:
-                    _rw = gr.width() * max(0.0, min(1.0, self._greveal9))
-                    p.fillRect(QRectF(gr.x(), 0.0, _rw,
+                _rend = float(gr.x() + gr.width())   # bordo destro gap
+                _full = _rend - cut                  # attacca al taglio
+                if _full > 0:
+                    _rw = _full * max(0.0, min(1.0, self._greveal9))
+                    p.fillRect(QRectF(cut, 0.0, _rw,
                                       float(self.height())),
                                QColor("#55526e"))
             p.end()
@@ -528,17 +533,27 @@ class _RankRow(QFrame):
 
     def showEvent(self, e):
         super().showEvent(e)
-        # avvia il reveal del gap una volta, quando la riga compare
+        # RITARDO 3s dall'apertura pagina, poi reveal (rich. utente
+        # 24/07 sera: se no non si vede l'effetto)
         if getattr(self, "_gap_on9", False) and self._gtimer9 is None \
-                and self._greveal9 <= 0.0:
+                and self._greveal9 <= 0.0 \
+                and not getattr(self, "_gqueued9", False):
+            self._gqueued9 = True
             from PySide6.QtCore import QTimer
-            self._gtimer9 = QTimer(self)
-            self._gtimer9.setInterval(12)
-            self._gtimer9.timeout.connect(self._gtick9)
-            self._gtimer9.start()
+            QTimer.singleShot(3000, self._gstart9)
+
+    def _gstart9(self):
+        if self._gtimer9 is not None:
+            return
+        from PySide6.QtCore import QTimer
+        self._gtimer9 = QTimer(self)
+        self._gtimer9.setInterval(14)
+        self._gtimer9.timeout.connect(self._gtick9)
+        self._gtimer9.start()
 
     def _gtick9(self):
-        self._greveal9 = min(1.0, self._greveal9 + 0.16)
+        # piu' lento (rich. 24/07 sera: era troppo veloce) ~0.05/tick
+        self._greveal9 = min(1.0, self._greveal9 + 0.05)
         if self._greveal9 >= 1.0 and self._gtimer9 is not None:
             self._gtimer9.stop()
         self.update()
