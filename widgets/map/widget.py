@@ -200,6 +200,13 @@ class MapCanvas(QWidget):
             nx = rx + (tx - rx) * a
             nz = rz + (tz - rz) * a
             self._rendered[cid] = (nx, nz)
+            # direzione di marcia (mondo) per le macchinine (24/07)
+            _dx9 = nx - rx; _dz9 = nz - rz
+            if _dx9 * _dx9 + _dz9 * _dz9 > 0.02:
+                _h9 = getattr(self, "_hdg9", None)
+                if _h9 is None:
+                    _h9 = self._hdg9 = {}
+                _h9[cid] = math.atan2(_dz9, _dx9)
             if abs(nx - tx) > 0.05 or abs(nz - tz) > 0.05:
                 moved = True
         if moved:
@@ -857,7 +864,7 @@ class MapCanvas(QWidget):
             p.setBrush(QColor(0, 0, 0, 80))
             p.drawEllipse(QPointF(X + 1.3 * sc, Y + 1.3 * sc), rad + 0.8 * sc, rad + 0.8 * sc)
 
-        def draw_dot(cx, cy, c, base_r):
+        def draw_dot(cx, cy, c, base_r, wpos=None):
             col = _CLASS_COL.get(c.get("cls", ""), QColor("#9aa0a8"))
             in_pit = c.get("in_pits")
             in_garage = c.get("garage")
@@ -895,8 +902,47 @@ class MapCanvas(QWidget):
                     fillc = col; numc = QColor("#ffffff")
                     p.setPen(Qt.NoPen)
                 p.setBrush(QBrush(fillc))
-            p.drawEllipse(QPointF(cx, cy), rr, rr)
             numtxt = c.get("num", "")
+            # MACCHININA (idea 24/07): scocca ruotata nella direzione
+            # di marcia, stessi colori/stati dei dot, numero DRITTO
+            # bianco bordato nero (leggibile sempre)
+            if _cars9 and not in_garage and wpos is not None:
+                _hw9 = (getattr(self, "_hdg9", None) or {}) \
+                    .get(c.get("id"))
+                _ang9 = 0.0
+                if _hw9 is not None:
+                    _X2, _Y2 = tf(wpos[0] + math.cos(_hw9) * 5.0,
+                                  wpos[1] + math.sin(_hw9) * 5.0)
+                    _ang9 = math.degrees(math.atan2(_Y2 - cy,
+                                                    _X2 - cx))
+                _L9 = rr * 3.1
+                _W9 = rr * 1.85
+                p.save()
+                p.translate(cx, cy)
+                p.rotate(_ang9)
+                p.drawRoundedRect(QRectF(-_L9 / 2, -_W9 / 2, _L9, _W9),
+                                  _W9 * 0.32, _W9 * 0.32)
+                p.setPen(Qt.NoPen)
+                p.setBrush(QColor(0, 0, 0, 110))     # abitacolo
+                p.drawRoundedRect(QRectF(-_L9 * 0.16, -_W9 * 0.30,
+                                         _L9 * 0.34, _W9 * 0.60),
+                                  2.0, 2.0)
+                p.restore()
+                if numtxt:
+                    f = QFont("Archivo SemiExpanded"); f.setBold(True)
+                    f.setPixelSize(max(8, int(
+                        rr * (1.25 if len(numtxt) <= 2 else 0.85))))
+                    p.setFont(f)
+                    _rq9 = QRectF(cx - rr * 2, cy - rr * 2,
+                                  rr * 4, rr * 4)
+                    p.setPen(QPen(QColor(0, 0, 0, 230)))
+                    for _o9 in ((1, 1), (-1, 1), (1, -1), (-1, -1)):
+                        p.drawText(_rq9.translated(_o9[0], _o9[1]),
+                                   Qt.AlignCenter, numtxt)
+                    p.setPen(QPen(QColor(255, 255, 255, 245)))
+                    p.drawText(_rq9, Qt.AlignCenter, numtxt)
+                return
+            p.drawEllipse(QPointF(cx, cy), rr, rr)
             if numtxt:
                 f = QFont("Archivo SemiExpanded"); f.setBold(True)
                 ratio = 1.3 if len(numtxt) <= 2 else 0.78
@@ -907,6 +953,7 @@ class MapCanvas(QWidget):
 
         pcls = next((c.get("cls") for c in self._cars if c.get("is_player")), None)
         _names9 = bool(_cfg.get("map_names", True))
+        _cars9 = bool(_cfg.get("map_car_icons", True))
         # gap in secondi dal player: il tag nome appare solo coi vicini
         _spd_p9 = next((float(c.get("speed") or 0.0)
                         for c in self._cars if c.get("is_player")), 0.0)
@@ -929,7 +976,7 @@ class MapCanvas(QWidget):
             if _arcvis9 is not None and not c.get("is_player") \
                     and not _arcvis9(c.get("lapdist")):
                 continue          # fuori dal focus GPS: pista nascosta
-            draw_dot(X, Y, c, r)
+            draw_dot(X, Y, c, r, (rx, rz))
             # TAG PILOTA stile F1 (rich. 24/07): 3 lettere del cognome
             # in bold bianco bordato nero — il TUO sempre, gli altri
             # solo entro 3 secondi (davanti o dietro)

@@ -811,12 +811,16 @@ class _PedalChart(QWidget):
         if _brd:
             _ft = p.font(); _ft6 = p.font(); _ft6.setPointSize(6)
             p.setFont(_ft6)
-            for _ld, _lab in _brd:
+            _lx9b = -1e9      # anti-affollamento (24/07): il numero
+            for _ld, _lab in _brd:   # esce solo se ha ARIA, tacca sempre
                 if xmin <= _ld <= xmax:
                     xx = X(_ld)
                     p.setPen(QPen(QColor(255, 255, 255, 26), 1,
                                   Qt.DashLine))
                     p.drawLine(int(xx), mt, int(xx), mt + gh)
+                    if xx - _lx9b < 17.0:
+                        continue
+                    _lx9b = xx
                     _twl = p.fontMetrics().horizontalAdvance(_lab)
                     p.setPen(QColor(160, 166, 178, 170))
                     p.drawText(QPointF(xx - _twl / 2.0, mt + gh - 22),
@@ -1875,6 +1879,7 @@ class _LiveMap(QWidget):
         if _brdm and _srtb:
             _fb6 = p.font(); _fb = p.font(); _fb.setPointSize(6)
             p.setFont(_fb)
+            self._brd_lp9 = None      # reset anti-affollamento a ogni frame
             for _ldb, _labb in _brdm:
                 _a9 = self._pos_at_ld(_srtb, _ldb)
                 _b9 = self._pos_at_ld(_srtb, _ldb + 6.0)
@@ -1892,6 +1897,12 @@ class _LiveMap(QWidget):
                                    _qa.y() - _ny * _hw),
                            QPointF(_qa.x() + _nx * _hw,
                                    _qa.y() + _ny * _hw))
+                # anti-affollamento numeri (24/07): tacca sempre,
+                # numero solo se non pesta l'ultimo disegnato
+                _lp9 = getattr(self, "_brd_lp9", None)
+                if _lp9 is not None and (_qa.x() - _lp9[0]) ** 2                         + (_qa.y() - _lp9[1]) ** 2 < 16.0 ** 2:
+                    continue
+                self._brd_lp9 = (_qa.x(), _qa.y())
                 p.setPen(QColor(200, 206, 218, 190))
                 p.drawText(QPointF(_qa.x() + _nx * (_hw + 4.0),
                                    _qa.y() + _ny * (_hw + 4.0) + 2.0),
@@ -2646,12 +2657,16 @@ class _TraceChart(QWidget):
         if _brd:
             _ft = p.font(); _ft6 = p.font(); _ft6.setPointSize(6)
             p.setFont(_ft6)
-            for _ld, _lab in _brd:
+            _lx9b = -1e9      # anti-affollamento (24/07): il numero
+            for _ld, _lab in _brd:   # esce solo se ha ARIA, tacca sempre
                 if xmin <= _ld <= xmax:
                     xx = X(_ld)
                     p.setPen(QPen(QColor(255, 255, 255, 26), 1,
                                   Qt.DashLine))
                     p.drawLine(int(xx), mt, int(xx), mt + gh)
+                    if xx - _lx9b < 17.0:
+                        continue
+                    _lx9b = xx
                     _twl = p.fontMetrics().horizontalAdvance(_lab)
                     p.setPen(QColor(160, 166, 178, 170))
                     p.drawText(QPointF(xx - _twl / 2.0, mt + gh - 22),

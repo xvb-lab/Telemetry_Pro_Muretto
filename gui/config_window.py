@@ -259,6 +259,10 @@ class ConfigWindow(QDialog):
             grid.addWidget(QLabel("Driver tags"), row_i, 0)
             grid.addWidget(self._make_toggle("names"), row_i, 1)
             row_i += 1
+            # macchinine ruotate al posto dei pallini (idea 24/07)
+            grid.addWidget(QLabel("Car icons"), row_i, 0)
+            grid.addWidget(self._make_toggle("caricons"), row_i, 1)
+            row_i += 1
             # dettagli: cordoli, numeri curva, settori
             grid.addWidget(QLabel("Curve details"), row_i, 0)
             grid.addWidget(self._make_toggle("detail"), row_i, 1)
@@ -532,6 +536,8 @@ class ConfigWindow(QDialog):
             else:
                 self.cb_mmode.setCurrentIndex(0)          # intera
             self._set_toggle("names", bool(cfg.get("map_names", True)))
+            self._set_toggle("caricons",
+                             bool(cfg.get("map_car_icons", True)))
             self._set_toggle("detail", bool(cfg.get("map_detail", True)))
             self._set_toggle("darktrack",
                              bool(cfg.get("map_dark_track", True)))
@@ -816,6 +822,8 @@ class ConfigWindow(QDialog):
                                    _mi9 == 2)
             self._config.set_value(self._key, "map_names",
                                    bool(self._toggle_state.get("names", True)))
+            self._config.set_value(self._key, "map_car_icons",
+                                   bool(self._toggle_state.get("caricons", True)))
             self._config.set_value(self._key, "map_detail",
                                    bool(self._toggle_state.get("detail", True)))
             self._config.set_value(self._key, "map_dark_track",
