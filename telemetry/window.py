@@ -10298,11 +10298,28 @@ class _TrackPage(QWidget):
                 info = track_info(base)
         except Exception:
             info = None
+        # NUMERO CURVE dal CENSIMENTO che salvi TU (rich. 24/07 sera):
+        # il conteggio mostrato = le curve che hai messo sulla mappa
+        # (Le Mans 28 tue, non 38 della tabella; la FIA ne conta 33
+        # contando punti che non sono curve). Fallback alla scheda se
+        # la pista non e' ancora censita.
+        _turns9 = None
+        try:
+            from data.track_corners import corners_for_track as _cft9
+            _cc9 = _cft9(name) or (_cft9(_stem9) if _stem9 else None)
+            if _cc9:
+                _turns9 = len(_cc9)
+        except Exception:
+            _turns9 = None
         if info:
             _len, _trn, _yr = info
             self._info_len.setText("%.3f km" % (_len / 1000.0))
-            self._info_trn.setText(str(_trn))
+            self._info_trn.setText(str(_turns9 if _turns9 else _trn))
             self._info_yr.setText(str(_yr))
+        elif _turns9:
+            self._info_len.setText("—")
+            self._info_trn.setText(str(_turns9))
+            self._info_yr.setText("—")
         else:
             for v in (self._info_len, self._info_trn, self._info_yr):
                 v.setText("—")
