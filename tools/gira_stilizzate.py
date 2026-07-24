@@ -168,6 +168,13 @@ class Tool(QWidget):
         else:
             super().keyPressEvent(e)
 
+    def closeEvent(self, e):
+        # SALVA la pista corrente alla chiusura (24/07 sera: COTA
+        # ruotata ma persa perche' la finestra si chiudeva senza
+        # navigare -> l'angolo non veniva scritto)
+        self.save()
+        super().closeEvent(e)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
