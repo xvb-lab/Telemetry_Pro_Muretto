@@ -37,5 +37,6 @@ def load_qss(cfg):
     except Exception:
         return ""
     qss = _scale_qss(qss, cfg.scale)
-    qss = _apply_bg_opacity(qss, "#container", cfg.get("bg_opacity", None))
+    # background TRASPARENTE di default (rich. 24/07): la mappa galleggia
+    qss = _apply_bg_opacity(qss, "#container", cfg.get("bg_opacity", 0))
     return qss

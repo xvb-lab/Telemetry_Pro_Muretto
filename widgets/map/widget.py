@@ -667,7 +667,7 @@ class MapCanvas(QWidget):
                 return d <= _vw + 60.0
 
         try:                      # DOT SIZE scelto dall'utente (24/07)
-            dot_mult *= float(_cfg.get("map_dot_scale", 1.0) or 1.0)
+            dot_mult *= float(_cfg.get("map_dot_scale", 1.5) or 1.5)
         except (TypeError, ValueError):
             pass
 
@@ -688,16 +688,25 @@ class MapCanvas(QWidget):
             p.setPen(QPen(color, width)); p.setBrush(Qt.NoBrush)
             p.drawPath(sub)
 
-        # colore pista a scelta (rich. 24/07): ASFALTO scuro di default
-        # ("sembra proprio l'asfalto, contrasto migliore") o bianca
-        # personalizzato dal picker > asfalto scuro > BIANCA (default)
-        _mc9 = str(_cfg.get("map_track_color") or "")
-        if _mc9:
-            _trk_c9 = QColor(_mc9)
-        elif _cfg.get("map_dark_track", False):
-            _trk_c9 = QColor(88, 94, 104)
-        else:
-            _trk_c9 = QColor("#f3f4f8")
+        # COLORI PISTA per SETTORE (rich. 24/07): 3 colori da config
+        # (i dot White/Dark del pannello li mettono tutti uguali);
+        # mappa senza confini settore = tutta col colore del settore 1
+        _scraw9 = _cfg.get("map_sec_colors") or []
+        _scols9 = [str(_scraw9[i]) if i < len(_scraw9) and _scraw9[i]
+                   else "#f3f4f8" for i in range(3)]
+        _uni9 = (_scols9[0] == _scols9[1] == _scols9[2]) \
+            or not self._secs or len(self._secs) < 2
+
+        def _sec_col9(i):
+            if _uni9:
+                return _scols9[0]
+            if i <= self._secs[0]:
+                return _scols9[0]
+            if i <= self._secs[1]:
+                return _scols9[1]
+            return _scols9[2]
+
+        _trk_c9 = QColor(_scols9[0])
         _pit_c9 = QColor(_trk_c9.red(), _trk_c9.green(),
                          _trk_c9.blue(), 105)
 
@@ -755,8 +764,33 @@ class MapCanvas(QWidget):
             p.setPen(QPen(QColor(0, 0, 0, 150), _hw9))
             p.setBrush(Qt.NoBrush)
             p.drawPath(base)
-            p.setPen(QPen(_trk_c9, lw))
-            p.drawPath(base)
+            if _uni9:
+                p.setPen(QPen(_trk_c9, lw))
+                p.drawPath(base)
+            else:
+                # un sub-tracciato per settore, ognuno col suo colore
+                _nf9 = len(self._path)
+                _b0 = max(1, min(self._secs[0], _nf9 - 1))
+                _b1 = max(_b0, min(self._secs[1], _nf9 - 1))
+                for _i0s, _i1s, _cs in ((0, _b0, _scols9[0]),
+                                        (_b0, _b1, _scols9[1]),
+                                        (_b1, _nf9 - 1, _scols9[2])):
+                    if _i1s <= _i0s:
+                        continue
+                    sp9 = QPainterPath()
+                    X, Y = tf(*self._path[_i0s]); sp9.moveTo(X, Y)
+                    for q in self._path[_i0s + 1:_i1s + 1]:
+                        X, Y = tf(*q); sp9.lineTo(X, Y)
+                    p.setPen(QPen(QColor(_cs), lw,
+                                  Qt.SolidLine, Qt.RoundCap,
+                                  Qt.RoundJoin))
+                    p.drawPath(sp9)
+                sp9 = QPainterPath()          # chiusura S3 -> traguardo
+                X, Y = tf(*self._path[-1]); sp9.moveTo(X, Y)
+                X, Y = tf(*self._path[0]); sp9.lineTo(X, Y)
+                p.setPen(QPen(QColor(_scols9[2]), lw,
+                              Qt.SolidLine, Qt.RoundCap))
+                p.drawPath(sp9)
         else:
             # FOCUS GPS SFUMATO (rich. 24/07): nucleo pieno attorno al
             # player + estremita' che EVAPORANO in trasparenza, niente
@@ -775,33 +809,49 @@ class MapCanvas(QWidget):
             _pd_l9 = self._pd_s9
             _n9 = len(self._path)
             _ws9 = [_wf9(i) for i in range(_n9)]
+            # nucleo pieno: alone unico + un path per COLORE settore
             base = QPainterPath()
+            _paths9 = {}
             _opb9 = False
+            _opc9 = None
             for i, (x, z) in enumerate(self._path):
                 if _ws9[i] < 1.0:
                     _opb9 = False
+                    _opc9 = None
                     continue
                 X, Y = tf(x, z)
                 if not _opb9:
                     base.moveTo(X, Y); _opb9 = True
                 else:
                     base.lineTo(X, Y)
+                _cs = _sec_col9(i)
+                pth = _paths9.get(_cs)
+                if pth is None:
+                    pth = _paths9[_cs] = QPainterPath()
+                if _opc9 != _cs:
+                    pth.moveTo(X, Y)
+                    _opc9 = _cs
+                else:
+                    pth.lineTo(X, Y)
             p.setBrush(Qt.NoBrush)
             p.setPen(QPen(QColor(0, 0, 0, 150), _hw9))
             p.drawPath(base)
-            for _al9, _hex9, _ww9 in ((150, None, _hw9),
-                                      (255, _trk_c9.name(), lw)):
+            for _al9, _kind9, _ww9 in ((150, "halo", _hw9),
+                                       (255, "col", lw)):
                 for i in range(1, _n9):
                     _wa9 = min(_ws9[i - 1], _ws9[i])
                     if _wa9 <= 0.03 or _wa9 >= 1.0:
                         continue
-                    _c9 = QColor(_hex9) if _hex9 else QColor(0, 0, 0)
+                    _c9 = QColor(0, 0, 0) if _kind9 == "halo" \
+                        else QColor(_sec_col9(i))
                     _c9.setAlpha(int(_al9 * _wa9))
                     p.setPen(QPen(_c9, _ww9, Qt.SolidLine, Qt.RoundCap))
                     p.drawLine(QPointF(*tf(*self._path[i - 1])),
                                QPointF(*tf(*self._path[i])))
-            p.setPen(QPen(_trk_c9, lw))
-            p.drawPath(base)
+            for _cs, pth in _paths9.items():
+                p.setPen(QPen(QColor(_cs), lw, Qt.SolidLine,
+                              Qt.RoundCap, Qt.RoundJoin))
+                p.drawPath(pth)
         # cordoli + settori + numeri curva (come la mappa telemetria),
         # spegnibili dal setting "Curve details"
         if _cfg.get("map_detail", True):

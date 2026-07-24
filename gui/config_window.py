@@ -271,44 +271,63 @@ class ConfigWindow(QDialog):
             grid.addWidget(QLabel("Curve details"), row_i, 0)
             grid.addWidget(self._make_toggle("detail"), row_i, 1)
             row_i += 1
-            # pista scura (asfalto) o bianca (default)
-            grid.addWidget(QLabel("Dark track"), row_i, 0)
-            grid.addWidget(self._make_toggle("darktrack"), row_i, 1)
+            # ── COLORI PISTA (rich. 24/07): 5 DOT in verticale —
+            # White e Dark FISSI (click = tutta la pista di quel
+            # colore), Sector 1/2/3 col picker per colorare ogni
+            # settore come si vuole ──
+            from PySide6.QtWidgets import QPushButton as _QPB8
+            self._msec9 = ["#f3f4f8"] * 3
+
+            def _dot8(bg):
+                b = _QPB8()
+                b.setFixedSize(24, 24)
+                b.setCursor(Qt.PointingHandCursor)
+                b.setStyleSheet(
+                    "background:%s; border:1px solid "
+                    "rgba(255,255,255,0.35); border-radius:12px;" % bg)
+                return b
+
+            grid.addWidget(QLabel("White"), row_i, 0)
+            _bw8 = _dot8("#f3f4f8")
+            _bw8.setToolTip("Tutta la pista bianca")
+            _bw8.clicked.connect(
+                lambda: self._map_all_col9("#f3f4f8"))
+            grid.addWidget(_bw8, row_i, 1)
             row_i += 1
-            # colore pista PERSONALIZZATO (pallino-picker) + RESET ai
-            # default di fabbrica (dettati 24/07)
-            from PySide6.QtWidgets import (QPushButton as _QPB8,
-                                           QHBoxLayout as _QHB8,
-                                           QWidget as _QW8)
-            grid.addWidget(QLabel("Track color"), row_i, 0)
-            _wrap8 = _QW8()
-            _hl8 = _QHB8(_wrap8)
-            _hl8.setContentsMargins(0, 0, 0, 0)
-            _hl8.setSpacing(6)
-            self.bt_mcol = _QPB8()
-            self.bt_mcol.setFixedSize(26, 26)
-            self.bt_mcol.setCursor(Qt.PointingHandCursor)
-            self.bt_mcol.setToolTip("Colore pista (vuoto = automatico)")
-            self.bt_mcol.clicked.connect(self._map_pick_color9)
-            self._map_col9 = ""
-            self._map_col_apply9()
+            grid.addWidget(QLabel("Dark"), row_i, 0)
+            _bd8 = _dot8("#585e68")
+            _bd8.setToolTip("Tutta la pista asfalto scuro")
+            _bd8.clicked.connect(
+                lambda: self._map_all_col9("#585e68"))
+            grid.addWidget(_bd8, row_i, 1)
+            row_i += 1
+            self.bt_msec9 = []
+            for _si8 in range(3):
+                grid.addWidget(QLabel("Sector %d" % (_si8 + 1)),
+                               row_i, 0)
+                _bs8 = _dot8("#f3f4f8")
+                _bs8.setToolTip("Colore del settore %d" % (_si8 + 1))
+                _bs8.clicked.connect(
+                    lambda _c=False, _k=_si8: self._map_sec_pick9(_k))
+                grid.addWidget(_bs8, row_i, 1)
+                self.bt_msec9.append(_bs8)
+                row_i += 1
+            # RESET ai default di fabbrica
+            grid.addWidget(QLabel("Defaults"), row_i, 0)
             _rst8 = _QPB8("Reset")
             _rst8.setFixedSize(58, 26)
             _rst8.setStyleSheet("font-size:12px;")
             _rst8.setCursor(Qt.PointingHandCursor)
             _rst8.setToolTip("Riporta la mappa ai default")
             _rst8.clicked.connect(self._map_reset9)
-            _hl8.addWidget(self.bt_mcol)
-            _hl8.addWidget(_rst8)
-            _hl8.addStretch(1)
-            grid.addWidget(_wrap8, row_i, 1)
+            grid.addWidget(_rst8, row_i, 1)
             row_i += 1
             # dimensione dot/macchinine a piacere (rich. 24/07)
             grid.addWidget(QLabel("Dot size"), row_i, 0)
             self.sp_mdot = _QDSB9()
             self.sp_mdot.setRange(0.5, 2.0)
             self.sp_mdot.setSingleStep(0.1)
-            self.sp_mdot.setValue(1.0)
+            self.sp_mdot.setValue(1.5)
             self.sp_mdot.setFixedSize(104, 28)
             self.sp_mdot.setStyleSheet(_CSS9)
             grid.addWidget(self.sp_mdot, row_i, 1)
@@ -604,16 +623,16 @@ class ConfigWindow(QDialog):
             self._set_toggle("caricons",
                              bool(cfg.get("map_car_icons", False)))
             self._set_toggle("detail", bool(cfg.get("map_detail", True)))
-            self._set_toggle("darktrack",
-                             bool(cfg.get("map_dark_track", False)))
-            self._map_col9 = str(cfg.get("map_track_color", "") or "")
-            self._map_col_apply9()
+            _sc8 = cfg.get("map_sec_colors") or []
+            self._msec9 = [str(_sc8[i]) if i < len(_sc8) and _sc8[i]
+                           else "#f3f4f8" for i in range(3)]
+            self._msec_apply9()
             try:
                 self.sp_mzoom.setValue(float(cfg.get("map_zoom", 5.5)))
                 self.sp_again.setValue(
                     float(cfg.get("map_adapt_gap", 1.5)))
                 self.sp_mdot.setValue(
-                    float(cfg.get("map_dot_scale", 1.0)))
+                    float(cfg.get("map_dot_scale", 1.5)))
             except Exception:
                 pass
         elif self._key in ("wec26battle", "wec26battleb", "wec26flag",
@@ -656,29 +675,40 @@ class ConfigWindow(QDialog):
         g.setColumnStretch(4, 1)
         return wrap
 
-    def _map_col_apply9(self):
-        """Aggiorna il pallino col colore pista scelto."""
-        c = self._map_col9 or "#f3f4f8"
-        self.bt_mcol.setStyleSheet(
-            "background:%s; border:1px solid rgba(255,255,255,0.35);"
-            "border-radius:13px;" % c)
+    def _msec_apply9(self):
+        """Colora i 3 dot dei settori coi colori correnti."""
+        try:
+            for i, b in enumerate(self.bt_msec9):
+                b.setStyleSheet(
+                    "background:%s; border:1px solid "
+                    "rgba(255,255,255,0.35); border-radius:12px;"
+                    % self._msec9[i])
+        except Exception:
+            pass
 
-    def _map_pick_color9(self):
+    def _map_all_col9(self, c):
+        """Dot FISSO (White/Dark): tutta la pista di quel colore."""
+        self._msec9 = [c, c, c]
+        self._msec_apply9()
+
+    def _map_sec_pick9(self, i):
+        """Picker del colore per il singolo settore."""
         try:
             from PySide6.QtWidgets import QColorDialog
             from PySide6.QtGui import QColor
             c = QColorDialog.getColor(
-                QColor(self._map_col9 or "#f3f4f8"), self, "Track color")
+                QColor(self._msec9[i]), self,
+                "Sector %d color" % (i + 1))
             if c.isValid():
-                self._map_col9 = c.name()
-                self._map_col_apply9()
+                self._msec9[i] = c.name()
+                self._msec_apply9()
         except Exception:
             pass
 
     def _map_reset9(self):
         """DEFAULT DI FABBRICA mappa (dettati 24/07): adattiva, zoom
         5.5, gap 1.5s, tag on, macchinine off, dettagli on, pista
-        bianca, colore automatico, scala 1.0."""
+        bianca (tutti i settori), scala 1.0."""
         try:
             self.cb_mmode.setCurrentIndex(2)
             self.sp_mzoom.setValue(5.5)
@@ -686,10 +716,8 @@ class ConfigWindow(QDialog):
             self._set_toggle("names", True)
             self._set_toggle("caricons", False)
             self._set_toggle("detail", True)
-            self._set_toggle("darktrack", False)
-            self._map_col9 = ""
-            self._map_col_apply9()
-            self.sp_mdot.setValue(1.0)
+            self._map_all_col9("#f3f4f8")
+            self.sp_mdot.setValue(1.5)
             self._reset_scale()
         except Exception:
             pass
@@ -985,12 +1013,12 @@ class ConfigWindow(QDialog):
                                    bool(self._toggle_state.get("names", True)))
             self._config.set_value(self._key, "map_car_icons",
                                    bool(self._toggle_state.get("caricons", False)))
-            self._config.set_value(self._key, "map_track_color",
-                                   str(getattr(self, "_map_col9", "") or ""))
+            self._config.set_value(self._key, "map_sec_colors",
+                                   list(getattr(self, "_msec9", None)
+                                        or ["#f3f4f8"] * 3))
             self._config.set_value(self._key, "map_detail",
                                    bool(self._toggle_state.get("detail", True)))
-            self._config.set_value(self._key, "map_dark_track",
-                                   bool(self._toggle_state.get("darktrack", True)))
+
             try:
                 self._config.set_value(self._key, "map_zoom",
                                        float(self.sp_mzoom.value()))
