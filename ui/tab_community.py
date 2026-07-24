@@ -395,7 +395,9 @@ class _RankRow(QFrame):
             # niente stretch finale: il gruppo arriva fino al BORDO
             # destro (rich. 24/07 sera), solo un margine
             h.addSpacing(22)
-            self.setFixedWidth(980)
+            # -100px (rich. 24/07 sera): a 980 usciva una barra scroll
+            # orizzontale per un pelo
+            self.setFixedWidth(880)
         else:
             t = QLabel(_fmt_ms(ms))
             t.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:19px;"
