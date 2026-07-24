@@ -1251,7 +1251,36 @@ class _LiveMap(QWidget):
                         # Si tiene anche l'ESTENSIONE (i..j): e' il
                         # tratto vero della curva, usato dai cordoli
                         if abs(tot) > minang and (j - i) >= 3:
-                            turns.append((apex, i, j))
+                            # SPLIT doppi apici STESSA direzione (24/07:
+                            # al National T2-T3 e il tris finale si
+                            # fondevano): picchi separati da un CALO
+                            # netto di curvatura = curve distinte
+                            _pks = []
+                            for k in range(i + 1, j - 1):
+                                if abs(sm[k]) >= abs(sm[k - 1])                                         and abs(sm[k]) >= abs(sm[k + 1]):
+                                    if _pks and k - _pks[-1] < 4:
+                                        if abs(sm[k]) > abs(sm[_pks[-1]]):
+                                            _pks[-1] = k
+                                        continue
+                                    _pks.append(k)
+                            if not _pks:
+                                _pks = [apex]
+                            _kept = [_pks[0]]
+                            _cut = [i]
+                            for k in _pks[1:]:
+                                lo = min(range(_kept[-1], k + 1),
+                                         key=lambda q: abs(sm[q]))
+                                if abs(sm[lo]) < 0.55 * min(
+                                        abs(sm[_kept[-1]]),
+                                        abs(sm[k])):
+                                    _cut.append(lo)
+                                    _kept.append(k)
+                                elif abs(sm[k]) > abs(sm[_kept[-1]]):
+                                    _kept[-1] = k
+                            _cut.append(j)
+                            for _q in range(len(_kept)):
+                                turns.append((_kept[_q], _cut[_q],
+                                              _cut[_q + 1]))
                         i = j if j > i else i + 1
                     else:
                         i += 1
@@ -1267,10 +1296,8 @@ class _LiveMap(QWidget):
             # calibra la soglia finche' il conteggio combacia (o ci va vicino)
             official = None
             try:
-                from data.tracks import _track_logo_stem
-                from data.track_info import track_info as _ti
-                _stem = _track_logo_stem(self._track)
-                _info = _ti((_stem or "").lower())
+                from data.track_info import info_for_track as _ift
+                _info = _ift(self._track, _L9)
                 if _info:
                     official = int(_info[1])
             except Exception:
@@ -1321,9 +1348,8 @@ class _LiveMap(QWidget):
         # scala sulla lunghezza UFFICIALE cosi' i marker non slittano a fine giro
         k = 1.0
         try:
-            from data.tracks import _track_logo_stem
-            from data.track_info import track_info as _ti
-            _info = _ti((_track_logo_stem(self._track) or "").lower())
+            from data.track_info import info_for_track as _ift
+            _info = _ift(self._track, cum[-1])
             if _info and cum[-1] > 0:
                 k = float(_info[0]) / cum[-1]
         except Exception:
@@ -3935,30 +3961,26 @@ class _WorksheetTab(QWidget):
         _boards = []
         try:
             from core.lico_points import map_corner_lifts as _mcl
-            _tl9 = max((q[0] for q in _turns), default=0.0) + 500.0
-            _off9 = False
-            try:
-                from data.tracks import _track_logo_stem as _tls
-                from data.track_info import track_info as _ti9
-                _inf9 = _ti9((_tls(self.map_w._track) or "").lower())
-                if _inf9:
-                    _tl9 = float(_inf9[0])
-                    _off9 = True
-            except Exception:
-                pass
-            # DOMINIO VERO (24/07): curve e cartelli vanno in lapdist
-            # DEL GIOCO (massima del giro selezionato), non lunghezza
-            # da scheda — la differenza (~1-2%) spostava i cartelli di
-            # decine di metri, fino a DENTRO la curva
+            # DOMINIO VERO (24/07): comanda la lapdist DEL GIOCO (max
+            # del giro selezionato); la scheda ufficiale solo come
+            # ripiego E con sanity sul layout (info_for_track) — al
+            # National la scheda GP da 5.9km avvelenava tutto
             try:
                 _xz9 = self._xz(self._sel)
                 _ldmax9 = max((q[2] or 0.0) for q in _xz9) if _xz9 else None
             except Exception:
                 _ldmax9 = None
-            if _off9 and _ldmax9 and _ldmax9 > 0.7 * _tl9 and _tl9 > 0:
-                _f9 = _ldmax9 / _tl9
-                _turns = [(_d9 * _f9, _lb9) for _d9, _lb9 in _turns]
-                _tl9 = _ldmax9
+            _tl9 = _ldmax9 if _ldmax9 and _ldmax9 > 500.0 else None
+            if not _tl9:
+                try:
+                    from data.track_info import info_for_track as _ift9
+                    _inf9 = _ift9(self.map_w._track, None)
+                    if _inf9:
+                        _tl9 = float(_inf9[0])
+                except Exception:
+                    pass
+            if not _tl9:
+                _tl9 = max((q[0] for q in _turns), default=0.0) + 500.0
             for _en9, _fl9 in _mcl(self.map_w._track, _tl9):
                 for _dm9 in (250.0, 200.0, 150.0, 100.0, 50.0):
                     _pb9 = _en9 - _dm9

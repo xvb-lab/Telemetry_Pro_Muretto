@@ -274,7 +274,36 @@ class MapCanvas(QWidget):
                         # linea di guida registrata non e' una curva.
                         # Estensione (i..j) tenuta per i cordoli
                         if abs(tot) > minang and (j - i) >= 3:
-                            turns.append((apex, i, j))
+                            # SPLIT doppi apici STESSA direzione (24/07:
+                            # al National T2-T3 e il tris finale si
+                            # fondevano): picchi separati da un CALO
+                            # netto di curvatura = curve distinte
+                            _pks = []
+                            for k in range(i + 1, j - 1):
+                                if abs(sm[k]) >= abs(sm[k - 1])                                         and abs(sm[k]) >= abs(sm[k + 1]):
+                                    if _pks and k - _pks[-1] < 4:
+                                        if abs(sm[k]) > abs(sm[_pks[-1]]):
+                                            _pks[-1] = k
+                                        continue
+                                    _pks.append(k)
+                            if not _pks:
+                                _pks = [apex]
+                            _kept = [_pks[0]]
+                            _cut = [i]
+                            for k in _pks[1:]:
+                                lo = min(range(_kept[-1], k + 1),
+                                         key=lambda q: abs(sm[q]))
+                                if abs(sm[lo]) < 0.55 * min(
+                                        abs(sm[_kept[-1]]),
+                                        abs(sm[k])):
+                                    _cut.append(lo)
+                                    _kept.append(k)
+                                elif abs(sm[k]) > abs(sm[_kept[-1]]):
+                                    _kept[-1] = k
+                            _cut.append(j)
+                            for _q in range(len(_kept)):
+                                turns.append((_kept[_q], _cut[_q],
+                                              _cut[_q + 1]))
                         i = j if j > i else i + 1
                     else:
                         i += 1
@@ -288,21 +317,25 @@ class MapCanvas(QWidget):
 
             official = None
             try:
-                from data.tracks import _track_logo_stem
-                from data.track_info import track_info as _ti
-                _info = _ti((_track_logo_stem(self._track) or "").lower())
+                from data.track_info import info_for_track as _ift
+                _info = _ift(self._track, _L9)
                 if _info:
                     official = int(_info[1])
             except Exception:
                 official = None
             best = None
             if official:
+                # calibrazione 2D (24/07): soglia curvatura E soglia di
+                # SPLIT dei doppi apici, finche' il conteggio combacia
                 for deg in range(40, 5, -1):
-                    t = _detect(math.radians(deg))
-                    d = abs(len(t) - official)
-                    if best is None or d < best[0]:
-                        best = (d, t)
-                    if d == 0:
+                    for _dip9 in (0.55, 0.70, 0.80):
+                        t = _detect(math.radians(deg), _dip9)
+                        d = abs(len(t) - official)
+                        if best is None or d < best[0]:
+                            best = (d, t)
+                        if d == 0:
+                            break
+                    if best and best[0] == 0:
                         break
             turns = best[1] if best else _detect(math.radians(28.0))
             out = [(idx * _step9, "T%d" % (k + 1),

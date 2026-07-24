@@ -4,6 +4,37 @@ Chiave = 'base' pista (prima voce di _TRACKS), minuscolo. Usata dalla pagina
 pista dedicata (info a sinistra). Dati raccolti per i circuiti WEC/ELMS/IMSA.
 """
 
+# LAYOUT specifici -> (lunghezza_m, curve, anno): consultati PRIMA
+# della scheda base (24/07: 'Silverstone National' finiva sulla scheda
+# GP da 18 curve). Chiave = pezzo del nome completo LMU, minuscolo.
+LAYOUT_INFO = {
+    "silverstone national": (2639, 6, 1948),
+}
+
+
+def info_for_track(name, map_len=None):
+    """Scheda per NOME COMPLETO pista, layout compresi. map_len (m):
+    se la scheda trovata NON torna con la lunghezza vera (>15% di
+    scarto = layout diverso), meglio NIENTE che numeri sbagliati."""
+    n = (name or "").lower()
+    for key, info in LAYOUT_INFO.items():
+        if key in n:
+            return info
+    try:
+        from data.tracks import _track_logo_stem
+        base = track_info((_track_logo_stem(name) or "").lower())
+    except Exception:
+        base = None
+    if base and map_len:
+        try:
+            if abs(float(base[0]) - float(map_len)) \
+                    / float(base[0]) > 0.15:
+                return None
+        except (TypeError, ValueError, ZeroDivisionError):
+            pass
+    return base
+
+
 # base -> (lunghezza_m, curve, anno)
 TRACK_INFO = {
     # ── WEC ──
