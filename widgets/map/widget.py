@@ -906,7 +906,12 @@ class MapCanvas(QWidget):
             # MACCHININA (idea 24/07): scocca ruotata nella direzione
             # di marcia, stessi colori/stati dei dot, numero DRITTO
             # bianco bordato nero (leggibile sempre)
-            if _cars9 and not in_garage and wpos is not None:
+            if _cars9 and layout == 2 and not in_garage \
+                    and wpos is not None:
+                # SOLO in GPS/adattiva-zoomata (24/07: mappa intera =
+                # dots obbligatori). Numero con le caratteristiche del
+                # dot ORIGINALE (player = colore classe), niente
+                # tettuccio che lo copre, corpo un po' piu' corto.
                 _hw9 = (getattr(self, "_hdg9", None) or {}) \
                     .get(c.get("id"))
                 _ang9 = 0.0
@@ -915,18 +920,17 @@ class MapCanvas(QWidget):
                                   wpos[1] + math.sin(_hw9) * 5.0)
                     _ang9 = math.degrees(math.atan2(_Y2 - cy,
                                                     _X2 - cx))
-                _L9 = rr * 3.1
-                _W9 = rr * 1.85
+                _L9 = rr * 2.7
+                _W9 = rr * 1.8
+                if not is_player and not in_pit and not is_yellow:
+                    # rivali pieni: bordino scuro per staccare la sagoma
+                    p.setPen(QPen(QColor(15, 17, 22, 210),
+                                  max(1.0, 1.2 * sc)))
                 p.save()
                 p.translate(cx, cy)
                 p.rotate(_ang9)
                 p.drawRoundedRect(QRectF(-_L9 / 2, -_W9 / 2, _L9, _W9),
                                   _W9 * 0.32, _W9 * 0.32)
-                p.setPen(Qt.NoPen)
-                p.setBrush(QColor(0, 0, 0, 110))     # abitacolo
-                p.drawRoundedRect(QRectF(-_L9 * 0.16, -_W9 * 0.30,
-                                         _L9 * 0.34, _W9 * 0.60),
-                                  2.0, 2.0)
                 p.restore()
                 if numtxt:
                     f = QFont("Archivo SemiExpanded"); f.setBold(True)
@@ -935,11 +939,11 @@ class MapCanvas(QWidget):
                     p.setFont(f)
                     _rq9 = QRectF(cx - rr * 2, cy - rr * 2,
                                   rr * 4, rr * 4)
-                    p.setPen(QPen(QColor(0, 0, 0, 230)))
+                    p.setPen(QPen(QColor(0, 0, 0, 200)))
                     for _o9 in ((1, 1), (-1, 1), (1, -1), (-1, -1)):
                         p.drawText(_rq9.translated(_o9[0], _o9[1]),
                                    Qt.AlignCenter, numtxt)
-                    p.setPen(QPen(QColor(255, 255, 255, 245)))
+                    p.setPen(QPen(numc))
                     p.drawText(_rq9, Qt.AlignCenter, numtxt)
                 return
             p.drawEllipse(QPointF(cx, cy), rr, rr)
