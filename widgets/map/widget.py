@@ -616,6 +616,7 @@ class MapCanvas(QWidget):
         else:
             self._gps_active = False
             self._zoomf9 = 1.0
+            track_w_mult = 1.33   # mappa intera: traccia +1/3 (24/07)
             def tf(x, z):
                 return (offx + (x - minx) * scl, offz + (maxz - z) * scl)
 
