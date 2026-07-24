@@ -343,6 +343,16 @@ class MapCanvas(QWidget):
                    for k, (idx, i0, j0) in enumerate(turns)]
         self._tm_key = key
         self._tm_cache = out
+        try:                          # SPIA curve (24/07, diagnosi)
+            from core.paths import USER_DIR as _UDS
+            with open(_UDS / "map_turns_debug.txt", "a",
+                      encoding="utf-8") as _fh:
+                import time as _ts
+                _fh.write("[%s] %s: punti=%d curve=%d\n" % (
+                    _ts.strftime("%H:%M:%S"), self._track,
+                    len(self._path or []), len(out)))
+        except Exception:
+            pass
         return out
 
     def _draw_decor9(self, p, tf, lw, vis=None):
