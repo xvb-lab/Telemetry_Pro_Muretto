@@ -239,6 +239,14 @@ class ConfigWindow(QDialog):
             grid.addWidget(QLabel("Adaptive zoom"), row_i, 0)
             grid.addWidget(self._make_toggle("adaptive"), row_i, 1)
             row_i += 1
+            # soglia della battaglia in SECONDI di gap (rich. 24/07)
+            grid.addWidget(QLabel("Adaptive gap (s)"), row_i, 0)
+            self.sp_again = _QDSB9()
+            self.sp_again.setRange(0.5, 10.0)
+            self.sp_again.setSingleStep(0.5)
+            self.sp_again.setValue(1.0)
+            grid.addWidget(self.sp_again, row_i, 1)
+            row_i += 1
             # nomi piloti (3 lettere stile F1) accanto ai pallini
             grid.addWidget(QLabel("Driver tags"), row_i, 0)
             grid.addWidget(self._make_toggle("names"), row_i, 1)
@@ -518,6 +526,8 @@ class ConfigWindow(QDialog):
                              bool(cfg.get("map_dark_track", True)))
             try:
                 self.sp_mzoom.setValue(float(cfg.get("map_zoom", 5.5)))
+                self.sp_again.setValue(
+                    float(cfg.get("map_adapt_gap", 1.0)))
             except Exception:
                 pass
         elif self._key in ("wec26battle", "wec26battleb", "wec26flag",
@@ -808,6 +818,8 @@ class ConfigWindow(QDialog):
             try:
                 self._config.set_value(self._key, "map_zoom",
                                        float(self.sp_mzoom.value()))
+                self._config.set_value(self._key, "map_adapt_gap",
+                                       float(self.sp_again.value()))
             except Exception:
                 pass
         elif self._key in ("wec26battle", "wec26battleb", "wec26flag",

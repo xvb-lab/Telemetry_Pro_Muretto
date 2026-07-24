@@ -549,13 +549,17 @@ class MapCanvas(QWidget):
                 if _mt9 is None or t9 < _mt9:
                     _mt9 = t9
             _now9 = time.monotonic()
+            try:                     # soglia in secondi dal setting
+                _thr9 = float(_cfg.get("map_adapt_gap", 1.0) or 1.0)
+            except (TypeError, ValueError):
+                _thr9 = 1.0
             st9 = getattr(self, "_adapt9", None) or {"on": False,
                                                      "t": 0.0}
-            if _mt9 is not None and _mt9 < 1.0:
+            if _mt9 is not None and _mt9 < _thr9:
                 st9["on"] = True
                 st9["t"] = _now9
             elif st9["on"]:
-                if _mt9 is not None and _mt9 <= 1.8:
+                if _mt9 is not None and _mt9 <= _thr9 * 1.8:
                     st9["t"] = _now9
                 elif _now9 - st9["t"] > 3.0:
                     st9["on"] = False
