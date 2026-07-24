@@ -65,7 +65,7 @@ BRAND_COLORS = {k: v[0] for k, v in BRANDS.items()}
 # senza aria interna vanno ridotti, quelli con padding compensati
 LOGO_SCALE = {"Cadillac": 1.05, "Alpine": 0.60, "Ferrari": 0.85,
               "Porsche": 0.85, "BMW": 0.78, "Toyota": 0.95,
-              "Genesis": 1.15, "Mercedes-AMG": 0.88, "Lexus": 1.00,
+              "Genesis": 1.15, "Mercedes-AMG": 0.88, "Lexus": 0.82,
               "Aston Martin": 1.05, "Peugeot": 0.80, "McLaren": 0.95,
               "Ford": 0.62, "Corvette": 0.92, "Lamborghini": 0.80,
               "Isotta Fraschini": 0.90, "Glickenhaus": 0.90,
