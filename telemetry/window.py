@@ -9397,6 +9397,9 @@ def _real_map_load(track):
     return pts, secs, pit, spots
 
 
+_CENSO_FATTO9 = set()          # piste gia' tentate dall'auto-censimento
+
+
 class _TrackMapView(QWidget):
     """Trackmap della pagina pista. Se esiste la mappa VERA _2026
     (ufficiale LMU) la disegna in scala reale con cordoli colorati,
@@ -9420,6 +9423,25 @@ class _TrackMapView(QWidget):
         if not pts:
             self.update()
             return False
+        # AUTO-CENSIMENTO curve (24/07 sera): pista senza censimento ->
+        # un giro del rilevatore VERO del widget, che scrive il file
+        # _curve.json SOLO se centra il conto ufficiale (guardia);
+        # tentato una volta per pista a processo
+        global _CENSO_FATTO9
+        try:
+            if track not in _CENSO_FATTO9:
+                _CENSO_FATTO9.add(track)
+                from data.track_corners import corners_for_track
+                if not corners_for_track(track):
+                    from widgets.map.widget import MapCanvas
+                    mc = MapCanvas()
+                    mc._track = track
+                    mc._path = [(q[0], -q[1]) for q in pts]
+                    mc._secs, mc._pit9 = secs, []
+                    mc._turns_map()
+                    mc.deleteLater()
+        except Exception:
+            pass
         self._r = None
         self._real = (track, pts, secs, pit, spots)
         self.update()

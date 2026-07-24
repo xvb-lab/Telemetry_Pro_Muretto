@@ -24,7 +24,10 @@ CORNERS = {
 
 def corners_for_track(name, track_len=None):
     """[metri apice T1..Tn] riscalati su track_len, o None se pista
-    non censita."""
+    non censita. Ordine: DB statico (manuale, VINCE sempre) poi
+    censimento AUTOMATICO (<pista>_curve.json, scritto dal rilevatore
+    del widget solo quando centra ESATTO il conto ufficiale — guardia
+    anti-slittamento dei nomi)."""
     n = (name or "").lower()
     for k, (ref, pos) in CORNERS.items():
         if k in n:
@@ -33,4 +36,37 @@ def corners_for_track(name, track_len=None):
             except (TypeError, ValueError, ZeroDivisionError):
                 f = 1.0
             return [p * f for p in pos]
+    try:
+        import json
+        import re as _re
+        from core.paths import USER_DIR
+
+        def _nm(s):
+            s = _re.sub(r"#U([0-9a-fA-F]{4})",
+                        lambda m: chr(int(m.group(1), 16)),
+                        (s or "").lower())
+            for w in ("grand prix", "circuit", "international",
+                      "raceway", "speedway", "the ", "2026"):
+                s = s.replace(w, " ")
+            return _re.sub(r"[^a-z0-9]+", "", s)
+
+        tn = _nm(name)
+        d = USER_DIR / "trackmap_official"
+        if tn and d.exists():
+            for j in d.glob("*_curve.json"):
+                if _nm(j.stem[:-6]) != tn:      # via il suffisso _curve
+                    continue
+                o = json.loads(j.read_text(encoding="utf-8"))
+                ref = float(o.get("len") or 0) or None
+                pos = [float(x) for x in (o.get("apici") or [])]
+                if not pos:
+                    break
+                try:
+                    f = (float(track_len) / ref) \
+                        if (track_len and ref) else 1.0
+                except (TypeError, ValueError, ZeroDivisionError):
+                    f = 1.0
+                return [p * f for p in pos]
+    except Exception:
+        pass
     return None

@@ -395,6 +395,33 @@ class MapCanvas(QWidget):
                     if best and best[0] == 0:
                         break
             turns = best[1] if best else _detect(math.radians(28.0))
+            # AUTO-CENSIMENTO con GUARDIA (24/07 sera): se il conto
+            # UFFICIALE e' centrato ESATTO, le posizioni diventano il
+            # riferimento condiviso (pagina pista, ingegnere, overlay)
+            # scritto UNA volta sola; se il conto stecca, niente file —
+            # mai nomi su curve sbagliate. Il DB statico vince sempre.
+            if official and best and best[0] == 0:
+                try:
+                    from core.paths import USER_DIR as _UDC
+                    from core.auto_trackmap import _safe_name as _sfn9
+                    _nc9 = _sfn9(self._track)
+                    _cf9 = _UDC / "trackmap_official" / (
+                        (_nc9 or "") + "_curve.json")
+                    if _nc9 and not _cf9.exists():
+                        _cumd9 = [0.0]
+                        for i in range(1, n):
+                            _cumd9.append(_cumd9[-1] + math.hypot(
+                                ol[i][0] - ol[i - 1][0],
+                                ol[i][1] - ol[i - 1][1]))
+                        import json as _js9
+                        _cf9.parent.mkdir(parents=True, exist_ok=True)
+                        _cf9.write_text(_js9.dumps({
+                            "len": round(_L9, 1),
+                            "apici": [round(_cumd9[t[0]], 1)
+                                      for t in turns]}),
+                            encoding="utf-8")
+                except Exception:
+                    pass
             out = [(idx * _step9, "T%d" % (k + 1),
                     i0 * _step9, j0 * _step9)
                    for k, (idx, i0, j0) in enumerate(turns)]

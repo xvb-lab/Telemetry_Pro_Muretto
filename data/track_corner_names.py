@@ -90,15 +90,51 @@ CORNER_NAMES = {
     "paul ricard": _rng(_rng(
         {3: "Hotel", 4: "Camp de Bendor", 5: "Sainte Baume",
          10: "Signes", 11: "Le Beausset", 12: "Bendor",
-         14: "Virage du Pont"},
+         13: "Virage de la Tour", 14: "Virage du Pont"},
         1, 2, "S de la Verrerie"), 8, 9, "Chicane Nord"),
+    # ── LAYOUT ALTERNATIVI (dettati 24/07 sera) — la chiave PIU'
+    # SPECIFICA vince su quella generica (match piu' lungo) ──
+    "silverstone international": _rng(
+        {1: "Abbey", 2: "Farm", 3: "Village", 4: "The Loop",
+         5: "Aintree", 6: "Raccordo Hangar", 7: "Stowe", 8: "Vale"},
+        9, 10, "Club"),
+    "americas national": _rng(
+        {1: "Big Red", 7: "Raccordo interno", 8: "Ultima curva"},
+        2, 6, "The Esses"),
+    "bahrain endurance": _rng(
+        {1: "Michael Schumacher", 14: "Rientro sul GP",
+         23: "Ultima curva"},
+        5, 13, "Endurance Extension"),
+    "bahrain outer": _rng(
+        {1: "Michael Schumacher", 4: "Raccordo veloce",
+         9: "Ultima curva"},
+        5, 8, "Curve veloci"),
+    "fuji speedway classic": _rng(
+        {1: "TGR Corner", 3: "Coca-Cola", 6: "Advan",
+         10: "GR Supra", 13: "Panasonic"},
+        4, 5, "100R"),
+    "ricard - 1a-v2": _rng(         # GP SENZA Chicane Nord
+        {3: "Hotel", 4: "Camp de Bendor", 5: "Sainte Baume",
+         6: "Signes", 7: "Le Beausset", 8: "Bendor",
+         9: "Virage de la Tour", 10: "Virage du Pont"},
+        1, 2, "S de la Verrerie"),
+    "ricard - 1a-v2-short": {},     # numerazione incerta: meglio
+                                    # niente che nomi sbagliati
+    "paul ricard - 3": _rng(        # Short: taglia la Sainte-Baume
+        {3: "Hotel", 4: "Raccordo interno", 5: "Signes",
+         6: "Le Beausset", 7: "Bendor", 8: "Virage de la Tour",
+         9: "Virage du Pont"},
+        1, 2, "S de la Verrerie"),
 }
 
 
 def corner_name(track, num):
-    """Nome ufficiale della curva num per la pista, o None."""
+    """Nome ufficiale della curva num per la pista, o None. Tra le
+    chiavi che combaciano vince la PIU' LUNGA (layout specifico prima
+    del circuito generico)."""
     n = (track or "").lower()
+    best = None
     for k, d in CORNER_NAMES.items():
-        if k in n:
-            return d.get(int(num))
-    return None
+        if k in n and (best is None or len(k) > len(best[0])):
+            best = (k, d)
+    return best[1].get(int(num)) if best else None
