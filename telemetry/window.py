@@ -11297,7 +11297,7 @@ class TelemetryWindow(QMainWindow):
                                       on_back=self._back_to_sessions,
                                       on_export=self._sess_export,
                                       on_delete=self._sess_delete,
-                                      win=self._legacy)
+                                      win=self)
         self._stack.addWidget(self._teams_page)
         self._menu = _RootCanvas(on_open=self._open_track_page,
                                  on_community=self._open_community,
