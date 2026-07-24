@@ -221,17 +221,31 @@ class ConfigWindow(QDialog):
             grid.addWidget(self._make_toggle("record"), row_i, 1)
             row_i += 1
         elif self._key == "map":
-            # ── Map: layout GPS (player centrato, pista ruotata) ──
+            # ── impostazioni DIVISE per vista (rich. 24/07):
+            # GPS -> il suo zoom; INTERA -> l'adattiva; per tutte ->
+            # nomi piloti e dettagli curve/cordoli ──
             grid.addWidget(QLabel("Layout GPS"), row_i, 0)
             grid.addWidget(self._make_toggle("gps"), row_i, 1)
+            row_i += 1
+            from PySide6.QtWidgets import QDoubleSpinBox as _QDSB9
+            grid.addWidget(QLabel("GPS zoom"), row_i, 0)
+            self.sp_mzoom = _QDSB9()
+            self.sp_mzoom.setRange(2.0, 10.0)
+            self.sp_mzoom.setSingleStep(0.5)
+            self.sp_mzoom.setValue(5.5)
+            grid.addWidget(self.sp_mzoom, row_i, 1)
+            row_i += 1
+            # mappa ADATTIVA: intera, ma zoom GPS quando c'e' battaglia
+            grid.addWidget(QLabel("Adaptive zoom"), row_i, 0)
+            grid.addWidget(self._make_toggle("adaptive"), row_i, 1)
             row_i += 1
             # nomi piloti (3 lettere stile F1) accanto ai pallini
             grid.addWidget(QLabel("Driver tags"), row_i, 0)
             grid.addWidget(self._make_toggle("names"), row_i, 1)
             row_i += 1
-            # mappa ADATTIVA: intera, ma zoom GPS quando c'e' battaglia
-            grid.addWidget(QLabel("Adaptive zoom"), row_i, 0)
-            grid.addWidget(self._make_toggle("adaptive"), row_i, 1)
+            # dettagli: cordoli, numeri curva, settori
+            grid.addWidget(QLabel("Curve details"), row_i, 0)
+            grid.addWidget(self._make_toggle("detail"), row_i, 1)
             row_i += 1
         # wec26mfd (Dashboard): AUTO PIT (i Mod 1-8 si gestiscono in overlay)
         elif self._key == "wec26mfd":
@@ -495,6 +509,11 @@ class ConfigWindow(QDialog):
             self._set_toggle("names", bool(cfg.get("map_names", True)))
             self._set_toggle("adaptive",
                              bool(cfg.get("map_adaptive", False)))
+            self._set_toggle("detail", bool(cfg.get("map_detail", True)))
+            try:
+                self.sp_mzoom.setValue(float(cfg.get("map_zoom", 5.5)))
+            except Exception:
+                pass
         elif self._key in ("wec26battle", "wec26battleb", "wec26flag",
                            "wec26radio"):
             if self._key in ("wec26battle", "wec26battleb"):
@@ -776,6 +795,13 @@ class ConfigWindow(QDialog):
                                    bool(self._toggle_state.get("names", True)))
             self._config.set_value(self._key, "map_adaptive",
                                    bool(self._toggle_state.get("adaptive", False)))
+            self._config.set_value(self._key, "map_detail",
+                                   bool(self._toggle_state.get("detail", True)))
+            try:
+                self._config.set_value(self._key, "map_zoom",
+                                       float(self.sp_mzoom.value()))
+            except Exception:
+                pass
         elif self._key in ("wec26battle", "wec26battleb", "wec26flag",
                            "wec26radio"):
             if self._key in ("wec26battle", "wec26battleb"):

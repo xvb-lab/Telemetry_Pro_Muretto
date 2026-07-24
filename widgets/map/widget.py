@@ -570,7 +570,10 @@ class MapCanvas(QWidget):
 
         if layout == 2 and ply is not None:
             px, pz = ply
-            zoom = 5.5                                          # zoom unico (ex livello 3)
+            try:                       # zoom GPS scelto dall'utente
+                zoom = float(_cfg.get("map_zoom", 5.5) or 5.5)
+            except (TypeError, ValueError):
+                zoom = 5.5
             gcal = 0.7                                          # 0.7 diventa lo standard 1.0
             z2 = scl * zoom * gcal
             track_w_mult = 2.6 * gcal                           # pista (come a 0.7)
@@ -759,11 +762,13 @@ class MapCanvas(QWidget):
                                QPointF(*tf(*self._path[i])))
             p.setPen(QPen(QColor("#f3f4f8"), lw))
             p.drawPath(base)
-        # cordoli + settori + numeri curva (come la mappa telemetria)
-        try:
-            self._draw_decor9(p, tf, lw, _vis9)
-        except Exception:
-            pass
+        # cordoli + settori + numeri curva (come la mappa telemetria),
+        # spegnibili dal setting "Curve details"
+        if _cfg.get("map_detail", True):
+            try:
+                self._draw_decor9(p, tf, lw, _vis9)
+            except Exception:
+                pass
 
         # ── giallo: una banda da OGNI colpevole verso 500m DIETRO di lui (tutte le gialle) ──
         if (self._yellow_bands and self._cum and self._cum_total > 0
