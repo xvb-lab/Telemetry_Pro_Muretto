@@ -228,7 +228,10 @@ class ConfigWindow(QDialog):
             # controlli BILANCIATI (rich. 24/07): stessa altezza degli
             # switch (26px) e carattere medio uniforme, niente bottoni
             # giganti ne' scritte microscopiche
-            _CSS9 = "font-size:12px; padding:1px 6px;"
+            _CSS9 = ("font-size:12px; padding:1px 6px;"
+                     "QDoubleSpinBox::up-button,"
+                     "QDoubleSpinBox::down-button"
+                     "{width:18px;}")
             grid.addWidget(QLabel("Map mode"), row_i, 0)
             self.cb_mmode = _QCB9()
             self.cb_mmode.addItems(["Full", "GPS", "Adaptive"])
@@ -241,7 +244,7 @@ class ConfigWindow(QDialog):
             self.sp_mzoom.setRange(1.0, 25.0)   # niente limiti stretti
             self.sp_mzoom.setSingleStep(0.5)
             self.sp_mzoom.setValue(5.5)
-            self.sp_mzoom.setFixedSize(80, 26)
+            self.sp_mzoom.setFixedSize(104, 28)
             self.sp_mzoom.setStyleSheet(_CSS9)
             grid.addWidget(self.sp_mzoom, row_i, 1)
             row_i += 1
@@ -251,7 +254,7 @@ class ConfigWindow(QDialog):
             self.sp_again.setRange(0.5, 10.0)
             self.sp_again.setSingleStep(0.5)
             self.sp_again.setValue(1.0)
-            self.sp_again.setFixedSize(80, 26)
+            self.sp_again.setFixedSize(104, 28)
             self.sp_again.setStyleSheet(_CSS9)
             grid.addWidget(self.sp_again, row_i, 1)
             row_i += 1
