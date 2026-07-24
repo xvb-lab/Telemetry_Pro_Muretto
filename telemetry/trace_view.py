@@ -2434,7 +2434,7 @@ class _LiveMap(QWidget):
         if not self._review:
             return
         self._zoom_mult *= 1.25 if e.angleDelta().y() > 0 else 1.0 / 1.25
-        self._zoom_mult = max(0.5, min(12.0, self._zoom_mult))
+        self._zoom_mult = max(0.12, min(12.0, self._zoom_mult))   # out fino alla pista INTERA
         self.update()
         e.accept()
 
