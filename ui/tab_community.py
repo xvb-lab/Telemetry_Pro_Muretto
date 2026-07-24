@@ -342,13 +342,9 @@ class _RankRow(QFrame):
             h.addWidget(_tw, 0, Qt.AlignVCenter); h.addSpacing(14)
             h.addWidget(_fw)
         # card: niente render qui (le auto vivono negli OVERLAY);
-        # gomma e benzina compatte vanno dopo il tempo. Il CASCO nella
-        # card va IN FONDO a destra (rich. 24/07 sera: dov'era il
-        # trofeo -> piu' spazio per gap e tempi); nelle righe flat resta
-        # qui dopo gomma/benzina
-        if _helmet_w is not None and self._card_bg is None:
-            h.addSpacing(12)
-            h.addWidget(_helmet_w, 0, Qt.AlignVCenter)
+        # gomma e benzina compatte vanno dopo il tempo. CASCO RIMOSSO
+        # dalla classifica (rich. 24/07 sera: cambiata idea) in entrambi
+        # i layout
         if self._card_bg is None:
             h.addStretch()
         else:
@@ -382,20 +378,19 @@ class _RankRow(QFrame):
             _tcol2.addWidget(_s2)
             _tw2 = QWidget()
             _tw2.setLayout(_tcol2)
-            _tw2.setFixedWidth(148)
+            # colonna PIU' LARGA (rich. 24/07 sera): i settori erano
+            # schiacciati, l'ultimo si tagliava
+            _tw2.setFixedWidth(184)
             _tw2.setStyleSheet("background:transparent;")
             h.addWidget(_tw2, 0, Qt.AlignVCenter)
             # icone COMPATTE dopo il tempo: mescola+usura, benzina+kg
-            h.addSpacing(20)
+            h.addSpacing(24)
             h.addWidget(_tw, 0, Qt.AlignVCenter)
-            h.addSpacing(6)
+            h.addSpacing(10)
             h.addWidget(_fw, 0, Qt.AlignVCenter)
-            # colonna TROFEO RIMOSSA (le medaglie PNG stonavano); al suo
-            # posto il CASCO in fondo a destra -> gap e tempi respirano
-            if _helmet_w is not None:
-                h.addSpacing(18)
-                h.addWidget(_helmet_w, 0, Qt.AlignVCenter)
-            h.addSpacing(14)
+            # CASCO RIMOSSO dalla classifica (rich. 24/07 sera: cambiata
+            # idea) -> piu' spazio per gap, tempi, settori e simboli
+            h.addSpacing(16)
             h.addStretch(1)
             self.setFixedWidth(980)
         else:
