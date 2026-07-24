@@ -211,7 +211,9 @@ class _RankRow(QFrame):
         else:
             h.addWidget(pb); h.addSpacing(10)
             h.addWidget(box, 0, Qt.AlignVCenter); h.addSpacing(12)
-        dcol = QVBoxLayout(); dcol.setSpacing(1); dcol.setContentsMargins(0, 0, 0, 0)
+        # blocco nome/macchina/team COMPATTO (rich. utente 24/07 sera:
+        # erano tre righe troppo distanziate)
+        dcol = QVBoxLayout(); dcol.setSpacing(0); dcol.setContentsMargins(0, 0, 0, 0)
         # nome corto broadcast: "J. Sanfilippo" / "J. M. Sanfilippo" (util unico)
         from core.utils import short_name as _sn
         _pn = _sn(rec.get("player") or "") or "\u2014"
@@ -243,6 +245,10 @@ class _RankRow(QFrame):
             tl.setStyleSheet("color:#a79fb0;font-family:'Archivo SemiExpanded';"
                              "font-size:12px;font-weight:600;"
                              "background:transparent;")
+        # altezze di riga strette: righe attaccate, niente aria in mezzo
+        dl.setFixedHeight(19); cl.setFixedHeight(15); tl.setFixedHeight(15)
+        for _lb9 in (dl, cl, tl):
+            _lb9.setContentsMargins(0, 0, 0, 0)
         dcol.addWidget(dl); dcol.addWidget(cl); dcol.addWidget(tl)
         dw = QWidget(); dw.setLayout(dcol)
         dw.setFixedWidth(252 if self._card_bg is not None else 200)
