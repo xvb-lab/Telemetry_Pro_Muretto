@@ -532,8 +532,9 @@ class _RankRow(QFrame):
                     _rev = max(0.0, min(1.0, self._greveal9))
                     _rw = _full * _rev
                     _clip = QRectF(cut, 0.0, _rw, float(self.height()))
-                    # BG squadrato, rivelato sinistra->destra
-                    p.fillRect(_clip, QColor("#55526e"))
+                    # BG squadrato BIANCO, rivelato sinistra->destra
+                    # (rich. utente 24/07 sera: colori ufficiali)
+                    p.fillRect(_clip, QColor("#ffffff"))
                     # NUMERO gap CENTRATO nel blocco, rivelato INSIEME al
                     # BG (clip uguale): niente numero visibile prima
                     if self._gaptext9:
@@ -544,7 +545,7 @@ class _RankRow(QFrame):
                         _gf.setPixelSize(22)
                         _gf.setBold(True)
                         p.setFont(_gf)
-                        p.setPen(QColor("#f2f4f7"))
+                        p.setPen(QColor("#0a0032"))   # blu scuro scheda
                         p.drawText(QRectF(cut, 0.0, _full,
                                           float(self.height())),
                                    Qt.AlignCenter, self._gaptext9)
