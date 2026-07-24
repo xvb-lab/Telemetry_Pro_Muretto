@@ -342,8 +342,11 @@ class _RankRow(QFrame):
             h.addWidget(_tw, 0, Qt.AlignVCenter); h.addSpacing(14)
             h.addWidget(_fw)
         # card: niente render qui (le auto vivono negli OVERLAY);
-        # gomma e benzina compatte vanno dopo il tempo
-        if _helmet_w is not None:
+        # gomma e benzina compatte vanno dopo il tempo. Il CASCO nella
+        # card va IN FONDO a destra (rich. 24/07 sera: dov'era il
+        # trofeo -> piu' spazio per gap e tempi); nelle righe flat resta
+        # qui dopo gomma/benzina
+        if _helmet_w is not None and self._card_bg is None:
             h.addSpacing(12)
             h.addWidget(_helmet_w, 0, Qt.AlignVCenter)
         if self._card_bg is None:
@@ -387,9 +390,11 @@ class _RankRow(QFrame):
             h.addWidget(_tw, 0, Qt.AlignVCenter)
             h.addSpacing(6)
             h.addWidget(_fw, 0, Qt.AlignVCenter)
-            # colonna TROFEO RIMOSSA (rich. utente 24/07 sera: le
-            # medaglie PNG stonavano con lo stile) -> piu' spazio a
-            # respiro sulla destra
+            # colonna TROFEO RIMOSSA (le medaglie PNG stonavano); al suo
+            # posto il CASCO in fondo a destra -> gap e tempi respirano
+            if _helmet_w is not None:
+                h.addSpacing(18)
+                h.addWidget(_helmet_w, 0, Qt.AlignVCenter)
             h.addSpacing(14)
             h.addStretch(1)
             self.setFixedWidth(980)
