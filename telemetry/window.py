@@ -2648,6 +2648,7 @@ class _Card(QFrame):
         self._bg = self._load(bgkey)          # solo foto dedicata, niente fallback
         self._logo = self._load_logo(logo)
         self._cat = cat
+        self._locked = (cat == "imsa")   # IMSA chiusa (rich. 24/07)
         self._map = self._load_map(cmap)
         self._map_rot = _MAP_ROTATION.get(track or "", 0)
         self._op = QGraphicsOpacityEffect(self)
@@ -2694,6 +2695,9 @@ class _Card(QFrame):
         self._op.setOpacity(max(0.0, min(1.0, v)))
 
     def mousePressEvent(self, e):
+        if getattr(self, "_locked", False):
+            e.accept()
+            return                       # pista IMSA bloccata: click morto
         if e.button() == Qt.LeftButton and self.on_click and self._idx >= 0:
             self.on_click(self._idx)
             e.accept()
@@ -2810,6 +2814,8 @@ class _Card(QFrame):
                     p.restore()
             p.setOpacity(1.0)
         # bordo bianco rimosso
+        if getattr(self, "_locked", False):
+            _draw_card_lock9(p, self.width(), self.height(), self.RADIUS)
         p.setClipping(False)
 
 
@@ -2888,7 +2894,11 @@ class _CatCard(QFrame):
                 if not _pm.isNull():
                     self._photo = _pm
                     break
-        self.setCursor(Qt.PointingHandCursor)
+        # IMSA CHIUSA (rich. 24/07): piste da finire a mano prima
+        # dell'update — card bloccata col lucchetto della sessione
+        self._locked = (key == "imsa")
+        self.setCursor(Qt.ForbiddenCursor if self._locked
+                       else Qt.PointingHandCursor)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
     def enterEvent(self, e):
@@ -2909,6 +2919,9 @@ class _CatCard(QFrame):
         self.update()
 
     def mousePressEvent(self, e):
+        if getattr(self, "_locked", False):
+            e.accept()
+            return                       # IMSA bloccata: click morto
         if e.button() == Qt.LeftButton and self.on_click:
             self.on_click(self._key)
             e.accept()
@@ -2989,6 +3002,8 @@ class _CatCard(QFrame):
                 p.setOpacity(hs)
                 self._logo.render(p, QRectF((W - lw) / 2.0, (H - lh) / 2.0, lw, lh))
                 p.setOpacity(1.0)
+        if getattr(self, "_locked", False):
+            _draw_card_lock9(p, self.width(), self.height(), self.RADIUS)
         p.setClipping(False)
 
 
@@ -6190,6 +6205,26 @@ _MAP_ROTATION = {   # gradi orari per la mappa-circuito di certe piste
 }
 
 
+def _draw_card_lock9(p, w, h, radius=13):
+    """Velo scuro + LUCCHETTO rosso (stessa grafica della sessione
+    bloccata: glifo 'lock' Material Icons, #ff4d5a) sopra una card —
+    piste IMSA chiuse finche' non le finiamo (rich. 24/07)."""
+    from PySide6.QtCore import QRectF
+    from PySide6.QtGui import QColor, QFont, QPainterPath
+    r = QRectF(0.5, 0.5, w - 1.0, h - 1.0)
+    clip = QPainterPath()
+    clip.addRoundedRect(r, radius, radius)
+    p.save()
+    p.setClipPath(clip)
+    p.fillRect(r, QColor(6, 8, 14, 205))          # velo scuro
+    f = QFont("Material Icons")
+    f.setPixelSize(max(26, int(min(w, h) * 0.26)))
+    p.setFont(f)
+    p.setPen(QColor(255, 77, 90))                 # #ff4d5a
+    p.drawText(r, Qt.AlignCenter, chr(0xE897))    # glifo 'lock'
+    p.restore()
+
+
 class _Card(QFrame):
     """Carta-pista a forma di carta da gioco. Sfondo da assets/trackcards/<key>.jpg
     (fallback bianco), nome pista in basso, angoli arrotondati. Cliccabile:
@@ -6214,6 +6249,7 @@ class _Card(QFrame):
         self._bg = self._load(bgkey)          # solo foto dedicata, niente fallback
         self._logo = self._load_logo(logo)
         self._cat = cat
+        self._locked = (cat == "imsa")   # IMSA chiusa (rich. 24/07)
         self._map = self._load_map(cmap)
         self._map_rot = _MAP_ROTATION.get(track or "", 0)
         self._op = QGraphicsOpacityEffect(self)
@@ -6260,6 +6296,9 @@ class _Card(QFrame):
         self._op.setOpacity(max(0.0, min(1.0, v)))
 
     def mousePressEvent(self, e):
+        if getattr(self, "_locked", False):
+            e.accept()
+            return                       # pista IMSA bloccata: click morto
         if e.button() == Qt.LeftButton and self.on_click and self._idx >= 0:
             self.on_click(self._idx)
             e.accept()
@@ -6376,6 +6415,8 @@ class _Card(QFrame):
                     p.restore()
             p.setOpacity(1.0)
         # bordo bianco rimosso
+        if getattr(self, "_locked", False):
+            _draw_card_lock9(p, self.width(), self.height(), self.RADIUS)
         p.setClipping(False)
 
 
@@ -6454,7 +6495,11 @@ class _CatCard(QFrame):
                 if not _pm.isNull():
                     self._photo = _pm
                     break
-        self.setCursor(Qt.PointingHandCursor)
+        # IMSA CHIUSA (rich. 24/07): piste da finire a mano prima
+        # dell'update — card bloccata col lucchetto della sessione
+        self._locked = (key == "imsa")
+        self.setCursor(Qt.ForbiddenCursor if self._locked
+                       else Qt.PointingHandCursor)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
     def enterEvent(self, e):
@@ -6475,6 +6520,9 @@ class _CatCard(QFrame):
         self.update()
 
     def mousePressEvent(self, e):
+        if getattr(self, "_locked", False):
+            e.accept()
+            return                       # IMSA bloccata: click morto
         if e.button() == Qt.LeftButton and self.on_click:
             self.on_click(self._key)
             e.accept()
@@ -6555,6 +6603,8 @@ class _CatCard(QFrame):
                 p.setOpacity(hs)
                 self._logo.render(p, QRectF((W - lw) / 2.0, (H - lh) / 2.0, lw, lh))
                 p.setOpacity(1.0)
+        if getattr(self, "_locked", False):
+            _draw_card_lock9(p, self.width(), self.height(), self.RADIUS)
         p.setClipping(False)
 
 
