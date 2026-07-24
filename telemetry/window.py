@@ -10262,16 +10262,19 @@ class _TrackPage(QWidget):
                 g.setColorAt(1.0, QColor(0, 0, 0, 0))
                 p.fillRect(r, QBrush(g))
             return
-        gb = QRadialGradient(0, h, max(w, h) * 0.95)
-        gb.setColorAt(0.0, QColor(19, 41, 67, 130))
-        gb.setColorAt(0.55, QColor(19, 41, 67, 45))
-        gb.setColorAt(1.0, QColor(19, 41, 67, 0))
-        p.fillRect(r, QBrush(gb))
-        g = QRadialGradient(w, 0, max(w, h) * 0.95)
-        g.setColorAt(0.0, QColor(255, 29, 67, 170))
-        g.setColorAt(0.55, QColor(255, 29, 67, 60))
-        g.setColorAt(1.0, QColor(255, 29, 67, 0))
-        p.fillRect(r, QBrush(g))
+        # ESPERIMENTO 24/07 sera: radiali blu (basso-sx) e rosso
+        # (alto-dx) DISATTIVATI per provare la pagina senza tinte
+        if False:
+            gb = QRadialGradient(0, h, max(w, h) * 0.95)
+            gb.setColorAt(0.0, QColor(19, 41, 67, 130))
+            gb.setColorAt(0.55, QColor(19, 41, 67, 45))
+            gb.setColorAt(1.0, QColor(19, 41, 67, 0))
+            p.fillRect(r, QBrush(gb))
+            g = QRadialGradient(w, 0, max(w, h) * 0.95)
+            g.setColorAt(0.0, QColor(255, 29, 67, 170))
+            g.setColorAt(0.55, QColor(255, 29, 67, 60))
+            g.setColorAt(1.0, QColor(255, 29, 67, 0))
+            p.fillRect(r, QBrush(g))
 
     def set_track(self, idx, base, name, mapname, bgkey=None):
         self._idx = idx
