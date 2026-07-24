@@ -1848,28 +1848,60 @@ class TelemetryRecorder:
         # — ma la TRAIETTORIA in corsia si registra: diventa la CORSIA
         # BOX disegnata nelle mappe (rich. 24/07: "non si capisce dove
         # vanno le macchine quando sono nel pit")
+        # coda PRE-entrata sempre in memoria (~250 m): la corsia
+        # disegnata parte DALLA PISTA, non dalla riga di rilevamento
+        try:
+            if float(d.get("speed") or 0.0) > 1.0 \
+                    and d.get("pos_x") is not None:
+                _pb9 = getattr(self, "_pit_pre9", None)
+                if _pb9 is None:
+                    _pb9 = self._pit_pre9 = []
+                _q9 = (float(d["pos_x"]), float(d.get("pos_z") or 0.0))
+                if not _pb9 or (_q9[0] - _pb9[-1][0]) ** 2 \
+                        + (_q9[1] - _pb9[-1][1]) ** 2 >= 9.0:
+                    _pb9.append(_q9)
+                    if len(_pb9) > 90:
+                        del _pb9[0]
+        except Exception:
+            pass
         if d.get("in_pits") or d.get("in_pitlane") or d.get("garage"):
             self._lap_pits9 = True
+            self._pit_post9 = None
             try:
                 if float(d.get("speed") or 0.0) > 1.0 \
                         and d.get("pos_x") is not None:
                     _tr9 = getattr(self, "_pit_tr9", None)
                     if _tr9 is None:
-                        _tr9 = self._pit_tr9 = []
+                        # parte con la coda pre-entrata gia' dentro
+                        _tr9 = self._pit_tr9 = list(
+                            getattr(self, "_pit_pre9", None) or [])
                     if len(_tr9) < 12000:
                         _tr9.append((float(d["pos_x"]),
                                      float(d.get("pos_z") or 0.0)))
             except Exception:
                 pass
         elif getattr(self, "_pit_tr9", None):
+            # fuori dalla corsia: continua ALTRI 3 secondi (raccordo
+            # d'uscita fino alla pista), POI salva (rich. 24/07)
             try:
-                from core.auto_trackmap import add_pitlane as _apl9
-                if _apl9(self._evt_track or d.get("track"),
-                         self._pit_tr9):
-                    self._st("corsia box scritta nella mappa auto")
+                _nowp9 = time.monotonic()
+                if getattr(self, "_pit_post9", None) is None:
+                    self._pit_post9 = _nowp9
+                if float(d.get("speed") or 0.0) > 1.0 \
+                        and d.get("pos_x") is not None \
+                        and len(self._pit_tr9) < 12000:
+                    self._pit_tr9.append((float(d["pos_x"]),
+                                          float(d.get("pos_z") or 0.0)))
+                if _nowp9 - self._pit_post9 >= 3.0:
+                    from core.auto_trackmap import add_pitlane as _apl9
+                    if _apl9(self._evt_track or d.get("track"),
+                             self._pit_tr9):
+                        self._st("corsia box scritta nella mappa auto")
+                    self._pit_tr9 = None
+                    self._pit_post9 = None
             except Exception:
-                pass
-            self._pit_tr9 = None
+                self._pit_tr9 = None
+                self._pit_post9 = None
 
         # giro completato -> scrivi riga giro
         if self._prev_laps is not None and laps > self._prev_laps:

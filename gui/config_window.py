@@ -247,6 +247,14 @@ class ConfigWindow(QDialog):
             grid.addWidget(QLabel("Curve details"), row_i, 0)
             grid.addWidget(self._make_toggle("detail"), row_i, 1)
             row_i += 1
+            # scie 500m sfumate dei rivali di classe
+            grid.addWidget(QLabel("Trails"), row_i, 0)
+            grid.addWidget(self._make_toggle("trails"), row_i, 1)
+            row_i += 1
+            # pista scura (asfalto) invece che bianca
+            grid.addWidget(QLabel("Dark track"), row_i, 0)
+            grid.addWidget(self._make_toggle("darktrack"), row_i, 1)
+            row_i += 1
         # wec26mfd (Dashboard): AUTO PIT (i Mod 1-8 si gestiscono in overlay)
         elif self._key == "wec26mfd":
             # Il muretto scrive la Virtual Energy nel pit menu. Salva SUBITO in
@@ -508,8 +516,11 @@ class ConfigWindow(QDialog):
             self._set_toggle("gps", cfg.get("map_layout", 1) == 2)
             self._set_toggle("names", bool(cfg.get("map_names", True)))
             self._set_toggle("adaptive",
-                             bool(cfg.get("map_adaptive", False)))
+                             bool(cfg.get("map_adaptive", True)))
             self._set_toggle("detail", bool(cfg.get("map_detail", True)))
+            self._set_toggle("trails", bool(cfg.get("map_trails", True)))
+            self._set_toggle("darktrack",
+                             bool(cfg.get("map_dark_track", False)))
             try:
                 self.sp_mzoom.setValue(float(cfg.get("map_zoom", 5.5)))
             except Exception:
@@ -794,9 +805,13 @@ class ConfigWindow(QDialog):
             self._config.set_value(self._key, "map_names",
                                    bool(self._toggle_state.get("names", True)))
             self._config.set_value(self._key, "map_adaptive",
-                                   bool(self._toggle_state.get("adaptive", False)))
+                                   bool(self._toggle_state.get("adaptive", True)))
             self._config.set_value(self._key, "map_detail",
                                    bool(self._toggle_state.get("detail", True)))
+            self._config.set_value(self._key, "map_trails",
+                                   bool(self._toggle_state.get("trails", True)))
+            self._config.set_value(self._key, "map_dark_track",
+                                   bool(self._toggle_state.get("darktrack", False)))
             try:
                 self._config.set_value(self._key, "map_zoom",
                                        float(self.sp_mzoom.value()))
