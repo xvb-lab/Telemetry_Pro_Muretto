@@ -170,6 +170,11 @@ class MapCanvas(QWidget):
         self._edit_sel9 = None
         self._edit_r9 = None         # rettangoli bottoni
         self._edit_hit9 = []         # maniglie a schermo
+        # editor SETTORI (rich. 24/07 sera: l'Endurance non ha S2/S3)
+        self._sect_mode9 = False     # in EDIT: curve vs settori
+        self._edit_sec9 = []         # 2 confini settore (metri)
+        self._sec_sel9 = None
+        self._sec_hit9 = []
         # ROTAZIONE LIBERA della mappa (rich. 24/07 sera: "la giro
         # col mouse così capisco"): solo VISTA, gli apici in metri
         # non cambiano. Memoria per pista dentro la sessione.
@@ -541,23 +546,42 @@ class MapCanvas(QWidget):
             return
         self._edit_r9 = {"save": _btn(8.0, "SAVE", True),
                          "exit": _btn(60.0, "EXIT"),
-                         "rot": _btn(112.0, "ROT", self._rot_mode9)}
+                         "sect": _btn(112.0, "SECT", self._sect_mode9),
+                         "rot": _btn(164.0, "ROT", self._rot_mode9)}
         from bisect import bisect_left
         cum = self._cum9()
         n = len(cum)
+        _sec = self._sect_mode9      # in modo settori le curve si spengono
+        # ── curve (cerchi azzurri) ──
         self._edit_hit9 = []
         for k, m in enumerate(self._edit_ap9):
             idx = min(bisect_left(cum, m), n - 1)
             x, y = self._edit_scr9[idx]
-            p.setPen(QPen(QColor(10, 12, 16, 220), 2))
+            _dim = 90 if _sec else 225
+            p.setPen(QPen(QColor(10, 12, 16, 120 if _sec else 220), 2))
             p.setBrush(QColor(255, 212, 0, 235)
-                       if k == self._edit_sel9
-                       else QColor(0, 170, 255, 225))
+                       if (not _sec and k == self._edit_sel9)
+                       else QColor(0, 170, 255, _dim))
             p.drawEllipse(QPointF(x, y), 7.0, 7.0)
-            p.setPen(QColor(255, 255, 255, 245))
+            p.setPen(QColor(255, 255, 255, 120 if _sec else 245))
             p.drawText(QRectF(x - 22, y - 24, 44, 13), Qt.AlignCenter,
                        "T%d" % (k + 1))
             self._edit_hit9.append((x, y))
+        # ── settori (quadrati gialli S2/S3) ──
+        self._sec_hit9 = []
+        for k, m in enumerate(self._edit_sec9):
+            idx = min(bisect_left(cum, m), n - 1)
+            x, y = self._edit_scr9[idx]
+            p.setPen(QPen(QColor(10, 12, 16, 220 if _sec else 110), 2))
+            p.setBrush(QColor(255, 90, 90, 240)
+                       if (_sec and k == self._sec_sel9)
+                       else QColor(255, 205, 40,
+                                   235 if _sec else 120))
+            p.drawRect(QRectF(x - 6.5, y - 6.5, 13.0, 13.0))
+            p.setPen(QColor(255, 255, 255, 245 if _sec else 120))
+            p.drawText(QRectF(x - 22, y + 9, 44, 13), Qt.AlignCenter,
+                       "S%d" % (k + 2))
+            self._sec_hit9.append((x, y))
 
     def _edit_apply9(self):
         """La lista in lavorazione diventa quella VIVA (etichette),
@@ -579,14 +603,33 @@ class MapCanvas(QWidget):
         cum = self._cum9()
         if len(cum) < 30:
             return
+        n = len(cum)
         cur = self._turns_map() or []
         self._edit_ap9 = [cum[min(int(t[0]), len(cum) - 1)]
                           for t in cur]
         if not self._edit_ap9:
             self._edit_ap9 = [cum[-1] / 2.0]   # base: una a meta'
+        # SETTORI in lavorazione: dai confini esistenti (indici) ai
+        # metri; se mancano (Endurance a 1 settore) default a 1/3-2/3
+        sc = [s for s in (self._secs or []) if 0 < s < n][:2]
+        if len(sc) == 2:
+            self._edit_sec9 = [cum[sc[0]], cum[sc[1]]]
+        else:
+            self._edit_sec9 = [cum[n // 3], cum[2 * n // 3]]
         self._edit_sel9 = None
+        self._sec_sel9 = None
+        self._sect_mode9 = False
         self._edit9 = True
         self._edit_apply9()
+
+    def _sec_indices9(self):
+        """I 2 confini settore come INDICI nel path, ordinati."""
+        from bisect import bisect_left
+        cum = self._cum9()
+        n = len(cum)
+        idx = sorted(min(bisect_left(cum, m), n - 1)
+                     for m in self._edit_sec9)
+        return idx[:2]
 
     def _edit_save9(self):
         try:
@@ -608,10 +651,35 @@ class MapCanvas(QWidget):
                 {"len": round(L, 1),
                  "apici": [round(m, 1) for m in self._edit_ap9],
                  "manuale": True}), encoding="utf-8")
+            # SETTORI: scritti nel <desc> dell'SVG (fonte canonica letta
+            # da widget e telemetria) + aggiornati live
+            _si = self._sec_indices9()
+            if len(_si) == 2:
+                self._secs = _si
+                self._write_secs_svg9(_si)
         except Exception:
             pass
         self._edit9 = False
         self._tm_key = None          # prossimo paint: dal censimento
+
+    def _write_secs_svg9(self, idx):
+        """Riscrive <desc>i1,i2</desc> nell'SVG della pista corrente."""
+        try:
+            f = _svg_index().get(self._track)
+            if not f:
+                return
+            txt = f.read_text(encoding="utf-8", errors="ignore")
+            new = "<desc>%d,%d</desc>" % (idx[0], idx[1])
+            if re.search(r"<desc>[^<]*</desc>", txt):
+                txt = re.sub(r"<desc>[^<]*</desc>", new, txt, count=1)
+            else:
+                txt = re.sub(r"(<title>[^<]*</title>)",
+                             r"\1" + chr(10) + chr(9) + new, txt,
+                             count=1)
+            f.write_text(txt, encoding="utf-8")
+            globals()["_svg_index_cache"] = None   # rilettura pulita
+        except Exception:
+            pass
 
     def _edit_near9(self, pos, pts, rad2=196.0):
         best = None
@@ -638,7 +706,10 @@ class MapCanvas(QWidget):
                             self._edit_save9()
                         elif k == "exit":
                             self._edit9 = False
+                            self._sect_mode9 = False
                             self._tm_key = None
+                        elif k == "sect":
+                            self._sect_mode9 = not self._sect_mode9
                         elif k == "rot":
                             self._rot_mode9 = not self._rot_mode9
                         self.update()
@@ -646,12 +717,18 @@ class MapCanvas(QWidget):
                 if self._rot_mode9:      # gira la mappa col mouse
                     self._rot_drag9 = self._cur_ang9(pos)
                     return
+                if self._edit9 and self._sect_mode9:
+                    self._sec_sel9 = self._edit_near9(
+                        pos, self._sec_hit9)
+                    self.update()
+                    return
                 if self._edit9:
                     self._edit_sel9 = self._edit_near9(
                         pos, self._edit_hit9)
                     self.update()
                     return           # in edit niente drag finestra
-            elif e.button() == Qt.RightButton and self._edit9:
+            elif e.button() == Qt.RightButton and self._edit9 \
+                    and not self._sect_mode9:
                 k = self._edit_near9(pos, self._edit_hit9)
                 if k is not None and len(self._edit_ap9) > 1:
                     del self._edit_ap9[k]
@@ -672,7 +749,22 @@ class MapCanvas(QWidget):
                 self._map_rot9 = (getattr(self, "_map_rot9", 0.0) + d)
                 self.update()
                 return
-            if self._edit9 and self._edit_sel9 is not None \
+            if self._edit9 and self._sect_mode9 \
+                    and self._sec_sel9 is not None \
+                    and (e.buttons() & Qt.LeftButton):
+                pos = e.position()
+                scr = getattr(self, "_edit_scr9", [])
+                if scr:
+                    k = min(range(len(scr)),
+                            key=lambda i: (scr[i][0] - pos.x()) ** 2
+                            + (scr[i][1] - pos.y()) ** 2)
+                    cum = self._cum9()
+                    self._edit_sec9[self._sec_sel9] = \
+                        cum[min(k, len(cum) - 1)]
+                    self.update()
+                return
+            if self._edit9 and not self._sect_mode9 \
+                    and self._edit_sel9 is not None \
                     and (e.buttons() & Qt.LeftButton):
                 pos = e.position()
                 scr = getattr(self, "_edit_scr9", [])
@@ -700,6 +792,7 @@ class MapCanvas(QWidget):
             return
         if self._edit9:
             self._edit_sel9 = None
+            self._sec_sel9 = None
             self.update()
             return
         e.ignore()
