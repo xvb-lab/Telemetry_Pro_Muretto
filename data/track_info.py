@@ -9,6 +9,11 @@ pista dedicata (info a sinistra). Dati raccolti per i circuiti WEC/ELMS/IMSA.
 # GP da 18 curve). Chiave = pezzo del nome completo LMU, minuscolo.
 LAYOUT_INFO = {
     "silverstone national": (2639, 6, 1948),
+    # Bahrain: dati Wikipedia (24/07); curve Endurance = 24 come le
+    # conta LMU/la mappa (Wikipedia dice 23 — conteggio soggettivo)
+    "bahrain endurance": (6299, 24, 2004),
+    "bahrain outer": (3543, 11, 2004),
+    "bahrain paddock": (3823, 10, 2004),
 }
 
 

@@ -235,14 +235,23 @@ _LAYOUT_LABELS = {
 
 def _track_layout_label(track):
     """Variante di layout leggibile (es. 'Curva Grande', 'Outer'), '' se layout
-    principale. Risolta dallo stem SVG del trackmap (un SVG per layout)."""
-    p = _ov_trackmap_file(track)
-    if not p:
-        return ""
+    principale. Prima dallo stem SVG del trackmap; se manca (24/07:
+    l'Endurance non aveva lo SVG stilizzato e il titolo restava senza
+    layout) fallback sul NOME della pista per sottostringa."""
     import re
-    stem = re.sub(r"#U([0-9a-fA-F]{4})",
-                  lambda m: chr(int(m.group(1), 16)), p.stem)
-    return _LAYOUT_LABELS.get(stem, "")
+    p = _ov_trackmap_file(track)
+    if p:
+        stem = re.sub(r"#U([0-9a-fA-F]{4})",
+                      lambda m: chr(int(m.group(1), 16)), p.stem)
+        lab = _LAYOUT_LABELS.get(stem, "")
+        if lab:
+            return lab
+    tl = (track or "").lower()
+    best = ("", "")
+    for stem, lab in _LAYOUT_LABELS.items():
+        if stem.lower() in tl and len(stem) > len(best[0]):
+            best = (stem, lab)
+    return best[1]
 
 
 def _track_layout_key(track):

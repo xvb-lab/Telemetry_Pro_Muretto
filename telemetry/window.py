@@ -9571,10 +9571,31 @@ class _TrackMapView(QWidget):
         _rot = 0.0
         try:
             import json as _js
+            import re as _re
             from core.paths import USER_DIR as _UDr
+
+            def _nmk(s):
+                s = _re.sub(r"#U([0-9a-fA-F]{4})",
+                            lambda m: chr(int(m.group(1), 16)),
+                            (s or "").lower())
+                for w in ("grand prix", "circuit", "international",
+                          "raceway", "speedway", "the ", "2026"):
+                    s = s.replace(w, " ")
+                return _re.sub(r"[^a-z0-9]+", "", s)
+
             _rd = _js.loads((_UDr / "map_rotations.json").read_text(
                 encoding="utf-8"))
-            _rot = -float(_rd.get(track or "", 0.0))
+            # match TOLLERANTE come per la mappa: il nome del menu e la
+            # chiave salvata dall'overlay (nome live) differiscono spesso
+            # solo per 'Circuit'/'International' — l'esatto le mancava
+            _tk = _nmk(track)
+            _rv = _rd.get(track)
+            if _rv is None and _tk:
+                for _k, _v in _rd.items():
+                    if _nmk(_k) == _tk:
+                        _rv = _v
+                        break
+            _rot = -float(_rv or 0.0)
         except Exception:
             _rot = 0.0
         if abs(_rot) > 1e-4:
@@ -9696,17 +9717,13 @@ class _TrackMapView(QWidget):
                    P[idx].y() + ny * (trk * 0.7 + 10),
                    QColor("#00aaff"), small=True)
 
-        # ── curve censite: T + NOME ufficiale, fuori dalla pista ──
+        # ── curve censite: SOLO NUMERO T1..Tn (rich. utente 24/07 sera:
+        # niente nomi tipo Schumacher/Samsung, "sono solo le curve") ──
         try:
             from data.track_corners import corners_for_track
             mets = corners_for_track(track, L) or []
         except Exception:
             mets = []
-        try:
-            from data.track_corner_names import corner_name
-        except Exception:
-            def corner_name(t, i):
-                return None
         cx0 = sum(q.x() for q in P) / n
         cy0 = sum(q.y() for q in P) / n
         for tn_i, mt in enumerate(mets):
@@ -9717,22 +9734,12 @@ class _TrackMapView(QWidget):
                     < ((P[a].x() - nx) - cx0) ** 2 \
                     + ((P[a].y() - ny) - cy0) ** 2:
                 nx, ny = -nx, -ny
-            nm = corner_name(track, tn_i + 1)
             base_t = "T%d" % (tn_i + 1)
-            txt = (base_t + " " + nm) if nm else base_t
-            ok = False
             for dist in (14.0, 26.0, 38.0):
-                if _label(txt, P[a].x() + nx * (trk / 2 + dist),
+                if _label(base_t, P[a].x() + nx * (trk / 2 + dist),
                           P[a].y() + ny * (trk / 2 + dist),
                           QColor(242, 244, 247, 245)):
-                    ok = True
                     break
-            if not ok and nm:
-                for dist in (14.0, 26.0):   # niente spazio: solo numero
-                    if _label(base_t, P[a].x() + nx * (trk / 2 + dist),
-                              P[a].y() + ny * (trk / 2 + dist),
-                              QColor(242, 244, 247, 245)):
-                        break
 
 
 class _TrackPage(QWidget):
@@ -10167,8 +10174,12 @@ class _TrackPage(QWidget):
         except Exception:
             pass
         try:
-            from data.track_info import track_info
-            info = track_info(base)
+            # scheda per LAYOUT (rich. 24/07 sera): info_for_track
+            # legge PRIMA LAYOUT_INFO per nome (Endurance/Outer/...),
+            # poi ripiega sulla base — track_info(base) dava sempre il
+            # GP anche sull'Endurance (15 curve invece di 24)
+            from data.track_info import info_for_track, track_info
+            info = info_for_track(name, None) or track_info(base)
         except Exception:
             info = None
         if info:
