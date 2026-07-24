@@ -363,11 +363,16 @@ class _RankRow(QFrame):
                             "background:transparent;")
             t.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             _tcol2.addWidget(t)
-            _secs = "   ".join(
-                (_fmt_ms(rec.get(_sk)) if rec.get(_sk) else "—")
-                for _sk in ("s1_ms", "s2_ms", "s3_ms"))
+            # COLORI SETTORE come sulla mappa (rich. 24/07 sera): S1
+            # rosso del traguardo, S2/S3 azzurro delle tacche settore
+            _SCOL9 = ("#ff3b30", "#00aaff", "#00aaff")
+            _secs = "&nbsp;&nbsp;&nbsp;".join(
+                '<span style="color:%s">%s</span>' % (
+                    _c, (_fmt_ms(rec.get(_sk)) if rec.get(_sk) else "—"))
+                for _sk, _c in zip(("s1_ms", "s2_ms", "s3_ms"), _SCOL9))
             _s2 = QLabel(_secs)
-            _s2.setStyleSheet("color:#aab2c4;font-family:'Archivo SemiExpanded';"
+            _s2.setTextFormat(Qt.RichText)
+            _s2.setStyleSheet("font-family:'Archivo SemiExpanded';"
                               "font-size:11px;font-weight:700;"
                               "background:transparent;")
             _s2.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -399,15 +404,16 @@ class _RankRow(QFrame):
             t.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             h.addWidget(t)
             h.addSpacing(10)
-            _seccol = "#f2f4f7"
-            for _sk in ("s1_ms", "s2_ms", "s3_ms"):
+            # colori settore come sulla mappa: S1 rosso, S2/S3 azzurro
+            _SCOL9 = ("#ff3b30", "#00aaff", "#00aaff")
+            for _sk, _sc9 in zip(("s1_ms", "s2_ms", "s3_ms"), _SCOL9):
                 _sv = rec.get(_sk)
                 _sl = QLabel(_fmt_ms(_sv) if _sv else "—")
                 _sl.setFixedWidth(62)
                 _sl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
                 _sl.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';"
                                   "font-size:14px;font-weight:700;"
-                                  "background:transparent;" % _seccol)
+                                  "background:transparent;" % _sc9)
                 h.addWidget(_sl); h.addSpacing(6)
 
     def _trophy_widget(self, pos):
