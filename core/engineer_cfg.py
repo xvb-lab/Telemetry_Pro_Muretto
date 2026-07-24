@@ -19,6 +19,20 @@ def load() -> dict:
 
 def save(**kw):
     try:
+        # SPIA (24/07): engineer_on spariva a False senza colpevole —
+        # ogni scrittura della chiave viene loggata con lo stack
+        if "engineer_on" in kw:
+            try:
+                import time as _t
+                import traceback as _tb
+                from core.paths import USER_DIR as _UD
+                _st = "".join(_tb.format_stack(limit=6)[:-1])
+                with open(_UD / "engineer_on_writes.log", "a",
+                          encoding="utf-8") as _fh:
+                    _fh.write("[%s] engineer_on=%s\n%s\n" % (
+                        _t.strftime("%H:%M:%S"), kw["engineer_on"], _st))
+            except Exception:
+                pass
         d = load()
         d.update(kw)
         _FILE.parent.mkdir(parents=True, exist_ok=True)
