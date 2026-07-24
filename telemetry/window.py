@@ -10725,6 +10725,100 @@ class _SessionsPage(_TrackPage):
             pass
 
 
+class _TeamsPage(_TrackPage):
+    """Pagina Teams: STESSO guscio delle altre (card circuito a sx, sfondo
+    foto sul blu) — a destra le sessioni importate dai compagni + tasto
+    IMPORT (rich. utente 24/07 sera: una pagina come le altre)."""
+
+    _DARK_CORNERS = False
+
+    def __init__(self, on_open=None, on_back=None, on_export=None,
+                 on_delete=None, win=None, parent=None):
+        super().__init__(on_sessions=None, on_back=on_back, parent=parent)
+        self._on_open = on_open
+        self._on_export = on_export
+        self._on_delete = on_delete
+        self._win = win
+        self._sessions = []
+        try:
+            self._btn_sess.setVisible(False)
+            self._dry_btn.setVisible(False)
+            self._wet_btn.setVisible(False)
+            self._filt_row.setVisible(False)   # niente badge classe
+            _bt = _PillButton("IMPORT .ZIP", px=13)
+            _bt.setMinimumSize(120, 38)
+            _bt.clicked.connect(self._import_zip)
+            self._sessrow9.insertWidget(self._sessrow9.count() - 1, _bt)
+        except Exception:
+            pass
+
+    def set_track(self, idx, base, name, mapname, bgkey=None):
+        self._load_team()
+        super().set_track(idx, base, name, mapname, bgkey)
+
+    def _load_team(self):
+        try:
+            from core import team_share as _ts
+            self._sessions = [dict(s, team_session=True)
+                              for s in _ts.list_team_sessions()]
+        except Exception:
+            self._sessions = []
+
+    def _build_filters(self):        # niente filtri: tutte le team session
+        self._refresh_rank()
+
+    def _refresh_rank(self):
+        while self._rank_v.count() > 1:
+            it = self._rank_v.takeAt(0); w = it.widget()
+            if w:
+                w.deleteLater()
+        rows = sorted(self._sessions,
+                      key=lambda s: (s.get("started_at") or ""),
+                      reverse=True)
+        if not rows:
+            _lb = QLabel("No team sessions yet.\nImport a .zip a teammate "
+                         "shared with you.")
+            _lb.setWordWrap(True); _lb.setAlignment(Qt.AlignCenter)
+            _lb.setStyleSheet("color:#aeb6c4;font-family:'Archivo "
+                              "SemiExpanded';font-size:14px;"
+                              "padding:24px;background:transparent;")
+            self._rank_v.insertWidget(self._rank_v.count() - 1, _lb)
+            return
+        for s in rows:
+            self._rank_v.insertWidget(self._rank_v.count() - 1,
+                                      _SessionCard(s, self._on_open,
+                                                   self._on_export,
+                                                   self._on_delete))
+
+    def _import_zip(self):
+        from PySide6.QtWidgets import QFileDialog
+        try:
+            from core import team_share as _ts
+        except Exception:
+            return
+        f, _ = QFileDialog.getOpenFileName(
+            self, "Load team session", "", "Team session (*.zip)")
+        if not f:
+            return
+        try:
+            _ts.import_zip(f)
+        except Exception:
+            pass
+        self.reload()
+        try:
+            if self._win is not None:
+                self._win._reload_sessions()
+        except Exception:
+            pass
+
+    def reload(self):
+        try:
+            self._load_team()
+            self._refresh_rank()
+        except Exception:
+            pass
+
+
 class _StintPage(_TrackPage):
     """Pagina stint: stesso guscio di Sessions/community ma SENZA mappa/info a
     sinistra (area vuota, da riempire poi) e SENZA filtri. Riusa gli STESSI
@@ -11198,6 +11292,13 @@ class TelemetryWindow(QMainWindow):
         self._stint_page = _StintPage(on_back=self._back_to_sessions)
         self._stint_page._add_telemetry_btn(self._open_telemetry,
                                             self._open_setups_tab)
+        # pagina TEAMS come le altre (rich. utente 24/07 sera)
+        self._teams_page = _TeamsPage(on_open=self._open_session,
+                                      on_back=self._back_to_sessions,
+                                      on_export=self._sess_export,
+                                      on_delete=self._sess_delete,
+                                      win=self._legacy)
+        self._stack.addWidget(self._teams_page)
         self._menu = _RootCanvas(on_open=self._open_track_page,
                                  on_community=self._open_community,
                                  on_setups=self._open_setups,
@@ -12121,17 +12222,20 @@ class TelemetryWindow(QMainWindow):
         self._open_options()
 
     def _open_teams(self):
-        # aperta dalla pill TEAMS della pagina Sessions: il back deve
-        # tornare LI', non alle card piste
-        self._app_return_sessions = \
-            self._stack.currentWidget() is self._sessions_page
-        # stesso sfondo foto della pagina circuito (rich. utente 24/07)
+        # pagina Teams STANDALONE come le altre (rich. utente 24/07 sera):
+        # stesso guscio di Sessions, non piu' la scheda dentro la vista
         try:
-            self._legacy._teamtab.set_bg(
-                getattr(self._sessions_page, "_bgkey", None))
+            _idx = getattr(self._sessions_page, "_idx", None)
+            if _idx is None:
+                _idx = getattr(self._trackpage, "_idx", None)
+            if _idx is None:
+                _idx = 0
+            e = _TRACKS[_idx]
+            # entry: (base, bgkey, name, logo, cmap)
+            self._teams_page.set_track(_idx, e[0], e[2], e[4], e[1])
+            self._stack.setCurrentWidget(self._teams_page)
         except Exception:
-            pass
-        self._open_tab(5)
+            self._open_tab(5)                # fallback: vecchia scheda
 
     def _sess_export(self, file):
         """Export .zip dalla card Sessions: stessa via del legacy."""

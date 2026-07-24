@@ -111,26 +111,6 @@ class _TeamTab(QWidget):
 
     def paintEvent(self, e):
         from PySide6.QtCore import QRect
-        # SPIA (24/07 sera): dimensione reale del widget vs finestra +
-        # genitore, per capire perche' lo sfondo appare inset/diverso
-        try:
-            if not getattr(self, "_spied9", False):
-                self._spied9 = True
-                from core.paths import USER_DIR as _UD
-                _par = self.parent()
-                _pn = type(_par).__name__ if _par else "None"
-                _ps = _par.size() if _par else None
-                with open(_UD / "teams_bg_debug.txt", "a",
-                          encoding="utf-8") as _fh:
-                    _fh.write("size=%dx%d parent=%s parent_size=%s "
-                              "photo=%s\n" % (
-                                  self.width(), self.height(), _pn,
-                                  ("%dx%d" % (_ps.width(), _ps.height())
-                                   if _ps else "?"),
-                                  getattr(self, "_bgphoto9", None)
-                                  is not None))
-        except Exception:
-            pass
         p = QPainter(self)
         r = self.rect()
         p.fillRect(r, QColor("#000833"))
