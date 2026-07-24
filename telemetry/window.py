@@ -9976,6 +9976,9 @@ class _TrackPage(QWidget):
         self._wet_btn = self._filter_btn("WET", lambda: self._set_cond("WET"))
         _sessrow.addWidget(self._dry_btn)
         _sessrow.addWidget(self._wet_btn)
+        # riferimento alla riga (le sottoclassi ci aggiungono, es.
+        # TEAMS su Sessions) — lo stretch di coda va PRIMA di questo
+        self._sessrow9 = _sessrow
         _sessrow.addStretch(1)
         lv.addLayout(_sessrow)
         lv.addSpacing(6)
@@ -10608,11 +10611,12 @@ class _SessionsPage(_TrackPage):
             # card SINISTRA (circuito+info) come nelle classifiche
             # (rich. utente 24/07 sera): sessioni a DESTRA — non si
             # nasconde piu' il pannello sinistro
-            # TEAMS dopo DRY/WET nella riga filtri
-            _bt = _PillButton("TEAMS", px=12)
-            _bt.setMinimumWidth(80)
+            # TEAMS accanto a DRY/WET nella card sinistra (rich. utente
+            # 24/07 sera), prima dello stretch finale della riga
+            _bt = _PillButton("TEAMS", px=13)
+            _bt.setMinimumSize(90, 38)
             _bt.clicked.connect(lambda: self._on_teams() if self._on_teams else None)
-            self._filt_row.layout().addWidget(_bt)
+            self._sessrow9.insertWidget(self._sessrow9.count() - 1, _bt)
         except Exception:
             pass
 
