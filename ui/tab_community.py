@@ -386,7 +386,7 @@ class _RankRow(QFrame):
             _tcol2.addWidget(t)
             # COLORI SETTORE come sulla mappa (rich. 24/07 sera): S1
             # rosso del traguardo, S2/S3 azzurro delle tacche settore
-            _SCOL9 = ("#33bbff", "#33bbff", "#33bbff")
+            _SCOL9 = ("#00b9ff", "#00b9ff", "#00b9ff")
             _secs = "&nbsp;&nbsp;&nbsp;".join(
                 '<span style="color:%s">%s</span>' % (
                     _c, (_fmt_ms(rec.get(_sk)) if rec.get(_sk) else "—"))
@@ -427,7 +427,7 @@ class _RankRow(QFrame):
             h.addWidget(t)
             h.addSpacing(10)
             # colori settore come sulla mappa: S1 rosso, S2/S3 azzurro
-            _SCOL9 = ("#33bbff", "#33bbff", "#33bbff")
+            _SCOL9 = ("#00b9ff", "#00b9ff", "#00b9ff")
             for _sk, _sc9 in zip(("s1_ms", "s2_ms", "s3_ms"), _SCOL9):
                 _sv = rec.get(_sk)
                 _sl = QLabel(_fmt_ms(_sv) if _sv else "—")
