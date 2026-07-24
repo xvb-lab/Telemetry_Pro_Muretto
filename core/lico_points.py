@@ -97,6 +97,18 @@ def map_turns(track, track_len):
             i += 1
     if not turns_idx:
         return []
+    # GUARDIA (24/07 sera): la NUMERAZIONE e' un riferimento — se il
+    # conteggio geometrico NON torna con la scheda ufficiale, meglio
+    # MUTO che "curva 13" a Monza (che ne ha 11). Il censimento auto
+    # (<pista>_curve.json) arriva dal widget appena carica la mappa e
+    # da li' in poi si passa dal ramo DB con i numeri veri.
+    try:
+        from data.track_info import info_for_track
+        _inf9 = info_for_track(track, track_len)
+        if _inf9 and len(turns_idx) != int(_inf9[1]):
+            return []
+    except Exception:
+        pass
     # lapdist: lunghezza cumulata scalata sulla lunghezza ufficiale
     cum = [0.0]
     for i in range(1, n):
