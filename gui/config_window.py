@@ -221,23 +221,23 @@ class ConfigWindow(QDialog):
             grid.addWidget(self._make_toggle("record"), row_i, 1)
             row_i += 1
         elif self._key == "map":
-            # ── impostazioni DIVISE per vista (rich. 24/07):
-            # GPS -> il suo zoom; INTERA -> l'adattiva; per tutte ->
-            # nomi piloti e dettagli curve/cordoli ──
-            grid.addWidget(QLabel("Layout GPS"), row_i, 0)
-            grid.addWidget(self._make_toggle("gps"), row_i, 1)
+            # ── MODALITA' = UNA scelta secca (rich. 24/07):
+            # Intera / GPS / Adattiva. Poi zoom, gap e dettagli ──
+            from PySide6.QtWidgets import (QComboBox as _QCB9,
+                                           QDoubleSpinBox as _QDSB9)
+            grid.addWidget(QLabel("Map mode"), row_i, 0)
+            self.cb_mmode = _QCB9()
+            self.cb_mmode.addItems(["Full", "GPS", "Adaptive"])
+            self.cb_mmode.setFixedWidth(100)
+            grid.addWidget(self.cb_mmode, row_i, 1)
             row_i += 1
-            from PySide6.QtWidgets import QDoubleSpinBox as _QDSB9
             grid.addWidget(QLabel("GPS zoom"), row_i, 0)
             self.sp_mzoom = _QDSB9()
             self.sp_mzoom.setRange(1.0, 25.0)   # niente limiti stretti
             self.sp_mzoom.setSingleStep(0.5)
             self.sp_mzoom.setValue(5.5)
+            self.sp_mzoom.setFixedWidth(80)
             grid.addWidget(self.sp_mzoom, row_i, 1)
-            row_i += 1
-            # mappa ADATTIVA: intera, ma zoom GPS quando c'e' battaglia
-            grid.addWidget(QLabel("Adaptive zoom"), row_i, 0)
-            grid.addWidget(self._make_toggle("adaptive"), row_i, 1)
             row_i += 1
             # soglia della battaglia in SECONDI di gap (rich. 24/07)
             grid.addWidget(QLabel("Adaptive gap (s)"), row_i, 0)
@@ -245,6 +245,7 @@ class ConfigWindow(QDialog):
             self.sp_again.setRange(0.5, 10.0)
             self.sp_again.setSingleStep(0.5)
             self.sp_again.setValue(1.0)
+            self.sp_again.setFixedWidth(80)
             grid.addWidget(self.sp_again, row_i, 1)
             row_i += 1
             # nomi piloti (3 lettere stile F1) accanto ai pallini
@@ -517,10 +518,13 @@ class ConfigWindow(QDialog):
             self.sp_save.setValue(int(cfg.get("save_margin", 2)))
             self._set_toggle("record", cfg.get("record", True))
         elif self._key == "map":
-            self._set_toggle("gps", cfg.get("map_layout", 1) == 2)
+            if cfg.get("map_layout", 1) == 2:
+                self.cb_mmode.setCurrentIndex(1)          # GPS fisso
+            elif bool(cfg.get("map_adaptive", True)):
+                self.cb_mmode.setCurrentIndex(2)          # adattiva
+            else:
+                self.cb_mmode.setCurrentIndex(0)          # intera
             self._set_toggle("names", bool(cfg.get("map_names", True)))
-            self._set_toggle("adaptive",
-                             bool(cfg.get("map_adaptive", True)))
             self._set_toggle("detail", bool(cfg.get("map_detail", True)))
             self._set_toggle("darktrack",
                              bool(cfg.get("map_dark_track", True)))
@@ -590,14 +594,6 @@ class ConfigWindow(QDialog):
         btn = self._toggles[name]
         btn.setChecked(on)
         btn.setText("ON" if on else "OFF")
-        # Map: GPS fisso e Adattiva sono MUTUAMENTE ESCLUSIVI (24/07:
-        # l'adattiva vale solo con la mappa intera — col GPS gia'
-        # attivo non ha senso): accenderne uno spegne l'altro
-        if on and self._key == "map" and name in ("gps", "adaptive"):
-            _other = "adaptive" if name == "gps" else "gps"
-            if self._toggle_state.get(_other) and _other in \
-                    getattr(self, "_toggles", {}):
-                self._set_toggle(_other, False)
 
     # ── Impostazioni ingegnere condivise (radio/voce/coaching) ──────────
     def _add_engineer_opts(self, grid, row_i):
@@ -806,11 +802,13 @@ class ConfigWindow(QDialog):
             self._config.set_value(self._key, "save_margin", self.sp_save.value())
             self._config.set_value(self._key, "record", self._toggle_state.get("record", True))
         elif self._key == "map":
-            self._config.set_value(self._key, "map_layout", 2 if self._toggle_state.get("gps") else 1)
+            _mi9 = self.cb_mmode.currentIndex()
+            self._config.set_value(self._key, "map_layout",
+                                   2 if _mi9 == 1 else 1)
+            self._config.set_value(self._key, "map_adaptive",
+                                   _mi9 == 2)
             self._config.set_value(self._key, "map_names",
                                    bool(self._toggle_state.get("names", True)))
-            self._config.set_value(self._key, "map_adaptive",
-                                   bool(self._toggle_state.get("adaptive", True)))
             self._config.set_value(self._key, "map_detail",
                                    bool(self._toggle_state.get("detail", True)))
             self._config.set_value(self._key, "map_dark_track",
