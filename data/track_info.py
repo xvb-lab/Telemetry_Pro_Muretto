@@ -35,6 +35,41 @@ def info_for_track(name, map_len=None):
     return base
 
 
+# LARGHEZZA CARREGGIATA REALE per pista (metri) — dati raccolti
+# dall'utente 24/07. Chiave = pezzo del nome completo, minuscolo.
+# Per i range si usa il valore che CONTIENE la guida vera.
+TRACK_WIDTHS = {
+    "fuji": 20.0,            # 15-25
+    "americas": 21.0,        # COTA 12.5-29.8 (mediana)
+    "algarve": 18.0,         # Portimao 14-18
+    "portimao": 18.0,
+    "bahrain": 17.0,         # 14-17
+    "imola": 15.0,           # 10-15
+    "enzo e dino": 15.0,
+    "spa": 14.0,             # 10-14
+    "sarthe": 13.0,          # Le Mans 10-13
+    "lusail": 12.0,
+    "monza": 12.0,           # 10-12
+    "interlagos": 15.0,      # 12-15
+    "carlos pace": 15.0,
+    "sebring": 15.0,         # 12-15
+    "daytona": 15.0,         # road 12-15
+    "laguna seca": 15.0,     # 11-15
+    "silverstone": 15.0,
+    "barcelona": 14.0,       # 12-14
+    "paul ricard": 12.0,
+}
+
+
+def width_for_track(name, default=15.0):
+    """Larghezza carreggiata reale (m) per il nome pista completo."""
+    n = (name or "").lower()
+    for k, w in TRACK_WIDTHS.items():
+        if k in n:
+            return w
+    return default
+
+
 # base -> (lunghezza_m, curve, anno)
 TRACK_INFO = {
     # ── WEC ──
