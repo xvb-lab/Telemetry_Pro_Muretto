@@ -308,8 +308,9 @@ class _RankRow(QFrame):
         tc.setFixedHeight(26 if _oncard else 34)
         # mescola sopra, USURA % sotto
         # margine BASSO sulla card (rich. 24/07 sera): con la riga
-        # centrata verticalmente, un pad in basso alza il simbolo gomma
-        _tcol = QVBoxLayout(); _tcol.setSpacing(1)
+        # centrata verticalmente, un pad in basso alza il simbolo gomma;
+        # spacing piu' largo = la % si ALLONTANA dall'icona gomma
+        _tcol = QVBoxLayout(); _tcol.setSpacing(6 if _oncard else 1)
         _tcol.setContentsMargins(0, 0, 0, 8 if _oncard else 0)
         _tcol.addWidget(tc, 0, Qt.AlignHCenter)
         _wl = QLabel(("%d%%" % round(_ts)) if _ts is not None else "—")
