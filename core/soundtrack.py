@@ -31,13 +31,22 @@ def _folder(name):
                   if p.exists() and p.stat().st_size > 1024)
 
 
-# ricalcolate a ogni avvio: aggiungere/togliere mp3 nelle cartelle basta
-_FILES = {
-    "home": _folder("hometrack"),
-    "community": _folder("community"),
-    "setups": _folder("setups"),
-    "telemetry": _folder("telemetry"),
-}
+# TRACCIA UNICA (rich. utente 24/07 sera): una sola colonna sonora per
+# TUTTA l'app (assets/audio/music/0.3/home.mp4), al posto delle vecchie
+# per-schermata. L'1.mp3 dell'intro resta separato e intatto.
+_MAIN = _MUSIC / "0.3" / "home.mp4"
+_MAIN_OK = _MAIN.exists() and _MAIN.stat().st_size > 1024
+if _MAIN_OK:
+    _FILES = {"home": [_MAIN], "community": [_MAIN],
+              "setups": [_MAIN], "telemetry": [_MAIN]}
+else:
+    # ripiego al vecchio sistema se il file nuovo manca
+    _FILES = {
+        "home": _folder("hometrack"),
+        "community": _folder("community"),
+        "setups": _folder("setups"),
+        "telemetry": _folder("telemetry"),
+    }
 _FADE_MS = 1200      # durata dissolvenza
 _STEP_MS = 60        # passo del timer di fade
 _FADE_REF = 1.0      # riferimento per la velocita' di fade (indip. dal volume)
@@ -141,6 +150,10 @@ class Soundtrack:
         """Traccia che DEVE suonare adesso (None = silenzio)."""
         if self._live or not self._enabled or self._track is None:
             return None
+        # TRACCIA UNICA (rich. utente 24/07 sera): stessa colonna sonora
+        # ovunque -> non riparte al cambio schermata, suona continua
+        if _MAIN_OK:
+            return "home" if _cands("home") else None
         name = self._track
         if not _cands(name):
             name = "home"                      # traccia assente: ripiega
