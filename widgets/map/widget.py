@@ -307,6 +307,7 @@ class MapCanvas(QWidget):
                         j0 = min(n - 1, idx + 4)
                     out.append((idx * _step9, "T%d" % (k + 1),
                                 i0 * _step9, j0 * _step9))
+                self._tm_reason = "censimento"
                 self._tm_key = key
                 self._tm_cache = out
                 return out
@@ -422,9 +423,21 @@ class MapCanvas(QWidget):
                             encoding="utf-8")
                 except Exception:
                     pass
-            out = [(idx * _step9, "T%d" % (k + 1),
-                    i0 * _step9, j0 * _step9)
-                   for k, (idx, i0, j0) in enumerate(turns)]
+            # STESSA REGOLA DELL'INGEGNERE (24/07 sera, caso Imola
+            # 15 vs 22): la numerazione e' un riferimento — o ESATTA
+            # o MUTA. Conto steccato/senza scheda = niente T sulla
+            # mappa finche' non arriva il censimento (auto o a mano).
+            if official and best and best[0] == 0:
+                self._tm_reason = "esatto (%d)" % official
+                out = [(idx * _step9, "T%d" % (k + 1),
+                        i0 * _step9, j0 * _step9)
+                       for k, (idx, i0, j0) in enumerate(turns)]
+            else:
+                self._tm_reason = ("muto (%d vs %s)"
+                                   % (len(turns), official)
+                                   if official else
+                                   "muto (senza scheda)")
+                out = []
         self._tm_key = key
         self._tm_cache = out
         try:                          # SPIA curve (24/07, diagnosi)

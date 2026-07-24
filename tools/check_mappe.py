@@ -36,16 +36,19 @@ def main():
             turns = mc._turns_map()
             inf = info_for_track(nome, None)
             uff = inf[1] if inf else None
-            ok = len(turns) > 0
+            # regola 24/07 sera: numerazione o ESATTA o MUTA — il
+            # muto dichiarato NON e' un guasto, e' la guardia
+            _why = str(getattr(mc, "_tm_reason", "") or "")
+            ok = len(turns) > 0 or _why.startswith("muto")
             segno = "OK " if ok else "ERR"
             if not ok:
                 errori += 1
             print("%s %-38s punti=%-5d curve=%-2d ufficiali=%s "
-                  "settori=%s corsia=%s" % (
+                  "settori=%s corsia=%s  [%s]" % (
                       segno, nome, len(path), len(turns),
                       uff if uff is not None else "-",
                       "si" if len(secs) >= 2 else "NO",
-                      "si" if pit else "no"))
+                      "si" if pit else "no", _why or "?"))
         except Exception:
             errori += 1
             print("%-40s ECCEZIONE:" % nome)
