@@ -9950,6 +9950,11 @@ class _TrackPage(QWidget):
         left.setStyleSheet("#tpInfo{background:transparent;border:none;}")
         # niente larghezza fissa: proporzionale (responsive con la finestra)
         lv = QVBoxLayout(left); lv.setContentsMargins(18, 18, 18, 18); lv.setSpacing(10)
+        # LOGO circuito SOPRA la mappa (esperimento 24/07 sera)
+        self._clogo = _SvgBox(); self._clogo.setFixedSize(200, 50)
+        self._clogo.setStyleSheet("background:transparent;")
+        self._clogo.setVisible(False)
+        lv.addWidget(self._clogo, 0, Qt.AlignHCenter)
         # nome pista rimosso da qui: resta solo nella barra in alto
         self._map = _TrackMapView()
         self._map.setStyleSheet("background:transparent;")
@@ -10020,7 +10025,9 @@ class _TrackPage(QWidget):
         w = QWidget(); w.setStyleSheet("background:transparent;")
         h = QHBoxLayout(w); h.setContentsMargins(0, 0, 0, 0)
         cap = QLabel(label)
-        cap.setStyleSheet("color:#8a90a0;font-family:'Archivo SemiExpanded';font-size:12px;"
+        # etichette BIANCHE (rich. 24/07 sera: erano grigie, poco
+        # leggibili) — leggermente meno del valore per gerarchia
+        cap.setStyleSheet("color:#e8ebf1;font-family:'Archivo SemiExpanded';font-size:12px;"
                           "font-weight:700;letter-spacing:1px;background:transparent;")
         val = QLabel("—")
         val.setStyleSheet("color:#f2f4f7;font-family:'Archivo SemiExpanded';font-size:16px;"
@@ -10290,6 +10297,17 @@ class _TrackPage(QWidget):
             self._flag.setVisible(bool(_fp and _fp.exists()))
         except Exception:
             self._title.setText((name or "").upper())
+        # LOGO circuito sopra la mappa (esperimento 24/07 sera)
+        try:
+            from data.tracks import _ov_tracklogo_file
+            _lf9 = _ov_tracklogo_file(name) or _ov_tracklogo_file(base)
+            if _lf9:
+                self._clogo.load(str(_lf9))
+                self._clogo.setVisible(True)
+            else:
+                self._clogo.setVisible(False)
+        except Exception:
+            self._clogo.setVisible(False)
         try:
             # 24/07 sera (2a decisione): ora che le mappe sono girate nel
             # verso giusto e le curve sistemate, la pagina classifiche usa
