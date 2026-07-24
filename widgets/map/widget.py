@@ -163,6 +163,13 @@ class MapCanvas(QWidget):
         self._path = None
         self._secs = []              # 2 indici: fine S1, fine S2
         self._pit9 = []              # corsia box (dalle mappe auto)
+        # EDITOR CURVE (rich. utente 24/07 sera): l'occhio del pilota
+        # sistema le curve a mano — EDIT/SAVE sulla mappa intera
+        self._edit9 = False
+        self._edit_ap9 = []          # apici (metri) in lavorazione
+        self._edit_sel9 = None
+        self._edit_r9 = None         # rettangoli bottoni
+        self._edit_hit9 = []         # maniglie a schermo
         self._cars = []
         self._track = ""
         self._sector_flags = [0, 0, 0]
@@ -447,6 +454,201 @@ class MapCanvas(QWidget):
         except Exception:
             pass
         return out
+
+    # ───────── EDITOR CURVE (rich. utente 24/07 sera) ─────────
+    # "Io c'ho gli occhi per vedere le curve": EDIT sulla mappa
+    # intera, maniglie trascinabili lungo la pista, doppio click
+    # aggiunge, tasto destro toglie, numerazione ricalcolata in
+    # ordine di marcia, SAVE scrive il censimento definitivo.
+
+    def _cum9(self):
+        ol = self._path or []
+        cum = [0.0]
+        for i in range(1, len(ol)):
+            cum.append(cum[-1] + math.hypot(ol[i][0] - ol[i - 1][0],
+                                            ol[i][1] - ol[i - 1][1]))
+        return cum
+
+    def _edit_ui9(self, p, tf):
+        h = float(self.height())
+        self._edit_scr9 = [tf(*q) for q in (self._path or [])]
+        f9 = p.font()
+        f9.setPixelSize(11)
+        f9.setBold(True)
+        p.setFont(f9)
+
+        def _btn(x, label, active=False):
+            r = QRectF(x, h - 26.0, 46.0, 18.0)
+            p.setPen(QPen(QColor(255, 255, 255, 90), 1))
+            p.setBrush(QColor(224, 40, 60, 205) if active
+                       else QColor(20, 22, 28, 175))
+            p.drawRoundedRect(r, 5, 5)
+            p.setPen(QColor(240, 242, 248, 235))
+            p.drawText(r, Qt.AlignCenter, label)
+            return r
+
+        if not self._edit9:
+            self._edit_r9 = {"edit": _btn(8.0, "EDIT")}
+            self._edit_hit9 = []
+            return
+        self._edit_r9 = {"save": _btn(8.0, "SAVE", True),
+                         "exit": _btn(60.0, "EXIT")}
+        from bisect import bisect_left
+        cum = self._cum9()
+        n = len(cum)
+        self._edit_hit9 = []
+        for k, m in enumerate(self._edit_ap9):
+            idx = min(bisect_left(cum, m), n - 1)
+            x, y = self._edit_scr9[idx]
+            p.setPen(QPen(QColor(10, 12, 16, 220), 2))
+            p.setBrush(QColor(255, 212, 0, 235)
+                       if k == self._edit_sel9
+                       else QColor(0, 170, 255, 225))
+            p.drawEllipse(QPointF(x, y), 7.0, 7.0)
+            p.setPen(QColor(255, 255, 255, 245))
+            p.drawText(QRectF(x - 22, y - 24, 44, 13), Qt.AlignCenter,
+                       "T%d" % (k + 1))
+            self._edit_hit9.append((x, y))
+
+    def _edit_apply9(self):
+        """La lista in lavorazione diventa quella VIVA (etichette),
+        rinumerata nell'ordine di marcia."""
+        self._edit_ap9.sort()
+        from bisect import bisect_left
+        cum = self._cum9()
+        n = len(self._path or [])
+        out = []
+        for k, m in enumerate(self._edit_ap9):
+            idx = min(bisect_left(cum, m), n - 1)
+            out.append((idx, "T%d" % (k + 1),
+                        max(0, idx - 4), min(n - 1, idx + 4)))
+        self._tm_key = (id(self._path), len(self._path or []))
+        self._tm_cache = out
+        self.update()
+
+    def _edit_start9(self):
+        cum = self._cum9()
+        if len(cum) < 30:
+            return
+        cur = self._turns_map() or []
+        self._edit_ap9 = [cum[min(int(t[0]), len(cum) - 1)]
+                          for t in cur]
+        if not self._edit_ap9:
+            self._edit_ap9 = [cum[-1] / 2.0]   # base: una a meta'
+        self._edit_sel9 = None
+        self._edit9 = True
+        self._edit_apply9()
+
+    def _edit_save9(self):
+        try:
+            import json
+            from core.paths import USER_DIR
+            from core.auto_trackmap import _safe_name
+            n9 = _safe_name(self._track)
+            if not n9 or not self._edit_ap9:
+                return
+            cum = self._cum9()
+            L = cum[-1]
+            if len(self._path or []) > 1:
+                L += math.hypot(self._path[0][0] - self._path[-1][0],
+                                self._path[0][1] - self._path[-1][1])
+            self._edit_ap9.sort()
+            fp = USER_DIR / "trackmap_official" / (n9 + "_curve.json")
+            fp.parent.mkdir(parents=True, exist_ok=True)
+            fp.write_text(json.dumps(
+                {"len": round(L, 1),
+                 "apici": [round(m, 1) for m in self._edit_ap9],
+                 "manuale": True}), encoding="utf-8")
+        except Exception:
+            pass
+        self._edit9 = False
+        self._tm_key = None          # prossimo paint: dal censimento
+
+    def _edit_near9(self, pos, pts, rad2=196.0):
+        best = None
+        for k, (x, y) in enumerate(pts):
+            d2 = (x - pos.x()) ** 2 + (y - pos.y()) ** 2
+            if d2 <= rad2 and (best is None or d2 < best[1]):
+                best = (k, d2)
+        return best[0] if best else None
+
+    def mousePressEvent(self, e):
+        try:
+            r9 = self._edit_r9 or {}
+            pos = e.position()
+            if e.button() == Qt.LeftButton:
+                for k, r in r9.items():
+                    if r.contains(pos):
+                        if k == "edit":
+                            self._edit_start9()
+                        elif k == "save":
+                            self._edit_save9()
+                        elif k == "exit":
+                            self._edit9 = False
+                            self._tm_key = None
+                        self.update()
+                        return
+                if self._edit9:
+                    self._edit_sel9 = self._edit_near9(
+                        pos, self._edit_hit9)
+                    self.update()
+                    return           # in edit niente drag finestra
+            elif e.button() == Qt.RightButton and self._edit9:
+                k = self._edit_near9(pos, self._edit_hit9)
+                if k is not None and len(self._edit_ap9) > 1:
+                    del self._edit_ap9[k]
+                    self._edit_sel9 = None
+                    self._edit_apply9()
+                return
+        except Exception:
+            pass
+        e.ignore()
+
+    def mouseMoveEvent(self, e):
+        try:
+            if self._edit9 and self._edit_sel9 is not None \
+                    and (e.buttons() & Qt.LeftButton):
+                pos = e.position()
+                scr = getattr(self, "_edit_scr9", [])
+                if scr:
+                    k = min(range(len(scr)),
+                            key=lambda i: (scr[i][0] - pos.x()) ** 2
+                            + (scr[i][1] - pos.y()) ** 2)
+                    cum = self._cum9()
+                    sel = self._edit_sel9
+                    self._edit_ap9[sel] = cum[min(k, len(cum) - 1)]
+                    # rinumera: la selezione segue il suo apice
+                    v = self._edit_ap9[sel]
+                    self._edit_apply9()
+                    self._edit_sel9 = self._edit_ap9.index(v)
+                return
+        except Exception:
+            pass
+        e.ignore()
+
+    def mouseReleaseEvent(self, e):
+        if self._edit9:
+            self._edit_sel9 = None
+            self.update()
+            return
+        e.ignore()
+
+    def mouseDoubleClickEvent(self, e):
+        try:
+            if self._edit9:
+                pos = e.position()
+                scr = getattr(self, "_edit_scr9", [])
+                if scr:
+                    k = min(range(len(scr)),
+                            key=lambda i: (scr[i][0] - pos.x()) ** 2
+                            + (scr[i][1] - pos.y()) ** 2)
+                    cum = self._cum9()
+                    self._edit_ap9.append(cum[min(k, len(cum) - 1)])
+                    self._edit_apply9()
+                return
+        except Exception:
+            pass
+        e.ignore()
 
     def _draw_decor9(self, p, tf, lw, vis=None):
         """CORDOLI + tacche/etichette SETTORE + numeri CURVA esterni,
@@ -1292,6 +1494,15 @@ class MapCanvas(QWidget):
                 p.setBrush(QBrush(_g9))
                 p.drawRect(_rq)
             p.setCompositionMode(QPainter.CompositionMode_SourceOver)
+        # editor curve: solo sulla mappa INTERA (in GPS niente)
+        try:
+            if layout != 2 and self._path:
+                self._edit_ui9(p, tf)
+            else:
+                self._edit_r9 = None
+                self._edit_hit9 = []
+        except Exception:
+            pass
         p.end()
 
 
