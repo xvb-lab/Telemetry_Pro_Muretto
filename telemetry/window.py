@@ -9988,7 +9988,22 @@ class _TrackPage(QWidget):
         from PySide6.QtWidgets import QScrollArea
         self._rank_scroll = QScrollArea(); self._rank_scroll.setWidgetResizable(True)
         self._rank_scroll.setFrameShape(QFrame.NoFrame)
-        self._rank_scroll.setStyleSheet("background:transparent;")
+        self._rank_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # scrollbar verticale SLIM e moderna (rich. 24/07 sera: quella
+        # di sistema "sembra industriale") — pillola sottile, niente
+        # frecce, si accende in hover
+        self._rank_scroll.setStyleSheet(
+            "QScrollArea{background:transparent;border:none;}"
+            "QScrollBar:vertical{background:transparent;width:8px;"
+            "margin:2px 2px 2px 0;}"
+            "QScrollBar::handle:vertical{background:rgba(255,255,255,0.20);"
+            "border-radius:4px;min-height:36px;}"
+            "QScrollBar::handle:vertical:hover{"
+            "background:rgba(255,255,255,0.38);}"
+            "QScrollBar::add-line:vertical,"
+            "QScrollBar::sub-line:vertical{height:0;background:none;}"
+            "QScrollBar::add-page:vertical,"
+            "QScrollBar::sub-page:vertical{background:none;}")
         self._rank_host = QWidget(); self._rank_host.setStyleSheet("background:transparent;")
         self._rank_v = QVBoxLayout(self._rank_host)
         self._rank_v.setContentsMargins(0, 0, 0, 0); self._rank_v.setSpacing(6)
