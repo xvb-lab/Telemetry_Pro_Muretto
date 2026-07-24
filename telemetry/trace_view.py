@@ -1163,7 +1163,7 @@ class _LiveMap(QWidget):
             self.setCursor(Qt.CrossCursor)
 
     def _zoom_step(self, factor):
-        self._zoom_mult = max(0.5, min(12.0, self._zoom_mult * factor))
+        self._zoom_mult = max(0.15, min(30.0, self._zoom_mult * factor))   # liberta' piena (24/07)
         self.update()
 
     def set_svg(self, track):
