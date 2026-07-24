@@ -228,7 +228,8 @@ class ConfigWindow(QDialog):
             # controlli BILANCIATI (rich. 24/07): stessa altezza degli
             # switch (26px) e carattere medio uniforme, niente bottoni
             # giganti ne' scritte microscopiche
-            _CSS9 = ("font-size:12px; padding:1px 6px;"
+            _CSS9 = ("QComboBox, QDoubleSpinBox"
+                     "{font-size:12px; padding:1px 6px;}"
                      "QDoubleSpinBox::up-button,"
                      "QDoubleSpinBox::down-button"
                      "{width:18px;}")
