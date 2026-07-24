@@ -258,7 +258,7 @@ class MapCanvas(QWidget):
                   for i in range(n)]
             TH = math.radians(2.5)
 
-            def _detect(minang):
+            def _detect(minang, dip=0.55):
                 i = 0; turns = []
                 while i < n:
                     if abs(sm[i]) > TH:
@@ -293,7 +293,7 @@ class MapCanvas(QWidget):
                             for k in _pks[1:]:
                                 lo = min(range(_kept[-1], k + 1),
                                          key=lambda q: abs(sm[q]))
-                                if abs(sm[lo]) < 0.55 * min(
+                                if abs(sm[lo]) < dip * min(
                                         abs(sm[_kept[-1]]),
                                         abs(sm[k])):
                                     _cut.append(lo)
