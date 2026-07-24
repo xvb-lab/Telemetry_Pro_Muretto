@@ -48,13 +48,18 @@ def _spy9(track, fonte, ts):
 
 
 def map_turns(track, track_len):
-    """[(lapdist, 'Tn')] — CURVE dalla mappa SVG ufficiale (stessa
-    matematica del Worksheet: curvatura dell'outline, numerate dalla
-    partenza). L'idea dell'utente (23/07): la mappa sa DOVE sono le
-    curve — il freno dice solo in quali si frena. Vuoto senza SVG."""
-    import math
-    # DB CURVE UFFICIALI (24/07): pista censita = posizioni vere,
-    # STESSA numerazione che vede la mappa e sente il pilota
+    """[(lapdist, 'Tn')] — CURVE dal CENSIMENTO condiviso e basta.
+
+    DOTTRINA (utente, 24/07 sera): LMU le curve non le ha, la
+    numerazione "ufficiale" e' soggettiva (FIA/F1/SBK contano
+    diverso) — il riferimento lo creiamo NOI e l'unica cosa sacra
+    e' la COERENZA: stesso numero sulla mappa, in telemetria e
+    nella bocca dell'ingegnere. Quindi UN SOLO cervello numera
+    (il rilevatore calibrato del widget mappa, che scrive il
+    censimento al primo caricamento) e qui si LEGGE soltanto:
+    niente rilevatore privato (era la fonte del "curva 17" mai
+    vista sulla mappa). Censimento assente = si aspetta in
+    silenzio il primo giro."""
     try:
         from data.track_corners import corners_for_track as _cf9
         _db9 = _cf9(track, track_len)
@@ -65,81 +70,8 @@ def map_turns(track, track_len):
                 round(p + 40.0, 1)) for i, p in enumerate(_db9)]
         _spy9(track, "CENSIMENTO", out)
         return out
-    try:
-        from telemetry.trace_view import _load_track_svg
-        ol, _secs, _pit9 = _load_track_svg(track)
-    except Exception:
-        ol = None
-    if not ol or len(ol) < 30 or not track_len:
-        return []
-    # NORMALIZZAZIONE DENSITA' (24/07): le mappe auto-registrate hanno
-    # un punto ogni ~3 m — l'analisi curvatura lavora a passo ~8 m come
-    # sulle mappe vecchie, senno' le soglie per-punto non tornano
-    n = len(ol)
-    _L9 = sum(math.hypot(ol[i][0] - ol[i - 1][0],
-                         ol[i][1] - ol[i - 1][1]) for i in range(1, n))
-    _sp9 = _L9 / max(1, n - 1)
-    if _sp9 > 0:
-        _step9 = max(1, int(round(8.0 / _sp9)))
-        if _step9 > 1:
-            ol = ol[::_step9]
-    n = len(ol)
-    hd = [math.atan2(ol[(i + 1) % n][1] - ol[i][1],
-                     ol[(i + 1) % n][0] - ol[i][0]) for i in range(n)]
-    dh = []
-    for i in range(n):
-        d = hd[(i + 1) % n] - hd[i]
-        while d > math.pi:
-            d -= 2 * math.pi
-        while d < -math.pi:
-            d += 2 * math.pi
-        dh.append(d)
-    sm = [(dh[i - 1] + dh[i] + dh[(i + 1) % n]) / 3.0 for i in range(n)]
-    TH = math.radians(2.5)
-    # tratti in curva (spezzati al cambio segno = chicane in due)
-    turns_idx = []
-    i = 0
-    while i < n:
-        if abs(sm[i]) > TH:
-            j = i
-            sgn = 1 if sm[i] > 0 else -1
-            tot = 0.0
-            while j < n and abs(sm[j]) > TH \
-                    and (1 if sm[j] > 0 else -1) == sgn:
-                tot += abs(sm[j])
-                j += 1
-            if abs(tot) > math.radians(25.0):     # curva vera, non kink
-                turns_idx.append((i, min(j, n - 1)))   # (entry, end)
-            i = j
-        else:
-            i += 1
-    if not turns_idx:
-        return []
-    # GUARDIA (24/07 sera): la NUMERAZIONE e' un riferimento — se il
-    # conteggio geometrico NON torna con la scheda ufficiale, meglio
-    # MUTO che "curva 13" a Monza (che ne ha 11). Il censimento auto
-    # (<pista>_curve.json) arriva dal widget appena carica la mappa e
-    # da li' in poi si passa dal ramo DB con i numeri veri.
-    try:
-        from data.track_info import info_for_track
-        _inf9 = info_for_track(track, track_len)
-        if _inf9 and len(turns_idx) != int(_inf9[1]):
-            _spy9(track, "MUTO (geometrico %d vs scheda %d)"
-                  % (len(turns_idx), int(_inf9[1])), [])
-            return []
-    except Exception:
-        pass
-    # lapdist: lunghezza cumulata scalata sulla lunghezza ufficiale
-    cum = [0.0]
-    for i in range(1, n):
-        a, b = ol[i - 1], ol[i]
-        cum.append(cum[-1] + math.hypot(b[0] - a[0], b[1] - a[1]))
-    k = track_len / cum[-1] if cum[-1] > 0 else 1.0
-    out = [(round(cum[ie] * k, 1), "T%d" % (t + 1),
-            round(cum[je] * k, 1))
-           for t, (ie, je) in enumerate(turns_idx)]
-    _spy9(track, "GEOMETRICO", out)
-    return out
+    _spy9(track, "IN ATTESA DEL CENSIMENTO", [])
+    return []
 
 
 def map_corner_lifts(track, track_len):

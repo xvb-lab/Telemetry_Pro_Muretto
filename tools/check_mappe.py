@@ -36,10 +36,11 @@ def main():
             turns = mc._turns_map()
             inf = info_for_track(nome, None)
             uff = inf[1] if inf else None
-            # regola 24/07 sera: numerazione o ESATTA o MUTA — il
-            # muto dichiarato NON e' un guasto, e' la guardia
+            # dottrina 24/07 sera: il censimento si scrive SEMPRE
+            # (riferimento interno) — quindi curve>0 obbligatorio;
+            # girare questo tool CENSISCE anche le mappe arretrate
             _why = str(getattr(mc, "_tm_reason", "") or "")
-            ok = len(turns) > 0 or _why.startswith("muto")
+            ok = len(turns) > 0
             segno = "OK " if ok else "ERR"
             if not ok:
                 errori += 1

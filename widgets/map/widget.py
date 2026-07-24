@@ -396,12 +396,14 @@ class MapCanvas(QWidget):
                     if best and best[0] == 0:
                         break
             turns = best[1] if best else _detect(math.radians(28.0))
-            # AUTO-CENSIMENTO con GUARDIA (24/07 sera): se il conto
-            # UFFICIALE e' centrato ESATTO, le posizioni diventano il
-            # riferimento condiviso (pagina pista, ingegnere, overlay)
-            # scritto UNA volta sola; se il conto stecca, niente file —
-            # mai nomi su curve sbagliate. Il DB statico vince sempre.
-            if official and best and best[0] == 0:
+            # AUTO-CENSIMENTO (dottrina utente 24/07 sera): LMU le
+            # curve NON le ha — la numerazione la creiamo NOI, come
+            # riferimento INTERNO coerente (mappa = telemetria =
+            # ingegnere). Il conto della scheda e' solo il bersaglio
+            # della calibrazione, NON un veto: si scrive comunque,
+            # UNA volta sola, e da li' e' il riferimento per tutti.
+            # Il DB manuale (data/track_corners) vince sempre.
+            if turns:
                 try:
                     from core.paths import USER_DIR as _UDC
                     from core.auto_trackmap import _safe_name as _sfn9
@@ -423,21 +425,15 @@ class MapCanvas(QWidget):
                             encoding="utf-8")
                 except Exception:
                     pass
-            # STESSA REGOLA DELL'INGEGNERE (24/07 sera, caso Imola
-            # 15 vs 22): la numerazione e' un riferimento — o ESATTA
-            # o MUTA. Conto steccato/senza scheda = niente T sulla
-            # mappa finche' non arriva il censimento (auto o a mano).
-            if official and best and best[0] == 0:
-                self._tm_reason = "esatto (%d)" % official
-                out = [(idx * _step9, "T%d" % (k + 1),
-                        i0 * _step9, j0 * _step9)
-                       for k, (idx, i0, j0) in enumerate(turns)]
-            else:
-                self._tm_reason = ("muto (%d vs %s)"
-                                   % (len(turns), official)
-                                   if official else
-                                   "muto (senza scheda)")
-                out = []
+            # dottrina 24/07 sera: le T si mostrano SEMPRE — sono il
+            # riferimento nostro, la coerenza conta piu' del "vero"
+            self._tm_reason = ("esatto (%d)" % official
+                               if official and best and best[0] == 0
+                               else "calibrato (%d~%s)"
+                               % (len(turns), official))
+            out = [(idx * _step9, "T%d" % (k + 1),
+                    i0 * _step9, j0 * _step9)
+                   for k, (idx, i0, j0) in enumerate(turns)]
         self._tm_key = key
         self._tm_cache = out
         try:                          # SPIA curve (24/07, diagnosi)
