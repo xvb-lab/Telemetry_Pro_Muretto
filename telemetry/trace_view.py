@@ -1738,7 +1738,7 @@ class _LiveMap(QWidget):
         # 18 m VERI convertiti con lo zoom; pavimento 16 px cosi'
         # nella vista intera (dove 1 m ~ 0.8 px) resta corposa
         trk_w = max(16.0, min(300.0,
-                              21.0 * getattr(self, "_ppm9", 1.0)))
+                              15.0 * getattr(self, "_ppm9", 1.0)))
         ln_w = max(1.4, min(16.0, 2.2 * zm))
         # macchinine in SCALA VERA (rich. 23/07: in pista ci stanno 3
         # auto affiancate -> il simbolo e' 1/3 della carreggiata)
