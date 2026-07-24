@@ -779,11 +779,20 @@ class ConfigWindow(QDialog):
             pass
 
     def _map_delete9(self, fp):
-        """Cancella la mappa: al giro pulito dopo si riscrive da sola
-        (corsia compresa al passaggio in pit)."""
+        """Cancella la mappa E TUTTO il suo corredo — censimento curve
+        e grezzo (bug Bahrain 24/07 sera: cancellata la mappa storta,
+        il censimento vecchio restava e le curve uscivano slittate di
+        mezzo chilometro). Al giro pulito dopo si riscrive tutto."""
         try:
             from pathlib import Path
-            Path(fp).unlink(missing_ok=True)
+            f = Path(fp)
+            stem = f.stem
+            if stem.endswith("_2026"):
+                stem = stem[:-5]
+            f.unlink(missing_ok=True)
+            off = f.parent.parent / "trackmap_official"
+            for suf in ("_curve.json", "_lmu_raw.json"):
+                (off / (stem + suf)).unlink(missing_ok=True)
         except Exception:
             pass
         self._maps_refresh9()
