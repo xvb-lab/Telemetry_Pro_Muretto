@@ -151,7 +151,7 @@ class MapCanvas(QWidget):
             _layout = get_config().widget("map").get("map_layout", 1)
         except Exception:
             _layout = 1
-        _hpct = 50 if _layout == 2 else 100   # GPS = 50% fisso, mappa intera = 100%
+        _hpct = 100   # ANCHE il GPS a finestra PIENA (24/07, come LMU)
         self._h = max(60, round(self._size * _hpct / 100))
         self.setFixedSize(self._size, self._h)
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -621,7 +621,10 @@ class MapCanvas(QWidget):
         # vedevano tre strade senza capirci niente" ──
         _vis9 = None
         _arcvis9 = None
-        if layout == 2 and ply is not None and self._cum \
+        # FOCUS a finestra-pista DISATTIVATO (24/07: "la mappa resta
+        # INTERA anche in GPS" — si sfuma ai BORDI della finestra come
+        # LMU, vedi vignettatura a fine paint)
+        if False and layout == 2 and ply is not None and self._cum \
                 and self._cum_total > 0 and self._track_len > 0:
             _tgt9 = ((self._my_dist or 0.0) % self._track_len) \
                 / self._track_len * self._cum_total
@@ -965,6 +968,27 @@ class MapCanvas(QWidget):
             p.drawText(rect.translated(1, 1), Qt.AlignCenter, "GAR")
             p.setPen(QPen(QColor("#e6e8ec")))
             p.drawText(rect, Qt.AlignCenter, "GAR")
+        # ── VIGNETTATURA stile LMU (24/07): in GPS tutto SFUMA verso i
+        # BORDI della finestra (angoli compresi) — la mappa resta
+        # intera, niente pezzi tagliati lungo la pista ──
+        if layout == 2:
+            from PySide6.QtGui import QLinearGradient
+            _mv9 = max(40.0, 64.0 * sc)
+            p.setCompositionMode(QPainter.CompositionMode_DestinationIn)
+            p.setPen(Qt.NoPen)
+            _t0 = QColor(0, 0, 0, 0)
+            _t1 = QColor(0, 0, 0, 255)
+            for _x0, _y0, _x1, _y1, _rq in (
+                    (0, 0, _mv9, 0, QRectF(0, 0, _mv9, h)),          # sx
+                    (w, 0, w - _mv9, 0, QRectF(w - _mv9, 0, _mv9, h)),  # dx
+                    (0, 0, 0, _mv9, QRectF(0, 0, w, _mv9)),          # su
+                    (0, h, 0, h - _mv9, QRectF(0, h - _mv9, w, _mv9))):  # giu
+                _g9 = QLinearGradient(_x0, _y0, _x1, _y1)
+                _g9.setColorAt(0.0, _t0)
+                _g9.setColorAt(1.0, _t1)
+                p.setBrush(QBrush(_g9))
+                p.drawRect(_rq)
+            p.setCompositionMode(QPainter.CompositionMode_SourceOver)
         p.end()
 
 
