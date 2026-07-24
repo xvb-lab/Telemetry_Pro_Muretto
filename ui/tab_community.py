@@ -387,13 +387,11 @@ class _RankRow(QFrame):
             h.addWidget(_tw, 0, Qt.AlignVCenter)
             h.addSpacing(6)
             h.addWidget(_fw, 0, Qt.AlignVCenter)
-            # colonna TROFEO a larghezza FISSA dopo la benzina: riservata per
-            # tutte (trofeo sui primi 3), cosi' NON spinge/sposta le altre celle
-            h.addSpacing(16)
-            h.addWidget(self._trophy_widget(pos), 0, Qt.AlignVCenter)
+            # colonna TROFEO RIMOSSA (rich. utente 24/07 sera: le
+            # medaglie PNG stonavano con lo stile) -> piu' spazio a
+            # respiro sulla destra
             h.addSpacing(14)
             h.addStretch(1)
-            # card piu' LARGA per ospitare la colonna trofeo senza stringere
             self.setFixedWidth(980)
         else:
             t = QLabel(_fmt_ms(ms))
