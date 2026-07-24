@@ -348,6 +348,10 @@ class _RankRow(QFrame):
         if self._card_bg is None:
             h.addStretch()
         else:
+            # STRETCH prima del gruppo (rich. 24/07 sera): spinge gap,
+            # tempo, settori e simboli a DESTRA a riempire lo spazio
+            # lasciato dalle medaglie tolte
+            h.addStretch(1)
             h.addSpacing(18)
         h.addWidget(gcol); h.addSpacing(8)
         ms = rec.get("lap_ms")
@@ -388,10 +392,9 @@ class _RankRow(QFrame):
             h.addWidget(_tw, 0, Qt.AlignVCenter)
             h.addSpacing(10)
             h.addWidget(_fw, 0, Qt.AlignVCenter)
-            # CASCO RIMOSSO dalla classifica (rich. 24/07 sera: cambiata
-            # idea) -> piu' spazio per gap, tempi, settori e simboli
-            h.addSpacing(16)
-            h.addStretch(1)
+            # niente stretch finale: il gruppo arriva fino al BORDO
+            # destro (rich. 24/07 sera), solo un margine
+            h.addSpacing(22)
             self.setFixedWidth(980)
         else:
             t = QLabel(_fmt_ms(ms))
