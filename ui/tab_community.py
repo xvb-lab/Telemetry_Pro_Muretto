@@ -475,13 +475,10 @@ class _RankRow(QFrame):
                 g.setColorAt(0.0, bg.lighter(112))
                 g.setColorAt(1.0, bg)
             p.fillRect(QRectF(0, 0, cut, self.height()), g)
-            # parte destra (tempi) TRASLUCIDA (esperimento 24/07 sera):
-            # base scura semi-trasparente + velo chiaro tenue = vetro
-            # smerigliato ma piu' OPACO (era troppo chiaro)
+            # parte destra (tempi): blu navy PIENO #002e5f (rich. utente
+            # 24/07 sera, al posto del vetro traslucido)
             p.fillRect(QRectF(cut, 0, self.width() - cut,
-                              self.height()), QColor(13, 27, 42, 150))
-            p.fillRect(QRectF(cut, 0, self.width() - cut,
-                              self.height()), QColor(228, 236, 248, 22))
+                              self.height()), QColor("#002e5f"))
             # STRISCE oblique sul taglio (stile Alpine) per i team scelti
             _acc = getattr(self, "_card_acc", None) or []
             if _acc:
