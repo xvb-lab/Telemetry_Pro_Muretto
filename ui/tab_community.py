@@ -468,8 +468,10 @@ class _RankRow(QFrame):
                 g.setColorAt(0.0, bg.lighter(112))
                 g.setColorAt(1.0, bg)
             p.fillRect(QRectF(0, 0, cut, self.height()), g)
+            # parte destra (tempi) TRASLUCIDA CHIARA (esperimento
+            # 24/07 sera: vetro smerigliato invece del blu scuro)
             p.fillRect(QRectF(cut, 0, self.width() - cut,
-                              self.height()), QColor(13, 27, 42))
+                              self.height()), QColor(228, 236, 248, 46))
             # STRISCE oblique sul taglio (stile Alpine) per i team scelti
             _acc = getattr(self, "_card_acc", None) or []
             if _acc:
