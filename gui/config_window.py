@@ -267,9 +267,14 @@ class ConfigWindow(QDialog):
             grid.addWidget(QLabel("Car icons"), row_i, 0)
             grid.addWidget(self._make_toggle("caricons"), row_i, 1)
             row_i += 1
-            # dettagli: cordoli, numeri curva, settori
+            # dettagli: numeri curva, settori
             grid.addWidget(QLabel("Curve details"), row_i, 0)
             grid.addWidget(self._make_toggle("detail"), row_i, 1)
+            row_i += 1
+            # cordoli 2.0 (rich. 24/07 sera: belli o niente, con
+            # interruttore suo)
+            grid.addWidget(QLabel("Kerbs"), row_i, 0)
+            grid.addWidget(self._make_toggle("kerbs"), row_i, 1)
             row_i += 1
             # ── COLORI PISTA (rich. 24/07): 5 DOT in verticale —
             # White e Dark FISSI (click = tutta la pista di quel
@@ -627,6 +632,7 @@ class ConfigWindow(QDialog):
             self._set_toggle("caricons",
                              bool(cfg.get("map_car_icons", False)))
             self._set_toggle("detail", bool(cfg.get("map_detail", True)))
+            self._set_toggle("kerbs", bool(cfg.get("map_kerbs", True)))
             _sc8 = cfg.get("map_sec_colors") or []
             self._msec9 = [str(_sc8[i]) if i < len(_sc8) and _sc8[i]
                            else "#f3f4f8" for i in range(3)]
@@ -721,6 +727,7 @@ class ConfigWindow(QDialog):
             self._set_toggle("names", True)
             self._set_toggle("caricons", False)
             self._set_toggle("detail", True)
+            self._set_toggle("kerbs", True)
             self._map_all_col9("#f3f4f8")
             self.sp_mdot.setValue(1.0)
             self._reset_scale()
@@ -1023,6 +1030,8 @@ class ConfigWindow(QDialog):
                                         or ["#f3f4f8"] * 3))
             self._config.set_value(self._key, "map_detail",
                                    bool(self._toggle_state.get("detail", True)))
+            self._config.set_value(self._key, "map_kerbs",
+                                   bool(self._toggle_state.get("kerbs", True)))
 
             try:
                 self._config.set_value(self._key, "map_zoom",

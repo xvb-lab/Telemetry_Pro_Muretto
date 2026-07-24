@@ -489,10 +489,68 @@ class MapCanvas(QWidget):
             ux, uy = c0.x() - a.x(), c0.y() - a.y()
             vx, vy = b.x() - c0.x(), b.y() - c0.y()
             _ins = 1.0 if (ux * vy - uy * vx) > 0 else -1.0   # lato interno
-            # CORDOLI TOLTI (rich. utente 24/07 sera: "li lascerei
-            # senza, quello che conta e' che le curve siano giuste") —
-            # restano numeri curva e settori; i colori cordolo vivono
-            # in data/kerb_colors.py se mai torneranno
+            # CORDOLI 2.0 (rich. 24/07 sera: "belli o niente, con
+            # interruttore"): tratti PULITI — l'offset che tornava
+            # indietro sui tornanti faceva i "quadratoni", ora i punti
+            # ammucchiati si scartano; giunti tondi, colori veri per
+            # pista, TRICOLORE per lungo dove i colori sono 3
+            if getattr(self, "_kerbs_on9", True):
+                _kw2 = max(2.0, lw * 0.36)
+
+                def _kpts9(rng, side, extra=0.0):
+                    o9 = lw / 2.0 + _kw2 / 2.0 + 0.8 + extra
+                    outp = []
+                    for i in rng:
+                        cc2 = _scr(i)
+                        nx2, ny2 = _norm(i)
+                        ptk = QPointF(cc2.x() + nx2 * side * o9,
+                                      cc2.y() + ny2 * side * o9)
+                        if outp and (abs(ptk.x() - outp[-1].x())
+                                     + abs(ptk.y() - outp[-1].y())) \
+                                < _kw2 * 0.5:
+                            continue    # anti-ammucchiata tornanti
+                        outp.append(ptk)
+                    return outp
+
+                def _kdraw9(pen, seq):
+                    if len(seq) < 2:
+                        return
+                    pen.setCapStyle(Qt.FlatCap)
+                    pen.setJoinStyle(Qt.RoundJoin)
+                    kp9 = QPainterPath(seq[0])
+                    for q9 in seq[1:]:
+                        kp9.lineTo(q9)
+                    p.setBrush(Qt.NoBrush)
+                    p.setPen(pen)
+                    p.drawPath(kp9)
+
+                try:
+                    from data.kerb_colors import kerb_colors as _kc2
+                    _cs2 = _kc2(self._track)
+                except Exception:
+                    _cs2 = [(240, 240, 240), (224, 40, 60)]
+                for rng, side in (
+                        (range(_i0k, _ti_idx + 1), _ins),
+                        (range(_ti_idx, _j0k + 1), -_ins)):
+                    if len(_cs2) >= 3:
+                        # TRICOLORE per lungo: tre bande parallele
+                        for bi2, c2 in enumerate(_cs2):
+                            seq = _kpts9(rng, side,
+                                         (bi2 - 1) * _kw2 / 2.6)
+                            _kdraw9(QPen(QColor(c2[0], c2[1],
+                                                c2[2], 235),
+                                         max(1.0, _kw2 / 2.6)), seq)
+                    else:
+                        seq = _kpts9(rng, side)
+                        c1a, c2a = _cs2[0], _cs2[1]
+                        _kdraw9(QPen(QColor(c1a[0], c1a[1], c1a[2],
+                                            235), _kw2), seq)
+                        _pd9 = QPen(QColor(c2a[0], c2a[1], c2a[2],
+                                           235), _kw2,
+                                    Qt.CustomDashLine)
+                        _pd9.setDashPattern(
+                            [max(0.6, 5.0 * sc / max(1.0, _kw2))] * 2)
+                        _kdraw9(_pd9, seq)
             # numero curva sul lato ESTERNO — con ANTI-COLLISIONE:
             # se il posto e' occupato da un'altra etichetta, si sposta
             # piu' fuori (T9/T11 uscivano una sopra l'altra, 24/07)
@@ -975,6 +1033,7 @@ class MapCanvas(QWidget):
         # cordoli + settori + numeri curva (come la mappa telemetria),
         # spegnibili dal setting "Curve details"
         if _cfg.get("map_detail", True):
+            self._kerbs_on9 = bool(_cfg.get("map_kerbs", True))
             try:
                 self._draw_decor9(p, tf, lw, _vis9)
             except Exception:
