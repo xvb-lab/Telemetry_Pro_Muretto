@@ -582,7 +582,7 @@ class MapCanvas(QWidget):
             _zf9 = zoom / 5.5
             self._zoomf9 = _zf9
             z2 = scl * zoom * gcal
-            track_w_mult = 2.6 * gcal * _zf9                    # pista
+            track_w_mult = 3.3 * gcal * _zf9    # pista: +25% (24/07)
             dot_mult = 1.75 * gcal * _zf9                       # piloti
             hm = getattr(self, "_l2_hm", -math.pi / 2.0)        # heading map-space (smussato)
             prev = getattr(self, "_l2_prev", None)
