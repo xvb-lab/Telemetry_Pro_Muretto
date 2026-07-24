@@ -247,11 +247,7 @@ class ConfigWindow(QDialog):
             grid.addWidget(QLabel("Curve details"), row_i, 0)
             grid.addWidget(self._make_toggle("detail"), row_i, 1)
             row_i += 1
-            # scie 500m sfumate dei rivali di classe
-            grid.addWidget(QLabel("Trails"), row_i, 0)
-            grid.addWidget(self._make_toggle("trails"), row_i, 1)
-            row_i += 1
-            # pista scura (asfalto) invece che bianca
+            # pista scura (asfalto, default) o bianca
             grid.addWidget(QLabel("Dark track"), row_i, 0)
             grid.addWidget(self._make_toggle("darktrack"), row_i, 1)
             row_i += 1
@@ -518,9 +514,8 @@ class ConfigWindow(QDialog):
             self._set_toggle("adaptive",
                              bool(cfg.get("map_adaptive", True)))
             self._set_toggle("detail", bool(cfg.get("map_detail", True)))
-            self._set_toggle("trails", bool(cfg.get("map_trails", True)))
             self._set_toggle("darktrack",
-                             bool(cfg.get("map_dark_track", False)))
+                             bool(cfg.get("map_dark_track", True)))
             try:
                 self.sp_mzoom.setValue(float(cfg.get("map_zoom", 5.5)))
             except Exception:
@@ -808,10 +803,8 @@ class ConfigWindow(QDialog):
                                    bool(self._toggle_state.get("adaptive", True)))
             self._config.set_value(self._key, "map_detail",
                                    bool(self._toggle_state.get("detail", True)))
-            self._config.set_value(self._key, "map_trails",
-                                   bool(self._toggle_state.get("trails", True)))
             self._config.set_value(self._key, "map_dark_track",
-                                   bool(self._toggle_state.get("darktrack", False)))
+                                   bool(self._toggle_state.get("darktrack", True)))
             try:
                 self._config.set_value(self._key, "map_zoom",
                                        float(self.sp_mzoom.value()))

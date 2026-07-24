@@ -449,37 +449,6 @@ class MapCanvas(QWidget):
             self._recording = self._path is None
             self._build_cum()
         self._cars = cars or []
-        # SCIE 500 m (rich. 24/07): storia posizioni per auto — punti
-        # ogni ~5 m, coda tagliata a 500 m di lunghezza
-        try:
-            _tr = getattr(self, "_trails9", None)
-            if _tr is None:
-                _tr = self._trails9 = {}
-            for c in self._cars:
-                if c.get("garage") or c.get("in_pits"):
-                    _tr.pop(c.get("id"), None)
-                    continue
-                x9, z9 = c.get("x"), c.get("z")
-                if x9 is None or z9 is None:
-                    continue
-                q = _tr.setdefault(c.get("id"), [])
-                if not q or (x9 - q[-1][0]) ** 2 \
-                        + (z9 - q[-1][1]) ** 2 >= 25.0:
-                    q.append((x9, z9))
-                    _tot = 0.0
-                    _k = len(q) - 1
-                    while _k > 0 and _tot < 500.0:
-                        _tot += math.hypot(q[_k][0] - q[_k - 1][0],
-                                           q[_k][1] - q[_k - 1][1])
-                        _k -= 1
-                    if _k > 0:
-                        del q[:_k]
-            _ids9 = {c.get("id") for c in self._cars}
-            for k in list(_tr.keys()):
-                if k not in _ids9:
-                    _tr.pop(k, None)
-        except Exception:
-            pass
         self._blink_active = any(c.get("in_pits") and not c.get("garage") for c in self._cars)
         self._sector_flags = sector_flags or [0, 0, 0]
         self._yellow_active = bool(yellow_active)
@@ -699,10 +668,10 @@ class MapCanvas(QWidget):
             p.setPen(QPen(color, width)); p.setBrush(Qt.NoBrush)
             p.drawPath(sub)
 
-        # colore pista a scelta (rich. 24/07): bianca (default) o
-        # asfalto scuro come la mappa della telemetria
-        _trk_c9 = QColor(88, 94, 104) if _cfg.get("map_dark_track") \
-            else QColor("#f3f4f8")
+        # colore pista a scelta (rich. 24/07): ASFALTO scuro di default
+        # ("sembra proprio l'asfalto, contrasto migliore") o bianca
+        _trk_c9 = QColor(88, 94, 104) \
+            if _cfg.get("map_dark_track", True) else QColor("#f3f4f8")
         _pit_c9 = QColor(_trk_c9.red(), _trk_c9.green(),
                          _trk_c9.blue(), 105)
 
@@ -929,33 +898,6 @@ class MapCanvas(QWidget):
                 p.drawText(QRectF(cx - rr, cy - rr, rr * 2, rr * 2), Qt.AlignCenter, numtxt)
 
         pcls = next((c.get("cls") for c in self._cars if c.get("is_player")), None)
-        # ── SCIE 500 m dei rivali di CLASSE (rich. 24/07): sfumate,
-        # un colore diverso per macchina; in multiclasse solo la mia ──
-        if bool(_cfg.get("map_trails", True)):
-            _tr9m = getattr(self, "_trails9", None) or {}
-            _trw9 = max(1.6, 2.0 * sc * dot_mult)
-            for c in self._cars:
-                if c.get("is_player") or c.get("garage") \
-                        or c.get("in_pits"):
-                    continue
-                if pcls and c.get("cls") != pcls:
-                    continue
-                if _arcvis9 is not None \
-                        and not _arcvis9(c.get("lapdist")):
-                    continue
-                q = _tr9m.get(c.get("id"))
-                if not q or len(q) < 3:
-                    continue
-                _hue9 = (int(c.get("id") or 0) * 47) % 360
-                _n9t = len(q)
-                for i in range(1, _n9t):
-                    _a9t = int(165 * (i / float(_n9t)) ** 1.5)
-                    if _a9t < 4:
-                        continue
-                    p.setPen(QPen(QColor.fromHsv(_hue9, 190, 255, _a9t),
-                                  _trw9, Qt.SolidLine, Qt.RoundCap))
-                    p.drawLine(QPointF(*tf(*q[i - 1])),
-                               QPointF(*tf(*q[i])))
         _names9 = bool(_cfg.get("map_names", True))
         # gap in secondi dal player: il tag nome appare solo coi vicini
         _spd_p9 = next((float(c.get("speed") or 0.0)
@@ -981,10 +923,10 @@ class MapCanvas(QWidget):
                 continue          # fuori dal focus GPS: pista nascosta
             draw_dot(X, Y, c, r)
             # TAG PILOTA stile F1 (rich. 24/07): 3 lettere del cognome
-            # in bold bianco bordato nero — SOLO per chi e' entro 3
-            # secondi da te (davanti o dietro), in tutte le viste
-            if _names9 and not c.get("is_player") \
-                    and _gap_s9(c) <= 3.0:
+            # in bold bianco bordato nero — il TUO sempre, gli altri
+            # solo entro 3 secondi (davanti o dietro)
+            if _names9 and (c.get("is_player")
+                            or _gap_s9(c) <= 3.0):
                 _nm3 = (c.get("name", "").split() or [""])[-1][:3] \
                     .upper()
                 if _nm3:
