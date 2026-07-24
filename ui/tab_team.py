@@ -45,6 +45,10 @@ class _TeamTab(QWidget):
     def __init__(self, win=None):
         super().__init__(win)
         self._win = win
+        # riempi TUTTA la finestra come le altre pagine (rich. utente
+        # 24/07 sera: lo sfondo appariva "centrato" perche' il widget
+        # non si espandeva)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         root = QVBoxLayout(self); root.setContentsMargins(16, 14, 16, 14); root.setSpacing(10)
         title = QLabel("TEAM SESSIONS"); title.setObjectName("engHdr")
         title.setStyleSheet("color:#cfe8ff;font-size:12px;font-weight:800;letter-spacing:2px;")
