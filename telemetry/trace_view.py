@@ -1163,7 +1163,7 @@ class _LiveMap(QWidget):
             self.setCursor(Qt.CrossCursor)
 
     def _zoom_step(self, factor):
-        self._zoom_mult = max(0.15, min(30.0, self._zoom_mult * factor))   # liberta' piena (24/07)
+        self._zoom_mult = max(0.15, min(12.0, self._zoom_mult * factor))   # out libero, in com'era
         self.update()
 
     def set_svg(self, track):
@@ -1739,7 +1739,7 @@ class _LiveMap(QWidget):
         ln_w = max(1.4, min(16.0, 2.2 * zm))
         # macchinine in SCALA VERA (rich. 23/07: in pista ci stanno 3
         # auto affiancate -> il simbolo e' 1/3 della carreggiata)
-        dot_r = max(3.5, trk_w / 3.0)   # macchinina DOPPIA (rich. 24/07)
+        dot_r = max(2.5, trk_w / 6.0)   # scala VERA (1/3 carreggiata)
 
         # pista larga (colore scuro pickabile) usando il giro Selected come tracciato
         # decima i punti SOLO per il disegno (cursore/dot usano i punti pieni)
@@ -1760,13 +1760,15 @@ class _LiveMap(QWidget):
             # fatto fino al punto attuale, chiusa sul dot interpolato.
             # La traiettoria futura non si anticipa.
             _lda = _ld_a if _ld_a is not None else float("inf")
-            _sf = [q for q in sel if q[2] is not None and q[2] <= _lda]
+            _sf = [q for q in sel if q[2] is not None
+                   and _lda - 300.0 <= q[2] <= _lda]   # coda 300 m
             if pa is not None and _ld_a is not None:
                 _sf = _sf + [(pa[0], pa[1], _ld_a)]
             sel_draw = _decim(self._cr_smooth(_sf)) if len(_sf) >= 2 else []
             if cmp:
                 _ldb = _ld_b if _ld_b is not None else float("inf")
-                _cf = [q for q in cmp if q[2] is not None and q[2] <= _ldb]
+                _cf = [q for q in cmp if q[2] is not None
+                       and _ldb - 300.0 <= q[2] <= _ldb]  # coda 300 m
                 if pb is not None and _ld_b is not None:
                     _cf = _cf + [(pb[0], pb[1], _ld_b)]
                 cmp_draw = _decim(self._cr_smooth(_cf)) if len(_cf) >= 2 else []
@@ -1978,8 +1980,8 @@ class _LiveMap(QWidget):
             p.setFont(_fb6)
         # traiettorie: linee colorate sopra la pista
         if cmp:
-            line(cmp_draw, cmp_c, ln_w)
-        line(sel_draw, sel_c, ln_w)
+            line(cmp_draw, cmp_c, ln_w * 2.0)   # traiettorie DOPPIE
+        line(sel_draw, sel_c, ln_w * 2.0)       # (rich. 24/07)
 
         def _mk_ang(srt, ld):
             """Angolo (schermo) della direzione di marcia alla lapdist ld."""
