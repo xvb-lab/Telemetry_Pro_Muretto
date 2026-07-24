@@ -78,6 +78,10 @@ CORNER_NAMES = {
          5: "Aintree", 6: "Brooklands", 7: "Luffield", 8: "Woodcote",
          9: "Copse", 15: "Stowe", 16: "Vale"},
         10, 14, "Maggotts/Becketts"), 17, 18, "Club"),
+    # layout corto: stessi nomi del GP, numerazione National
+    "silverstone national": {1: "Copse", 2: "Maggotts", 3: "Becketts",
+                             4: "Brooklands", 5: "Luffield",
+                             6: "Woodcote"},
     "barcelona": _rng(_rng(
         {3: "Renault", 4: "Repsol", 5: "Seat", 7: "Wurth",
          8: "Campsa", 9: "La Caixa", 10: "Banc Sabadell",

@@ -9319,13 +9319,18 @@ def _real_map_load(track):
     dirs = []
     try:
         from core.paths import USER_DIR as _UD
-        dirs.append(_UD / "trackmap_auto")
+        dirs.append((_UD / "trackmap_auto", False))
     except Exception:
         _UD = None
-    dirs.append(Path(__file__).resolve().parent.parent
-                / "settings" / "trackmap_auto")
+    _setg = Path(__file__).resolve().parent.parent / "settings"
+    dirs.append((_setg / "trackmap_auto", False))
+    # RISERVA (rich. 24/07 sera): le 40 TinyPedal originali, SOLO per
+    # questa pagina e SOLO a match ESATTO (una variante di layout non
+    # deve mai comparire sulla pagina di un'altra); appena l'utente
+    # gira sulla pista, l'ufficiale nella cartella utente VINCE
+    dirs.append((_setg / "trackmap_backup_tinypedal", True))
     f = None
-    for d in dirs:
+    for d, exact in dirs:
         if not d.exists():
             continue
         best = -1
@@ -9336,7 +9341,7 @@ def _real_map_load(track):
             if sn == tn:
                 f = sv
                 break
-            if sn in tn and len(sn) > best:
+            if not exact and sn in tn and len(sn) > best:
                 best = len(sn)
                 f = sv
         if f is not None:
@@ -9553,6 +9558,15 @@ class _TrackMapView(QWidget):
             w = m2.horizontalAdvance(txt)
             h = m2.height()
             r = QRectF(cx - w / 2.0, cy - h / 2.0, w, h)
+            # sempre DENTRO la tela (T6 Woodcote usciva a sinistra)
+            if r.left() < 2:
+                r.moveLeft(2)
+            if r.right() > W - 2:
+                r.moveRight(W - 2)
+            if r.top() < 2:
+                r.moveTop(2)
+            if r.bottom() > H - 2:
+                r.moveBottom(H - 2)
             for u in used:
                 if r.intersects(u):
                     return False
