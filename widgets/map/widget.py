@@ -339,8 +339,9 @@ class MapCanvas(QWidget):
             L = math.hypot(dx, dy) or 1.0
             return (-dy / L, dx / L)
 
+        _zf9d = getattr(self, "_zoomf9", 1.0)
         f9 = QFont("Archivo SemiExpanded")
-        f9.setPixelSize(max(7, int(9 * sc)))
+        f9.setPixelSize(max(7, int(9 * sc * _zf9d)))
         f9.setBold(True)
         p.setFont(f9)
         _used9 = []                 # rettangoli etichette gia' disegnate
@@ -383,7 +384,7 @@ class MapCanvas(QWidget):
             _tw = p.fontMetrics().horizontalAdvance(_lab)
             _r9 = None
             for _try9 in range(4):
-                _d9 = lw / 2.0 + (10.0 + 11.0 * _try9) * sc
+                _d9 = lw / 2.0 + (10.0 + 11.0 * _try9) * sc * _zf9d
                 _lx = c0.x() - nx * _ins * _d9
                 _ly = c0.y() - ny * _ins * _d9
                 _r9 = QRectF(_lx - _tw / 2.0 - 2, _ly - 7,
@@ -421,7 +422,7 @@ class MapCanvas(QWidget):
                 _tw = p.fontMetrics().horizontalAdvance(lab)
                 _rs9 = None
                 for _try9 in range(4):
-                    off = lw / 2.0 + (15.0 + 11.0 * _try9) * sc
+                    off = lw / 2.0 + (15.0 + 11.0 * _try9) * sc * _zf9d
                     lx, ly = c.x() + nx * off, c.y() + ny * off
                     _rs9 = QRectF(lx - _tw / 2.0 - 2, ly - 7,
                                   _tw + 4, 13)
@@ -575,9 +576,14 @@ class MapCanvas(QWidget):
             except (TypeError, ValueError):
                 zoom = 5.5
             gcal = 0.7                                          # 0.7 diventa lo standard 1.0
+            # TUTTO scala con lo zoom nella stessa proporzione (rich.
+            # 24/07): strada, pallini, cordoli e font — non solo la
+            # geometria (la strada a pixel fissi sembrava "non zoomare")
+            _zf9 = zoom / 5.5
+            self._zoomf9 = _zf9
             z2 = scl * zoom * gcal
-            track_w_mult = 2.6 * gcal                           # pista (come a 0.7)
-            dot_mult = 1.75 * gcal                              # piloti (come a 0.7)
+            track_w_mult = 2.6 * gcal * _zf9                    # pista
+            dot_mult = 1.75 * gcal * _zf9                       # piloti
             hm = getattr(self, "_l2_hm", -math.pi / 2.0)        # heading map-space (smussato)
             prev = getattr(self, "_l2_prev", None)
             _now = time.monotonic()
@@ -605,6 +611,7 @@ class MapCanvas(QWidget):
                         cy2 + (u * sa + v * ca) * z2)
         else:
             self._gps_active = False
+            self._zoomf9 = 1.0
             def tf(x, z):
                 return (offx + (x - minx) * scl, offz + (maxz - z) * scl)
 

@@ -230,7 +230,7 @@ class ConfigWindow(QDialog):
             from PySide6.QtWidgets import QDoubleSpinBox as _QDSB9
             grid.addWidget(QLabel("GPS zoom"), row_i, 0)
             self.sp_mzoom = _QDSB9()
-            self.sp_mzoom.setRange(2.0, 10.0)
+            self.sp_mzoom.setRange(1.0, 25.0)   # niente limiti stretti
             self.sp_mzoom.setSingleStep(0.5)
             self.sp_mzoom.setValue(5.5)
             grid.addWidget(self.sp_mzoom, row_i, 1)
