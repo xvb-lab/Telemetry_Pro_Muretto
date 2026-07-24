@@ -939,11 +939,13 @@ class MapCanvas(QWidget):
                     p.setFont(f)
                     _rq9 = QRectF(cx - rr * 2, cy - rr * 2,
                                   rr * 4, rr * 4)
-                    p.setPen(QPen(QColor(0, 0, 0, 200)))
-                    for _o9 in ((1, 1), (-1, 1), (1, -1), (-1, -1)):
-                        p.drawText(_rq9.translated(_o9[0], _o9[1]),
-                                   Qt.AlignCenter, numtxt)
-                    p.setPen(QPen(numc))
+                    if not is_player:
+                        # solo i rivali: bordo nero per leggibilita'
+                        p.setPen(QPen(QColor(0, 0, 0, 200)))
+                        for _o9 in ((1, 1), (-1, 1), (1, -1), (-1, -1)):
+                            p.drawText(_rq9.translated(_o9[0], _o9[1]),
+                                       Qt.AlignCenter, numtxt)
+                    p.setPen(QPen(numc))     # player: numero PIENO classe
                     p.drawText(_rq9, Qt.AlignCenter, numtxt)
                 return
             p.drawEllipse(QPointF(cx, cy), rr, rr)
