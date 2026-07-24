@@ -44,6 +44,22 @@ _CLASS_COL = {
 }
 _YELLOW = QColor("#ffd400")
 
+# COLORI CORDOLI per pista (rich. 24/07: "come sono veramente") —
+# (base, strisce); default bianco/rosso. Chiave = pezzo del nome.
+_KERB_COLS = {
+    "silverstone": (QColor(240, 240, 240, 235), QColor(28, 30, 36, 235)),
+    "spa": (QColor(255, 212, 0, 235), QColor(224, 40, 60, 235)),
+    "monza": (QColor(240, 240, 240, 235), QColor(224, 40, 60, 235)),
+}
+
+
+def _kerb_cols9(track):
+    tl = (track or "").lower()
+    for k, v in _KERB_COLS.items():
+        if k in tl:
+            return v
+    return (QColor(240, 240, 240, 235), QColor(224, 40, 60, 235))
+
 
 def _safe(track):
     s = "".join(c for c in (track or "") if c.isalnum() or c in "-_ ").strip()
@@ -397,24 +413,37 @@ class MapCanvas(QWidget):
             vx, vy = b.x() - c0.x(), b.y() - c0.y()
             _ins = 1.0 if (ux * vy - uy * vx) > 0 else -1.0   # lato interno
             _off = lw / 2.0 + _kw / 2.0 + 1.0
-            kpath = QPainterPath(); started = False
+            # cordolo su ENTRAMBI i lati (rich. 24/07: mancava
+            # l'esterno) — due percorsi paralleli
+            kpath = QPainterPath()
+            kpath2 = QPainterPath()
+            started = False
             for i in range(_i0k - 1, _j0k + 2):
                 cc = _scr(i)
                 nx, ny = _norm(i)
                 pt = QPointF(cc.x() + nx * _ins * _off,
                              cc.y() + ny * _ins * _off)
+                pt2 = QPointF(cc.x() - nx * _ins * _off,
+                              cc.y() - ny * _ins * _off)
                 if not started:
-                    kpath.moveTo(pt); started = True
+                    kpath.moveTo(pt); kpath2.moveTo(pt2)
+                    started = True
                 else:
-                    kpath.lineTo(pt)
+                    kpath.lineTo(pt); kpath2.lineTo(pt2)
             p.setBrush(Qt.NoBrush)
-            _kp = QPen(QColor(240, 240, 240, 235), _kw)
-            _kp.setCapStyle(Qt.FlatCap)
-            p.setPen(_kp); p.drawPath(kpath)          # base bianca
-            _kr = QPen(QColor(224, 40, 60, 235), _kw)
-            _kr.setCapStyle(Qt.FlatCap)
-            _kr.setDashPattern([2.0, 2.0])            # strisce rosse
-            p.setPen(_kr); p.drawPath(kpath)
+            # colori VERI per pista (Silverstone bianco/nero, Spa
+            # giallo/rosso...) + STRISCE FINI: il tratteggio Qt scala
+            # con lo spessore, quindi si normalizza a ~5px veri
+            _kb9, _ks9 = _kerb_cols9(self._track)
+            _dsh9 = max(0.6, 5.0 * sc / max(1.0, _kw))
+            for _kpth9 in (kpath, kpath2):
+                _kp = QPen(_kb9, _kw)
+                _kp.setCapStyle(Qt.FlatCap)
+                p.setPen(_kp); p.drawPath(_kpth9)       # base
+                _kr = QPen(_ks9, _kw)
+                _kr.setCapStyle(Qt.FlatCap)
+                _kr.setDashPattern([_dsh9, _dsh9])      # strisce fini
+                p.setPen(_kr); p.drawPath(_kpth9)
             # numero curva sul lato ESTERNO — con ANTI-COLLISIONE:
             # se il posto e' occupato da un'altra etichetta, si sposta
             # piu' fuori (T9/T11 uscivano una sopra l'altra, 24/07)
