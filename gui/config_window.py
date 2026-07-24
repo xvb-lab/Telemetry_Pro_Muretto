@@ -280,11 +280,13 @@ class ConfigWindow(QDialog):
 
             def _dot8(bg):
                 b = _QPB8()
-                b.setFixedSize(24, 24)
+                b.setFixedSize(18, 18)
                 b.setCursor(Qt.PointingHandCursor)
                 b.setStyleSheet(
-                    "background:%s; border:1px solid "
-                    "rgba(255,255,255,0.35); border-radius:12px;" % bg)
+                    "QPushButton{background:%s; border:1px solid "
+                    "rgba(255,255,255,0.35); border-radius:9px;"
+                    "min-width:18px; max-width:18px; min-height:18px;"
+                    "max-height:18px; padding:0;}" % bg)
                 return b
 
             grid.addWidget(QLabel("White"), row_i, 0)
@@ -315,8 +317,10 @@ class ConfigWindow(QDialog):
             # RESET ai default di fabbrica
             grid.addWidget(QLabel("Defaults"), row_i, 0)
             _rst8 = _QPB8("Reset")
-            _rst8.setFixedSize(58, 26)
-            _rst8.setStyleSheet("font-size:12px;")
+            _rst8.setFixedSize(70, 26)
+            _rst8.setStyleSheet(
+                "QPushButton{font-size:12px; padding:2px 8px;"
+                "min-height:22px; max-height:22px;}")
             _rst8.setCursor(Qt.PointingHandCursor)
             _rst8.setToolTip("Riporta la mappa ai default")
             _rst8.clicked.connect(self._map_reset9)
@@ -327,7 +331,7 @@ class ConfigWindow(QDialog):
             self.sp_mdot = _QDSB9()
             self.sp_mdot.setRange(0.5, 2.0)
             self.sp_mdot.setSingleStep(0.1)
-            self.sp_mdot.setValue(1.5)
+            self.sp_mdot.setValue(1.0)
             self.sp_mdot.setFixedSize(104, 28)
             self.sp_mdot.setStyleSheet(_CSS9)
             grid.addWidget(self.sp_mdot, row_i, 1)
@@ -632,7 +636,7 @@ class ConfigWindow(QDialog):
                 self.sp_again.setValue(
                     float(cfg.get("map_adapt_gap", 1.5)))
                 self.sp_mdot.setValue(
-                    float(cfg.get("map_dot_scale", 1.5)))
+                    float(cfg.get("map_dot_scale", 1.0)))
             except Exception:
                 pass
         elif self._key in ("wec26battle", "wec26battleb", "wec26flag",
@@ -680,9 +684,10 @@ class ConfigWindow(QDialog):
         try:
             for i, b in enumerate(self.bt_msec9):
                 b.setStyleSheet(
-                    "background:%s; border:1px solid "
-                    "rgba(255,255,255,0.35); border-radius:12px;"
-                    % self._msec9[i])
+                    "QPushButton{background:%s; border:1px solid "
+                    "rgba(255,255,255,0.35); border-radius:9px;"
+                    "min-width:18px; max-width:18px; min-height:18px;"
+                    "max-height:18px; padding:0;}" % self._msec9[i])
         except Exception:
             pass
 
@@ -717,7 +722,7 @@ class ConfigWindow(QDialog):
             self._set_toggle("caricons", False)
             self._set_toggle("detail", True)
             self._map_all_col9("#f3f4f8")
-            self.sp_mdot.setValue(1.5)
+            self.sp_mdot.setValue(1.0)
             self._reset_scale()
         except Exception:
             pass

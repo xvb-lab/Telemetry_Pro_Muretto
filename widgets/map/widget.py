@@ -667,7 +667,7 @@ class MapCanvas(QWidget):
                 return d <= _vw + 60.0
 
         try:                      # DOT SIZE scelto dall'utente (24/07)
-            dot_mult *= float(_cfg.get("map_dot_scale", 1.5) or 1.5)
+            dot_mult *= float(_cfg.get("map_dot_scale", 1.0) or 1.0)
         except (TypeError, ValueError):
             pass
 
