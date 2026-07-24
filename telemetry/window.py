@@ -12123,6 +12123,12 @@ class TelemetryWindow(QMainWindow):
         # tornare LI', non alle card piste
         self._app_return_sessions = \
             self._stack.currentWidget() is self._sessions_page
+        # stesso sfondo foto della pagina circuito (rich. utente 24/07)
+        try:
+            self._legacy._teamtab.set_bg(
+                getattr(self._sessions_page, "_bgkey", None))
+        except Exception:
+            pass
         self._open_tab(5)
 
     def _sess_export(self, file):

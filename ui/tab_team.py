@@ -73,6 +73,42 @@ class _TeamTab(QWidget):
         row.addWidget(self._btn_load); row.addStretch()
         root.addLayout(row)
         root.addStretch()
+        self._bgphoto9 = None
+
+    # SFONDO come la pagina circuito (rich. utente 24/07 sera): foto
+    # della pista a 0.50 sul blu #000833
+    _PHOTO_DIR9 = Path(__file__).resolve().parent.parent / "assets" / "trackcards"
+
+    def set_bg(self, bgkey):
+        pm = None
+        if bgkey:
+            for ext in ("jpg", "jpeg", "png", "webp"):
+                p = self._PHOTO_DIR9 / ("%s.%s" % (bgkey, ext))
+                if p.exists():
+                    _pm = QPixmap(str(p))
+                    if not _pm.isNull():
+                        pm = _pm
+                        break
+        self._bgphoto9 = pm
+        self.update()
+
+    def paintEvent(self, e):
+        from PySide6.QtCore import QRect
+        p = QPainter(self)
+        r = self.rect()
+        p.fillRect(r, QColor("#000833"))
+        pm = getattr(self, "_bgphoto9", None)
+        if pm is not None and not pm.isNull():
+            scaled = pm.scaled(r.size(), Qt.KeepAspectRatioByExpanding,
+                               Qt.SmoothTransformation)
+            sx = max(0, (scaled.width() - r.width()) // 2)
+            sy = max(0, (scaled.height() - r.height()) // 2)
+            p.setRenderHint(QPainter.SmoothPixmapTransform, True)
+            p.setOpacity(0.50)
+            p.drawPixmap(r, scaled, QRect(sx, sy, r.width(), r.height()))
+            p.setOpacity(1.0)
+        p.end()
+        super().paintEvent(e)
 
     def _load(self):
         from PySide6.QtWidgets import QFileDialog, QMessageBox
