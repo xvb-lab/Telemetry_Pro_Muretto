@@ -9947,7 +9947,10 @@ class _TrackPage(QWidget):
         body = QHBoxLayout(); body.setSpacing(16)
 
         left = QFrame(); left.setObjectName("tpInfo")
-        left.setStyleSheet("#tpInfo{background:transparent;border:none;}")
+        # card sinistra (circuito+info) TRASLUCIDA bianco tenue (rich.
+        # utente 24/07 sera: un filo piu' opaca del vetro precedente)
+        left.setStyleSheet("#tpInfo{background:rgba(255,255,255,0.09);"
+                           "border:none;border-radius:14px;}")
         # niente larghezza fissa: proporzionale (responsive con la finestra)
         lv = QVBoxLayout(left); lv.setContentsMargins(18, 18, 18, 18); lv.setSpacing(10)
         # LOGO circuito SOPRA la mappa (esperimento 24/07 sera) — il
