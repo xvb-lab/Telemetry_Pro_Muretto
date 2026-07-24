@@ -10444,54 +10444,60 @@ class _SessionCard(QFrame):
         self._on_delete = on_delete
         self.setObjectName("sessCard")
         self.setCursor(Qt.PointingHandCursor)
-        cls = _sess_norm_cls(s.get("car_class"))
         _team = bool(s.get("team_session"))
-        # TEAM (importata dall'amico): card ROSSO LMU (bg scuro + bordo)
-        bord = "#ff1d43" if _team else _sess_border(cls)
-        _bg = "rgba(84,6,20,0.92)" if _team else "rgba(13,27,42,0.90)"
-        # SQUADRATA, niente bordo azzurro a sx, piu' ALTA e piu' STRETTA
-        # (rich. utente 24/07 sera): prova
-        self.setStyleSheet(
-            "#sessCard{background:%s;border:none;border-radius:0;}" % _bg)
+        # COLORI BRAND come le standings (rich. utente 24/07 sera): tinta
+        # del marchio a sx col taglio diagonale, blu #0a0032 a dx (li
+        # disegna il paintEvent). Niente best lap sulle sessioni.
+        self._card_bg = None
+        self._card_tri = None
+        self._card_acc = ""
+        self._card_txc = "#ffffff"
+        try:
+            from PySide6.QtGui import QColor as _QC
+            from core.wec_style import (brand_color_from_text, is_light,
+                                        brand_from_text, row_gradient,
+                                        row_color, row_corner)
+            _txt = (s.get("vehicle") or "") + " " + (s.get("team") or "")
+            _bn = brand_from_text(_txt)
+            _c = (row_color(_bn) if _bn else None) or \
+                brand_color_from_text(_txt)
+            self._card_bg = _QC(_c) if _c else None
+            self._card_txc = "#18181C" if (_c and is_light(_c)) else "#ffffff"
+            self._card_tri = row_gradient(_bn) if _bn else None
+            self._card_acc = row_corner(_bn) if _bn else ""
+        except Exception:
+            self._card_bg = None
         self.setFixedWidth(660)
-        h = QHBoxLayout(self); h.setContentsMargins(14, 16, 16, 16); h.setSpacing(0)
-        # data/ora (come la posizione)
-        dt = self._fmt_dt(s.get("started_at"))
-        dcol = QVBoxLayout(); dcol.setSpacing(1); dcol.setContentsMargins(0, 0, 0, 0)
-        d1 = QLabel(dt[0]); d1.setStyleSheet(
-            "color:#ffffff;font-family:'Archivo SemiExpanded';font-size:14px;font-weight:800;"
-            "background:transparent;")
-        d2 = QLabel(dt[1]); d2.setStyleSheet(
-            "color:#a79fb0;font-family:'Archivo SemiExpanded';font-size:11px;font-weight:600;"
-            "background:transparent;")
-        dcol.addWidget(d1); dcol.addWidget(d2)
-        dcw = QWidget(); dcw.setLayout(dcol); dcw.setFixedWidth(64)
-        dcw.setStyleSheet("background:transparent;")
-        h.addWidget(dcw); h.addSpacing(6)
+        self.setFixedHeight(84)
+        self.setStyleSheet("#sessCard{background:transparent;border:none;}")
+        h = QHBoxLayout(self); h.setContentsMargins(16, 8, 12, 8); h.setSpacing(0)
+        _txc = self._card_txc
         # logo auto
-        box = _SvgBox(); box.setFixedSize(58, 46)
+        box = _SvgBox(); box.setFixedSize(60, 48)
         try:
             from ui.widgets import _car_logo_into, _EMPTY_LOGO_SVG
             _car_logo_into(box, s.get("team"), s.get("vehicle"))
         except Exception:
             pass
         h.addWidget(box, 0, Qt.AlignVCenter); h.addSpacing(12)
-        # pilota + auto + tipo
-        ncol = QVBoxLayout(); ncol.setSpacing(1); ncol.setContentsMargins(0, 0, 0, 0)
+        # pilota + modello + tipo (colore adattivo del brand)
+        ncol = QVBoxLayout(); ncol.setSpacing(0); ncol.setContentsMargins(0, 0, 0, 0)
         nm = QLabel((str(s.get("driver") or "—")).upper())
-        nm.setStyleSheet("color:#eef0f4;font-family:'Archivo SemiExpanded';font-size:15px;"
-                         "font-weight:800;background:transparent;")
+        nm.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:15px;"
+                         "font-weight:900;font-style:italic;background:transparent;" % _txc)
         cr = QLabel(str(s.get("vehicle") or "—"))
         cr.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:12px;"
-                         "font-weight:700;background:transparent;" % bord)
-        # nome sessione come nelle card vecchie: tipo + durata (es. "RACE 60m")
+                         "font-weight:700;background:transparent;" % _txc)
         _styp = _ov_session_label(s.get("session_type"))
         _slen = _fmt_session_len(s.get("session_len"))
         ty = QLabel(_styp + ((" " + _slen) if _slen else ""))
-        ty.setStyleSheet("color:#a79fb0;font-family:'Archivo SemiExpanded';font-size:12px;"
-                         "font-weight:600;background:transparent;")
+        ty.setStyleSheet("color:%s;font-family:'Archivo SemiExpanded';font-size:12px;"
+                         "font-weight:600;background:transparent;" % _txc)
+        nm.setFixedHeight(19); cr.setFixedHeight(15); ty.setFixedHeight(15)
+        for _lb in (nm, cr, ty):
+            _lb.setContentsMargins(0, 0, 0, 0)
         ncol.addWidget(nm); ncol.addWidget(cr); ncol.addWidget(ty)
-        ncw = QWidget(); ncw.setLayout(ncol); ncw.setMinimumWidth(200)
+        ncw = QWidget(); ncw.setLayout(ncol)
         ncw.setStyleSheet("background:transparent;")
         h.addWidget(ncw)
         # colonna CASCO accanto al nome: la TUA livrea sulle card personali,
@@ -10506,7 +10512,7 @@ class _SessionCard(QFrame):
             _hrow = QHBoxLayout()
             _hrow.setContentsMargins(0, 0, 0, 0); _hrow.setSpacing(2)
             for _c3 in _cols3:
-                _hb = _SvgBox(); _hb.setFixedSize(56, 44)
+                _hb = _SvgBox(); _hb.setFixedSize(50, 40)
                 _hb.setStyleSheet("background:transparent;")
                 _hb.load(helmet_svg_bytes(_c3))
                 _hrow.addWidget(_hb)
@@ -10517,28 +10523,28 @@ class _SessionCard(QFrame):
         except Exception:
             pass
         h.addStretch(1)
-        # colonna DESTRA (rich. utente 24/07 sera): BEST LAP grande sopra,
-        # METEO sotto, n. giri sotto ancora
-        rcol = QVBoxLayout(); rcol.setSpacing(3); rcol.setContentsMargins(0, 0, 0, 0)
-        bl = QLabel(_sess_fmt_lap(s.get("best_lap")))
-        bl.setStyleSheet("color:#f2f4f7;font-family:'Archivo SemiExpanded';font-size:20px;"
+        # DESTRA (sul BLU): data/ora sopra, METEO piu' grande sotto —
+        # niente best lap (rich. utente 24/07 sera: non c'entra)
+        rcol = QVBoxLayout(); rcol.setSpacing(5); rcol.setContentsMargins(0, 0, 0, 0)
+        dt = self._fmt_dt(s.get("started_at"))
+        dl = QLabel((dt[0] + "   " + dt[1]).strip())
+        dl.setStyleSheet("color:#ffffff;font-family:'Archivo SemiExpanded';font-size:15px;"
                          "font-weight:800;background:transparent;")
-        bl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        rcol.addWidget(bl)
-        # meteo previsto (5 nodi) SOTTO il best lap
+        dl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        rcol.addWidget(dl)
         fc5 = (s.get("forecast5") or "").strip()
         if fc5:
             _wdir = Path(__file__).resolve().parent.parent / "assets" / "weather"
             _fcw = QWidget(); _fcw.setStyleSheet("background:transparent;")
             _fcl = QHBoxLayout(_fcw)
-            _fcl.setContentsMargins(0, 0, 0, 0); _fcl.setSpacing(4)
+            _fcl.setContentsMargins(0, 0, 0, 0); _fcl.setSpacing(5)
             _fcl.addStretch(1)
             _nic = 0
             for _nm in [x.strip() for x in fc5.split(",") if x.strip()][:5]:
                 _wp = _wdir / ("%s.svg" % _nm)
                 if not _wp.exists():
                     continue
-                _ic = _SvgBox(); _ic.setFixedSize(24, 24)
+                _ic = _SvgBox(); _ic.setFixedSize(32, 32)
                 _ic.setStyleSheet("background:transparent;")
                 _ic.load(str(_wp))
                 _fcl.addWidget(_ic, 0, Qt.AlignVCenter)
@@ -10547,11 +10553,6 @@ class _SessionCard(QFrame):
                 rcol.addWidget(_fcw)
             else:
                 _fcw.deleteLater()
-        lp = QLabel("%d laps" % int(s.get("laps") or 0))
-        lp.setStyleSheet("color:#8a90a0;font-family:'Archivo SemiExpanded';font-size:12px;"
-                         "font-weight:700;background:transparent;")
-        lp.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        rcol.addWidget(lp)
         rcw = QWidget(); rcw.setLayout(rcol)
         rcw.setStyleSheet("background:transparent;")
         h.addWidget(rcw, 0, Qt.AlignVCenter)
@@ -10580,6 +10581,50 @@ class _SessionCard(QFrame):
             rb.addWidget(_bd, 0, Qt.AlignRight | Qt.AlignBottom)
         if self._on_export or self._on_delete or s.get("team_session"):
             h.addSpacing(10); h.addLayout(rb, 0)
+
+    def paintEvent(self, e):
+        # sfondo BROADCAST come le standings (rich. utente 24/07 sera):
+        # tinta brand a sx col taglio diagonale, blu #0a0032 a dx
+        from PySide6.QtGui import (QPainter, QColor, QLinearGradient,
+                                   QPolygonF)
+        from PySide6.QtCore import QRectF, QPointF
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        w = float(self.width()); hg = float(self.height())
+        bg = self._card_bg
+        if bg is None:
+            p.fillRect(self.rect(), QColor("#0a0032"))
+            p.end(); super().paintEvent(e); return
+        cut = w * 0.56
+        g = QLinearGradient(0, 0, cut, 0)
+        tri = self._card_tri
+        if tri:
+            g.setColorAt(0.0, QColor(tri[0]))
+            g.setColorAt(1.0, QColor(tri[1]))
+        else:
+            g.setColorAt(0.0, bg.lighter(112))
+            g.setColorAt(1.0, bg)
+        p.fillRect(QRectF(0, 0, cut, hg), g)
+        p.fillRect(QRectF(cut, 0, w - cut, hg), QColor("#0a0032"))
+        _acc = self._card_acc or []
+        if _acc:
+            p.setPen(Qt.NoPen)
+            _bw, _sl = 16.0, 46.0
+            for _i, _cc in enumerate(reversed(_acc)):
+                _tr = cut - _i * _bw
+                p.setBrush(QColor(_cc))
+                if _i == 0 and len(_acc) >= 3:
+                    p.drawPolygon(QPolygonF([
+                        QPointF(_tr - _bw, 0.0), QPointF(cut, 0.0),
+                        QPointF(cut, hg),
+                        QPointF(_tr - _sl - _bw, hg)]))
+                    continue
+                p.drawPolygon(QPolygonF([
+                    QPointF(_tr - _bw, 0.0), QPointF(_tr, 0.0),
+                    QPointF(_tr - _sl, hg),
+                    QPointF(_tr - _sl - _bw, hg)]))
+        p.end()
+        super().paintEvent(e)
 
     @staticmethod
     def _fmt_dt(iso):
