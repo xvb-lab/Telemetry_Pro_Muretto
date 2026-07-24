@@ -1751,8 +1751,32 @@ class _LiveMap(QWidget):
                 L = math.hypot(dx, dy) or 1.0
                 return (-dy / L, dx / L)
 
-            # CORDOLI bianco-rossi all'interno delle curve (finestra attorno
-            # all'apice): bianco pieno sotto + rosso tratteggiato sopra
+            # CORDOLI bianco-rossi all'interno delle curve: bianco pieno
+            # sotto + rosso tratteggiato sopra. LUNGHI (rich. 24/07):
+            # dall'apice si estendono finche' la strada continua a girare
+            def _dh9k(i):
+                a2 = ol[i % len(ol)]; b2 = ol[(i + 1) % len(ol)]
+                c2 = ol[(i + 2) % len(ol)]
+                h1 = math.atan2(b2[1] - a2[1], b2[0] - a2[0])
+                h2 = math.atan2(c2[1] - b2[1], c2[0] - b2[0])
+                d = h2 - h1
+                while d > math.pi:
+                    d -= 2 * math.pi
+                while d < -math.pi:
+                    d += 2 * math.pi
+                return d
+
+            def _kerb_span9(apex, max_pts=45):
+                s0 = 1.0 if _dh9k(apex) >= 0 else -1.0
+                th = math.radians(1.0)
+                i0 = apex
+                while apex - i0 < max_pts and _dh9k(i0 - 1) * s0 > th:
+                    i0 -= 1
+                j0 = apex
+                while j0 - apex < max_pts and _dh9k(j0 + 1) * s0 > th:
+                    j0 += 1
+                return min(i0, apex - 3), max(j0, apex + 3)
+
             _kw = max(3.0, ln_w * 1.6)
             for _ti_idx, _lab in self._turns():
                 a = _scr(_ti_idx - 2); b = _scr(_ti_idx + 2); c0 = _scr(_ti_idx)
@@ -1763,8 +1787,9 @@ class _LiveMap(QWidget):
                 _cr = ux * vy - uy * vx
                 _ins = 1.0 if _cr > 0 else -1.0        # lato INTERNO curva
                 _off = trk_w / 2.0 + _kw / 2.0 + 1.0
+                _i0k, _j0k = _kerb_span9(_ti_idx)
                 kpath = QPainterPath(); started = False
-                for i in range(_ti_idx - 3, _ti_idx + 4):
+                for i in range(_i0k, _j0k + 1):
                     cc = _scr(i)
                     nx, ny = _norm(i)
                     pt = QPointF(cc.x() + nx * _ins * _off,
