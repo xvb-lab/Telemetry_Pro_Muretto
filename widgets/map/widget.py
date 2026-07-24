@@ -557,7 +557,7 @@ class MapCanvas(QWidget):
                     _mt9 = t9
             _now9 = time.monotonic()
             try:                     # soglia in secondi dal setting
-                _thr9 = float(_cfg.get("map_adapt_gap", 1.0) or 1.0)
+                _thr9 = float(_cfg.get("map_adapt_gap", 1.5) or 1.5)
             except (TypeError, ValueError):
                 _thr9 = 1.0
             st9 = getattr(self, "_adapt9", None) or {"on": False,
@@ -666,6 +666,11 @@ class MapCanvas(QWidget):
                 d = min(d, self._cum_total - d)
                 return d <= _vw + 60.0
 
+        try:                      # DOT SIZE scelto dall'utente (24/07)
+            dot_mult *= float(_cfg.get("map_dot_scale", 1.0) or 1.0)
+        except (TypeError, ValueError):
+            pass
+
         def arc(p0, p1, color, width):
             if p1 <= p0:
                 return
@@ -685,8 +690,14 @@ class MapCanvas(QWidget):
 
         # colore pista a scelta (rich. 24/07): ASFALTO scuro di default
         # ("sembra proprio l'asfalto, contrasto migliore") o bianca
-        _trk_c9 = QColor(88, 94, 104) \
-            if _cfg.get("map_dark_track", True) else QColor("#f3f4f8")
+        # personalizzato dal picker > asfalto scuro > BIANCA (default)
+        _mc9 = str(_cfg.get("map_track_color") or "")
+        if _mc9:
+            _trk_c9 = QColor(_mc9)
+        elif _cfg.get("map_dark_track", False):
+            _trk_c9 = QColor(88, 94, 104)
+        else:
+            _trk_c9 = QColor("#f3f4f8")
         _pit_c9 = QColor(_trk_c9.red(), _trk_c9.green(),
                          _trk_c9.blue(), 105)
 
@@ -964,7 +975,7 @@ class MapCanvas(QWidget):
 
         pcls = next((c.get("cls") for c in self._cars if c.get("is_player")), None)
         _names9 = bool(_cfg.get("map_names", True))
-        _cars9 = bool(_cfg.get("map_car_icons", True))
+        _cars9 = bool(_cfg.get("map_car_icons", False))
         # gap in secondi dal player: il tag nome appare solo coi vicini
         _spd_p9 = next((float(c.get("speed") or 0.0)
                         for c in self._cars if c.get("is_player")), 0.0)
