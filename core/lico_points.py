@@ -37,6 +37,16 @@ def map_turns(track, track_len):
     partenza). L'idea dell'utente (23/07): la mappa sa DOVE sono le
     curve — il freno dice solo in quali si frena. Vuoto senza SVG."""
     import math
+    # DB CURVE UFFICIALI (24/07): pista censita = posizioni vere,
+    # STESSA numerazione che vede la mappa e sente il pilota
+    try:
+        from data.track_corners import corners_for_track as _cf9
+        _db9 = _cf9(track, track_len)
+    except Exception:
+        _db9 = None
+    if _db9:
+        return [(max(0.0, round(p - 40.0, 1)), "T%d" % (i + 1),
+                 round(p + 40.0, 1)) for i, p in enumerate(_db9)]
     try:
         from telemetry.trace_view import _load_track_svg
         ol, _secs, _pit9 = _load_track_svg(track)

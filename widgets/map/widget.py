@@ -273,14 +273,51 @@ class MapCanvas(QWidget):
             sm = [(dh[i - 1] + dh[i] + dh[(i + 1) % n]) / 3.0
                   for i in range(n)]
             TH = math.radians(2.5)
+            # DB CURVE UFFICIALI (24/07): quando la pista e' censita
+            # in data/track_corners la numerazione e' un RIFERIMENTO
+            # fisso — niente detection, posizioni vere
+            _db9 = None
+            try:
+                from data.track_corners import corners_for_track as _cf9
+                _db9 = _cf9(self._track, _L9)
+            except Exception:
+                _db9 = None
+            if _db9:
+                import bisect as _bs9
+                cum9 = [0.0]
+                for i in range(1, n):
+                    cum9.append(cum9[-1] + math.hypot(
+                        ol[i][0] - ol[i - 1][0],
+                        ol[i][1] - ol[i - 1][1]))
+                _thl9 = math.radians(1.0)
+                out = []
+                for k, pm in enumerate(_db9):
+                    idx = min(_bs9.bisect_left(cum9, pm), n - 1)
+                    i0 = idx
+                    while idx - i0 < 18 and i0 > 0 \
+                            and abs(sm[i0 - 1]) > _thl9:
+                        i0 -= 1
+                    j0 = idx
+                    while j0 - idx < 18 and j0 < n - 1 \
+                            and abs(sm[j0 + 1]) > _thl9:
+                        j0 += 1
+                    if j0 - i0 < 4:
+                        i0 = max(0, idx - 4)
+                        j0 = min(n - 1, idx + 4)
+                    out.append((idx * _step9, "T%d" % (k + 1),
+                                i0 * _step9, j0 * _step9))
+                self._tm_key = key
+                self._tm_cache = out
+                return out
 
-            def _detect(minang, dip=0.55):
+            def _detect(minang, dip=0.55, th=None):
+                _th = th if th else TH
                 i = 0; turns = []
                 while i < n:
-                    if abs(sm[i]) > TH:
+                    if abs(sm[i]) > _th:
                         j = i; tot = 0.0; apex = i; mx = 0.0
                         sgn0 = 1.0 if sm[i] > 0 else -1.0
-                        while (j < n and abs(sm[j]) > TH * 0.6
+                        while (j < n and abs(sm[j]) > _th * 0.6
                                and (sm[j] * sgn0) > 0):
                             tot += sm[j]
                             if abs(sm[j]) > mx:
@@ -343,9 +380,12 @@ class MapCanvas(QWidget):
             if official:
                 # calibrazione 2D (24/07): soglia curvatura E soglia di
                 # SPLIT dei doppi apici, finche' il conteggio combacia
+                _combos9 = ((2.5, 0.55), (1.5, 0.55), (2.5, 0.70),
+                            (1.5, 0.70), (2.5, 0.80), (1.5, 0.80))
                 for deg in range(40, 5, -1):
-                    for _dip9 in (0.55, 0.70, 0.80):
-                        t = _detect(math.radians(deg), _dip9)
+                    for _th9, _dip9 in _combos9:
+                        t = _detect(math.radians(deg), _dip9,
+                                    math.radians(_th9))
                         d = abs(len(t) - official)
                         if best is None or d < best[0]:
                             best = (d, t)
@@ -415,21 +455,28 @@ class MapCanvas(QWidget):
             _off = lw / 2.0 + _kw / 2.0 + 1.0
             # cordolo su ENTRAMBI i lati (rich. 24/07: mancava
             # l'esterno) — due percorsi paralleli
-            kpath = QPainterPath()
-            kpath2 = QPainterPath()
+            kpath = QPainterPath()      # INTERNO: ingresso -> apice
             started = False
-            for i in range(_i0k - 1, _j0k + 2):
+            for i in range(_i0k - 1, _ti_idx + 2):
                 cc = _scr(i)
                 nx, ny = _norm(i)
                 pt = QPointF(cc.x() + nx * _ins * _off,
                              cc.y() + ny * _ins * _off)
+                if not started:
+                    kpath.moveTo(pt); started = True
+                else:
+                    kpath.lineTo(pt)
+            kpath2 = QPainterPath()     # ESTERNO: apice -> uscita
+            started = False
+            for i in range(_ti_idx - 1, _j0k + 2):
+                cc = _scr(i)
+                nx, ny = _norm(i)
                 pt2 = QPointF(cc.x() - nx * _ins * _off,
                               cc.y() - ny * _ins * _off)
                 if not started:
-                    kpath.moveTo(pt); kpath2.moveTo(pt2)
-                    started = True
+                    kpath2.moveTo(pt2); started = True
                 else:
-                    kpath.lineTo(pt); kpath2.lineTo(pt2)
+                    kpath2.lineTo(pt2)
             p.setBrush(Qt.NoBrush)
             # colori VERI per pista (Silverstone bianco/nero, Spa
             # giallo/rosso...) + STRISCE FINI: il tratteggio Qt scala

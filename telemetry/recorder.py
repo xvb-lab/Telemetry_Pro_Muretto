@@ -1844,6 +1844,60 @@ class TelemetryRecorder:
         except (TypeError, ValueError):
             pass
 
+        # ── MAPPA UFFICIALE dal REST di LMU (24/07): una volta per
+        # pista, in THREAD (mai bloccare il campionamento). Serve la
+        # posizione del TRAGUARDO (lapdist~0) e un riferimento di
+        # verso (~100 m) per ruotare il tracciato ufficiale ──
+        try:
+            _trkO9 = self._evt_track or d.get("track")
+            _ldO9 = d.get("lapdist")
+            if _trkO9 and _ldO9 is not None \
+                    and d.get("pos_x") is not None:
+                if _ldO9 < 10.0:
+                    self._sf_xy9 = (_trkO9, float(d["pos_x"]),
+                                    float(d.get("pos_z") or 0.0))
+                elif 80.0 < _ldO9 < 150.0:
+                    _dx9o = getattr(self, "_dir_xy9", None)
+                    if _dx9o is None or _dx9o[0] != _trkO9:
+                        self._dir_xy9 = (_trkO9, float(d["pos_x"]),
+                                         float(d.get("pos_z") or 0.0))
+            _sfO9 = getattr(self, "_sf_xy9", None)
+            _nowO9 = time.monotonic()
+            if (self._writing and _trkO9
+                    and _trkO9 != getattr(self, "_offmap_done9", None)
+                    and _sfO9 is not None and _sfO9[0] == _trkO9
+                    and _nowO9 - getattr(self, "_offmap_t9", 0.0)
+                    > 20.0):
+                self._offmap_t9 = _nowO9
+                import threading as _thO9
+                _dirO9 = getattr(self, "_dir_xy9", None)
+
+                def _fetchO9(trk=_trkO9, tl=d.get("track_len"),
+                             sf=(_sfO9[1], _sfO9[2]),
+                             dr=((_dirO9[1], _dirO9[2])
+                                 if _dirO9 and _dirO9[0] == _trkO9
+                                 else None)):
+                    try:
+                        import json as _js
+                        import urllib.request as _ur
+                        with _ur.urlopen(
+                                "http://localhost:6397/rest/"
+                                "watch/trackmap", timeout=3) as r:
+                            pl = _js.loads(r.read())
+                        if not isinstance(pl, list) or len(pl) < 50:
+                            return
+                        from core.auto_trackmap import save_official
+                        if save_official(trk, pl, tl, sf, dr):
+                            self._st("mappa UFFICIALE LMU "
+                                     "salvata (%s)" % trk)
+                        self._offmap_done9 = trk
+                    except Exception:
+                        pass
+
+                _thO9.Thread(target=_fetchO9, daemon=True).start()
+        except Exception:
+            pass
+
         # giro col passaggio in corsia/garage: non buono per la mappa auto
         # — ma la TRAIETTORIA in corsia si registra: diventa la CORSIA
         # BOX disegnata nelle mappe (rich. 24/07: "non si capisce dove
@@ -1920,6 +1974,17 @@ class TelemetryRecorder:
                              [_sl9.get(1), _sl9.get(2)]):
                         self._st("trackmap auto scritta (%s)"
                                  % (self._evt_track or ""))
+            except Exception:
+                pass
+            # settori nella mappa UFFICIALE (desc vuota alla nascita)
+            try:
+                from core.auto_trackmap import (
+                    add_sectors_official as _ase9)
+                _slS9 = getattr(self, "_sec_ld9", None) or {}
+                if _ase9(self._evt_track or d.get("track"),
+                         [_slS9.get(1), _slS9.get(2)],
+                         d.get("track_len")):
+                    self._st("settori iniettati nella mappa ufficiale")
             except Exception:
                 pass
             self._lap_pits9 = False

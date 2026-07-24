@@ -1231,6 +1231,41 @@ class _LiveMap(QWidget):
                 dh.append(d)
             sm = [(dh[i - 1] + dh[i] + dh[(i + 1) % n]) / 3.0 for i in range(n)]
             TH = math.radians(2.5)       # curvatura minima per "sto girando"
+            # DB CURVE UFFICIALI (24/07): pista censita = posizioni
+            # vere, niente detection (stessa logica del widget Mappa)
+            _db9 = None
+            try:
+                from data.track_corners import corners_for_track as _cf9
+                _db9 = _cf9(self._track, _L9)
+            except Exception:
+                _db9 = None
+            if _db9:
+                import bisect as _bs9
+                cum9 = [0.0]
+                for i in range(1, n):
+                    cum9.append(cum9[-1] + math.hypot(
+                        ol[i][0] - ol[i - 1][0],
+                        ol[i][1] - ol[i - 1][1]))
+                _thl9 = math.radians(1.0)
+                out = []
+                for k, pm in enumerate(_db9):
+                    idx = min(_bs9.bisect_left(cum9, pm), n - 1)
+                    i0 = idx
+                    while idx - i0 < 18 and i0 > 0 \
+                            and abs(sm[i0 - 1]) > _thl9:
+                        i0 -= 1
+                    j0 = idx
+                    while j0 - idx < 18 and j0 < n - 1 \
+                            and abs(sm[j0 + 1]) > _thl9:
+                        j0 += 1
+                    if j0 - i0 < 4:
+                        i0 = max(0, idx - 4)
+                        j0 = min(n - 1, idx + 4)
+                    out.append((idx * _step9, "T%d" % (k + 1),
+                                i0 * _step9, j0 * _step9))
+                self._turns_key = key
+                self._turns_cache = out
+                return out
 
             def _detect(minang):
                 # spezza il tratto quando la curvatura CAMBIA SEGNO: le
