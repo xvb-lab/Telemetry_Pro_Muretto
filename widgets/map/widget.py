@@ -170,6 +170,13 @@ class MapCanvas(QWidget):
         self._edit_sel9 = None
         self._edit_r9 = None         # rettangoli bottoni
         self._edit_hit9 = []         # maniglie a schermo
+        # ROTAZIONE LIBERA della mappa (rich. 24/07 sera: "la giro
+        # col mouse così capisco"): solo VISTA, gli apici in metri
+        # non cambiano. Memoria per pista dentro la sessione.
+        self._map_rot9 = 0.0
+        self._rot_mode9 = False
+        self._rot_drag9 = None
+        self._rot_loaded9 = None      # pista di cui e' caricata la rot
         self._cars = []
         self._track = ""
         self._sector_flags = [0, 0, 0]
@@ -455,6 +462,45 @@ class MapCanvas(QWidget):
             pass
         return out
 
+    # ───────── ROTAZIONE VISTA MAPPA (rich. 24/07 sera) ─────────
+    # Persistente per pista in USER_DIR/map_rotations.json: la mappa
+    # intera resta girata come l'utente la capisce. Solo vista: gli
+    # apici (metri) non cambiano, l'ingegnere non se ne accorge.
+
+    def _rot_file9(self):
+        from core.paths import USER_DIR
+        return USER_DIR / "map_rotations.json"
+
+    def _rot_load9(self):
+        if self._rot_loaded9 == self._track:
+            return
+        self._rot_loaded9 = self._track
+        self._map_rot9 = 0.0
+        try:
+            import json
+            d = json.loads(self._rot_file9().read_text(encoding="utf-8"))
+            self._map_rot9 = float(d.get(self._track or "", 0.0))
+        except Exception:
+            pass
+
+    def _rot_save9(self):
+        try:
+            import json
+            fp = self._rot_file9()
+            d = {}
+            try:
+                d = json.loads(fp.read_text(encoding="utf-8"))
+            except Exception:
+                d = {}
+            if abs(self._map_rot9) < 1e-4:
+                d.pop(self._track or "", None)
+            else:
+                d[self._track or ""] = round(self._map_rot9, 4)
+            fp.parent.mkdir(parents=True, exist_ok=True)
+            fp.write_text(json.dumps(d), encoding="utf-8")
+        except Exception:
+            pass
+
     # ───────── EDITOR CURVE (rich. utente 24/07 sera) ─────────
     # "Io c'ho gli occhi per vedere le curve": EDIT sulla mappa
     # intera, maniglie trascinabili lungo la pista, doppio click
@@ -488,11 +534,14 @@ class MapCanvas(QWidget):
             return r
 
         if not self._edit9:
-            self._edit_r9 = {"edit": _btn(8.0, "EDIT")}
+            self._edit_r9 = {
+                "edit": _btn(8.0, "EDIT"),
+                "rot": _btn(60.0, "ROT", self._rot_mode9)}
             self._edit_hit9 = []
             return
         self._edit_r9 = {"save": _btn(8.0, "SAVE", True),
-                         "exit": _btn(60.0, "EXIT")}
+                         "exit": _btn(60.0, "EXIT"),
+                         "rot": _btn(112.0, "ROT", self._rot_mode9)}
         from bisect import bisect_left
         cum = self._cum9()
         n = len(cum)
@@ -572,6 +621,10 @@ class MapCanvas(QWidget):
                 best = (k, d2)
         return best[0] if best else None
 
+    def _cur_ang9(self, pos):
+        return math.atan2(pos.y() - self.height() / 2.0,
+                          pos.x() - self.width() / 2.0)
+
     def mousePressEvent(self, e):
         try:
             r9 = self._edit_r9 or {}
@@ -586,8 +639,13 @@ class MapCanvas(QWidget):
                         elif k == "exit":
                             self._edit9 = False
                             self._tm_key = None
+                        elif k == "rot":
+                            self._rot_mode9 = not self._rot_mode9
                         self.update()
                         return
+                if self._rot_mode9:      # gira la mappa col mouse
+                    self._rot_drag9 = self._cur_ang9(pos)
+                    return
                 if self._edit9:
                     self._edit_sel9 = self._edit_near9(
                         pos, self._edit_hit9)
@@ -606,6 +664,14 @@ class MapCanvas(QWidget):
 
     def mouseMoveEvent(self, e):
         try:
+            if self._rot_mode9 and self._rot_drag9 is not None \
+                    and (e.buttons() & Qt.LeftButton):
+                a = self._cur_ang9(e.position())
+                d = a - self._rot_drag9
+                self._rot_drag9 = a
+                self._map_rot9 = (getattr(self, "_map_rot9", 0.0) + d)
+                self.update()
+                return
             if self._edit9 and self._edit_sel9 is not None \
                     and (e.buttons() & Qt.LeftButton):
                 pos = e.position()
@@ -627,6 +693,11 @@ class MapCanvas(QWidget):
         e.ignore()
 
     def mouseReleaseEvent(self, e):
+        if self._rot_drag9 is not None:
+            self._rot_drag9 = None
+            self._rot_save9()            # resta salvata per pista
+            self.update()
+            return
         if self._edit9:
             self._edit_sel9 = None
             self.update()
@@ -898,7 +969,29 @@ class MapCanvas(QWidget):
                        "Recording lap…" if self._recording else "No track data")
             p.end(); return
 
-        xs = [pt[0] for pt in self._path]; zs = [pt[1] for pt in self._path]
+        # ROTAZIONE VISTA (rich. 24/07 sera): ruota i punti attorno al
+        # centro-mondo, poi il fit si ricalcola sui punti RUOTATI cosi'
+        # la pista resta intera e centrata a ogni angolo
+        self._rot_load9()
+        _rot9 = getattr(self, "_map_rot9", 0.0)
+        _cwx9 = (min(pt[0] for pt in self._path)
+                 + max(pt[0] for pt in self._path)) / 2.0
+        _cwz9 = (min(pt[1] for pt in self._path)
+                 + max(pt[1] for pt in self._path)) / 2.0
+        _cr9 = math.cos(_rot9); _sr9 = math.sin(_rot9)
+
+        def _rotw9(x, z):
+            dx = x - _cwx9; dz = z - _cwz9
+            return (_cwx9 + dx * _cr9 - dz * _sr9,
+                    _cwz9 + dx * _sr9 + dz * _cr9)
+
+        self._rotw9 = _rotw9
+        if abs(_rot9) > 1e-4:
+            _rp9 = [_rotw9(pt[0], pt[1]) for pt in self._path]
+            xs = [q[0] for q in _rp9]; zs = [q[1] for q in _rp9]
+        else:
+            xs = [pt[0] for pt in self._path]
+            zs = [pt[1] for pt in self._path]
         minx, maxx = min(xs), max(xs); minz, maxz = min(zs), max(zs)
         spanx = max(1e-3, maxx - minx); spanz = max(1e-3, maxz - minz)
         avail = min(w, h) - 2 * pad
@@ -1005,7 +1098,8 @@ class MapCanvas(QWidget):
             self._zoomf9 = 1.0
             track_w_mult = 1.77   # mappa intera: +1/3 ancora (24/07)
             def tf(x, z):
-                return (offx + (x - minx) * scl, offz + (maxz - z) * scl)
+                rx, rz = self._rotw9(x, z)
+                return (offx + (rx - minx) * scl, offz + (maxz - rz) * scl)
 
         # ── FOCUS GPS (rich. 24/07): in vista GPS si disegna SOLO il
         # tratto di pista ATTORNO al player (±550 m lungo il nastro) —
