@@ -225,10 +225,15 @@ class ConfigWindow(QDialog):
             # Intera / GPS / Adattiva. Poi zoom, gap e dettagli ──
             from PySide6.QtWidgets import (QComboBox as _QCB9,
                                            QDoubleSpinBox as _QDSB9)
+            # controlli BILANCIATI (rich. 24/07): stessa altezza degli
+            # switch (26px) e carattere medio uniforme, niente bottoni
+            # giganti ne' scritte microscopiche
+            _CSS9 = "font-size:12px; padding:1px 6px;"
             grid.addWidget(QLabel("Map mode"), row_i, 0)
             self.cb_mmode = _QCB9()
             self.cb_mmode.addItems(["Full", "GPS", "Adaptive"])
-            self.cb_mmode.setFixedWidth(100)
+            self.cb_mmode.setFixedSize(100, 26)
+            self.cb_mmode.setStyleSheet(_CSS9)
             grid.addWidget(self.cb_mmode, row_i, 1)
             row_i += 1
             grid.addWidget(QLabel("GPS zoom"), row_i, 0)
@@ -236,7 +241,8 @@ class ConfigWindow(QDialog):
             self.sp_mzoom.setRange(1.0, 25.0)   # niente limiti stretti
             self.sp_mzoom.setSingleStep(0.5)
             self.sp_mzoom.setValue(5.5)
-            self.sp_mzoom.setFixedWidth(80)
+            self.sp_mzoom.setFixedSize(80, 26)
+            self.sp_mzoom.setStyleSheet(_CSS9)
             grid.addWidget(self.sp_mzoom, row_i, 1)
             row_i += 1
             # soglia della battaglia in SECONDI di gap (rich. 24/07)
@@ -245,7 +251,8 @@ class ConfigWindow(QDialog):
             self.sp_again.setRange(0.5, 10.0)
             self.sp_again.setSingleStep(0.5)
             self.sp_again.setValue(1.0)
-            self.sp_again.setFixedWidth(80)
+            self.sp_again.setFixedSize(80, 26)
+            self.sp_again.setStyleSheet(_CSS9)
             grid.addWidget(self.sp_again, row_i, 1)
             row_i += 1
             # nomi piloti (3 lettere stile F1) accanto ai pallini
