@@ -134,7 +134,7 @@ class MapCanvas(QWidget):
     def __init__(self, scale=1.0):
         super().__init__()
         self._scale = scale
-        self._size = round(380 * scale)
+        self._size = round(500 * scale)   # finestra LARGA (24/07)
         try:
             _layout = get_config().widget("map").get("map_layout", 1)
         except Exception:
@@ -550,7 +550,7 @@ class MapCanvas(QWidget):
         p.setRenderHint(QPainter.Antialiasing)
         w = self.width(); h = self.height()
         sc = self._scale
-        pad = 76 * sc   # aria DOPPIA intorno alla mappa (rich. 24/07)
+        pad = 74 * sc   # finestra 500 - pad 74 = pista IDENTICA a prima
 
         if not self._path:
             p.setPen(QPen(QColor("#8a8a90")))
