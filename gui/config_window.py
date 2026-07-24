@@ -271,6 +271,30 @@ class ConfigWindow(QDialog):
             grid.addWidget(QLabel("Dark track"), row_i, 0)
             grid.addWidget(self._make_toggle("darktrack"), row_i, 1)
             row_i += 1
+            # ── GESTORE MAPPE REGISTRATE (rich. 24/07): elenco col
+            # nome pista + Delete: giro sporco? la cancelli e la
+            # rifai al giro dopo, senza toccare cartelle ──
+            from PySide6.QtWidgets import (QPushButton as _QPB9,
+                                           QHBoxLayout as _QHL9,
+                                           QWidget as _QW9)
+            grid.addWidget(QLabel("Maps"), row_i, 0)
+            _wrap9 = _QW9()
+            _hl9 = _QHL9(_wrap9)
+            _hl9.setContentsMargins(0, 0, 0, 0)
+            _hl9.setSpacing(4)
+            self.cb_maps = _QCB9()
+            self.cb_maps.setFixedSize(150, 26)
+            self.cb_maps.setStyleSheet(_CSS9)
+            _bt9 = _QPB9("Delete")
+            _bt9.setFixedSize(58, 26)
+            _bt9.setStyleSheet(_CSS9)
+            _bt9.setCursor(Qt.PointingHandCursor)
+            _bt9.clicked.connect(self._map_delete9)
+            _hl9.addWidget(self.cb_maps)
+            _hl9.addWidget(_bt9)
+            grid.addWidget(_wrap9, row_i, 1)
+            row_i += 1
+            self._maps_refresh9()
         # wec26mfd (Dashboard): AUTO PIT (i Mod 1-8 si gestiscono in overlay)
         elif self._key == "wec26mfd":
             # Il muretto scrive la Virtual Energy nel pit menu. Salva SUBITO in
@@ -586,6 +610,35 @@ class ConfigWindow(QDialog):
         # spinge le due colonne a sinistra
         g.setColumnStretch(4, 1)
         return wrap
+
+    def _maps_refresh9(self):
+        """Riempie l'elenco delle mappe auto-registrate dell'utente."""
+        try:
+            from core.paths import USER_DIR
+            self.cb_maps.clear()
+            d = USER_DIR / "trackmap_auto"
+            if d.exists():
+                for f in sorted(d.glob("*.svg")):
+                    n = f.stem
+                    if n.endswith("_2026"):
+                        n = n[:-5]
+                    self.cb_maps.addItem(n, str(f))
+            if self.cb_maps.count() == 0:
+                self.cb_maps.addItem("(no maps yet)", "")
+        except Exception:
+            pass
+
+    def _map_delete9(self):
+        """Cancella la mappa selezionata: al giro pulito dopo si
+        riscrive da sola (corsia compresa al passaggio in pit)."""
+        try:
+            from pathlib import Path
+            fp = self.cb_maps.currentData()
+            if fp:
+                Path(fp).unlink(missing_ok=True)
+            self._maps_refresh9()
+        except Exception:
+            pass
 
     def _make_toggle(self, name):
         """Switch singolo compatto ON/OFF per una feature."""
