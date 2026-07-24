@@ -10075,11 +10075,12 @@ class _TrackPage(QWidget):
         except Exception:
             self._title.setText((name or "").upper())
         try:
-            # PRIMA la mappa VERA _2026 (rich. 24/07): circuito reale
-            # con cordoli/settori/nomi curve; la stilizzata resta il
-            # fallback (e resta SEMPRE sulle card del menu)
-            if not self._map.set_real(name):
-                self._map.set_map(mapname, _MAP_ROTATION.get(base or "", 0))
+            # 24/07 sera, decisione finale: la pagina classifiche resta
+            # con la SVG stilizzata delle card ("com'era prima"); le
+            # mappe VERE vivono su overlay in pista e telemetria.
+            # Il disegnatore reale (set_real/_paint_real) resta
+            # dormiente, collaudato, riattivabile con questa riga.
+            self._map.set_map(mapname, _MAP_ROTATION.get(base or "", 0))
         except Exception:
             pass
         self._trk = self._trk_slug(name)     # slug per le chiavi online
